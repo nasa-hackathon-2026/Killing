@@ -664,3 +664,48 @@ def test_seed_regions_match_the_default_regions_and_carry_bbox_and_geojson():
         (r.id, r.bbox) for r in DEFAULT_REGIONS
     ]
     assert all(r["geojson"]["geometry"]["type"] == "Polygon" for r in regions)
+
+
+def test_area_job_starts_at_the_first_month_the_product_has_data(tmp_path: Path):
+    # AIRS、OMI 的第一筆晚於 2001-01；Harmony 會拒絕更早的起始日
+    submitted: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/quota":
+            return httpx.Response(200, json={"quota": 0.0})
+        if path.endswith("/rangeset"):
+            submitted.extend(
+                v for k, v in request.url.params.multi_items() if "time" in v
+            )
+            return httpx.Response(200, json={"jobID": "job-1"})
+        if path.startswith("/jobs/"):
+            links = [{"rel": "data", "href": "https://harmony.test/results/out.csv"}]
+            return httpx.Response(200, json={"status": "successful", "links": links})
+        return httpx.Response(200, text=AREA_FIXTURE.read_text(encoding="utf-8"))
+
+    harmony = HarmonyClient(
+        token=SECRET,
+        http=httpx.Client(
+            transport=httpx.MockTransport(handler), base_url="https://harmony.test/"
+        ),
+    )
+    build_snapshot(
+        _client(
+            lambda request: httpx.Response(
+                200, text=_csv("2004-09-01 00:00,-9999", "2004-10-01 00:00,290.5")
+            )
+        ),
+        tmp_path,
+        [TAIR],
+        [TAIWAN_POINT, TAIWAN],
+        harmony_client=harmony,
+        sleep=lambda seconds: None,
+        **RUN,
+    )
+
+    assert submitted == ['time("2004-10-01T00:00:00Z":"2026-11-14T23:59:59Z")']
+    area = json.loads(
+        (tmp_path / "series" / "gldas_tair__taiwan__area_mean.json").read_text()
+    )
+    assert area["request"]["start"] == "2004-10-01"

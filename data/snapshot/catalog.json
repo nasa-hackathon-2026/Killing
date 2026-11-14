@@ -13,6 +13,7 @@
       "is_nasa": true,
       "note_zh": "IMERG Final 只到 2025-09；之後的 Late 版算法不同，不可接續（#4 R5）。",
       "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
+      "harmony_collection": "C2723754851-GES_DISC",
       "unit": "mm/hr",
       "valid_from": "2001-01-01",
       "valid_to": "2025-09-01"
@@ -28,6 +29,7 @@
       "product_version": "2.1",
       "native_temporal_res": "month",
       "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
       "unit": "K",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -43,6 +45,7 @@
       "product_version": "2.1",
       "native_temporal_res": "month",
       "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
       "unit": "kg m-2",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -58,6 +61,7 @@
       "product_version": "2.1",
       "native_temporal_res": "month",
       "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
       "unit": "kg m-2 s-1",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -74,6 +78,7 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。",
+      "harmony_collection": "C1701805662-GES_DISC",
       "unit": "K",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -90,6 +95,7 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。",
+      "harmony_collection": "C1701805662-GES_DISC",
       "unit": "kg/m2",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -105,6 +111,7 @@
       "product_version": "5.12.4",
       "native_temporal_res": "month",
       "is_nasa": true,
+      "harmony_collection": "C1276812823-GES_DISC",
       "unit": "K",
       "valid_from": "2001-01-01",
       "valid_to": "2026-09-01"
@@ -121,6 +128,7 @@
       "native_temporal_res": "day",
       "is_nasa": true,
       "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。",
+      "harmony_collection": "C1266136111-GES_DISC",
       "unit": "molecules/cm^2",
       "valid_from": "2004-10-01",
       "valid_to": "2026-03-01"
@@ -136,6 +144,7 @@
       "product_version": "003",
       "native_temporal_res": "day",
       "is_nasa": true,
+      "harmony_collection": "C1266136070-GES_DISC",
       "unit": "DU",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -151,6 +160,7 @@
       "product_version": "003",
       "native_temporal_res": "day",
       "is_nasa": true,
+      "harmony_collection": "C1266136096-GES_DISC",
       "unit": "1",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -259,9 +269,252 @@
       "lat": 25.04,
       "lon": 121.51,
       "ghcnh_id": "CHM00058968"
+    },
+    {
+      "id": "taiwan",
+      "kind": "region",
+      "name_zh": "臺灣",
+      "name_en": "Taiwan",
+      "bbox": [
+        120.0,
+        21.8,
+        122.1,
+        25.4
+      ],
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "taiwan"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                120.0,
+                21.8
+              ],
+              [
+                122.1,
+                21.8
+              ],
+              [
+                122.1,
+                25.4
+              ],
+              [
+                120.0,
+                25.4
+              ],
+              [
+                120.0,
+                21.8
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "north",
+      "kind": "region",
+      "name_zh": "北部",
+      "name_en": "Northern Taiwan",
+      "bbox": [
+        121.0,
+        24.6,
+        122.1,
+        25.4
+      ],
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "north"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                121.0,
+                24.6
+              ],
+              [
+                122.1,
+                24.6
+              ],
+              [
+                122.1,
+                25.4
+              ],
+              [
+                121.0,
+                25.4
+              ],
+              [
+                121.0,
+                24.6
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "central",
+      "kind": "region",
+      "name_zh": "中部",
+      "name_en": "Central Taiwan",
+      "bbox": [
+        120.2,
+        23.5,
+        121.3,
+        24.6
+      ],
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "central"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                120.2,
+                23.5
+              ],
+              [
+                121.3,
+                23.5
+              ],
+              [
+                121.3,
+                24.6
+              ],
+              [
+                120.2,
+                24.6
+              ],
+              [
+                120.2,
+                23.5
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "south",
+      "kind": "region",
+      "name_zh": "南部",
+      "name_en": "Southern Taiwan",
+      "bbox": [
+        120.0,
+        21.8,
+        121.0,
+        23.5
+      ],
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "south"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                120.0,
+                21.8
+              ],
+              [
+                121.0,
+                21.8
+              ],
+              [
+                121.0,
+                23.5
+              ],
+              [
+                120.0,
+                23.5
+              ],
+              [
+                120.0,
+                21.8
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "east",
+      "kind": "region",
+      "name_zh": "東部",
+      "name_en": "Eastern Taiwan",
+      "bbox": [
+        121.0,
+        22.3,
+        121.8,
+        24.6
+      ],
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "east"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                121.0,
+                22.3
+              ],
+              [
+                121.8,
+                22.3
+              ],
+              [
+                121.8,
+                24.6
+              ],
+              [
+                121.0,
+                24.6
+              ],
+              [
+                121.0,
+                22.3
+              ]
+            ]
+          ]
+        }
+      }
     }
   ],
   "series": [
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/airs_h2ovap__central__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/airs_h2ovap__east__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
     {
       "variable_id": "airs_h2ovap",
       "location_id": "hualien",
@@ -276,6 +529,15 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/airs_h2ovap__kaohsiung__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/airs_h2ovap__south__area_mean.json",
       "n_points": 290,
       "first_month": "2002-09-01",
       "last_month": "2026-10-01"
@@ -300,9 +562,36 @@
     },
     {
       "variable_id": "airs_h2ovap",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/airs_h2ovap__taiwan__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/airs_h2ovap__yushan__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/airs_tsurf__central__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/airs_tsurf__east__area_mean.json",
       "n_points": 290,
       "first_month": "2002-09-01",
       "last_month": "2026-10-01"
@@ -327,6 +616,15 @@
     },
     {
       "variable_id": "airs_tsurf",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/airs_tsurf__south__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
       "location_id": "taichung",
       "aggregation": "point",
       "file": "series/airs_tsurf__taichung__point.json",
@@ -345,12 +643,39 @@
     },
     {
       "variable_id": "airs_tsurf",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/airs_tsurf__taiwan__area_mean.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/airs_tsurf__yushan__point.json",
       "n_points": 290,
       "first_month": "2002-09-01",
       "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/gldas_evap__central__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/gldas_evap__east__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
     },
     {
       "variable_id": "gldas_evap",
@@ -366,6 +691,24 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/gldas_evap__kaohsiung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/gldas_evap__north__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/gldas_evap__south__area_mean.json",
       "n_points": 307,
       "first_month": "2001-01-01",
       "last_month": "2026-07-01"
@@ -390,9 +733,36 @@
     },
     {
       "variable_id": "gldas_evap",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/gldas_evap__taiwan__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/gldas_evap__yushan__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/gldas_soilmoist__central__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/gldas_soilmoist__east__area_mean.json",
       "n_points": 307,
       "first_month": "2001-01-01",
       "last_month": "2026-07-01"
@@ -417,6 +787,24 @@
     },
     {
       "variable_id": "gldas_soilmoist",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/gldas_soilmoist__north__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/gldas_soilmoist__south__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
       "location_id": "taichung",
       "aggregation": "point",
       "file": "series/gldas_soilmoist__taichung__point.json",
@@ -435,9 +823,36 @@
     },
     {
       "variable_id": "gldas_soilmoist",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/gldas_soilmoist__taiwan__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/gldas_soilmoist__yushan__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/gldas_tair__central__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/gldas_tair__east__area_mean.json",
       "n_points": 307,
       "first_month": "2001-01-01",
       "last_month": "2026-07-01"
@@ -462,6 +877,24 @@
     },
     {
       "variable_id": "gldas_tair",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/gldas_tair__north__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/gldas_tair__south__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
       "location_id": "taichung",
       "aggregation": "point",
       "file": "series/gldas_tair__taichung__point.json",
@@ -480,12 +913,39 @@
     },
     {
       "variable_id": "gldas_tair",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/gldas_tair__taiwan__area_mean.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/gldas_tair__yushan__point.json",
       "n_points": 307,
       "first_month": "2001-01-01",
       "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/imerg_precip__central__area_mean.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/imerg_precip__east__area_mean.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
     },
     {
       "variable_id": "imerg_precip",
@@ -501,6 +961,24 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/imerg_precip__kaohsiung__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/imerg_precip__north__area_mean.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/imerg_precip__south__area_mean.json",
       "n_points": 297,
       "first_month": "2001-01-01",
       "last_month": "2025-09-01"
@@ -525,12 +1003,39 @@
     },
     {
       "variable_id": "imerg_precip",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/imerg_precip__taiwan__area_mean.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/imerg_precip__yushan__point.json",
       "n_points": 297,
       "first_month": "2001-01-01",
       "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/merra2_t2m__central__area_mean.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/merra2_t2m__east__area_mean.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
     },
     {
       "variable_id": "merra2_t2m",
@@ -546,6 +1051,24 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/merra2_t2m__kaohsiung__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/merra2_t2m__north__area_mean.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/merra2_t2m__south__area_mean.json",
       "n_points": 309,
       "first_month": "2001-01-01",
       "last_month": "2026-09-01"
@@ -570,12 +1093,39 @@
     },
     {
       "variable_id": "merra2_t2m",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/merra2_t2m__taiwan__area_mean.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/merra2_t2m__yushan__point.json",
       "n_points": 309,
       "first_month": "2001-01-01",
       "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/omi_aerosol__central__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/omi_aerosol__east__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
     },
     {
       "variable_id": "omi_aerosol",
@@ -591,6 +1141,15 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/omi_aerosol__kaohsiung__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/omi_aerosol__south__area_mean.json",
       "n_points": 266,
       "first_month": "2004-10-01",
       "last_month": "2026-11-01"
@@ -615,12 +1174,39 @@
     },
     {
       "variable_id": "omi_aerosol",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/omi_aerosol__taiwan__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/omi_aerosol__yushan__point.json",
       "n_points": 266,
       "first_month": "2004-10-01",
       "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/omi_no2__central__area_mean.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/omi_no2__east__area_mean.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
     },
     {
       "variable_id": "omi_no2",
@@ -636,6 +1222,24 @@
       "location_id": "kaohsiung",
       "aggregation": "point",
       "file": "series/omi_no2__kaohsiung__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/omi_no2__north__area_mean.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/omi_no2__south__area_mean.json",
       "n_points": 258,
       "first_month": "2004-10-01",
       "last_month": "2026-03-01"
@@ -660,12 +1264,39 @@
     },
     {
       "variable_id": "omi_no2",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/omi_no2__taiwan__area_mean.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
       "location_id": "yushan",
       "aggregation": "point",
       "file": "series/omi_no2__yushan__point.json",
       "n_points": 258,
       "first_month": "2004-10-01",
       "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/omi_o3__central__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/omi_o3__east__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
     },
     {
       "variable_id": "omi_o3",
@@ -687,6 +1318,15 @@
     },
     {
       "variable_id": "omi_o3",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/omi_o3__south__area_mean.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
       "location_id": "taichung",
       "aggregation": "point",
       "file": "series/omi_o3__taichung__point.json",
@@ -699,6 +1339,15 @@
       "location_id": "taipei",
       "aggregation": "point",
       "file": "series/omi_o3__taipei__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/omi_o3__taiwan__area_mean.json",
       "n_points": 266,
       "first_month": "2004-10-01",
       "last_month": "2026-11-01"
@@ -777,7 +1426,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T08:24:30Z",
+    "generated_at": "2026-11-14T08:39:37Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",

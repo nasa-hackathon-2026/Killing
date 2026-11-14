@@ -237,11 +237,24 @@ def _area_series_batch(
     job 是非同步的：分批送出、輪詢、下載。有 `raw_dir` 時把 job id 與結果 CSV 記在
     `raw_dir/harmony/`，中斷後同一天重跑會接著等原本的 job，已完成的直接讀 CSV 不重送。
     """
-    units = {
-        s.variable_id: s.unit
-        for s in _series_on_disk(snapshot_dir)
-        if s.aggregation == "point"
-    }
+    point_series = [
+        s for s in _series_on_disk(snapshot_dir) if s.aggregation == "point"
+    ]
+    units = {s.variable_id: s.unit for s in point_series}
+    # Harmony 不接受早於產品第一筆的起始日（AIRS 2002-09、OMI 2004-10），
+    # 所以用同變數點位序列最早有值的月份當起始日。
+    first_months: dict[str, date] = {}
+    for item in point_series:
+        months = [p["month"] for p in item.points if p["value"] is not None]
+        if months:
+            first = date.fromisoformat(min(months))
+            first_months[item.variable_id] = min(
+                first, first_months.get(item.variable_id, first)
+            )
+
+    def start_for(variable: dict[str, Any]) -> date:
+        return max(START_DATE, first_months.get(variable["id"], START_DATE))
+
     state_path = raw_dir / "harmony" / "jobs.json" if raw_dir else None
     state: dict[str, dict[str, str]] = {}
     if state_path is not None and state_path.exists():
@@ -284,7 +297,7 @@ def _area_series_batch(
                     "bbox": region["bbox"],
                     "average": "area",
                     "format": "text/csv",
-                    "start": f"{START_DATE:%Y-%m-%d}",
+                    "start": f"{start_for(variable):%Y-%m-%d}",
                     "end_policy": "run_date",
                 },
                 retrieved_at=now,
@@ -340,7 +353,7 @@ def _area_series_batch(
                     variable["harmony_collection"],
                     variable["source_variable_id"],
                     bbox=region["bbox"],
-                    start=START_DATE,
+                    start=start_for(variable),
                     end=today,
                 )
             except Exception as err:  # noqa: BLE001
@@ -361,14 +374,16 @@ def _area_series_batch(
                 key = (variable["id"], region["id"])
                 name = f"{key[0]}__{key[1]}"
                 try:
-                    status, link = client.job(job_id)
+                    status, link, message = client.job(job_id)
                     if status not in FINISHED:
                         still.append((variable, region, job_id))
                         continue
                     state[name]["status"] = status
                     save_state()
                     if status != "successful" or link is None:
-                        raise HarmonyError(f"job {job_id} 結束狀態是 {status}")
+                        raise HarmonyError(
+                            f"job {job_id} 結束狀態是 {status}：{message[:300]}"
+                        )
                     text = client.download(link)
                 except Exception as err:  # noqa: BLE001
                     result.failures[key] = f"{type(err).__name__}: {err}"

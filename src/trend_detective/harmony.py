@@ -132,13 +132,17 @@ class HarmonyClient:
             raise HarmonyError(f"送出後沒有拿到 jobID：{str(body)[:200]}")
         return body["jobID"]
 
-    def job(self, job_id: str) -> tuple[str, str | None]:
-        """回傳 (狀態, 結果檔連結)；還沒有結果時連結是 None。"""
+    def job(self, job_id: str) -> tuple[str, str | None, str]:
+        """回傳 (狀態, 結果檔連結, 訊息)；還沒有結果時連結是 None。失敗原因在訊息裡。"""
         body = self._json(self._get(f"jobs/{job_id}"))
         links = [
             link["href"] for link in body.get("links", []) if link.get("rel") == "data"
         ]
-        return body.get("status", ""), links[0] if links else None
+        return (
+            body.get("status", ""),
+            links[0] if links else None,
+            str(body.get("message", "")),
+        )
 
     def download(self, url: str) -> str:
         return self._get(url).text

@@ -88,6 +88,7 @@ def test_job_reports_status_and_the_result_file_link_when_finished():
             200,
             json={
                 "status": "successful",
+                "message": "The job has completed successfully",
                 "links": [
                     {"rel": "self", "href": "https://harmony.test/jobs/job-1"},
                     {"rel": "data", "href": "https://harmony.test/results/a.csv"},
@@ -98,6 +99,7 @@ def test_job_reports_status_and_the_result_file_link_when_finished():
     assert _client(handler).job("job-1") == (
         "successful",
         "https://harmony.test/results/a.csv",
+        "The job has completed successfully",
     )
 
 

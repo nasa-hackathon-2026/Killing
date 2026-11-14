@@ -46,6 +46,7 @@ cd <名稱> && scripts/sync-labels.sh
 | AppEEARS（MODIS NDVI、LST） | `data/raw/appeears/<變數 id>/<task_id>/` | `submission.json`（task_id、送出時間、請求參數，不含憑證）、bundle 裡的統計 CSV 與請求 JSON；影像檔（`.nc`）不下載 |
 
 | Giovanni（10 個變數 × 5 點位） | `data/raw/giovanni/<變數 id>__<地點 id>.csv` | `/timeseries` 的原始 CSV 回應 |
+| Harmony（區域平均） | `data/raw/harmony/<變數 id>__<區域 id>.csv`、`jobs.json` | 區域平均的結果 CSV 與 job 紀錄 |
 | NASA POWER（MERRA-2 氣溫） | `data/raw/power/<變數 id>__<地點 id>.json` | API 的原始 JSON 回應 |
 | NOAA GHCNh（測站氣溫） | `data/raw/ghcnh/GHCNh_<站號>_<年>.psv` | 逐時原始檔，約 100 MB；repo 只收錄月平均 |
 
