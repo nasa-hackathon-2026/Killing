@@ -70,7 +70,7 @@ CREATE TABLE src_giovanni (
 );
 CREATE TABLE src_harmony (
     variable_id TEXT NOT NULL, location_id TEXT NOT NULL, timestamp TEXT NOT NULL,
-    value REAL,
+    value REAL, source_column TEXT, bbox_w REAL, bbox_s REAL, bbox_e REAL, bbox_n REAL,
     PRIMARY KEY (variable_id, location_id, timestamp)
 );
 CREATE TABLE src_nasa_power (
@@ -113,6 +113,9 @@ def build_database(snapshot_dir: Path, raw_dir: Path, db_path: Path) -> dict[str
         _insert_harmony(db, all_series, raw_dir / "harmony")
         _insert_power(db, all_series, raw_dir / "power")
         _insert_ghcnh(db, all_series, raw_dir / "ghcnh")
+        violations = db.execute("PRAGMA foreign_key_check").fetchall()
+        if violations:
+            raise ValueError(f"資料庫的外鍵對不上：{violations[:5]}")
         db.commit()
         tables = [
             "variables",
@@ -129,6 +132,29 @@ def build_database(snapshot_dir: Path, raw_dir: Path, db_path: Path) -> dict[str
         db.close()
     partial.replace(db_path)
     return counts
+
+
+def series_without_source_rows(db_path: Path) -> list[tuple[str, str, str]]:
+    """列出來源表裡沒有任何列的序列（原始檔不在這台機器上時會發生）。"""
+    missing: list[tuple[str, str, str]] = []
+    db = sqlite3.connect(db_path)
+    try:
+        rows = db.execute(
+            "SELECT variable_id, location_id, aggregation, source_table FROM series ORDER BY 1, 2, 3"
+        ).fetchall()
+        for variable_id, location_id, aggregation, table in rows:
+            if table not in SOURCE_TABLES.values():
+                missing.append((variable_id, location_id, aggregation))
+                continue
+            found = db.execute(
+                f"SELECT 1 FROM {table} WHERE variable_id = ? AND location_id = ? LIMIT 1",
+                (variable_id, location_id),
+            ).fetchone()
+            if found is None:
+                missing.append((variable_id, location_id, aggregation))
+    finally:
+        db.close()
+    return missing
 
 
 def _insert_lookups(db: sqlite3.Connection, catalog: dict[str, Any]) -> None:
@@ -251,9 +277,16 @@ def _insert_harmony(
             continue
         parsed = parse_area_csv(path.read_text(encoding="utf-8"))
         db.executemany(
-            "INSERT INTO src_harmony VALUES (?,?,?,?)",
+            "INSERT INTO src_harmony VALUES (?,?,?,?,?,?,?,?,?)",
             [
-                (s["variable_id"], s["location_id"], day.isoformat(), value)
+                (
+                    s["variable_id"],
+                    s["location_id"],
+                    day.isoformat(),
+                    value,
+                    parsed.column,
+                    *(parsed.bbox if len(parsed.bbox) == 4 else [None] * 4),
+                )
                 for day, value in parsed.rows
             ],
         )
@@ -327,12 +360,14 @@ def main(argv: list[str] | None = None) -> int:
     counts = build_database(args.snapshot_dir, args.raw_dir, args.db)
     print(args.db)
     for table, count in counts.items():
-        note = (
-            "  ← 找不到這個來源的原始檔"
-            if count == 0 and table.startswith("src_")
-            else ""
+        print(f"  {table:<16} {count:>8}")
+    missing = series_without_source_rows(args.db)
+    if missing:
+        print(
+            f"有 {len(missing)} 條序列在來源表裡沒有資料（{args.raw_dir} 缺原始檔），統一表不受影響："
         )
-        print(f"  {table:<16} {count:>8}{note}")
+        for variable_id, location_id, aggregation in missing[:20]:
+            print(f"  {variable_id} @ {location_id}（{aggregation}）")
     return 0
 
 

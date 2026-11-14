@@ -72,7 +72,9 @@ LST（8 日合成）從 2001 年起一次送會超過 AppEEARS 的檔案數上�
 uv run python -m trend_detective.sqlite_export
 ```
 
-會產生 `data/sqlite/trend_detective.sqlite`（約 30 MB，不進 git：它含各來源原始時間粒度的資料，每次重建整個檔都會變）。
+會產生 `data/sqlite/trend_detective.sqlite`（約 30 MB，不進 git：它含各來源原始時間粒度的資料，每次重建整個檔都會變）。可以用任何 SQLite 工具開（DB Browser for SQLite、VS Code 的 SQLite 擴充、Python 的 `sqlite3`）。
+
+來源表（`src_*`）的資料來自 `data/raw/`，那個目錄也不進 git。只 clone repo 就重建的話，統一表與對照表是完整的，來源表會是空的，指令會列出哪些序列缺原始檔；要有來源表得先用快照指令重抓各來源（見上面「原始資料」）。
 
 | 表 | 每列是什麼 | 用途 |
 |---|---|---|
@@ -87,7 +89,7 @@ uv run python -m trend_detective.sqlite_export
 來源表都有 `variable_id`、`location_id`，可以對回 `observations`。例如確認台中 2020-07 的臭氧月值是哪幾天平均出來的：
 
 ```sql
-SELECT o.month, o.value AS monthly, AVG(g.value) AS from_daily, COUNT(g.value) AS days
+SELECT o.month, ROUND(o.value, 3) AS monthly, ROUND(AVG(g.value), 3) AS from_daily, COUNT(g.value) AS days
 FROM observations o
 JOIN src_giovanni g
   ON g.variable_id = o.variable_id AND g.location_id = o.location_id

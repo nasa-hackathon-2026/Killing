@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+from datetime import date
 from pathlib import Path
 
 import httpx
@@ -10,14 +11,11 @@ import pytest
 from trend_detective.giovanni import GiovanniClient
 from trend_detective.harmony import HarmonyClient
 from trend_detective.snapshot import build_snapshot
-from trend_detective.sqlite_export import build_database
+from trend_detective.sqlite_export import build_database, series_without_source_rows
 
 FIXTURES = Path(__file__).parent / "fixtures"
 SECRET = "secret-token-value"
-RUN = {
-    "today": __import__("datetime").date(2026, 11, 14),
-    "now": "2026-11-14T08:00:00Z",
-}
+RUN = {"today": date(2026, 11, 14), "now": "2026-11-14T08:00:00Z"}
 
 VARIABLES = [
     {
@@ -219,3 +217,27 @@ def test_rebuilding_replaces_the_database_with_the_same_content(built):
 
     assert _query(db_path, "SELECT COUNT(*) FROM observations") == before
     assert counts["observations"] == before[0][0]
+
+
+def test_harmony_source_rows_keep_the_original_column_name_and_bbox(built):
+    _, _, db_path = built
+
+    assert _query(
+        db_path, "SELECT DISTINCT source_column, bbox_w, bbox_n FROM src_harmony"
+    ) == [("mean_GLDAS_NOAH025_M_2_1_Tair_f_inst", 120.0, 25.4)]
+
+
+def test_without_raw_files_the_unified_table_is_complete_and_the_gap_is_reported(
+    built, tmp_path: Path
+):
+    snapshot_dir, raw_dir, _ = built
+    (raw_dir / "giovanni" / "imerg_precip__taichung.csv").unlink()
+    db_path = tmp_path / "partial.sqlite"
+
+    counts = build_database(snapshot_dir, raw_dir, db_path)
+
+    assert counts["src_giovanni"] == 0
+    assert counts["observations"] > 0
+    assert series_without_source_rows(db_path) == [
+        ("imerg_precip", "taichung", "point")
+    ]
