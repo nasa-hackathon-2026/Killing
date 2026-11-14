@@ -8,6 +8,7 @@
     uv run python -m trend_detective.pg load       # 清空六個 schema、跑 migration、載入全部資料
     uv run python -m trend_detective.pg clean      # 旗標、距平、補值、清洗摘要
     uv run python -m trend_detective.pg export     # cleaning.json、db/schema.sql、資料 dump
+    uv run python -m trend_detective.pg analysis   # 把趨勢與探勘的結果檔寫回 analysis.*（#85）
     uv run python -m trend_detective.pg status     # 各表列數
 
 `load` 每次都從頭重建（先 DROP 六個 schema），所以是冪等的。輸入與 SQLite 匯出相同：
@@ -1038,6 +1039,228 @@ def export(
     return written
 
 
+# ---------------------------------------------------------------- 趨勢與探勘的結果
+
+
+def _trend_rows(
+    content: dict[str, Any], ids: dict[str, int], run_id: int
+) -> list[tuple[Any, ...]]:
+    group_by = (content.get("fdr") or {}).get("group_by", "all")
+    rows = []
+    for key, item in content["series"].items():
+        if key not in ids:
+            continue
+        data = item["data"]
+        ols = item.get("ols") or {}
+        mk = item.get("mann_kendall") or {}
+        ci = ols.get("ci_per_decade") or [None, None]
+        scope = (
+            "all series of the run"
+            if group_by == "all"
+            else f"{group_by} = {item[group_by]}"
+        )
+        rows.append(
+            (
+                ids[key],
+                run_id,
+                item["status"],
+                (item.get("reason") or {}).get("code"),
+                data.get("first_month"),
+                data.get("last_month"),
+                data.get("n_valid"),
+                data.get("missing_fraction"),
+                ols.get("slope_per_decade"),
+                ci[0],
+                ci[1],
+                ols.get("p"),
+                ols.get("p_fdr"),
+                ols.get("significant"),
+                ols.get("significant_fdr"),
+                ols.get("lag1_autocorrelation"),
+                ols.get("n_effective"),
+                (mk.get("original") or {}).get("p"),
+                (mk.get("original") or {}).get("p_fdr"),
+                (mk.get("hamed_rao") or {}).get("p"),
+                (mk.get("hamed_rao") or {}).get("p_fdr"),
+                (mk.get("seasonal") or {}).get("p"),
+                (mk.get("seasonal") or {}).get("p_fdr"),
+                (item.get("sen") or {}).get("slope_per_decade"),
+                scope,
+                bool(item.get("auxiliary", False)),
+                item.get("known_issues", []),
+                Jsonb(item.get("cleaning", {})),
+                Jsonb(item),
+            )
+        )
+    return rows
+
+
+def load_analysis(
+    env_file: Path, *, analysis_dir: Path, extended_dir: Path | None
+) -> dict[str, int]:
+    """把趨勢與探勘的結果檔寫回 `analysis.*`（整批換新）。檔案不在的部分略過。"""
+    counts: dict[str, int] = {}
+    with connect(env_file) as conn:
+        conn.execute(
+            "TRUNCATE analysis.trends, analysis.mining_runs, analysis.mining_rules,"
+            " analysis.tree_folds"
+        )
+        ids = {
+            (tier, f"{variable}__{location}__{aggregation}"): series_id
+            for series_id, tier, variable, location, aggregation in conn.execute(
+                "SELECT series_id, tier, variable_id, location_id, aggregation"
+                " FROM meta.series"
+            )
+        }
+        sources = [("core", analysis_dir / "trends.json")]
+        if extended_dir is not None:
+            sources.append(("extended", extended_dir / "analysis" / "trends.json"))
+        for tier, path in sources:
+            if not path.exists():
+                continue
+            started = datetime.now(UTC)
+            content = _load(path)
+            tier_ids = {key: sid for (t, key), sid in ids.items() if t == tier}
+            run_id = record_run(
+                conn,
+                f"trends_{tier}",
+                started,
+                {
+                    "file": path.as_posix(),
+                    "parameters": content["parameters"],
+                    "fdr": content.get("fdr", {"group_by": "all"}),
+                    "cleaning": content.get("cleaning"),
+                    "packages": content["packages"],
+                },
+                {"summary": content["summary"]},
+            )
+            rows = _trend_rows(content, tier_ids, run_id)
+            with conn.cursor() as cursor:
+                cursor.executemany(
+                    _sql(
+                        f"INSERT INTO analysis.trends VALUES ({','.join(['%s'] * 29)})"
+                    ),
+                    rows,
+                )
+            counts[f"analysis.trends ({tier})"] = len(rows)
+        rules_path = analysis_dir / "fpgrowth.json"
+        if rules_path.exists():
+            started = datetime.now(UTC)
+            content = _load(rules_path)
+            sensitivity = content.get("gap_filling_sensitivity", {})
+            summary = {
+                kind: {
+                    timing: {
+                        name: table[timing][name]
+                        for name in (
+                            "n_transactions",
+                            "n_candidate_rules",
+                            "n_rules",
+                            "n_persistence_rules",
+                        )
+                    }
+                    for timing in ("same_month", "lagged_one_month")
+                }
+                for kind, table in content["tables"].items()
+            }
+            run_id = record_run(
+                conn,
+                "fpgrowth",
+                started,
+                {"file": rules_path.as_posix(), "parameters": content["parameters"]},
+                {"summary": summary},
+            )
+            conn.execute(
+                "INSERT INTO analysis.mining_runs VALUES (%s, 'fpgrowth', %s, %s, %s, %s)",
+                (
+                    run_id,
+                    sensitivity.get("primary", "unfilled"),
+                    Jsonb(content["parameters"]),
+                    Jsonb(summary),
+                    Jsonb(sensitivity),
+                ),
+            )
+            rule_rows = [
+                (
+                    run_id,
+                    kind,
+                    timing,
+                    rule_set,
+                    rank,
+                    rule["antecedents"],
+                    rule["consequent"],
+                    rule["support"],
+                    rule["confidence"],
+                    rule["lift"],
+                    rule["p"],
+                    rule["q"],
+                )
+                for kind, table in content["tables"].items()
+                for timing in ("same_month", "lagged_one_month")
+                for rule_set in ("rules", "persistence_rules")
+                for rank, rule in enumerate(table[timing][rule_set], start=1)
+            ]
+            with conn.cursor() as cursor:
+                cursor.executemany(
+                    "INSERT INTO analysis.mining_rules VALUES"
+                    " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    rule_rows,
+                )
+            counts["analysis.mining_rules"] = len(rule_rows)
+        tree_path = analysis_dir / "decision_tree.json"
+        if tree_path.exists():
+            started = datetime.now(UTC)
+            content = _load(tree_path)
+            sensitivity = content.get("gap_filling_sensitivity", {})
+            primary = sensitivity.get("primary", "unfilled")
+            run_id = record_run(
+                conn,
+                "decision_tree",
+                started,
+                {"file": tree_path.as_posix(), "parameters": content["parameters"]},
+                {"summary": content["summary"]},
+            )
+            conn.execute(
+                "INSERT INTO analysis.mining_runs VALUES"
+                " (%s, 'decision_tree', %s, %s, %s, %s)",
+                (
+                    run_id,
+                    primary,
+                    Jsonb(content["parameters"]),
+                    Jsonb(content["summary"]),
+                    Jsonb(sensitivity),
+                ),
+            )
+            trees = {fold["fold"]: fold.get("tree") for fold in content["folds"]}
+            fold_rows = [
+                (
+                    run_id,
+                    variant,
+                    fold["fold"],
+                    fold["test_first_month"],
+                    fold["test_last_month"],
+                    fold["n_train"],
+                    fold["n_test"],
+                    fold["test_accuracy"],
+                    fold["train_majority_accuracy"],
+                    fold["test_majority_accuracy"],
+                    fold["persistence_accuracy"],
+                    Jsonb(trees.get(fold["fold"])) if variant == primary else None,
+                )
+                for variant in ("filled", "unfilled")
+                for fold in sensitivity.get(variant, {}).get("folds", [])
+            ]
+            with conn.cursor() as cursor:
+                cursor.executemany(
+                    "INSERT INTO analysis.tree_folds VALUES"
+                    " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    fold_rows,
+                )
+            counts["analysis.tree_folds"] = len(fold_rows)
+        conn.commit()
+    return counts
+
+
 # ---------------------------------------------------------------- CLI
 
 
@@ -1068,6 +1291,15 @@ def main(argv: list[str] | None = None) -> int:
     exporter.add_argument("--dump-dir", type=Path, default=DUMP_DIR)
     exporter.add_argument("--no-dump", action="store_true", help="不寫資料 dump")
     exporter.add_argument("--container", default=CONTAINER)
+    migrator = commands.add_parser(
+        "migrate", help="只跑 migration（可重跑；不清空、不重新載入）"
+    )
+    migrator.add_argument("--migrations-dir", type=Path, default=MIGRATIONS_DIR)
+    results = commands.add_parser(
+        "analysis", help="把趨勢與探勘的結果檔寫回 analysis.*"
+    )
+    results.add_argument("--analysis-dir", type=Path, default=ANALYSIS_DIR)
+    results.add_argument("--extended-dir", type=Path, default=EXTENDED_DIR)
     commands.add_parser("status", help="列出各表列數")
     args = parser.parse_args(argv)
 
@@ -1108,6 +1340,19 @@ def main(argv: list[str] | None = None) -> int:
             container=args.container,
         )
         _print_counts(written.items())
+        return 0
+    if args.command == "migrate":
+        with connect(args.env_file) as conn:
+            print("已套用：" + "、".join(migrate(conn, args.migrations_dir)))
+        return 0
+    if args.command == "analysis":
+        _print_counts(
+            load_analysis(
+                args.env_file,
+                analysis_dir=args.analysis_dir,
+                extended_dir=args.extended_dir,
+            ).items()
+        )
         return 0
     with connect(args.env_file) as conn:
         _print_counts(table_counts(conn).items())

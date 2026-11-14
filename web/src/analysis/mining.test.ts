@@ -8,12 +8,15 @@ import {
   formatQ,
   formatRule,
   formatShare,
+  formatTopRules,
   labelTreeText,
   loadMining,
   nextSort,
+  ruleComparisonRows,
   sortRules,
   visibleRules,
   type Fold,
+  type FpGrowthFile,
   type Rule,
   type RuleSet,
 } from "./mining";
@@ -273,5 +276,61 @@ describe("loadMining", () => {
     ]);
     expect(loaded.rules).toEqual({ file: "fpgrowth.json" });
     expect(loaded.tree).toEqual({ file: "decision_tree.json" });
+  });
+});
+
+describe("gap filling comparison", () => {
+  const comparison = {
+    n_transactions: { filled: 100, unfilled: 100 },
+    n_candidate_rules: { filled: 12, unfilled: 11 },
+    n_rules: { filled: 12, unfilled: 11 },
+    n_listed_rules_in_both: 11,
+    top_rules_compared: 10,
+    top_rules_same_set: true,
+    top_rules_same_order: true,
+  };
+
+  it("lists one row per table and timing", () => {
+    const file = {
+      gap_filling_sensitivity: {
+        primary: "filled",
+        compared_with: "unfilled",
+        tables: {
+          region: {
+            n_missing_cells: { filled: 0, unfilled: 28 },
+            same_month: comparison,
+            lagged_one_month: { ...comparison, top_rules_compared: 0 },
+          },
+        },
+      },
+    } as unknown as FpGrowthFile;
+
+    const rows = ruleComparisonRows(file);
+    expect(rows.map((row) => [row.table, row.timing])).toEqual([
+      ["region", "same month"],
+      ["region", "previous month → this month"],
+    ]);
+    expect(rows[0]?.comparison.n_rules.filled).toBe(12);
+  });
+
+  it("is empty for a file written before the comparison existed", () => {
+    expect(ruleComparisonRows({} as FpGrowthFile)).toEqual([]);
+  });
+
+  it("says whether the top rules agree", () => {
+    expect(formatTopRules(comparison)).toBe("same rules, same order");
+    expect(formatTopRules({ ...comparison, top_rules_same_order: false })).toBe(
+      "same rules, different order",
+    );
+    expect(
+      formatTopRules({
+        ...comparison,
+        top_rules_same_order: false,
+        top_rules_same_set: false,
+      }),
+    ).toBe("different rules");
+    expect(formatTopRules({ ...comparison, top_rules_compared: 0 })).toBe(
+      "no rules",
+    );
   });
 });

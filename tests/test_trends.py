@@ -410,3 +410,89 @@ def test_default_run_has_no_group_fields(tmp_path: Path):
     trends, _ = analyze_snapshot(tmp_path, PARAMS)
 
     assert "fdr" not in trends and "summary_by_group" not in trends
+
+
+def write_cleaning_seed(path: Path) -> Path:
+    path.write_text(
+        json.dumps(
+            {
+                "rules": {
+                    "min_coverage": 0.25,
+                    "outlier_z": 5.0,
+                    "max_linear_gap_months": 2,
+                    "max_fill_fraction": 0.2,
+                },
+                "known_issues": [
+                    {
+                        "id": "temp_step",
+                        "kind": "discontinuity",
+                        "variable_id": "temp",
+                        "period_start": "2001-06-01",
+                        "period_end": "2001-06-01",
+                        "flag_months": True,
+                        "summary_en": "a step",
+                        "source_doc": "docs/x.md",
+                    },
+                    {
+                        "id": "unused",
+                        "kind": "auxiliary",
+                        "variable_pattern": "_ct$",
+                        "summary_en": "counts",
+                        "source_doc": "docs/x.md",
+                    },
+                ],
+            }
+        )
+    )
+    return path
+
+
+def test_cleaned_input_drops_the_unfinished_month_and_carries_the_flags(
+    tmp_path: Path,
+):
+    write_snapshot(tmp_path)
+    path = tmp_path / "series/temp__here__point.json"
+    series = json.loads(path.read_text())
+    last_month = series["points"][-1]["month"]
+    # 最後一個月在取得資料時還沒過完
+    series["retrieved_at"] = f"{last_month[:8]}14T00:00:00Z"
+    path.write_text(json.dumps(series))
+    seed = write_cleaning_seed(tmp_path / "cleaning.json")
+
+    before, _ = analyze_snapshot(tmp_path, PARAMS)
+    after, anomalies = analyze_snapshot(tmp_path, PARAMS, cleaning_seed=seed)
+
+    old = before["series"]["temp__here__point"]
+    new = after["series"]["temp__here__point"]
+    assert new["data"]["n_valid"] == old["data"]["n_valid"] - 1
+    assert new["data"]["n_partial_month"] == 1
+    assert new["data"]["last_month"] < old["data"]["last_month"]
+    assert new["cleaning"]["n_partial_month"] == 1
+    assert new["cleaning"]["n_known_discontinuity"] == 1
+    assert new["known_issues"] == ["temp_step"]
+    assert new["auxiliary"] is False
+    # 既有欄位都還在，方法沒變
+    assert set(old) <= set(new)
+    assert set(old["ols"]) == set(new["ols"])
+    assert (
+        len(anomalies["series"]["temp__here__point"]["values"])
+        == (new["data"]["n_valid"])
+    )
+    # 最上層只列有序列適用的已知問題
+    assert set(after["known_issues"]) == {"temp_step"}
+    assert after["cleaning"]["months_by_flag"]["partial_month"] == 1
+    assert "cleaning" not in before and "known_issues" not in before
+
+
+def test_cleaning_without_flagged_months_gives_the_same_statistics(tmp_path: Path):
+    write_snapshot(tmp_path)
+    seed = write_cleaning_seed(tmp_path / "cleaning.json")
+
+    before, anomalies_before = analyze_snapshot(tmp_path, PARAMS)
+    after, anomalies_after = analyze_snapshot(tmp_path, PARAMS, cleaning_seed=seed)
+
+    for key, old in before["series"].items():
+        new = after["series"][key]
+        for name in ("status", "ols", "mann_kendall", "sen"):
+            assert new.get(name) == old.get(name)
+    assert anomalies_after["series"] == anomalies_before["series"]

@@ -7,14 +7,17 @@ import {
   formatQ,
   formatRule,
   formatShare,
+  formatTopRules,
   labelTreeText,
   loadMining,
   nextSort,
+  ruleComparisonRows,
   sortRules,
   visibleRules,
   type DecisionTreeFile,
   type ExcludedVariable,
   type FpGrowthFile,
+  type MiningResults,
   type Parameters,
   type RuleSort,
   type RuleSortKey,
@@ -376,6 +379,141 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
   );
 }
 
+// Numbers only: how the results change when gaps are filled or left missing.
+function GapFillingSection({ data }: { data: MiningResults }) {
+  const rules = data.rules.gap_filling_sensitivity;
+  const tree = data.tree.gap_filling_sensitivity;
+  if (!rules || !tree) return null;
+  const runs = [rules.primary, rules.compared_with];
+  const filled = tree.filled;
+  const unfilled = tree.unfilled;
+
+  return (
+    <section>
+      <h2>Gap filling: filled and unfilled runs compared</h2>
+      <p className="note">
+        {data.rules.gap_filling_note} The tables and the tree above are the{" "}
+        {rules.primary} run. Trend statistics are never gap-filled.
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>Timing</th>
+              <th className="number">
+                Months filled (interpolated / climatology)
+              </th>
+              {runs.map((run) => (
+                <th key={run} className="number">
+                  Missing cells, {run}
+                </th>
+              ))}
+              {runs.map((run) => (
+                <th key={run} className="number">
+                  Rules, {run}
+                </th>
+              ))}
+              <th className="number">Listed rules in both</th>
+              <th>Top rules</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ruleComparisonRows(data.rules).map((row) => {
+              const filling = data.rules.tables[row.table]?.gap_filling;
+              const cells = rules.tables[row.table]?.n_missing_cells ?? {};
+              return (
+                <tr key={`${row.table} ${row.timing}`}>
+                  <td>{row.table}</td>
+                  <td>{row.timing}</td>
+                  <td className="number">
+                    {filling
+                      ? `${filling.n_filled_linear} / ${filling.n_filled_climatology}`
+                      : "–"}
+                  </td>
+                  {runs.map((run) => (
+                    <td key={run} className="number">
+                      {cells[run] ?? "–"}
+                    </td>
+                  ))}
+                  {runs.map((run) => (
+                    <td key={run} className="number">
+                      {row.comparison.n_rules[run] ?? "–"}
+                    </td>
+                  ))}
+                  <td className="number">
+                    {row.comparison.n_listed_rules_in_both}
+                  </td>
+                  <td>
+                    {formatTopRules(row.comparison)}
+                    {row.comparison.top_rules_compared
+                      ? ` (top ${row.comparison.top_rules_compared})`
+                      : ""}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {filled && unfilled ? (
+        <div className="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Decision tree fold</th>
+                <th className="number">Test rows, filled</th>
+                <th className="number">Tree, filled</th>
+                <th className="number">Test rows, unfilled</th>
+                <th className="number">Tree, unfilled</th>
+                <th className="number">Training-majority guess</th>
+                <th className="number">Test-majority guess</th>
+                <th className="number">Persistence guess</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filled.folds.map((fold, index) => {
+                const other = unfilled.folds[index];
+                return (
+                  <tr key={fold.fold}>
+                    <td>{fold.fold}</td>
+                    <td className="number">{fold.n_test}</td>
+                    <td className="number">
+                      {formatShare(fold.test_accuracy)}
+                    </td>
+                    <td className="number">{other?.n_test ?? "–"}</td>
+                    <td className="number">
+                      {other ? formatShare(other.test_accuracy) : "–"}
+                    </td>
+                    <td className="number">
+                      {formatShare(fold.train_majority_accuracy)}
+                    </td>
+                    <td className="number">
+                      {formatShare(fold.test_majority_accuracy)}
+                    </td>
+                    <td className="number">
+                      {formatShare(fold.persistence_accuracy)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {filled && unfilled ? (
+        <p className="note">
+          Baselines are those of the filled run. Folds above all three
+          baselines: {filled.summary.n_folds_above_all} of {filled.folds.length}{" "}
+          filled, {unfilled.summary.n_folds_above_all} of{" "}
+          {unfilled.folds.length} unfilled. Rows usable for the tree:{" "}
+          {filled.n_complete_rows} filled, {unfilled.n_complete_rows} unfilled.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 export function MiningPage() {
   const state = useAnalysisFile(loadMining);
 
@@ -407,6 +545,7 @@ export function MiningPage() {
           </p>
           <RulesSection file={state.data.rules} />
           <TreeSection file={state.data.tree} />
+          <GapFillingSection data={state.data} />
         </>
       ) : null}
     </main>

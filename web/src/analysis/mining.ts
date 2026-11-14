@@ -46,6 +46,45 @@ export type RuleTable = {
   excluded_variables: ExcludedVariable[];
   same_month: RuleSet;
   lagged_one_month: RuleSet;
+  // Months filled on the anomaly inside the table period (absent in older files)
+  gap_filling?: {
+    n_filled_linear: number;
+    n_filled_climatology: number;
+    n_series_with_filled_months: number;
+  };
+};
+
+// The same run with and without gap filling; keys are "filled" and "unfilled"
+export type RunPair = Record<string, number>;
+
+export type RuleComparison = {
+  n_transactions: RunPair;
+  n_candidate_rules: RunPair;
+  n_rules: RunPair;
+  n_listed_rules_in_both: number;
+  top_rules_compared: number;
+  top_rules_same_set: boolean;
+  top_rules_same_order: boolean;
+};
+
+export type TableComparison = {
+  n_missing_cells: RunPair;
+  same_month: RuleComparison;
+  lagged_one_month: RuleComparison;
+};
+
+export type TreeDigest = {
+  n_complete_rows: number;
+  folds: {
+    fold: number;
+    n_train: number;
+    n_test: number;
+    test_accuracy: number;
+    train_majority_accuracy: number;
+    test_majority_accuracy: number;
+    persistence_accuracy: number;
+  }[];
+  summary: { mean_test_accuracy: number; n_folds_above_all: number };
 };
 
 export type Parameters = Record<
@@ -65,6 +104,12 @@ type FileHeader = {
 export type FpGrowthFile = FileHeader & {
   significance_note: string;
   tables: Record<string, RuleTable>;
+  gap_filling_note?: string;
+  gap_filling_sensitivity?: {
+    primary: string;
+    compared_with: string;
+    tables: Record<string, TableComparison>;
+  };
 };
 
 export type ClassCounts = Record<string, number>;
@@ -122,6 +167,12 @@ export type DecisionTreeFile = FileHeader & {
     mean_test_majority_accuracy: number;
     mean_persistence_accuracy: number;
     text_en: string;
+  };
+  gap_filling_sensitivity?: {
+    primary: string;
+    compared_with: string;
+    filled?: TreeDigest;
+    unfilled?: TreeDigest;
   };
 };
 
@@ -233,6 +284,33 @@ export function sortRules(
 // say "a variable stays in its state" are kept apart and hidden by default.
 export function visibleRules(set: RuleSet, showPersistence: boolean): Rule[] {
   return showPersistence ? [...set.rules, ...set.persistence_rules] : set.rules;
+}
+
+export type RuleComparisonRow = {
+  table: string;
+  timing: string;
+  comparison: RuleComparison;
+};
+
+// One row per table and timing of the filled-against-unfilled comparison.
+export function ruleComparisonRows(file: FpGrowthFile): RuleComparisonRow[] {
+  const tables = file.gap_filling_sensitivity?.tables ?? {};
+  return Object.entries(tables).flatMap(([table, item]) => [
+    { table, timing: "same month", comparison: item.same_month },
+    {
+      table,
+      timing: "previous month → this month",
+      comparison: item.lagged_one_month,
+    },
+  ]);
+}
+
+// "yes" only when the top rules are the same rules in the same order.
+export function formatTopRules(comparison: RuleComparison): string {
+  if (comparison.top_rules_compared === 0) return "no rules";
+  if (comparison.top_rules_same_order) return "same rules, same order";
+  if (comparison.top_rules_same_set) return "same rules, different order";
+  return "different rules";
 }
 
 export function formatParameter(value: Parameters[string]): string {

@@ -1,6 +1,7 @@
 """資料探勘（#55、#59）：用手造的小資料驗證去趨勢、變數篩選、規則檢定與走動驗證，不連網。"""
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +11,7 @@ from trend_detective.mining import (
     MiningParams,
     association_rules,
     build_table,
+    describe_table,
     detrend,
     detrend_table,
     discretize,
@@ -22,6 +24,7 @@ from trend_detective.mining import (
     majority_baselines,
     mine,
     pooled_correlation,
+    run,
     run_decision_tree,
     run_fpgrowth,
     same_month_transactions,
@@ -33,6 +36,8 @@ from trend_detective.mining import (
 )
 
 PARAMS = MiningParams(exclude_variables=())
+# 不補值的做法（#85 之前的行為）：缺的格子留著
+UNFILLED = MiningParams(exclude_variables=(), fill_gaps=False)
 
 
 def anomalies_file(series: dict[str, tuple[str, list[float | None]]]) -> dict:
@@ -78,7 +83,7 @@ def test_table_uses_the_common_period_and_one_kind_of_series():
             "a__s1__station": ("2020-01-01", [1.0, 1.0, 1.0, 1.0]),
         }
     )
-    table = build_table(data, None, "point", PARAMS)
+    table = build_table(data, None, "point", UNFILLED)
 
     assert table.locations == ["p1"]
     assert table.variables == ["a", "b"]
@@ -196,7 +201,7 @@ def test_pooled_correlation_uses_months_where_both_variables_have_values():
             "b__p2__point": ("2020-01-01", [20.0, 1.0, None, None]),
         }
     )
-    table = build_table(data, None, "point", PARAMS)
+    table = build_table(data, None, "point", UNFILLED)
 
     assert pooled_correlation(table, "a", "b") == (pytest.approx(1.0), 4)
 
@@ -703,7 +708,7 @@ def test_rows_with_a_missing_feature_are_left_out_and_counted():
     data = tree_data()
     data["series"]["x__r1__area_mean"]["values"][3] = None
     del data["series"]["noise__r2__area_mean"]
-    result = run_decision_tree(data, None, TREE_PARAMS)
+    result = run_decision_tree(data, None, replace(TREE_PARAMS, fill_gaps=False))
 
     # 位置 3 缺 x：那個月的列與下一個月（要用它當前一個月）的列都不能用
     # （r2 缺 noise 整條序列，一列都不成）
@@ -807,3 +812,91 @@ def test_command_default_drops_the_near_duplicate_and_records_it(tmp_path: Path)
 def test_command_explains_when_anomalies_are_missing(tmp_path: Path, capsys):
     assert main(["--analysis-dir", str(tmp_path)]) == 1
     assert "trend_detective.trends" in capsys.readouterr().out
+
+
+def gappy_data() -> dict:
+    """a 有一個月的短缺口與四個月的長缺口；b 完整；c 缺太多。"""
+    a: list[float | None] = [float(i) for i in range(40)]
+    a[5] = None
+    for i in (20, 21, 22, 23):
+        a[i] = None
+    c: list[float | None] = [1.0, *[None] * 20, *[2.0] * 19]
+    return anomalies_file(
+        {
+            "a__p1__point": ("2020-01-01", a),
+            "b__p1__point": ("2020-01-01", [float(i % 7) for i in range(40)]),
+            "c__p1__point": ("2020-01-01", c),
+        }
+    )
+
+
+def test_gaps_are_filled_on_the_anomaly_before_the_table_is_built():
+    table = build_table(gappy_data(), None, "point", PARAMS)
+
+    a = table.values["p1"]["a"]
+    assert not np.isnan(a).any()
+    assert a[5] == pytest.approx(5.0)  # 短缺口：4 與 6 之間線性內插
+    assert a[20:24].tolist() == [0.0] * 4  # 長缺口：距平 0（月氣候值）
+    assert table.filled[("p1", "a")] == {"linear": 1, "climatology": 4}
+    assert describe_table(table)["gap_filling"] == {
+        "n_filled_linear": 1,
+        "n_filled_climatology": 4,
+        "n_series_with_filled_months": 1,
+    }
+    # 補值比例超過門檻的序列不進表
+    assert table.variables == ["a", "b"]
+    assert table.dropped_series == [
+        {"variable_id": "c", "location_id": "p1", "reason": "too_many_filled"}
+    ]
+
+
+def test_without_filling_the_gaps_stay_missing():
+    table = build_table(gappy_data(), None, "point", UNFILLED)
+
+    assert int(np.isnan(table.values["p1"]["a"]).sum()) == 5
+    assert table.variables == ["a", "b", "c"]
+    assert describe_table(table)["gap_filling"]["n_series_with_filled_months"] == 0
+
+
+def test_filling_does_not_extrapolate_beyond_a_series():
+    data = anomalies_file(
+        {
+            "a__p1__point": ("2020-03-01", [1.0, None, 3.0, 4.0, 5.0, 6.0, 7.0]),
+            "b__p1__point": ("2020-01-01", [float(i) for i in range(12)]),
+        }
+    )
+    table = build_table(data, None, "point", PARAMS)
+
+    # 共同期間仍是 a 自己有資料的 2020-03 至 2020-09，沒有往前後延伸
+    assert table.months[0] == "2020-03-01" and table.months[-1] == "2020-09-01"
+    assert table.values["p1"]["a"].tolist() == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
+
+
+def test_both_result_files_compare_the_filled_and_unfilled_runs():
+    data = tree_data()
+    data["series"]["x__r1__area_mean"]["values"][3] = None
+    rules, tree = run(data, None, TREE_PARAMS, {"x": "X", "noise": "Noise", "y": "Y"})
+
+    assert rules["parameters"]["fill_gaps"] is True
+    comparison = rules["gap_filling_sensitivity"]
+    assert (comparison["primary"], comparison["compared_with"]) == (
+        "filled",
+        "unfilled",
+    )
+    region = comparison["tables"]["region"]
+    assert region["n_missing_cells"] == {"filled": 0, "unfilled": 1}
+    same_month = region["same_month"]
+    assert (
+        same_month["n_rules"]["filled"]
+        == rules["tables"]["region"]["same_month"]["n_rules"]
+    )
+    assert same_month["top_rules"][0]["rank_filled"] == 1
+    digest = tree["gap_filling_sensitivity"]
+    # 補值後多兩列可用（缺的那個月與它的下一個月）
+    assert (
+        digest["filled"]["n_complete_rows"] == digest["unfilled"]["n_complete_rows"] + 2
+    )
+    assert [fold["test_accuracy"] for fold in digest["filled"]["folds"]] == [
+        fold["accuracy"]["test"] for fold in tree["folds"]
+    ]
+    assert len(digest["unfilled"]["folds"]) == len(tree["folds"])

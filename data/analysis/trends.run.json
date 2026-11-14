@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.trends",
-  "generated_at": "2026-11-14T19:07:16Z",
+  "generated_at": "2026-11-14T21:17:59Z",
   "input": {
     "snapshot": "data/snapshot",
     "snapshot_generated_at": "2026-11-14T13:02:25Z"
@@ -51,5 +51,34 @@
       }
     },
     "n_ols_uncorrected_significant": 101
+  },
+  "cleaning": {
+    "seed": "data/seed/cleaning.json",
+    "rules": {
+      "min_coverage": 0.25,
+      "outlier_z": 5.0,
+      "max_linear_gap_months": 2,
+      "max_fill_fraction": 0.2
+    },
+    "unusable_flags": [
+      "missing",
+      "partial_month",
+      "low_coverage"
+    ],
+    "marked_only_flags": [
+      "outlier_suspect",
+      "known_discontinuity"
+    ],
+    "months_by_flag": {
+      "missing": 111,
+      "partial_month": 23,
+      "low_coverage": 307,
+      "outlier_suspect": 280,
+      "known_discontinuity": 150,
+      "ok": 38483
+    },
+    "n_series_auxiliary": 0,
+    "n_series_with_known_issues": 40,
+    "note": "Months flagged missing, partial_month or low_coverage are not used; nothing is gap-filled for the trend tests. outlier_suspect and known_discontinuity months are used and only marked. A month can carry more than one flag. Flags and known issues do not change any value or test."
   }
 }

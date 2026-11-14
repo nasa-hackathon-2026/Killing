@@ -13,7 +13,7 @@ import numpy as np
 import psycopg
 import pytest
 
-from trend_detective import cleaning, pg
+from trend_detective import cleaning, pg, trends
 
 TEST_DATABASE = "trend_detective_test"
 pytestmark = [
@@ -298,10 +298,8 @@ def test_summary_views_and_run_log(database: psycopg.Connection[Any]) -> None:
         "SELECT count(*) FROM clean.mining_input WHERE variable_id = 'soil_ct'",
     ) == [(242,)]
     assert _all(database, "SELECT count(*) FROM clean.monthly_climatology") == [(24,)]
-    assert [row[0] for row in _all(database, "SELECT step FROM analysis.runs ORDER BY run_id")] == [
-        "load",
-        "clean",
-    ]  # fmt: skip
+    steps = _all(database, "SELECT step FROM analysis.runs ORDER BY run_id")
+    assert [row[0] for row in steps][:2] == ["load", "clean"]
     exported = pg.cleaning_summary(database, "core")
     assert exported["totals"]["all"]["n_series"] == 2
     assert exported["totals"]["all"]["n_filled"] == 7
@@ -363,3 +361,54 @@ def test_nearest_queries_and_fuzzy_search(database: psycopg.Connection[Any]) -> 
         database,
         'SELECT count(*) FROM meta.series WHERE request @> \'{"variable": "TAIR"}\'',
     ) == [(1,)]
+
+
+def test_trend_results_are_written_back_and_agree_with_the_cleaned_table(
+    database: psycopg.Connection[Any], inputs: dict[str, Path]
+) -> None:
+    """趨勢統計直接從序列檔清洗（不連資料庫）；寫回後可用月數要和 `clean.*` 一致。"""
+    analysis_dir = inputs["root"] / "analysis"
+    result, anomalies = trends.analyze_snapshot(
+        inputs["snapshot"], trends.TrendParams(), cleaning_seed=inputs["seed"]
+    )
+    trends.write_outputs(
+        analysis_dir, result, anomalies, generated_at="2021-03-10T00:00:00Z"
+    )
+    counts = pg.load_analysis(pg.ENV_FILE, analysis_dir=analysis_dir, extended_dir=None)
+    assert counts == {"analysis.trends (core)": 2}
+    database.rollback()  # 看得到另一個連線剛寫入的列
+    rows = _all(
+        database,
+        "SELECT s.variable_id, t.status, t.n_valid, q.n_usable, t.auxiliary,"
+        " t.known_issues, (t.cleaning->>'n_partial_month')::int, t.slope_per_decade,"
+        " (t.result->'ols'->>'slope_per_decade')::float8"
+        " FROM analysis.trends t JOIN meta.series s USING (series_id)"
+        " JOIN clean.series_summary q USING (series_id) ORDER BY 1",
+    )
+    assert [row[0] for row in rows] == ["soil_ct", "tair"]
+    for row in rows:
+        assert row[1] == "analyzed"
+        assert row[2] == row[3]
+        assert row[6] == 1
+        assert row[7] == row[8]
+    assert rows[0][4:6] == (True, ["counts"])
+    assert rows[1][4:6] == (False, ["tair_step"])
+    # 月距平也和資料庫裡的一致
+    key = "soil_ct__taiwan__area_mean"
+    stored = [
+        row[0]
+        for row in _all(
+            database,
+            "SELECT o.anomaly FROM clean.observations o JOIN meta.series s"
+            " USING (series_id) WHERE s.variable_id = 'soil_ct'"
+            " AND o.month BETWEEN %s AND %s ORDER BY o.month",
+            result["series"][key]["data"]["first_month"],
+            result["series"][key]["data"]["last_month"],
+        )
+    ]
+    from_file = anomalies["series"][key]["values"]
+    assert len(stored) == len(from_file)
+    for a, b in zip(stored, from_file, strict=True):
+        assert (a is None and b is None) or a == pytest.approx(b, rel=1e-6)
+    last = _all(database, "SELECT step FROM analysis.runs ORDER BY run_id DESC LIMIT 1")
+    assert last == [("trends_core",)]

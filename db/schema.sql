@@ -230,6 +230,41 @@ CREATE TABLE obs.observations (
 
 
 --
+-- Name: mining_rules; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.mining_rules (
+    run_id bigint NOT NULL,
+    table_kind text NOT NULL,
+    timing text NOT NULL,
+    rule_set text NOT NULL,
+    rank integer NOT NULL,
+    antecedents text[] NOT NULL,
+    consequent text NOT NULL,
+    support double precision,
+    confidence double precision,
+    lift double precision,
+    p double precision,
+    q double precision
+);
+
+
+--
+-- Name: mining_runs; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.mining_runs (
+    run_id bigint NOT NULL,
+    kind text NOT NULL,
+    primary_variant text NOT NULL,
+    parameters jsonb NOT NULL,
+    summary jsonb NOT NULL,
+    gap_filling_sensitivity jsonb NOT NULL,
+    CONSTRAINT mining_runs_kind_check CHECK ((kind = ANY (ARRAY['fpgrowth'::text, 'decision_tree'::text])))
+);
+
+
+--
 -- Name: runs; Type: TABLE; Schema: analysis; Owner: -
 --
 
@@ -256,6 +291,108 @@ ALTER TABLE analysis.runs ALTER COLUMN run_id ADD GENERATED ALWAYS AS IDENTITY (
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
+);
+
+
+--
+-- Name: trends; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.trends (
+    series_id integer NOT NULL,
+    run_id bigint NOT NULL,
+    status text NOT NULL,
+    reason_code text,
+    first_month date,
+    last_month date,
+    n_valid integer,
+    missing_fraction double precision,
+    slope_per_decade double precision,
+    ci_low_per_decade double precision,
+    ci_high_per_decade double precision,
+    ols_p double precision,
+    ols_q double precision,
+    ols_significant boolean,
+    ols_significant_fdr boolean,
+    lag1_autocorrelation double precision,
+    n_effective double precision,
+    mk_original_p double precision,
+    mk_original_q double precision,
+    mk_hamed_rao_p double precision,
+    mk_hamed_rao_q double precision,
+    mk_seasonal_p double precision,
+    mk_seasonal_q double precision,
+    sen_slope_per_decade double precision,
+    fdr_scope text,
+    auxiliary boolean DEFAULT false NOT NULL,
+    known_issues text[] DEFAULT '{}'::text[] NOT NULL,
+    cleaning jsonb DEFAULT '{}'::jsonb NOT NULL,
+    result jsonb NOT NULL
+);
+
+
+--
+-- Name: series; Type: TABLE; Schema: meta; Owner: -
+--
+
+CREATE TABLE meta.series (
+    series_id integer NOT NULL,
+    variable_id text NOT NULL,
+    location_id text NOT NULL,
+    aggregation text NOT NULL,
+    tier text NOT NULL,
+    source_api text NOT NULL,
+    unit text,
+    product_version text,
+    retrieved_at timestamp with time zone,
+    grid_lat double precision,
+    grid_lon double precision,
+    n_points integer NOT NULL,
+    first_month date,
+    last_month date,
+    request jsonb DEFAULT '{}'::jsonb NOT NULL,
+    CONSTRAINT series_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
+);
+
+
+--
+-- Name: significant_trends; Type: VIEW; Schema: analysis; Owner: -
+--
+
+CREATE VIEW analysis.significant_trends AS
+ SELECT s.variable_id,
+    s.location_id,
+    s.aggregation,
+    s.tier,
+    t.slope_per_decade,
+    t.ci_low_per_decade,
+    t.ci_high_per_decade,
+    t.ols_p,
+    t.ols_q,
+    t.known_issues,
+    t.cleaning
+   FROM (analysis.trends t
+     JOIN meta.series s USING (series_id))
+  WHERE (t.ols_significant_fdr AND (NOT t.auxiliary));
+
+
+--
+-- Name: tree_folds; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.tree_folds (
+    run_id bigint NOT NULL,
+    variant text NOT NULL,
+    fold integer NOT NULL,
+    test_first_month date,
+    test_last_month date,
+    n_train integer,
+    n_test integer,
+    test_accuracy double precision,
+    train_majority_accuracy double precision,
+    test_majority_accuracy double precision,
+    persistence_accuracy double precision,
+    tree jsonb
 );
 
 
@@ -308,30 +445,6 @@ CREATE TABLE clean.series_summary (
     auxiliary boolean NOT NULL,
     known_issues text[] NOT NULL,
     detail jsonb NOT NULL
-);
-
-
---
--- Name: series; Type: TABLE; Schema: meta; Owner: -
---
-
-CREATE TABLE meta.series (
-    series_id integer NOT NULL,
-    variable_id text NOT NULL,
-    location_id text NOT NULL,
-    aggregation text NOT NULL,
-    tier text NOT NULL,
-    source_api text NOT NULL,
-    unit text,
-    product_version text,
-    retrieved_at timestamp with time zone,
-    grid_lat double precision,
-    grid_lon double precision,
-    n_points integer NOT NULL,
-    first_month date,
-    last_month date,
-    request jsonb DEFAULT '{}'::jsonb NOT NULL,
-    CONSTRAINT series_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
 );
 
 
@@ -631,11 +744,43 @@ CREATE TABLE raw.planetary_computer (
 
 
 --
+-- Name: mining_rules mining_rules_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.mining_rules
+    ADD CONSTRAINT mining_rules_pkey PRIMARY KEY (run_id, table_kind, timing, rule_set, rank);
+
+
+--
+-- Name: mining_runs mining_runs_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.mining_runs
+    ADD CONSTRAINT mining_runs_pkey PRIMARY KEY (run_id, kind);
+
+
+--
 -- Name: runs runs_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
 --
 
 ALTER TABLE ONLY analysis.runs
     ADD CONSTRAINT runs_pkey PRIMARY KEY (run_id);
+
+
+--
+-- Name: tree_folds tree_folds_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.tree_folds
+    ADD CONSTRAINT tree_folds_pkey PRIMARY KEY (run_id, variant, fold);
+
+
+--
+-- Name: trends trends_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.trends
+    ADD CONSTRAINT trends_pkey PRIMARY KEY (series_id);
 
 
 --
@@ -807,6 +952,20 @@ ALTER TABLE ONLY raw.planetary_computer
 
 
 --
+-- Name: mining_rules_antecedents_gin; Type: INDEX; Schema: analysis; Owner: -
+--
+
+CREATE INDEX mining_rules_antecedents_gin ON analysis.mining_rules USING gin (antecedents);
+
+
+--
+-- Name: trends_significant; Type: INDEX; Schema: analysis; Owner: -
+--
+
+CREATE INDEX trends_significant ON analysis.trends USING btree (ols_significant_fdr) WHERE ols_significant_fdr;
+
+
+--
 -- Name: clean_observations_flagged; Type: INDEX; Schema: clean; Owner: -
 --
 
@@ -923,6 +1082,46 @@ CREATE INDEX noaa_ghcnh_payload_gin ON raw.noaa_ghcnh USING gin (payload jsonb_p
 --
 
 CREATE INDEX planetary_computer_payload_gin ON raw.planetary_computer USING gin (payload jsonb_path_ops);
+
+
+--
+-- Name: mining_rules mining_rules_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.mining_rules
+    ADD CONSTRAINT mining_rules_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: mining_runs mining_runs_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.mining_runs
+    ADD CONSTRAINT mining_runs_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: tree_folds tree_folds_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.tree_folds
+    ADD CONSTRAINT tree_folds_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: trends trends_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.trends
+    ADD CONSTRAINT trends_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: trends trends_series_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.trends
+    ADD CONSTRAINT trends_series_id_fkey FOREIGN KEY (series_id) REFERENCES meta.series(series_id);
 
 
 --

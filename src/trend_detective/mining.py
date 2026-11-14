@@ -43,12 +43,19 @@
    猜訓練期最多的類別、永遠猜測試期最多的類別（事後才知道）、猜「和目標自己前一個月的狀態
    一樣」（持續性）。變數篩選（3）用的是全期資料。
 
+6. 補值（#83、#85，`fill_gaps`，預設開）：寬表需要完整的月份，所以每條序列的距平先照清洗的
+   缺值政策補（`cleaning.fill_anomalies`）：連續缺不超過 `max_linear_gap_months` 個月線性內插，
+   更長的缺口補 0（月氣候值），序列頭尾不外推，不用前一個月的值帶入。補值比例超過
+   `max_fill_fraction` 的序列不放進表。補了多少記在各表的 `gap_filling`。補值會讓規則的交易數
+   與決策樹的可用列數變多，所以每次都另跑一次不補值的版本，比較寫在兩個結果檔的
+   `gap_filling_sensitivity`（規則數、前幾條規則是否相同、各折準確率與基準）。
+
 資料沒變時重跑，結果檔逐位元組相同（時間戳只在執行紀錄）。
 """
 
 import argparse
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
@@ -60,6 +67,7 @@ from mlxtend.frequent_patterns import fpgrowth
 from scipy import stats
 from sklearn.tree import DecisionTreeClassifier
 
+from trend_detective import cleaning
 from trend_detective.trends import (
     ANALYSIS_DIR,
     SNAPSHOT_DIR,
@@ -137,6 +145,11 @@ class MiningParams:
         ("gldas_tair", "merra2_t2m", "airs_tsurf", "power_t2m"),
     )
     tree_random_state: int = 0
+    # 缺值政策（#83）：寬表的距平先補值（短缺口線性內插、長缺口補月氣候值、頭尾不外推）
+    fill_gaps: bool = True
+    max_linear_gap_months: int = 2
+    # 補值比例超過這個值的序列不放進表
+    max_fill_fraction: float = 0.2
 
 
 @dataclass(frozen=True)
@@ -150,6 +163,8 @@ class WideTable:
     variables: list[str]
     values: dict[str, dict[str, np.ndarray]]
     dropped_series: list[dict[str, str]]
+    # 每條序列在自己的全期間補了幾個月（`fill_gaps` 開的時候）：(地點, 變數) → 方法 → 月數
+    filled: dict[tuple[str, str], dict[str, int]] = field(default_factory=dict)
 
     @property
     def months(self) -> list[str]:
@@ -165,6 +180,7 @@ def build_table(
     """從月距平組「地點 × 月份」寬表，期間是表內所有序列共同有資料的起訖月。"""
     aggregation = TABLE_AGGREGATION[kind]
     kept: dict[tuple[str, str], tuple[int, np.ndarray]] = {}
+    filled_cells: dict[tuple[str, str], np.ndarray] = {}
     dropped: list[dict[str, str]] = []
     for key in sorted(anomalies["series"]):
         series = anomalies["series"][key]
@@ -184,6 +200,23 @@ def build_table(
         values = np.array(
             [np.nan if v is None else v for v in series["values"]], dtype=float
         )
+        if params.fill_gaps:
+            values, methods = cleaning.fill_anomalies(
+                values, params.max_linear_gap_months
+            )
+            was_filled = np.array([method is not None for method in methods])
+            if values.size and was_filled.mean() > params.max_fill_fraction:
+                dropped.append(
+                    {
+                        "variable_id": variable,
+                        "location_id": location,
+                        "reason": "too_many_filled",
+                    }
+                )
+                continue
+            filled_cells[(location, variable)] = np.array(
+                [method or "" for method in methods]
+            )
         kept[(location, variable)] = (month_index(series["first_month"]), values)
     if not kept:
         return WideTable(kind, 0, 0, [], [], {}, dropped)
@@ -195,7 +228,18 @@ def build_table(
     table: dict[str, dict[str, np.ndarray]] = {location: {} for location in locations}
     for (location, variable), (start, values) in kept.items():
         table[location][variable] = values[first - start : first - start + n_months]
-    return WideTable(kind, first, n_months, locations, variables, table, dropped)
+    # 補值只數落在表的共同期間內的月份
+    filled = {}
+    for key, methods in filled_cells.items():
+        start = kept[key][0]
+        inside = methods[first - start : first - start + n_months]
+        filled[key] = {
+            name: int((inside == name).sum())
+            for name in (cleaning.FILL_LINEAR, cleaning.FILL_CLIMATOLOGY)
+        }
+    return WideTable(
+        kind, first, n_months, locations, variables, table, dropped, filled
+    )
 
 
 def fit_trend(index: np.ndarray, values: np.ndarray) -> tuple[float, float, int]:
@@ -254,6 +298,7 @@ def detrend_table(table: WideTable) -> WideTable:
         table.variables,
         values,
         table.dropped_series,
+        table.filled,
     )
 
 
@@ -569,6 +614,17 @@ def describe_table(table: WideTable) -> dict[str, Any]:
         "n_cells": cells * table.n_months,
         "n_missing_cells": missing,
         "dropped_series": table.dropped_series,
+        "gap_filling": {
+            "n_filled_linear": sum(
+                item[cleaning.FILL_LINEAR] for item in table.filled.values()
+            ),
+            "n_filled_climatology": sum(
+                item[cleaning.FILL_CLIMATOLOGY] for item in table.filled.values()
+            ),
+            "n_series_with_filled_months": sum(
+                any(item.values()) for item in table.filled.values()
+            ),
+        },
     }
 
 
@@ -938,6 +994,9 @@ def run_decision_tree(
 
 
 COMMON_PARAMS = (
+    "fill_gaps",
+    "max_linear_gap_months",
+    "max_fill_fraction",
     "low_quantile",
     "high_quantile",
     "exclude_variables",
@@ -1006,6 +1065,107 @@ def _header(
     }
 
 
+GAP_FILLING_NOTE = (
+    "Gaps are filled on the monthly anomaly before the table is built: runs of up "
+    "to max_linear_gap_months missing months are linearly interpolated, longer "
+    "runs are set to 0 (the monthly climatology), nothing is extrapolated before "
+    "the first or after the last usable month of a series, and the previous "
+    "month is never carried forward. Series with more than max_fill_fraction of "
+    "their months filled are left out. gap_filling_sensitivity compares this "
+    "run with the same run without filling."
+)
+SENSITIVITY_TOP_RULES = 10
+
+
+def _rule_key(rule: dict[str, Any]) -> tuple[tuple[str, ...], str]:
+    return tuple(rule["antecedents"]), rule["consequent"]
+
+
+def compare_rules(
+    primary: dict[str, Any], other: dict[str, Any], names: tuple[str, str]
+) -> dict[str, Any]:
+    """同一張表、同一種時間設定的兩次探勘（`names` 是兩者的名字，前者是主要結果）。
+
+    比的是結果檔裡列出的規則（最多 `max_rules` 條，依 lift 排序）；`n_rules` 是總數。
+    """
+    first, second = names
+    listed = {name: run["rules"] for name, run in ((first, primary), (second, other))}
+    keys = {name: [_rule_key(rule) for rule in rules] for name, rules in listed.items()}
+    rank_other = {key: i + 1 for i, key in enumerate(keys[second])}
+    lift_other = {_rule_key(rule): rule["lift"] for rule in listed[second]}
+    top = listed[first][:SENSITIVITY_TOP_RULES]
+    top_other = keys[second][:SENSITIVITY_TOP_RULES]
+    return {
+        "n_transactions": {
+            first: primary["n_transactions"],
+            second: other["n_transactions"],
+        },
+        "n_candidate_rules": {
+            first: primary["n_candidate_rules"],
+            second: other["n_candidate_rules"],
+        },
+        "n_rules": {first: primary["n_rules"], second: other["n_rules"]},
+        "n_persistence_rules": {
+            first: primary["n_persistence_rules"],
+            second: other["n_persistence_rules"],
+        },
+        "n_listed_rules_in_both": len(set(keys[first]) & set(keys[second])),
+        f"n_listed_rules_only_{first}": len(set(keys[first]) - set(keys[second])),
+        f"n_listed_rules_only_{second}": len(set(keys[second]) - set(keys[first])),
+        "top_rules_compared": len(top),
+        "top_rules_same_set": set(keys[first][:SENSITIVITY_TOP_RULES])
+        == set(top_other),
+        "top_rules_same_order": keys[first][:SENSITIVITY_TOP_RULES] == top_other,
+        "top_rules": [
+            {
+                "antecedents": rule["antecedents"],
+                "consequent": rule["consequent"],
+                f"rank_{first}": i + 1,
+                f"rank_{second}": rank_other.get(_rule_key(rule)),
+                f"lift_{first}": rule["lift"],
+                f"lift_{second}": lift_other.get(_rule_key(rule)),
+            }
+            for i, rule in enumerate(top)
+        ],
+    }
+
+
+def tree_digest(tree: dict[str, Any]) -> dict[str, Any]:
+    """決策樹一次執行的精簡版：特徵、可用列數、各折的準確率與三種基準、彙總。"""
+    return {
+        "features": tree["features"],
+        "excluded_variables": [
+            item["variable_id"] for item in tree["excluded_variables"]
+        ],
+        "n_complete_rows": sum(
+            item["n_complete_rows"] for item in tree["rows_by_location"].values()
+        ),
+        "folds": [
+            {
+                "fold": fold["fold"],
+                "test_first_month": fold["test_first_month"],
+                "test_last_month": fold["test_last_month"],
+                "n_train": fold["n_train"],
+                "n_test": fold["n_test"],
+                "test_accuracy": fold["accuracy"]["test"],
+                "train_majority_accuracy": fold["baselines"]["train_majority"][
+                    "test_accuracy"
+                ],
+                "test_majority_accuracy": fold["baselines"]["test_majority"][
+                    "test_accuracy"
+                ],
+                "persistence_accuracy": fold["baselines"]["persistence"][
+                    "test_accuracy"
+                ],
+            }
+            for fold in tree["folds"]
+        ],
+        "summary": {
+            key: value for key, value in tree["summary"].items() if key != "text_en"
+        },
+    }
+
+
 def run(
     anomalies: dict[str, Any],
     trends: dict[str, Any] | None,
@@ -1015,17 +1175,63 @@ def run(
     """回傳 (fpgrowth, decision_tree) 兩個要寫出的結構。
 
     `variable_names` 是 id → 英文名，鍵的順序是排除近乎重複變數時的優先順序。
+
+    主要結果照 `params`；另外用相反的 `fill_gaps` 再跑一次，兩者的比較寫在
+    `gap_filling_sensitivity`（其餘參數完全相同）。
     """
     names = variable_names or {}
     priority = tuple(names)
+    other_params = replace(params, fill_gaps=not params.fill_gaps)
+    labels = ("filled", "unfilled") if params.fill_gaps else ("unfilled", "filled")
+    mined = run_fpgrowth(anomalies, trends, params, priority)
+    mined_other = run_fpgrowth(anomalies, trends, other_params, priority)
+    grown = run_decision_tree(anomalies, trends, params, priority)
+    grown_other = run_decision_tree(anomalies, trends, other_params, priority)
+    sensitivity_note = (
+        f"The results in this file are the {labels[0]} run. The {labels[1]} run uses "
+        "the same parameters with fill_gaps switched."
+    )
     rules = {
         **_header(anomalies, params, FPGROWTH_PARAMS, names),
         "significance_note": SIGNIFICANCE_NOTE,
-        **run_fpgrowth(anomalies, trends, params, priority),
+        "gap_filling_note": GAP_FILLING_NOTE,
+        **mined,
+        "gap_filling_sensitivity": {
+            "note": sensitivity_note,
+            "primary": labels[0],
+            "compared_with": labels[1],
+            "tables": {
+                kind: {
+                    "variables": {
+                        labels[0]: table["variables"],
+                        labels[1]: mined_other["tables"][kind]["variables"],
+                    },
+                    "n_missing_cells": {
+                        labels[0]: table["n_missing_cells"],
+                        labels[1]: mined_other["tables"][kind]["n_missing_cells"],
+                    },
+                    **{
+                        timing: compare_rules(
+                            table[timing], mined_other["tables"][kind][timing], labels
+                        )
+                        for timing in ("same_month", "lagged_one_month")
+                    },
+                }
+                for kind, table in mined["tables"].items()
+            },
+        },
     }
     tree = {
         **_header(anomalies, params, TREE_PARAMS, names),
-        **run_decision_tree(anomalies, trends, params, priority),
+        "gap_filling_note": GAP_FILLING_NOTE,
+        **grown,
+        "gap_filling_sensitivity": {
+            "note": sensitivity_note,
+            "primary": labels[0],
+            "compared_with": labels[1],
+            labels[0]: tree_digest(grown),
+            labels[1]: tree_digest(grown_other),
+        },
     }
     return _round(rules), _round(tree)
 
@@ -1048,6 +1254,13 @@ def write_outputs(
                     "n_rules_same_month": table["same_month"]["n_rules"],
                     "n_rules_lagged_one_month": table["lagged_one_month"]["n_rules"],
                     "excluded_variables": table["excluded_variables"],
+                    "gap_filling": table["gap_filling"],
+                    "n_rules_other_run": {
+                        timing: rules["gap_filling_sensitivity"]["tables"][kind][
+                            timing
+                        ]["n_rules"]
+                        for timing in ("same_month", "lagged_one_month")
+                    },
                 }
                 for kind, table in rules["tables"].items()
             },
@@ -1154,6 +1367,15 @@ def main(argv: list[str] | None = None) -> int:
             "（給空字串表示沒有任何組）"
         ),
     )
+    parser.add_argument(
+        "--no-fill",
+        action="store_true",
+        help="主要結果不補值（預設補值；另一種做法的比較一律寫在 gap_filling_sensitivity）",
+    )
+    parser.add_argument(
+        "--max-linear-gap-months", type=int, default=d.max_linear_gap_months
+    )
+    parser.add_argument("--max-fill-fraction", type=float, default=d.max_fill_fraction)
     args = parser.parse_args(argv)
     params = MiningParams(
         low_quantile=args.low_quantile,
@@ -1174,6 +1396,9 @@ def main(argv: list[str] | None = None) -> int:
         rule_alpha=args.rule_alpha,
         max_rules=args.max_rules,
         max_itemsets=args.max_itemsets,
+        fill_gaps=not args.no_fill,
+        max_linear_gap_months=args.max_linear_gap_months,
+        max_fill_fraction=args.max_fill_fraction,
         tree_table=args.tree_table,
         tree_target=args.tree_target,
         tree_max_depth=args.tree_max_depth,

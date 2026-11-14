@@ -8,9 +8,16 @@
 - `anomalies.json`：每條序列的月距平（從第一個可用月份起逐月排列，缺的月份是 null）。
 - `trends.run.json`：執行紀錄（執行時間、輸入快照日、參數、套件版本）。
 
+輸入先經過清洗（#83、#85；`trend_detective.cleaning`，規則與已知問題在 `data/seed/cleaning.json`）：
+`missing`、`partial_month`（取得資料時還沒過完的月份）、`low_coverage` 的月份不用，其餘照用；
+`outlier_suspect` 與 `known_discontinuity` 只標記。每條結果多帶 `cleaning`（各旗標的月數、最長
+缺口）、`known_issues`（適用的已知問題 id，內容在結果檔最上層的 `known_issues`）與 `auxiliary`
+（輔助變數）。統計方法沒有變。清洗是純函式，不需要資料庫；PostgreSQL 的 `clean.observations` 是
+同一個函式算出來的。加 `--no-cleaning` 回到清洗前的輸入（只排除 null 與低覆蓋）。
+
 方法（依據 resources repo 的 `docs/resources/trend-statistics.md`）：
 
-1. 不補值。值是 null 的月份、`coverage` 低於 `min_coverage` 的月份都排除並記數。
+1. 不補值。值是 null 的月份、`coverage` 低於 `min_coverage` 的月份、還沒過完的月份都排除並記數。
 2. 月距平：每個月減去「同一條序列、同一個月份」所有可用年份的平均。
 3. 線性趨勢：距平對時間（年）做最小平方法。斜率的標準誤用殘差的 lag-1 自相關 r1 修正：
    有效樣本數 n_eff = n(1 − r1)/(1 + r1)（Santer et al. 2000），上限 n、下限 3；
@@ -38,7 +45,7 @@ import json
 import math
 import sys
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
@@ -47,6 +54,8 @@ from typing import Any
 import numpy as np
 import pymannkendall as mk
 from scipy import stats
+
+from trend_detective import cleaning
 
 SNAPSHOT_DIR = Path("data/snapshot")
 ANALYSIS_DIR = Path("data/analysis")
@@ -81,6 +90,7 @@ class Prepared:
     n_points: int
     n_null: int
     n_low_coverage: int
+    n_partial_month: int = 0
 
     @property
     def n_valid(self) -> int:
@@ -128,6 +138,20 @@ def prepare(points: list[dict[str, Any]], params: TrendParams) -> Prepared:
         if mask.any():
             anomalies[mask] = values[mask] - values[mask].mean()
     return Prepared(index, values, anomalies, len(points), n_null, n_low)
+
+
+def prepare_cleaned(cleaned: cleaning.CleanedSeries) -> Prepared:
+    """清洗後的序列 → 可用月份（`value_clean` 有值）與月距平；計數沿用原本的欄位。"""
+    usable = ~np.isnan(cleaned.value_clean)
+    return Prepared(
+        index=cleaned.index[usable].astype(int),
+        values=cleaned.value_clean[usable],
+        anomalies=cleaned.anomaly[usable],
+        n_points=int(cleaned.in_source.sum()),
+        n_null=int((cleaned.in_source & np.isnan(cleaned.value_raw)).sum()),
+        n_low_coverage=cleaned.qc_flag.count(cleaning.FLAG_LOW_COVERAGE),
+        n_partial_month=cleaned.qc_flag.count(cleaning.FLAG_PARTIAL),
+    )
 
 
 def lag1_autocorrelation(index: np.ndarray, residuals: np.ndarray) -> float:
@@ -256,7 +280,11 @@ def insufficient_reason(
 
 def analyze_points(points: list[dict[str, Any]], params: TrendParams) -> dict[str, Any]:
     """一條序列的統計結果（還沒有 FDR；FDR 要整批一起算，見 `apply_fdr`）。"""
-    prepared = prepare(points, params)
+    return analyze_prepared(prepare(points, params), params)
+
+
+def analyze_prepared(prepared: Prepared, params: TrendParams) -> dict[str, Any]:
+    """`analyze_points` 的後半：輸入是已經排除不可用月份的序列。"""
     data: dict[str, Any] = {
         "first_month": index_month(int(prepared.index[0]))
         if prepared.n_valid
@@ -401,11 +429,21 @@ def summarize(results: dict[str, dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+CleaningConfig = tuple[cleaning.CleaningRules, list[cleaning.KnownIssue]]
+# 每條結果的 `cleaning` 帶哪些清洗摘要欄位
+CLEANING_FIELDS = (
+    "n_months",
+    "n_usable",
+    "n_gaps",
+    "longest_gap_months",
+)
+
+
 def _analyze_entry(
-    job: tuple[Path, dict[str, Any], TrendParams, bool],
+    job: tuple[Path, dict[str, Any], TrendParams, bool, CleaningConfig | None],
 ) -> tuple[str, dict[str, Any], dict[str, Any] | None]:
-    """一條序列：讀檔、算統計量與（需要時）月距平。獨立成函式是為了能丟給行程池。"""
-    snapshot_dir, entry, params, with_anomalies = job
+    """一條序列：讀檔、（清洗、）算統計量與（需要時）月距平。獨立成函式是為了能丟給行程池。"""
+    snapshot_dir, entry, params, with_anomalies, clean_config = job
     series = json.loads((snapshot_dir / entry["file"]).read_text(encoding="utf-8"))
     identity = {
         "variable_id": entry["variable_id"],
@@ -413,18 +451,84 @@ def _analyze_entry(
         "aggregation": entry["aggregation"],
         "unit": series["unit"],
     }
-    result = {**identity, **analyze_points(series["points"], params)}
-    anomaly = None
-    if with_anomalies:
+    extra: dict[str, Any] = {}
+    if clean_config is None:
         prepared = prepare(series["points"], params)
-        if prepared.n_valid:
-            grid = seasonal_grid(prepared.index, prepared.anomalies)
-            anomaly = {
-                **identity,
-                "first_month": index_month(int(prepared.index[0])),
-                "values": [None if math.isnan(v) else float(v) for v in grid],
-            }
+        analysis = analyze_prepared(prepared, params)
+    else:
+        rules, issues = clean_config
+        cleaned = cleaning.clean_series(
+            series["points"],
+            variable_id=entry["variable_id"],
+            aggregation=entry["aggregation"],
+            retrieved_at=series.get("retrieved_at"),
+            rules=rules,
+            issues=issues,
+        )
+        prepared = prepare_cleaned(cleaned)
+        analysis = analyze_prepared(prepared, params)
+        analysis["data"]["n_partial_month"] = prepared.n_partial_month
+        summary = cleaning.summarize(cleaned, rules)
+        extra = {
+            "cleaning": {
+                **{name: summary[name] for name in CLEANING_FIELDS},
+                **{f"n_{flag}": n for flag, n in summary["n_by_any_flag"].items()},
+            },
+            "known_issues": summary["known_issues"],
+            "auxiliary": summary["auxiliary"],
+        }
+    result = {**identity, **analysis, **extra}
+    anomaly = None
+    if with_anomalies and prepared.n_valid:
+        grid = seasonal_grid(prepared.index, prepared.anomalies)
+        anomaly = {
+            **identity,
+            "first_month": index_month(int(prepared.index[0])),
+            "values": [None if math.isnan(v) else float(v) for v in grid],
+        }
     return series_key(entry), result, anomaly
+
+
+def cleaning_overview(
+    results: dict[str, dict[str, Any]],
+    seed: Path,
+    rules: cleaning.CleaningRules,
+    issues: list[cleaning.KnownIssue],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """結果檔最上層的 `cleaning`（規則與全部序列的旗標月數）與 `known_issues`（有序列適用的那些）。"""
+    used = {issue_id for item in results.values() for issue_id in item["known_issues"]}
+    flags = {
+        flag: sum(item["cleaning"][f"n_{flag}"] for item in results.values())
+        for flag in cleaning.FLAGS
+    }
+    overview = {
+        "seed": seed.as_posix(),
+        "rules": asdict(rules),
+        "unusable_flags": list(cleaning.UNUSABLE_FLAGS),
+        "marked_only_flags": [cleaning.FLAG_OUTLIER, cleaning.FLAG_DISCONTINUITY],
+        "months_by_flag": flags,
+        "n_series_auxiliary": sum(item["auxiliary"] for item in results.values()),
+        "n_series_with_known_issues": sum(
+            bool(item["known_issues"]) for item in results.values()
+        ),
+        "note": (
+            "Months flagged missing, partial_month or low_coverage are not used; "
+            "nothing is gap-filled for the trend tests. outlier_suspect and "
+            "known_discontinuity months are used and only marked. A month can "
+            "carry more than one flag. Flags and known issues do not change any "
+            "value or test."
+        ),
+    }
+    known = {
+        issue.id: {
+            key: value
+            for key, value in asdict(issue).items()
+            if key != "id" and value is not None
+        }
+        for issue in issues
+        if issue.id in used
+    }
+    return overview, known
 
 
 def analyze_snapshot(
@@ -434,15 +538,23 @@ def analyze_snapshot(
     fdr_group: str = "all",
     workers: int = 1,
     with_anomalies: bool = True,
+    cleaning_seed: Path | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """讀整份快照，回傳 (trends, anomalies) 兩個要寫出的結構。
 
     `fdr_group`、`workers`、`with_anomalies` 是給擴充資料用的（#68）；預設值下的輸出與
     核心快照原本的結果檔逐位元組相同。
+
+    `cleaning_seed`（#85）有給時，每條序列先照那份規則清洗（`min_coverage` 以 `params` 為準），
+    結果多帶 `cleaning`、`known_issues`、`auxiliary`；沒給就是清洗前的做法。
     """
+    clean_config: CleaningConfig | None = None
+    if cleaning_seed is not None:
+        seed_rules, issues = cleaning.load_seed(cleaning_seed)
+        clean_config = (replace(seed_rules, min_coverage=params.min_coverage), issues)
     catalog = json.loads((snapshot_dir / "catalog.json").read_text(encoding="utf-8"))
     jobs = [
-        (snapshot_dir, entry, params, with_anomalies)
+        (snapshot_dir, entry, params, with_anomalies, clean_config)
         for entry in sorted(catalog["series"], key=series_key)
     ]
     if workers > 1:
@@ -488,6 +600,15 @@ def analyze_snapshot(
                 for name, keys in groups.items()
             },
         }
+    if clean_config is not None and cleaning_seed is not None:
+        overview, known = cleaning_overview(results, cleaning_seed, *clean_config)
+        extra = {**extra, "cleaning": overview, "known_issues": known}
+        auxiliary = {key for key, item in results.items() if item["auxiliary"]}
+        if auxiliary:
+            # 只是換個範圍計數；q 值仍是含輔助變數一起校正的
+            extra["summary_excluding_auxiliary"] = summarize(
+                {k: v for k, v in results.items() if k not in auxiliary}
+            )
     trends = {
         **header,
         "methods": {
@@ -537,7 +658,16 @@ def write_outputs(
     if anomalies is not None:
         _dump(analysis_dir / "anomalies.json", anomalies, compact=True)
         outputs.append("anomalies.json")
-    extra = {key: trends[key] for key in ("fdr", "summary_by_group") if key in trends}
+    extra = {
+        key: trends[key]
+        for key in (
+            "fdr",
+            "summary_by_group",
+            "cleaning",
+            "summary_excluding_auxiliary",
+        )
+        if key in trends
+    }
     _dump(
         analysis_dir / "trends.run.json",
         {
@@ -578,6 +708,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--no-anomalies", action="store_true", help="不寫 anomalies.json"
     )
+    parser.add_argument(
+        "--cleaning-seed",
+        type=Path,
+        default=cleaning.CLEANING_SEED,
+        help="清洗規則與已知問題（預設 data/seed/cleaning.json）",
+    )
+    parser.add_argument(
+        "--no-cleaning",
+        action="store_true",
+        help="不清洗：回到只排除 null 與低覆蓋月份的輸入（#85 之前的做法）",
+    )
     args = parser.parse_args(argv)
     params = TrendParams(
         min_coverage=args.min_coverage,
@@ -592,6 +733,7 @@ def main(argv: list[str] | None = None) -> int:
         fdr_group=args.fdr_group,
         workers=args.workers,
         with_anomalies=not args.no_anomalies,
+        cleaning_seed=None if args.no_cleaning else args.cleaning_seed,
     )
     generated_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     command = "uv run python -m trend_detective.trends"

@@ -56,6 +56,127 @@
     },
     "n_ols_uncorrected_significant": 101
   },
+  "cleaning": {
+    "seed": "data/seed/cleaning.json",
+    "rules": {
+      "min_coverage": 0.25,
+      "outlier_z": 5.0,
+      "max_linear_gap_months": 2,
+      "max_fill_fraction": 0.2
+    },
+    "unusable_flags": [
+      "missing",
+      "partial_month",
+      "low_coverage"
+    ],
+    "marked_only_flags": [
+      "outlier_suspect",
+      "known_discontinuity"
+    ],
+    "months_by_flag": {
+      "missing": 111,
+      "partial_month": 23,
+      "low_coverage": 307,
+      "outlier_suspect": 280,
+      "known_discontinuity": 150,
+      "ok": 38483
+    },
+    "n_series_auxiliary": 0,
+    "n_series_with_known_issues": 40,
+    "note": "Months flagged missing, partial_month or low_coverage are not used; nothing is gap-filled for the trend tests. outlier_suspect and known_discontinuity months are used and only marked. A month can carry more than one flag. Flags and known issues do not change any value or test."
+  },
+  "known_issues": {
+    "gldas_tair_step_2011_05": {
+      "kind": "discontinuity",
+      "summary_en": "Step of about +0.4 K in the global land mean against MERRA-2 (GLDAS minus MERRA-2, 6 months before and after: +0.43 K); the month matches the NCEP GSI/GFS upgrade of 2011-05-09.",
+      "source_doc": "docs/data/gldas-tair-check.md",
+      "variable_id": "gldas_tair",
+      "period_start": "2011-05-01",
+      "period_end": "2011-05-01",
+      "flag_months": true,
+      "issue_ref": "#74"
+    },
+    "gldas_tair_step_2017_07": {
+      "kind": "discontinuity",
+      "summary_en": "Step of about +0.6 K in the global land mean against MERRA-2 (+0.62 K); the month matches the NEMS GFS upgrade of 2017-07-19.",
+      "source_doc": "docs/data/gldas-tair-check.md",
+      "variable_id": "gldas_tair",
+      "period_start": "2017-07-01",
+      "period_end": "2017-07-01",
+      "flag_months": true,
+      "issue_ref": "#74"
+    },
+    "gldas_tair_step_2019_06": {
+      "kind": "discontinuity",
+      "summary_en": "Step of about -0.6 K in the global land mean against MERRA-2 (-0.66 K); the month matches the FV3-based GFS v15.1 of 2019-06-12.",
+      "source_doc": "docs/data/gldas-tair-check.md",
+      "variable_id": "gldas_tair",
+      "period_start": "2019-06-01",
+      "period_end": "2019-06-01",
+      "flag_months": true,
+      "issue_ref": "#74"
+    },
+    "gldas_evap_step_2024_07_2025_06": {
+      "kind": "discontinuity",
+      "summary_en": "From 2024-07 to 2025-06 GLDAS evapotranspiration is higher than FLDAS (about +0.08 to +0.20 mm/day through 2025-05, +0.04 in 2025-06), in the same months in which the GLDAS shortwave forcing is 15 to 32 W m-2 higher than FLDAS.",
+      "source_doc": "docs/data/gldas-water-check.md",
+      "variable_id": "gldas_evap",
+      "period_start": "2024-07-01",
+      "period_end": "2025-06-01",
+      "flag_months": true,
+      "issue_ref": "#79"
+    },
+    "gldas_soilmoist_vs_fldas_sign": {
+      "kind": "product_disagreement",
+      "summary_en": "The 2001-2026 global land trend has the opposite sign in GLDAS (-0.43) and FLDAS (+0.16 kg m-2 per decade); the two series correlate at 0.08. With one comparison product it cannot be told which is closer to the truth. No clear step was found.",
+      "source_doc": "docs/data/gldas-water-check.md",
+      "variable_id": "gldas_soilmoist",
+      "flag_months": false,
+      "issue_ref": "#79, #81"
+    },
+    "modis_lst_pc_missing_composites_2022_10": {
+      "kind": "missing_composites",
+      "summary_en": "Planetary Computer has no Terra MOD11A2 items for the whole of 2022-10, so the series has no point for that month.",
+      "source_doc": "AGENTS.md",
+      "variable_id": "modis_lst_pc",
+      "period_start": "2022-10-01",
+      "period_end": "2022-10-01",
+      "flag_months": false,
+      "issue_ref": "#4"
+    },
+    "modis_lst_point_missing_composites_2022_10": {
+      "kind": "missing_composites",
+      "summary_en": "Planetary Computer has no Terra MOD11A2 items for the whole of 2022-10, so the series has no point for that month. The modis_lst point series are read from Planetary Computer as well (seed point_source); the AppEEARS regional series are not affected.",
+      "source_doc": "AGENTS.md",
+      "variable_id": "modis_lst",
+      "aggregation": "point",
+      "period_start": "2022-10-01",
+      "period_end": "2022-10-01",
+      "flag_months": false,
+      "issue_ref": "#4, #51"
+    },
+    "modis_lst_pc_missing_composites_2025": {
+      "kind": "missing_composites",
+      "summary_en": "Planetary Computer has no Terra MOD11A2 items for composites from 2025-07-04 to 2025-11-17; months with no composite at all have no point.",
+      "source_doc": "AGENTS.md",
+      "variable_id": "modis_lst_pc",
+      "period_start": "2025-07-01",
+      "period_end": "2025-11-01",
+      "flag_months": false,
+      "issue_ref": "#4"
+    },
+    "modis_lst_point_missing_composites_2025": {
+      "kind": "missing_composites",
+      "summary_en": "Planetary Computer has no Terra MOD11A2 items for composites from 2025-07-04 to 2025-11-17; months with no composite at all have no point. The modis_lst point series are read from Planetary Computer as well (seed point_source); the AppEEARS regional series are not affected.",
+      "source_doc": "AGENTS.md",
+      "variable_id": "modis_lst",
+      "aggregation": "point",
+      "period_start": "2025-07-01",
+      "period_end": "2025-11-01",
+      "flag_months": false,
+      "issue_ref": "#4, #51"
+    }
+  },
   "series": {
     "airs_h2ovap__central__area_mean": {
       "variable_id": "airs_h2ovap",
@@ -71,7 +192,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.34147747,
@@ -124,7 +246,21 @@
           -0.19271535,
           0.70977288
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__east__area_mean": {
       "variable_id": "airs_h2ovap",
@@ -140,7 +276,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.42534646,
@@ -193,7 +330,21 @@
           -0.059301708,
           0.77375801
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__hualien__point": {
       "variable_id": "airs_h2ovap",
@@ -209,7 +360,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.36240854,
@@ -234,7 +386,7 @@
           "p": 0.15168913,
           "z": 1.4335906,
           "tau": 0.056484906,
-          "p_fdr": 0.18603384,
+          "p_fdr": 0.18780559,
           "significant": false,
           "significant_fdr": false
         },
@@ -242,7 +394,7 @@
           "p": 0.24666004,
           "z": 1.1585,
           "tau": 0.056484906,
-          "p_fdr": 0.34214134,
+          "p_fdr": 0.34966093,
           "significant": false,
           "significant_fdr": false
         },
@@ -262,7 +414,21 @@
           -0.11589759,
           0.7116875
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__kaohsiung__point": {
       "variable_id": "airs_h2ovap",
@@ -278,7 +444,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.55819605,
@@ -331,7 +498,21 @@
           0.046359871,
           0.97680472
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__south__area_mean": {
       "variable_id": "airs_h2ovap",
@@ -347,7 +528,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.36946693,
@@ -372,7 +554,7 @@
           "p": 0.16675875,
           "z": 1.3826939,
           "tau": 0.054480372,
-          "p_fdr": 0.19888658,
+          "p_fdr": 0.20072813,
           "significant": false,
           "significant_fdr": false
         },
@@ -400,7 +582,21 @@
           -0.12156787,
           0.73752783
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__taichung__point": {
       "variable_id": "airs_h2ovap",
@@ -416,7 +612,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.50488837,
@@ -441,7 +638,7 @@
           "p": 0.071167143,
           "z": 1.8044094,
           "tau": 0.071089369,
-          "p_fdr": 0.10056227,
+          "p_fdr": 0.099480952,
           "significant": false,
           "significant_fdr": false
         },
@@ -469,7 +666,21 @@
           -0.0439375,
           0.91743404
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__taipei__point": {
       "variable_id": "airs_h2ovap",
@@ -485,7 +696,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.95126217,
@@ -538,7 +750,21 @@
           0.38637097,
           1.4271129
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__taiwan__area_mean": {
       "variable_id": "airs_h2ovap",
@@ -554,7 +780,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.41980405,
@@ -587,7 +814,7 @@
           "p": 0.25828289,
           "z": 1.1304589,
           "tau": 0.059634888,
-          "p_fdr": 0.35072098,
+          "p_fdr": 0.35445206,
           "significant": false,
           "significant_fdr": false
         },
@@ -607,7 +834,21 @@
           -0.092868034,
           0.75053861
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_h2ovap__yushan__point": {
       "variable_id": "airs_h2ovap",
@@ -623,7 +864,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.1793298,
@@ -676,7 +918,21 @@
           -0.31266667,
           0.53671669
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__central__area_mean": {
       "variable_id": "airs_tsurf",
@@ -692,7 +948,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.15436669,
@@ -708,7 +965,7 @@
         "p": 0.062695508,
         "lag1_autocorrelation": 0.21401797,
         "n_effective": 187.7524,
-        "p_fdr": 0.088840754,
+        "p_fdr": 0.089118993,
         "significant": false,
         "significant_fdr": false
       },
@@ -745,7 +1002,21 @@
           -0.25920396,
           -0.030160286
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__east__area_mean": {
       "variable_id": "airs_tsurf",
@@ -761,7 +1032,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.16480949,
@@ -794,7 +1066,7 @@
           "p": 0.23475986,
           "z": -1.1881867,
           "tau": -0.084739291,
-          "p_fdr": 0.32917415,
+          "p_fdr": 0.33648913,
           "significant": false,
           "significant_fdr": false
         },
@@ -814,7 +1086,21 @@
           -0.24311788,
           -0.010592368
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__hualien__point": {
       "variable_id": "airs_tsurf",
@@ -830,7 +1116,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.17066869,
@@ -846,7 +1133,7 @@
         "p": 0.064811806,
         "lag1_autocorrelation": 0.27809244,
         "n_effective": 163.80129,
-        "p_fdr": 0.088840754,
+        "p_fdr": 0.089118993,
         "significant": false,
         "significant_fdr": false
       },
@@ -883,7 +1170,21 @@
           -0.26525909,
           -0.0044827586
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__kaohsiung__point": {
       "variable_id": "airs_tsurf",
@@ -899,7 +1200,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.12720071,
@@ -952,7 +1254,21 @@
           -0.20320543,
           0.016309859
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__south__area_mean": {
       "variable_id": "airs_tsurf",
@@ -968,7 +1284,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.20049774,
@@ -1021,7 +1338,21 @@
           -0.28291988,
           -0.061
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__taichung__point": {
       "variable_id": "airs_tsurf",
@@ -1037,7 +1368,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.033409059,
@@ -1070,7 +1402,7 @@
           "p": 0.76587992,
           "z": -0.29776842,
           "tau": -0.018995347,
-          "p_fdr": 0.79038808,
+          "p_fdr": 0.79676217,
           "significant": false,
           "significant_fdr": false
         },
@@ -1090,7 +1422,21 @@
           -0.13650485,
           0.085218519
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 287
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__taipei__point": {
       "variable_id": "airs_tsurf",
@@ -1106,7 +1452,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.055728645,
@@ -1159,7 +1506,21 @@
           -0.060294545,
           0.182
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__taiwan__area_mean": {
       "variable_id": "airs_tsurf",
@@ -1175,7 +1536,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.15502376,
@@ -1228,7 +1590,21 @@
           -0.23766793,
           -0.024997011
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 288
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "airs_tsurf__yushan__point": {
       "variable_id": "airs_tsurf",
@@ -1244,7 +1620,8 @@
         "n_valid": 290,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.27435913,
@@ -1297,7 +1674,21 @@
           -0.37603723,
           -0.12050676
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 290,
+        "n_usable": 290,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 290
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "gldas_evap__central__area_mean": {
       "variable_id": "gldas_evap",
@@ -1313,7 +1704,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 1.0522042e-06,
@@ -1366,7 +1758,23 @@
           6.5829037e-07,
           1.5925253e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__east__area_mean": {
       "variable_id": "gldas_evap",
@@ -1382,7 +1790,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 2.7422992e-06,
@@ -1435,7 +1844,23 @@
           2.2219278e-06,
           3.2289849e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__hualien__point": {
       "variable_id": "gldas_evap",
@@ -1451,7 +1876,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 2.0654727e-06,
@@ -1504,7 +1930,23 @@
           1.5104212e-06,
           2.5756342e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__kaohsiung__point": {
       "variable_id": "gldas_evap",
@@ -1520,7 +1962,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 2.0645659e-07,
@@ -1562,7 +2005,7 @@
           "z": 2.0841267,
           "tau": 0.085033113,
           "slope_per_decade": 2.3678261e-07,
-          "p_fdr": 0.055509461,
+          "p_fdr": 0.054878672,
           "significant": true,
           "significant_fdr": false
         }
@@ -1573,7 +2016,23 @@
           -3.0495663e-08,
           4.2201584e-07
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__north__area_mean": {
       "variable_id": "gldas_evap",
@@ -1589,7 +2048,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -4.6928522e-07,
@@ -1642,7 +2102,23 @@
           -8.9866832e-07,
           1.081393e-07
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__south__area_mean": {
       "variable_id": "gldas_evap",
@@ -1658,7 +2134,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 6.8251124e-07,
@@ -1711,7 +2188,23 @@
           1.5370224e-07,
           1.1473983e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__taichung__point": {
       "variable_id": "gldas_evap",
@@ -1727,7 +2220,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -3.7914697e-07,
@@ -1780,7 +2274,23 @@
           -6.2293792e-07,
           -1.7432727e-07
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__taipei__point": {
       "variable_id": "gldas_evap",
@@ -1796,7 +2306,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -1.3842365e-06,
@@ -1849,7 +2360,23 @@
           -1.8844421e-06,
           -9.2412468e-07
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__taiwan__area_mean": {
       "variable_id": "gldas_evap",
@@ -1865,7 +2392,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 9.5696245e-07,
@@ -1918,7 +2446,23 @@
           5.3631083e-07,
           1.3686689e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_evap__yushan__point": {
       "variable_id": "gldas_evap",
@@ -1934,7 +2478,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 3.6388179e-06,
@@ -1987,7 +2532,23 @@
           3.1459433e-06,
           4.3918142e-06
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 12,
+        "n_ok": 295
+      },
+      "known_issues": [
+        "gldas_evap_step_2024_07_2025_06"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__central__area_mean": {
       "variable_id": "gldas_soilmoist",
@@ -2003,7 +2564,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.23457216,
@@ -2056,7 +2618,23 @@
           -0.50844649,
           -0.082656422
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__east__area_mean": {
       "variable_id": "gldas_soilmoist",
@@ -2072,7 +2650,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.32812755,
@@ -2125,7 +2704,23 @@
           -0.64998937,
           -0.19056574
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__hualien__point": {
       "variable_id": "gldas_soilmoist",
@@ -2141,7 +2736,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.44791823,
@@ -2194,7 +2790,23 @@
           -0.74186287,
           -0.2558167
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__kaohsiung__point": {
       "variable_id": "gldas_soilmoist",
@@ -2210,7 +2822,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.07055297,
@@ -2263,7 +2876,23 @@
           -0.23841942,
           0.072266201
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__north__area_mean": {
       "variable_id": "gldas_soilmoist",
@@ -2279,7 +2908,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.09012361,
@@ -2332,7 +2962,23 @@
           -0.24177045,
           0.20345
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__south__area_mean": {
       "variable_id": "gldas_soilmoist",
@@ -2348,7 +2994,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.0047811165,
@@ -2401,7 +3048,23 @@
           -0.34876085,
           0.20159852
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__taichung__point": {
       "variable_id": "gldas_soilmoist",
@@ -2417,7 +3080,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.10222654,
@@ -2470,7 +3134,23 @@
           -0.25755556,
           0.019301387
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__taipei__point": {
       "variable_id": "gldas_soilmoist",
@@ -2486,7 +3166,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.080773169,
@@ -2539,7 +3220,23 @@
           -0.24330933,
           0.20615772
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__taiwan__area_mean": {
       "variable_id": "gldas_soilmoist",
@@ -2555,7 +3252,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.11922353,
@@ -2580,7 +3278,7 @@
           "p": 0.084074591,
           "z": -1.7275185,
           "tau": -0.066125907,
-          "p_fdr": 0.11752362,
+          "p_fdr": 0.11627337,
           "significant": false,
           "significant_fdr": false
         },
@@ -2588,7 +3286,7 @@
           "p": 0.25403644,
           "z": -1.1405999,
           "tau": -0.066125907,
-          "p_fdr": 0.34862448,
+          "p_fdr": 0.35237313,
           "significant": false,
           "significant_fdr": false
         },
@@ -2608,7 +3306,23 @@
           -0.43291644,
           0.029330203
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_soilmoist__yushan__point": {
       "variable_id": "gldas_soilmoist",
@@ -2624,7 +3338,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.38483497,
@@ -2677,7 +3392,23 @@
           -0.6451927,
           -0.24678908
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [
+        "gldas_soilmoist_vs_fldas_sign"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__central__area_mean": {
       "variable_id": "gldas_tair",
@@ -2693,7 +3424,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.48087018,
@@ -2746,7 +3478,25 @@
           0.32970707,
           0.57813972
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__east__area_mean": {
       "variable_id": "gldas_tair",
@@ -2762,7 +3512,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.19122662,
@@ -2778,7 +3529,7 @@
         "p": 0.06492209,
         "lag1_autocorrelation": 0.36822359,
         "n_effective": 141.75706,
-        "p_fdr": 0.088840754,
+        "p_fdr": 0.089118993,
         "significant": false,
         "significant_fdr": false
       },
@@ -2815,7 +3566,25 @@
           0.032531847,
           0.28647048
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__hualien__point": {
       "variable_id": "gldas_tair",
@@ -2831,7 +3600,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.49442999,
@@ -2884,7 +3654,25 @@
           -0.62516388,
           -0.33557647
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__kaohsiung__point": {
       "variable_id": "gldas_tair",
@@ -2900,7 +3688,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.849683,
@@ -2953,7 +3742,25 @@
           0.66832927,
           0.95666667
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__north__area_mean": {
       "variable_id": "gldas_tair",
@@ -2969,7 +3776,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.10081555,
@@ -3022,7 +3830,25 @@
           -0.26535455,
           0.038295886
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__south__area_mean": {
       "variable_id": "gldas_tair",
@@ -3038,7 +3864,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.34536051,
@@ -3091,7 +3918,25 @@
           0.19758746,
           0.43810388
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__taichung__point": {
       "variable_id": "gldas_tair",
@@ -3107,7 +3952,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.20496537,
@@ -3160,7 +4006,25 @@
           -0.33616509,
           -0.045866667
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__taipei__point": {
       "variable_id": "gldas_tair",
@@ -3176,7 +4040,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.17897652,
@@ -3229,7 +4094,25 @@
           0.03525,
           0.31804463
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__taiwan__area_mean": {
       "variable_id": "gldas_tair",
@@ -3245,7 +4128,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.16907455,
@@ -3298,7 +4182,25 @@
           0.026922027,
           0.26276028
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "gldas_tair__yushan__point": {
       "variable_id": "gldas_tair",
@@ -3314,7 +4216,8 @@
         "n_valid": 307,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 1.2687422,
@@ -3367,7 +4270,25 @@
           1.0921053,
           1.3350165
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 307,
+        "n_usable": 307,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 3,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "gldas_tair_step_2011_05",
+        "gldas_tair_step_2017_07",
+        "gldas_tair_step_2019_06"
+      ],
+      "auxiliary": false
     },
     "imerg_precip__central__area_mean": {
       "variable_id": "imerg_precip",
@@ -3383,7 +4304,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.024356731,
@@ -3399,7 +4321,7 @@
         "p": 0.063714536,
         "lag1_autocorrelation": -0.14855196,
         "n_effective": 297.0,
-        "p_fdr": 0.088840754,
+        "p_fdr": 0.089118993,
         "significant": false,
         "significant_fdr": false
       },
@@ -3436,7 +4358,21 @@
           -0.03189634,
           0.0023818114
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 8,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__east__area_mean": {
       "variable_id": "imerg_precip",
@@ -3452,7 +4388,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.02127694,
@@ -3505,7 +4442,21 @@
           -0.030901359,
           0.00034821551
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 8,
+        "n_known_discontinuity": 0,
+        "n_ok": 289
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__hualien__point": {
       "variable_id": "imerg_precip",
@@ -3521,7 +4472,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.03955741,
@@ -3574,7 +4526,21 @@
           -0.046192941,
           -0.009722
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 4,
+        "n_known_discontinuity": 0,
+        "n_ok": 293
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__kaohsiung__point": {
       "variable_id": "imerg_precip",
@@ -3590,7 +4556,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.016330327,
@@ -3643,7 +4610,21 @@
           -0.021859184,
           0.0074653595
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 20,
+        "n_known_discontinuity": 0,
+        "n_ok": 277
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__north__area_mean": {
       "variable_id": "imerg_precip",
@@ -3659,7 +4640,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.021962536,
@@ -3692,7 +4674,7 @@
           "p": 0.22154859,
           "z": -1.2224207,
           "tau": -0.05009555,
-          "p_fdr": 0.31755298,
+          "p_fdr": 0.32112099,
           "significant": false,
           "significant_fdr": false
         },
@@ -3712,7 +4694,21 @@
           -0.033718546,
           0.0070519424
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 294
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__south__area_mean": {
       "variable_id": "imerg_precip",
@@ -3728,7 +4724,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.010116317,
@@ -3761,7 +4758,7 @@
           "p": 0.75024552,
           "z": -0.31831564,
           "tau": -0.012012012,
-          "p_fdr": 0.78484221,
+          "p_fdr": 0.78684286,
           "significant": false,
           "significant_fdr": false
         },
@@ -3781,7 +4778,21 @@
           -0.015473901,
           0.010998653
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 14,
+        "n_known_discontinuity": 0,
+        "n_ok": 283
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__taichung__point": {
       "variable_id": "imerg_precip",
@@ -3797,7 +4808,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.019848952,
@@ -3850,7 +4862,21 @@
           -0.0275,
           0.0084934498
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 9,
+        "n_known_discontinuity": 0,
+        "n_ok": 288
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__taipei__point": {
       "variable_id": "imerg_precip",
@@ -3866,7 +4892,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.029722804,
@@ -3891,7 +4918,7 @@
           "p": 0.15574067,
           "z": -1.4195433,
           "tau": -0.055259805,
-          "p_fdr": 0.18921764,
+          "p_fdr": 0.19100271,
           "significant": false,
           "significant_fdr": false
         },
@@ -3919,7 +4946,21 @@
           -0.041380822,
           0.0061565217
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 294
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__taiwan__area_mean": {
       "variable_id": "imerg_precip",
@@ -3935,7 +4976,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.010048661,
@@ -3988,7 +5030,21 @@
           -0.022055251,
           0.01038405
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 6,
+        "n_known_discontinuity": 0,
+        "n_ok": 291
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "imerg_precip__yushan__point": {
       "variable_id": "imerg_precip",
@@ -4004,7 +5060,8 @@
         "n_valid": 297,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.032201903,
@@ -4020,7 +5077,7 @@
         "p": 0.035022346,
         "lag1_autocorrelation": -0.086755935,
         "n_effective": 297.0,
-        "p_fdr": 0.059906645,
+        "p_fdr": 0.059128637,
         "significant": true,
         "significant_fdr": false
       },
@@ -4029,7 +5086,7 @@
           "p": 0.066644786,
           "z": -1.834062,
           "tau": -0.071389571,
-          "p_fdr": 0.095206836,
+          "p_fdr": 0.094601883,
           "significant": false,
           "significant_fdr": false
         },
@@ -4057,7 +5114,21 @@
           -0.036721368,
           0.0012380952
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 297,
+        "n_usable": 297,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 9,
+        "n_known_discontinuity": 0,
+        "n_ok": 288
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__central__area_mean": {
       "variable_id": "merra2_t2m",
@@ -4073,7 +5144,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.43352754,
@@ -4126,7 +5198,21 @@
           0.29619862,
           0.52376073
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__east__area_mean": {
       "variable_id": "merra2_t2m",
@@ -4142,7 +5228,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.45358759,
@@ -4195,7 +5282,21 @@
           0.32017845,
           0.531648
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__hualien__point": {
       "variable_id": "merra2_t2m",
@@ -4211,7 +5312,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.43926674,
@@ -4264,7 +5366,21 @@
           0.34120499,
           0.52119173
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__kaohsiung__point": {
       "variable_id": "merra2_t2m",
@@ -4280,7 +5396,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.33407589,
@@ -4333,7 +5450,21 @@
           0.24835443,
           0.42617094
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__north__area_mean": {
       "variable_id": "merra2_t2m",
@@ -4349,7 +5480,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.41406613,
@@ -4402,7 +5534,21 @@
           0.29515102,
           0.52030682
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__south__area_mean": {
       "variable_id": "merra2_t2m",
@@ -4418,7 +5564,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.35439209,
@@ -4471,7 +5618,21 @@
           0.26541045,
           0.45024741
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__taichung__point": {
       "variable_id": "merra2_t2m",
@@ -4487,7 +5648,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.42108642,
@@ -4540,7 +5702,21 @@
           0.28762927,
           0.54111003
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__taipei__point": {
       "variable_id": "merra2_t2m",
@@ -4556,7 +5732,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.38985472,
@@ -4609,7 +5786,21 @@
           0.26100677,
           0.50452214
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__taiwan__area_mean": {
       "variable_id": "merra2_t2m",
@@ -4625,7 +5816,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.36878412,
@@ -4678,7 +5870,21 @@
           0.27005947,
           0.45243333
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "merra2_t2m__yushan__point": {
       "variable_id": "merra2_t2m",
@@ -4694,7 +5900,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.49641903,
@@ -4747,7 +5954,21 @@
           0.35906538,
           0.5754209
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__central__area_mean": {
       "variable_id": "modis_lst",
@@ -4758,65 +5979,80 @@
       "reason": null,
       "data": {
         "first_month": "2001-01-01",
-        "last_month": "2026-11-01",
+        "last_month": "2026-10-01",
         "n_points": 311,
-        "n_valid": 310,
+        "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.0032154341
+        "missing_fraction": 0.0032258065,
+        "n_partial_month": 1
       },
       "ols": {
-        "slope_per_decade": -0.2416009,
+        "slope_per_decade": -0.2425487,
         "ci_per_decade": [
-          -0.49769428,
-          0.014492482
+          -0.50046584,
+          0.015368434
         ],
         "ci_per_decade_uncorrected": [
-          -0.43004755,
-          -0.053154241
+          -0.43221543,
+          -0.052881973
         ],
-        "p_uncorrected": 0.012148746,
-        "p": 0.064283674,
-        "lag1_autocorrelation": 0.29199356,
-        "n_effective": 169.87855,
-        "p_fdr": 0.088840754,
+        "p_uncorrected": 0.012367358,
+        "p": 0.065125418,
+        "lag1_autocorrelation": 0.29254854,
+        "n_effective": 169.12518,
+        "p_fdr": 0.089118993,
         "significant": false,
         "significant_fdr": false
       },
       "mann_kendall": {
         "original": {
-          "p": 0.15083019,
-          "z": -1.4366052,
-          "tau": -0.054723875,
-          "p_fdr": 0.18603384,
+          "p": 0.16116984,
+          "z": -1.4011479,
+          "tau": -0.053461102,
+          "p_fdr": 0.19581382,
           "significant": false,
           "significant_fdr": false
         },
         "hamed_rao": {
-          "p": 0.53772151,
-          "z": -0.61626216,
-          "tau": -0.054723875,
-          "p_fdr": 0.61385907,
+          "p": 0.5468456,
+          "z": -0.60249363,
+          "tau": -0.053461102,
+          "p_fdr": 0.62427506,
           "significant": false,
           "significant_fdr": false
         },
         "seasonal": {
-          "p": 0.23483404,
-          "z": -1.1879984,
-          "tau": -0.048311688,
-          "slope_per_decade": -0.11812132,
-          "p_fdr": 0.28800401,
+          "p": 0.24552385,
+          "z": -1.1612903,
+          "tau": -0.047320261,
+          "slope_per_decade": -0.11521011,
+          "p_fdr": 0.30111416,
           "significant": false,
           "significant_fdr": false
         }
       },
       "sen": {
-        "slope_per_decade": -0.13558262,
+        "slope_per_decade": -0.13290677,
         "ci_per_decade": [
-          -0.33004758,
-          0.052280207
+          -0.33024154,
+          0.056332667
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 311,
+        "n_usable": 309,
+        "n_gaps": 1,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__east__area_mean": {
       "variable_id": "modis_lst",
@@ -4827,65 +6063,80 @@
       "reason": null,
       "data": {
         "first_month": "2001-01-01",
-        "last_month": "2026-11-01",
+        "last_month": "2026-10-01",
         "n_points": 311,
-        "n_valid": 310,
+        "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.0032154341
+        "missing_fraction": 0.0032258065,
+        "n_partial_month": 1
       },
       "ols": {
-        "slope_per_decade": -0.21833566,
+        "slope_per_decade": -0.22709915,
         "ci_per_decade": [
-          -0.42572914,
-          -0.010942179
+          -0.43575144,
+          -0.018446857
         ],
         "ci_per_decade_uncorrected": [
-          -0.39280074,
-          -0.043870575
+          -0.4024049,
+          -0.051793402
         ],
-        "p_uncorrected": 0.014344826,
-        "p": 0.039170049,
-        "lag1_autocorrelation": 0.16834627,
-        "n_effective": 220.66459,
-        "p_fdr": 0.065283414,
+        "p_uncorrected": 0.01128715,
+        "p": 0.033046843,
+        "lag1_autocorrelation": 0.16952174,
+        "n_effective": 219.42113,
+        "p_fdr": 0.056527495,
         "significant": true,
         "significant_fdr": false
       },
       "mann_kendall": {
         "original": {
-          "p": 0.085516142,
-          "z": -1.7195397,
-          "tau": -0.065497442,
-          "p_fdr": 0.11826701,
+          "p": 0.066949025,
+          "z": -1.8320161,
+          "tau": -0.069894507,
+          "p_fdr": 0.094601883,
           "significant": false,
           "significant_fdr": false
         },
         "hamed_rao": {
-          "p": 0.22132012,
-          "z": -1.2230253,
-          "tau": -0.065497442,
-          "p_fdr": 0.31755298,
+          "p": 0.24962821,
+          "z": -1.1512529,
+          "tau": -0.069894507,
+          "p_fdr": 0.35002217,
           "significant": false,
           "significant_fdr": false
         },
         "seasonal": {
-          "p": 0.07319225,
-          "z": -1.79163,
-          "tau": -0.072727273,
-          "slope_per_decade": -0.13288782,
-          "p_fdr": 0.10342383,
+          "p": 0.059582431,
+          "z": -1.883871,
+          "tau": -0.076601307,
+          "slope_per_decade": -0.14312298,
+          "p_fdr": 0.084192566,
           "significant": false,
           "significant_fdr": false
         }
       },
       "sen": {
-        "slope_per_decade": -0.14351312,
+        "slope_per_decade": -0.15442014,
         "ci_per_decade": [
-          -0.31865258,
-          0.0204619
+          -0.33199137,
+          0.011273556
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 311,
+        "n_usable": 309,
+        "n_gaps": 1,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__hualien__point": {
       "variable_id": "modis_lst",
@@ -4901,7 +6152,8 @@
         "n_valid": 302,
         "n_null": 1,
         "n_low_coverage": 2,
-        "missing_fraction": 0.025806452
+        "missing_fraction": 0.025806452,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.24592628,
@@ -4954,7 +6206,24 @@
           -0.34219341,
           0.13287509
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 302,
+        "n_gaps": 5,
+        "longest_gap_months": 4,
+        "n_missing": 6,
+        "n_partial_month": 0,
+        "n_low_coverage": 2,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 302
+      },
+      "known_issues": [
+        "modis_lst_point_missing_composites_2022_10",
+        "modis_lst_point_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst__kaohsiung__point": {
       "variable_id": "modis_lst",
@@ -4970,7 +6239,8 @@
         "n_valid": 305,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.016129032
+        "missing_fraction": 0.016129032,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.60182235,
@@ -5023,7 +6293,24 @@
           -0.65378225,
           -0.21957959
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 2,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 303
+      },
+      "known_issues": [
+        "modis_lst_point_missing_composites_2022_10",
+        "modis_lst_point_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst__north__area_mean": {
       "variable_id": "modis_lst",
@@ -5034,65 +6321,80 @@
       "reason": null,
       "data": {
         "first_month": "2001-01-01",
-        "last_month": "2026-11-01",
+        "last_month": "2026-10-01",
         "n_points": 311,
-        "n_valid": 310,
+        "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.0032154341
+        "missing_fraction": 0.0032258065,
+        "n_partial_month": 1
       },
       "ols": {
-        "slope_per_decade": -0.25252035,
+        "slope_per_decade": -0.25924472,
         "ci_per_decade": [
-          -0.48578383,
-          -0.019256869
+          -0.49450988,
+          -0.023979557
         ],
         "ci_per_decade_uncorrected": [
-          -0.43803098,
-          -0.067009718
+          -0.4458073,
+          -0.072682137
         ],
-        "p_uncorrected": 0.0077931498,
-        "p": 0.034007052,
-        "lag1_autocorrelation": 0.22122329,
-        "n_effective": 197.68767,
-        "p_fdr": 0.058945556,
+        "p_uncorrected": 0.0066140158,
+        "p": 0.030969932,
+        "lag1_autocorrelation": 0.22389603,
+        "n_effective": 195.94485,
+        "p_fdr": 0.053681215,
         "significant": true,
         "significant_fdr": false
       },
       "mann_kendall": {
         "original": {
-          "p": 0.03944639,
-          "z": -2.0594997,
-          "tau": -0.078442426,
-          "p_fdr": 0.058942882,
+          "p": 0.034317351,
+          "z": -2.1163229,
+          "tau": -0.080738032,
+          "p_fdr": 0.051278801,
           "significant": true,
           "significant_fdr": false
         },
         "hamed_rao": {
-          "p": 0.22751425,
-          "z": -1.2067868,
-          "tau": -0.078442426,
-          "p_fdr": 0.3225202,
+          "p": 0.26225354,
+          "z": -1.1210806,
+          "tau": -0.080738032,
+          "p_fdr": 0.3561127,
           "significant": false,
           "significant_fdr": false
         },
         "seasonal": {
-          "p": 0.041785381,
-          "z": -2.0356513,
-          "tau": -0.082597403,
-          "slope_per_decade": -0.17707858,
-          "p_fdr": 0.061728403,
+          "p": 0.036588832,
+          "z": -2.0903226,
+          "tau": -0.08496732,
+          "slope_per_decade": -0.18167714,
+          "p_fdr": 0.054672968,
           "significant": true,
           "significant_fdr": false
         }
       },
       "sen": {
-        "slope_per_decade": -0.19409942,
+        "slope_per_decade": -0.20084898,
         "ci_per_decade": [
-          -0.3866112,
-          -0.0085058125
+          -0.39665924,
+          -0.016508683
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 311,
+        "n_usable": 309,
+        "n_gaps": 1,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__south__area_mean": {
       "variable_id": "modis_lst",
@@ -5103,65 +6405,80 @@
       "reason": null,
       "data": {
         "first_month": "2001-01-01",
-        "last_month": "2026-11-01",
+        "last_month": "2026-10-01",
         "n_points": 311,
-        "n_valid": 311,
+        "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
-        "slope_per_decade": -0.16397117,
+        "slope_per_decade": -0.16287587,
         "ci_per_decade": [
-          -0.41863227,
-          0.090689938
+          -0.41920087,
+          0.093449136
         ],
         "ci_per_decade_uncorrected": [
-          -0.33518496,
-          0.0072426264
+          -0.33519469,
+          0.0094429551
         ],
-        "p_uncorrected": 0.060444626,
-        "p": 0.20514593,
-        "lag1_autocorrelation": 0.37007299,
-        "n_effective": 142.99041,
-        "p_fdr": 0.240261,
+        "p_uncorrected": 0.063857461,
+        "p": 0.21111594,
+        "lag1_autocorrelation": 0.3701158,
+        "n_effective": 142.51649,
+        "p_fdr": 0.2472529,
         "significant": false,
         "significant_fdr": false
       },
       "mann_kendall": {
         "original": {
-          "p": 0.46531344,
-          "z": -0.73012556,
-          "tau": -0.027777202,
-          "p_fdr": 0.49582579,
+          "p": 0.50282577,
+          "z": -0.67005023,
+          "tau": -0.025535025,
+          "p_fdr": 0.53579795,
           "significant": false,
           "significant_fdr": false
         },
         "hamed_rao": {
-          "p": 0.75442197,
-          "z": -0.31281402,
-          "tau": -0.027777202,
-          "p_fdr": 0.78484221,
+          "p": 0.77233835,
+          "z": -0.2893176,
+          "tau": -0.025535025,
+          "p_fdr": 0.79705317,
           "significant": false,
           "significant_fdr": false
         },
         "seasonal": {
-          "p": 0.68247378,
-          "z": -0.40908977,
-          "tau": -0.016774194,
-          "slope_per_decade": -0.036921083,
-          "p_fdr": 0.72131375,
+          "p": 0.73359636,
+          "z": -0.34034549,
+          "tau": -0.014025974,
+          "slope_per_decade": -0.031990209,
+          "p_fdr": 0.77488018,
           "significant": false,
           "significant_fdr": false
         }
       },
       "sen": {
-        "slope_per_decade": -0.062922063,
+        "slope_per_decade": -0.059274401,
         "ci_per_decade": [
-          -0.23409246,
-          0.10315857
+          -0.22967502,
+          0.10922572
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 311,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 310
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__taichung__point": {
       "variable_id": "modis_lst",
@@ -5177,7 +6494,8 @@
         "n_valid": 303,
         "n_null": 1,
         "n_low_coverage": 1,
-        "missing_fraction": 0.022580645
+        "missing_fraction": 0.022580645,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.48721991,
@@ -5230,7 +6548,24 @@
           -0.5453377,
           -0.030736454
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 303,
+        "n_gaps": 4,
+        "longest_gap_months": 4,
+        "n_missing": 6,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 302
+      },
+      "known_issues": [
+        "modis_lst_point_missing_composites_2022_10",
+        "modis_lst_point_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst__taipei__point": {
       "variable_id": "modis_lst",
@@ -5246,7 +6581,8 @@
         "n_valid": 301,
         "n_null": 0,
         "n_low_coverage": 4,
-        "missing_fraction": 0.029032258
+        "missing_fraction": 0.029032258,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.48912009,
@@ -5299,7 +6635,24 @@
           -0.66438878,
           -0.044285175
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 301,
+        "n_gaps": 6,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 4,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 299
+      },
+      "known_issues": [
+        "modis_lst_point_missing_composites_2022_10",
+        "modis_lst_point_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst__taiwan__area_mean": {
       "variable_id": "modis_lst",
@@ -5310,65 +6663,80 @@
       "reason": null,
       "data": {
         "first_month": "2001-01-01",
-        "last_month": "2026-11-01",
+        "last_month": "2026-10-01",
         "n_points": 311,
-        "n_valid": 311,
+        "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
-        "slope_per_decade": -0.22637231,
+        "slope_per_decade": -0.22866472,
         "ci_per_decade": [
-          -0.46238093,
-          0.0096363085
+          -0.46658636,
+          0.0092569235
         ],
         "ci_per_decade_uncorrected": [
-          -0.38481043,
-          -0.06793419
+          -0.38810883,
+          -0.069220608
         ],
-        "p_uncorrected": 0.0052485379,
-        "p": 0.059977328,
-        "lag1_autocorrelation": 0.37131329,
-        "n_effective": 142.5798,
-        "p_fdr": 0.088394286,
+        "p_uncorrected": 0.0050836269,
+        "p": 0.059471676,
+        "lag1_autocorrelation": 0.37274557,
+        "n_effective": 141.64961,
+        "p_fdr": 0.087855885,
         "significant": false,
         "significant_fdr": false
       },
       "mann_kendall": {
         "original": {
-          "p": 0.16606877,
-          "z": -1.3849467,
-          "tau": -0.052670885,
-          "p_fdr": 0.19888658,
+          "p": 0.17146344,
+          "z": -1.3675166,
+          "tau": -0.05209312,
+          "p_fdr": 0.20449768,
           "significant": false,
           "significant_fdr": false
         },
         "hamed_rao": {
-          "p": 0.5911738,
-          "z": -0.53713583,
-          "tau": -0.052670885,
-          "p_fdr": 0.65742603,
+          "p": 0.59609067,
+          "z": -0.53003067,
+          "tau": -0.05209312,
+          "p_fdr": 0.66001808,
           "significant": false,
           "significant_fdr": false
         },
         "seasonal": {
-          "p": 0.23447227,
-          "z": -1.1889172,
-          "tau": -0.048258065,
-          "slope_per_decade": -0.0909819,
-          "p_fdr": 0.28800401,
+          "p": 0.23993264,
+          "z": -1.1751552,
+          "tau": -0.047792208,
+          "slope_per_decade": -0.091095067,
+          "p_fdr": 0.29705946,
           "significant": false,
           "significant_fdr": false
         }
       },
       "sen": {
-        "slope_per_decade": -0.10857578,
+        "slope_per_decade": -0.108746,
         "ci_per_decade": [
-          -0.26289901,
-          0.044905257
+          -0.26523547,
+          0.04734322
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 311,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 310
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_lst__yushan__point": {
       "variable_id": "modis_lst",
@@ -5384,7 +6752,8 @@
         "n_valid": 304,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.019354839
+        "missing_fraction": 0.019354839,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.10179629,
@@ -5437,7 +6806,24 @@
           -0.2718541,
           0.23888286
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 304,
+        "n_gaps": 3,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "modis_lst_point_missing_composites_2022_10",
+        "modis_lst_point_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst_pc__central__area_mean": {
       "variable_id": "modis_lst_pc",
@@ -5453,7 +6839,8 @@
         "n_valid": 304,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.019354839
+        "missing_fraction": 0.019354839,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.2502805,
@@ -5506,7 +6893,24 @@
           -0.32145855,
           0.076374397
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 304,
+        "n_gaps": 3,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "modis_lst_pc_missing_composites_2022_10",
+        "modis_lst_pc_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst_pc__east__area_mean": {
       "variable_id": "modis_lst_pc",
@@ -5522,7 +6926,8 @@
         "n_valid": 304,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.019354839
+        "missing_fraction": 0.019354839,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.22371377,
@@ -5575,7 +6980,24 @@
           -0.31961233,
           0.034513447
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 304,
+        "n_gaps": 3,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "modis_lst_pc_missing_composites_2022_10",
+        "modis_lst_pc_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst_pc__north__area_mean": {
       "variable_id": "modis_lst_pc",
@@ -5591,7 +7013,8 @@
         "n_valid": 304,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.019354839
+        "missing_fraction": 0.019354839,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.25656118,
@@ -5607,7 +7030,7 @@
         "p": 0.038604264,
         "lag1_autocorrelation": 0.2367806,
         "n_effective": 187.59891,
-        "p_fdr": 0.065176031,
+        "p_fdr": 0.06434044,
         "significant": true,
         "significant_fdr": false
       },
@@ -5644,7 +7067,24 @@
           -0.38706212,
           0.0030025936
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 304,
+        "n_gaps": 3,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [
+        "modis_lst_pc_missing_composites_2022_10",
+        "modis_lst_pc_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst_pc__south__area_mean": {
       "variable_id": "modis_lst_pc",
@@ -5660,7 +7100,8 @@
         "n_valid": 305,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.016129032
+        "missing_fraction": 0.016129032,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.16310118,
@@ -5713,7 +7154,24 @@
           -0.21846875,
           0.13105571
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 2,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 305
+      },
+      "known_issues": [
+        "modis_lst_pc_missing_composites_2022_10",
+        "modis_lst_pc_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_lst_pc__taiwan__area_mean": {
       "variable_id": "modis_lst_pc",
@@ -5729,7 +7187,8 @@
         "n_valid": 305,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.016129032
+        "missing_fraction": 0.016129032,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -0.23222852,
@@ -5782,7 +7241,24 @@
           -0.2637126,
           0.071133344
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 2,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 305
+      },
+      "known_issues": [
+        "modis_lst_pc_missing_composites_2022_10",
+        "modis_lst_pc_missing_composites_2025"
+      ],
+      "auxiliary": false
     },
     "modis_ndvi__central__area_mean": {
       "variable_id": "modis_ndvi",
@@ -5798,7 +7274,8 @@
         "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.012232216,
@@ -5851,7 +7328,21 @@
           0.010257412,
           0.014220764
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 310
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__east__area_mean": {
       "variable_id": "modis_ndvi",
@@ -5867,7 +7358,8 @@
         "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.010956966,
@@ -5920,7 +7412,21 @@
           0.009127056,
           0.012129199
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 308
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__hualien__point": {
       "variable_id": "modis_ndvi",
@@ -5936,7 +7442,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.0038146736,
@@ -5989,7 +7496,21 @@
           -0.0017558014,
           0.0062242126
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 8,
+        "n_known_discontinuity": 0,
+        "n_ok": 297
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__kaohsiung__point": {
       "variable_id": "modis_ndvi",
@@ -6005,7 +7526,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.001340698,
@@ -6058,7 +7580,21 @@
           -0.0012621116,
           0.0038571507
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__north__area_mean": {
       "variable_id": "modis_ndvi",
@@ -6074,7 +7610,8 @@
         "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.020129306,
@@ -6127,7 +7664,21 @@
           0.016965213,
           0.021130462
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 307
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__south__area_mean": {
       "variable_id": "modis_ndvi",
@@ -6143,7 +7694,8 @@
         "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.0097936357,
@@ -6196,7 +7748,21 @@
           0.0085425417,
           0.013003726
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 310
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__taichung__point": {
       "variable_id": "modis_ndvi",
@@ -6212,7 +7778,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.00084517746,
@@ -6265,7 +7832,21 @@
           -0.0004129467,
           0.0039155441
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 305
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__taipei__point": {
       "variable_id": "modis_ndvi",
@@ -6281,7 +7862,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.017006075,
@@ -6334,7 +7916,21 @@
           0.012913123,
           0.020741526
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 302
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__taiwan__area_mean": {
       "variable_id": "modis_ndvi",
@@ -6350,7 +7946,8 @@
         "n_valid": 310,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.012759263,
@@ -6403,7 +8000,21 @@
           0.011502008,
           0.014553593
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 310,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 310
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi__yushan__point": {
       "variable_id": "modis_ndvi",
@@ -6419,7 +8030,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.02011971,
@@ -6472,7 +8084,21 @@
           0.0099499603,
           0.025780717
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 5,
+        "n_known_discontinuity": 0,
+        "n_ok": 300
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi_pc__central__area_mean": {
       "variable_id": "modis_ndvi_pc",
@@ -6488,7 +8114,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.017447764,
@@ -6541,7 +8168,21 @@
           0.013466949,
           0.020366734
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 303
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi_pc__east__area_mean": {
       "variable_id": "modis_ndvi_pc",
@@ -6557,7 +8198,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.018116709,
@@ -6610,7 +8252,21 @@
           0.011644958,
           0.022748686
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 305
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi_pc__north__area_mean": {
       "variable_id": "modis_ndvi_pc",
@@ -6626,7 +8282,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.027212997,
@@ -6679,7 +8336,21 @@
           0.019949393,
           0.03365521
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 304
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi_pc__south__area_mean": {
       "variable_id": "modis_ndvi_pc",
@@ -6695,7 +8366,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.015347581,
@@ -6748,7 +8420,21 @@
           0.010848656,
           0.01874878
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 3,
+        "n_known_discontinuity": 0,
+        "n_ok": 302
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "modis_ndvi_pc__taiwan__area_mean": {
       "variable_id": "modis_ndvi_pc",
@@ -6764,7 +8450,8 @@
         "n_valid": 305,
         "n_null": 1,
         "n_low_coverage": 0,
-        "missing_fraction": 0.012944984
+        "missing_fraction": 0.012944984,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.018628685,
@@ -6817,7 +8504,21 @@
           0.014284448,
           0.022441977
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 310,
+        "n_usable": 305,
+        "n_gaps": 1,
+        "longest_gap_months": 4,
+        "n_missing": 5,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 305
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__central__area_mean": {
       "variable_id": "omi_aerosol",
@@ -6832,8 +8533,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.24148645,
@@ -6886,7 +8588,21 @@
           0.066095321,
           0.13008677
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 16,
+        "n_known_discontinuity": 0,
+        "n_ok": 249
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__east__area_mean": {
       "variable_id": "omi_aerosol",
@@ -6901,8 +8617,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.19735819,
@@ -6955,7 +8672,21 @@
           0.053495609,
           0.11480421
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 18,
+        "n_known_discontinuity": 0,
+        "n_ok": 247
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__hualien__point": {
       "variable_id": "omi_aerosol",
@@ -6970,8 +8701,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.20006389,
@@ -7024,7 +8756,21 @@
           0.055432082,
           0.12169948
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 16,
+        "n_known_discontinuity": 0,
+        "n_ok": 249
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__kaohsiung__point": {
       "variable_id": "omi_aerosol",
@@ -7039,8 +8785,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.22209519,
@@ -7093,7 +8840,21 @@
           0.067623634,
           0.13252373
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 16,
+        "n_known_discontinuity": 0,
+        "n_ok": 249
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__south__area_mean": {
       "variable_id": "omi_aerosol",
@@ -7108,8 +8869,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.23133462,
@@ -7162,7 +8924,21 @@
           0.06873084,
           0.1318299
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 16,
+        "n_known_discontinuity": 0,
+        "n_ok": 249
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__taichung__point": {
       "variable_id": "omi_aerosol",
@@ -7177,8 +8953,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.24119384,
@@ -7231,7 +9008,21 @@
           0.062452758,
           0.13084418
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 15,
+        "n_known_discontinuity": 0,
+        "n_ok": 250
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__taipei__point": {
       "variable_id": "omi_aerosol",
@@ -7246,8 +9037,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.21975657,
@@ -7300,7 +9092,21 @@
           0.067084976,
           0.13760607
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 18,
+        "n_known_discontinuity": 0,
+        "n_ok": 247
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__taiwan__area_mean": {
       "variable_id": "omi_aerosol",
@@ -7315,8 +9121,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.27467891,
@@ -7369,7 +9176,21 @@
           0.066603945,
           0.14026559
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 17,
+        "n_known_discontinuity": 0,
+        "n_ok": 248
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_aerosol__yushan__point": {
       "variable_id": "omi_aerosol",
@@ -7384,8 +9205,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 0.21224925,
@@ -7438,7 +9260,21 @@
           0.066067233,
           0.12169444
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 15,
+        "n_known_discontinuity": 0,
+        "n_ok": 250
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__central__area_mean": {
       "variable_id": "omi_no2",
@@ -7454,7 +9290,8 @@
         "n_valid": 257,
         "n_null": 0,
         "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -1182891900000000.0,
@@ -7507,7 +9344,21 @@
           -1249683400000000.0,
           -999922480000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 257,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 1,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 257
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__east__area_mean": {
       "variable_id": "omi_no2",
@@ -7523,7 +9374,8 @@
         "n_valid": 256,
         "n_null": 0,
         "n_low_coverage": 2,
-        "missing_fraction": 0.0038910506
+        "missing_fraction": 0.0038910506,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -218610200000000.0,
@@ -7576,7 +9428,21 @@
           -268140640000000.0,
           -116029400000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 256,
+        "n_gaps": 1,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 2,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 255
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__hualien__point": {
       "variable_id": "omi_no2",
@@ -7595,8 +9461,23 @@
         "n_valid": 153,
         "n_null": 0,
         "n_low_coverage": 105,
-        "missing_fraction": 0.40466926
-      }
+        "missing_fraction": 0.40466926,
+        "n_partial_month": 0
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 153,
+        "n_gaps": 38,
+        "longest_gap_months": 7,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 105,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 153
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__kaohsiung__point": {
       "variable_id": "omi_no2",
@@ -7612,7 +9493,8 @@
         "n_valid": 254,
         "n_null": 0,
         "n_low_coverage": 4,
-        "missing_fraction": 0.011673152
+        "missing_fraction": 0.011673152,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -1959992700000000.0,
@@ -7665,7 +9547,21 @@
           -1905780000000000.0,
           -1387218500000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 254,
+        "n_gaps": 3,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 4,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 253
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__north__area_mean": {
       "variable_id": "omi_no2",
@@ -7681,7 +9577,8 @@
         "n_valid": 245,
         "n_null": 0,
         "n_low_coverage": 13,
-        "missing_fraction": 0.046692607
+        "missing_fraction": 0.046692607,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -974784210000000.0,
@@ -7734,7 +9631,21 @@
           -1053653200000000.0,
           -801955120000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 245,
+        "n_gaps": 12,
+        "longest_gap_months": 1,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 13,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 245
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__south__area_mean": {
       "variable_id": "omi_no2",
@@ -7750,7 +9661,8 @@
         "n_valid": 258,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -752515550000000.0,
@@ -7803,7 +9715,21 @@
           -727148840000000.0,
           -537930700000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 258,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 256
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__taichung__point": {
       "variable_id": "omi_no2",
@@ -7819,7 +9745,8 @@
         "n_valid": 250,
         "n_null": 0,
         "n_low_coverage": 8,
-        "missing_fraction": 0.027237354
+        "missing_fraction": 0.027237354,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -1886721000000000.0,
@@ -7873,7 +9800,21 @@
           -2012238800000000.0,
           -1636580800000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 250,
+        "n_gaps": 5,
+        "longest_gap_months": 3,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 8,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 250
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__taipei__point": {
       "variable_id": "omi_no2",
@@ -7892,8 +9833,23 @@
         "n_valid": 179,
         "n_null": 1,
         "n_low_coverage": 78,
-        "missing_fraction": 0.30350195
-      }
+        "missing_fraction": 0.30350195,
+        "n_partial_month": 0
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 179,
+        "n_gaps": 32,
+        "longest_gap_months": 5,
+        "n_missing": 1,
+        "n_partial_month": 0,
+        "n_low_coverage": 78,
+        "n_outlier_suspect": 1,
+        "n_known_discontinuity": 0,
+        "n_ok": 178
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__taiwan__area_mean": {
       "variable_id": "omi_no2",
@@ -7909,7 +9865,8 @@
         "n_valid": 258,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": -643468300000000.0,
@@ -7962,7 +9919,21 @@
           -641368360000000.0,
           -469175950000000.0
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 258,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 2,
+        "n_known_discontinuity": 0,
+        "n_ok": 256
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_no2__yushan__point": {
       "variable_id": "omi_no2",
@@ -7981,8 +9952,23 @@
         "n_valid": 176,
         "n_null": 0,
         "n_low_coverage": 82,
-        "missing_fraction": 0.3151751
-      }
+        "missing_fraction": 0.3151751,
+        "n_partial_month": 0
+      },
+      "cleaning": {
+        "n_months": 258,
+        "n_usable": 176,
+        "n_gaps": 54,
+        "longest_gap_months": 3,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 82,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 176
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__central__area_mean": {
       "variable_id": "omi_o3",
@@ -7997,8 +9983,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.4796806,
@@ -8051,7 +10038,21 @@
           3.7340028,
           5.6999362
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__east__area_mean": {
       "variable_id": "omi_o3",
@@ -8066,8 +10067,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.9640002,
@@ -8120,7 +10122,21 @@
           4.2478724,
           6.2181066
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__hualien__point": {
       "variable_id": "omi_o3",
@@ -8135,8 +10151,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 5.032507,
@@ -8189,7 +10206,21 @@
           4.2916096,
           6.3400114
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__kaohsiung__point": {
       "variable_id": "omi_o3",
@@ -8204,8 +10235,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.3389559,
@@ -8258,7 +10290,21 @@
           3.7705326,
           5.677872
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__south__area_mean": {
       "variable_id": "omi_o3",
@@ -8273,8 +10319,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.4170295,
@@ -8327,7 +10374,21 @@
           3.8158226,
           5.7168281
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__taichung__point": {
       "variable_id": "omi_o3",
@@ -8342,8 +10403,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.4424682,
@@ -8396,7 +10458,21 @@
           3.5976902,
           5.6053073
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__taipei__point": {
       "variable_id": "omi_o3",
@@ -8411,8 +10487,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.9105142,
@@ -8465,7 +10542,21 @@
           3.8962879,
           5.9726154
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__taiwan__area_mean": {
       "variable_id": "omi_o3",
@@ -8480,8 +10571,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.763171,
@@ -8534,7 +10626,21 @@
           4.0660275,
           6.0270837
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "omi_o3__yushan__point": {
       "variable_id": "omi_o3",
@@ -8549,8 +10655,9 @@
         "n_points": 266,
         "n_valid": 265,
         "n_null": 0,
-        "n_low_coverage": 1,
-        "missing_fraction": 0.0
+        "n_low_coverage": 0,
+        "missing_fraction": 0.0,
+        "n_partial_month": 1
       },
       "ols": {
         "slope_per_decade": 4.4785466,
@@ -8603,7 +10710,21 @@
           3.8304854,
           5.7536657
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 266,
+        "n_usable": 265,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 1,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 265
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "power_t2m__hualien__point": {
       "variable_id": "power_t2m",
@@ -8619,7 +10740,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.43958594,
@@ -8672,7 +10794,21 @@
           0.34333959,
           0.52304331
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "power_t2m__kaohsiung__point": {
       "variable_id": "power_t2m",
@@ -8688,7 +10824,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.3342513,
@@ -8741,7 +10878,21 @@
           0.24805058,
           0.4259573
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "power_t2m__taichung__point": {
       "variable_id": "power_t2m",
@@ -8757,7 +10908,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.42079679,
@@ -8810,7 +10962,21 @@
           0.28771598,
           0.54117647
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "power_t2m__taipei__point": {
       "variable_id": "power_t2m",
@@ -8826,7 +10992,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.38809734,
@@ -8879,7 +11046,21 @@
           0.25886472,
           0.50183697
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "power_t2m__yushan__point": {
       "variable_id": "power_t2m",
@@ -8895,7 +11076,8 @@
         "n_valid": 309,
         "n_null": 0,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0
+        "missing_fraction": 0.0,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.49535307,
@@ -8948,7 +11130,21 @@
           0.35570979,
           0.57510121
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 309,
+        "n_usable": 309,
+        "n_gaps": 0,
+        "longest_gap_months": 0,
+        "n_missing": 0,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 309
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "station_temp__taichung_station__station": {
       "variable_id": "station_temp",
@@ -8964,7 +11160,8 @@
         "n_valid": 319,
         "n_null": 4,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0093167702
+        "missing_fraction": 0.0093167702,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.35284173,
@@ -9017,7 +11214,21 @@
           0.22984038,
           0.46736311
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 323,
+        "n_usable": 319,
+        "n_gaps": 3,
+        "longest_gap_months": 1,
+        "n_missing": 4,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 319
+      },
+      "known_issues": [],
+      "auxiliary": false
     },
     "station_temp__taipei_station__station": {
       "variable_id": "station_temp",
@@ -9033,7 +11244,8 @@
         "n_valid": 319,
         "n_null": 4,
         "n_low_coverage": 0,
-        "missing_fraction": 0.0093167702
+        "missing_fraction": 0.0093167702,
+        "n_partial_month": 0
       },
       "ols": {
         "slope_per_decade": 0.33553884,
@@ -9086,7 +11298,21 @@
           0.19402994,
           0.46147815
         ]
-      }
+      },
+      "cleaning": {
+        "n_months": 323,
+        "n_usable": 319,
+        "n_gaps": 3,
+        "longest_gap_months": 1,
+        "n_missing": 4,
+        "n_partial_month": 0,
+        "n_low_coverage": 0,
+        "n_outlier_suspect": 0,
+        "n_known_discontinuity": 0,
+        "n_ok": 319
+      },
+      "known_issues": [],
+      "auxiliary": false
     }
   }
 }

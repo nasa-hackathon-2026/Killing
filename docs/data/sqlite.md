@@ -92,3 +92,19 @@ WHERE o.variable_id = 'omi_o3' AND o.location_id = 'taichung'
 ```
 
 限制：單位沒有換算（`merra2_t2m` 是 K、`power_t2m` 是 C、`station_temp` 是 degC），跨變數比較要自己換算。
+
+## 與 PostgreSQL 的關係（#83、#85）
+
+本機另有一個 PostgreSQL 清洗資料庫（[postgres.md](./postgres.md)）。兩者的分工：
+
+| | SQLite | PostgreSQL |
+|---|---|---|
+| 用途 | 發佈格式：單一檔案放在 GitHub Release，下載就能查 | 本機的工作資料庫：清洗結果、空間查詢、時間骨架 |
+| 需要 | 不需要伺服器 | Docker 容器（`db/compose.yaml`） |
+| 內容 | 統一表、各來源表、`trends` | 同樣的內容，加上 `clean.*`（品質旗標、距平、補值）、`geo.*`（PostGIS）、`meta.known_issues`、`analysis.*`（趨勢、規則、決策樹各折、執行紀錄） |
+| 怎麼建 | `uv run python -m trend_detective.sqlite_export` | `uv run python -m trend_detective.pg load`、`clean`、`analysis` |
+
+- 兩者都由同一批序列檔與原始檔建立，互不依賴；PostgreSQL 的 `raw.*` 重用這裡的解析（`load` 先在暫存目錄建一個 SQLite 再搬進去），所以來源表內容相同。SQLite 仍由快照直接產生，不必先有 PostgreSQL。
+- `trends` 表的欄位沒有變。#85 之後 `trends.json` 的輸入是清洗後的值（多排除還沒過完的月份），每條結果多了 `cleaning`、`known_issues`、`auxiliary`；這三項目前只在 `trends.json` 與 PostgreSQL 的 `analysis.trends`，SQLite 的 `trends` 表沒有對應的欄位。
+- 逐月的品質旗標與補值只在 PostgreSQL（`clean.observations`）；SQLite 的 `observations` 仍是序列檔的原始值。
+

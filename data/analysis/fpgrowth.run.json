@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T19:07:20Z",
+  "generated_at": "2026-11-14T21:18:04Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -14,6 +14,9 @@
     }
   },
   "parameters": {
+    "fill_gaps": true,
+    "max_linear_gap_months": 2,
+    "max_fill_fraction": 0.2,
     "low_quantile": 0.33333333,
     "high_quantile": 0.66666667,
     "exclude_variables": [],
@@ -42,7 +45,7 @@
   "summary": {
     "point": {
       "n_transactions": 1260,
-      "n_rules_same_month": 368,
+      "n_rules_same_month": 367,
       "n_rules_lagged_one_month": 0,
       "excluded_variables": [
         {
@@ -51,11 +54,26 @@
           "correlation": 0.99952736,
           "n_pairs": 1260
         }
-      ]
+      ],
+      "gap_filling": {
+        "n_filled_linear": 21,
+        "n_filled_climatology": 33,
+        "n_series_with_filled_months": 12
+      },
+      "n_rules_other_run": {
+        "same_month": {
+          "filled": 367,
+          "unfilled": 368
+        },
+        "lagged_one_month": {
+          "filled": 0,
+          "unfilled": 0
+        }
+      }
     },
     "region": {
       "n_transactions": 1008,
-      "n_rules_same_month": 253,
+      "n_rules_same_month": 259,
       "n_rules_lagged_one_month": 1,
       "excluded_variables": [
         {
@@ -67,10 +85,25 @@
         {
           "variable_id": "modis_lst_pc",
           "correlated_with": "modis_lst",
-          "correlation": 0.995674,
-          "n_pairs": 989
+          "correlation": 0.97171388,
+          "n_pairs": 1008
         }
-      ]
+      ],
+      "gap_filling": {
+        "n_filled_linear": 16,
+        "n_filled_climatology": 12,
+        "n_series_with_filled_months": 9
+      },
+      "n_rules_other_run": {
+        "same_month": {
+          "filled": 259,
+          "unfilled": 253
+        },
+        "lagged_one_month": {
+          "filled": 1,
+          "unfilled": 1
+        }
+      }
     }
   }
 }
