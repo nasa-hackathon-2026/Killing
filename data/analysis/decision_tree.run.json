@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T14:53:09Z",
+  "generated_at": "2026-11-14T19:07:20Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -59,42 +59,42 @@
   "summary": {
     "n_folds": 3,
     "n_folds_above_train_majority": 2,
-    "n_folds_above_test_majority": 0,
+    "n_folds_above_test_majority": 2,
     "n_folds_above_persistence": 0,
     "n_folds_above_all": 0,
     "above_all_in_every_fold": false,
-    "mean_test_accuracy": 0.3994709,
-    "mean_train_majority_accuracy": 0.31481481,
-    "mean_test_majority_accuracy": 0.43121693,
-    "mean_persistence_accuracy": 0.54761905,
-    "text_en": "The tree's test accuracy is above all three baselines in 0 of 3 folds (above the training-majority guess in 2, above the test-majority guess in 0, above the previous-month persistence guess in 0). In 3 of 3 folds the tree does not beat at least one guess that uses no other variable.",
+    "mean_test_accuracy": 0.38330984,
+    "mean_train_majority_accuracy": 0.27231619,
+    "mean_test_majority_accuracy": 0.4274724,
+    "mean_persistence_accuracy": 0.53964059,
+    "text_en": "The tree's test accuracy is above all three baselines in 0 of 3 folds (above the training-majority guess in 2, above the test-majority guess in 2, above the previous-month persistence guess in 0). In 3 of 3 folds the tree does not beat at least one guess that uses no other variable.",
     "folds": [
       {
         "fold": 1,
         "n_train": 354,
-        "n_test": 126,
-        "test_accuracy": 0.46031746,
-        "train_majority_accuracy": 0.26984127,
-        "test_majority_accuracy": 0.46825397,
-        "persistence_accuracy": 0.48412698
+        "n_test": 132,
+        "test_accuracy": 0.46212121,
+        "train_majority_accuracy": 0.27272727,
+        "test_majority_accuracy": 0.45454545,
+        "persistence_accuracy": 0.46969697
       },
       {
         "fold": 2,
-        "n_train": 480,
-        "n_test": 126,
-        "test_accuracy": 0.42063492,
-        "train_majority_accuracy": 0.32539683,
-        "test_majority_accuracy": 0.42063492,
-        "persistence_accuracy": 0.55555556
+        "n_train": 486,
+        "n_test": 132,
+        "test_accuracy": 0.42424242,
+        "train_majority_accuracy": 0.26515152,
+        "test_majority_accuracy": 0.40151515,
+        "persistence_accuracy": 0.58333333
       },
       {
         "fold": 3,
-        "n_train": 606,
-        "n_test": 126,
-        "test_accuracy": 0.31746032,
-        "train_majority_accuracy": 0.34920635,
-        "test_majority_accuracy": 0.4047619,
-        "persistence_accuracy": 0.6031746
+        "n_train": 618,
+        "n_test": 129,
+        "test_accuracy": 0.26356589,
+        "train_majority_accuracy": 0.27906977,
+        "test_majority_accuracy": 0.42635659,
+        "persistence_accuracy": 0.56589147
       }
     ]
   }
