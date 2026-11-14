@@ -48,10 +48,12 @@ cd <名稱> && scripts/sync-labels.sh
 AppEEARS 是非同步 task，送出後可能排隊數小時以上：
 
 ```bash
-uv run python -m trend_detective.appeears submit    # 送出 task 並記錄 task_id（已送過的不重送）
+uv run python -m trend_detective.appeears submit    # 送出 task 並記錄 task_id（同一天已送過的不重送）
 uv run python -m trend_detective.appeears status    # 查狀態
 uv run python -m trend_detective.appeears download  # 完成後取回統計 CSV
 ```
+
+三個指令都要在存有 `data/raw/` 的那個目錄執行（或用 `--raw-dir`、`--env-file` 指過去）：送件紀錄只在那裡，換一個 worktree 直接跑 `submit` 會重送一批。
 
 需要本機 `.env` 裡的 `APPEEARS_TOKEN`：用 Earthdata Login 帳密呼叫 AppEEARS 的 `POST /login` 取得，約 48 小時到期。AppEEARS 不接受 EDL 的 `EARTHDATA_TOKEN`（2026-11-14 實測回 403）。
 

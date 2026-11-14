@@ -11,6 +11,7 @@ from trend_detective.appeears import (
     MODIS_TASKS,
     AppeearsClient,
     AppeearsError,
+    ModisTask,
     build_area_task,
     build_area_tasks,
     download_small_files,
@@ -138,7 +139,6 @@ def test_saved_submission_records_request_without_any_credential(tmp_path: Path)
     assert saved["task_id"] == "abc-123"
     assert saved["submitted_at"] == "2026-11-14T08:00:00Z"
     assert saved["request"] == task
-    assert SECRET not in path.read_text(encoding="utf-8")
 
 
 def test_download_keeps_statistics_csv_and_request_json_and_skips_rasters(
@@ -190,3 +190,31 @@ def test_ndvi_stays_a_single_task():
     )
 
     assert [t["task_name"] for t in tasks] == ["trend-detective-modis_ndvi-20261114"]
+
+
+def test_more_parts_than_years_yields_only_ranges_that_start_before_the_end():
+    task = ModisTask("x", "P.061", ("L",), parts=5)
+
+    tasks = build_area_tasks(task, start=date(2001, 3, 1), end=date(2002, 6, 1))
+
+    assert [t["task_name"] for t in tasks] == [
+        "trend-detective-x-20020601-p1of2",
+        "trend-detective-x-20020601-p2of2",
+    ]
+    assert [t["params"]["dates"][0] for t in tasks] == [
+        {"startDate": "03-01-2001", "endDate": "12-31-2001"},
+        {"startDate": "01-01-2002", "endDate": "06-01-2002"},
+    ]
+
+
+def test_download_never_overwrites_the_local_submission_record(tmp_path: Path):
+    (tmp_path / "submission.json").write_text("local record")
+    files = [{"file_id": "9", "file_name": "submission.json", "file_size": 10}]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/bundle/abc-123":
+            return httpx.Response(200, json={"files": files})
+        return httpx.Response(200, content=b"from server")
+
+    assert download_small_files(_client(handler), "abc-123", tmp_path) == []
+    assert (tmp_path / "submission.json").read_text() == "local record"

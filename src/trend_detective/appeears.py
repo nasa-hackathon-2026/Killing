@@ -25,6 +25,7 @@ from trend_detective.regions import DEFAULT_REGIONS, Region, regions_feature_col
 API_URL = "https://appeears.earthdatacloud.nasa.gov/api/"
 RAW_DIR = Path("data/raw/appeears")
 TOKEN_ENV = "APPEEARS_TOKEN"
+SUBMISSION_FILE = "submission.json"
 START_DATE = date(2001, 1, 1)
 # bundle 裡只取小檔：統計 CSV、請求 JSON、說明文件。影像檔（.nc、.tif）不下載。
 SMALL_FILE_SUFFIXES = (".csv", ".json", ".md", ".txt", ".xml")
@@ -88,28 +89,32 @@ def build_area_tasks(
 ) -> list[dict[str, Any]]:
     """依 `task.parts` 把日期切成以整年為界、首尾相接的幾段，各組一個 task。
 
-    task_name 一律帶整體的結束日，分段時加 `-p<i>of<n>`。
+    task_name 一律帶整體的結束日，分段時加 `-p<i>of<n>`；年數比 `parts` 少時段數會變少。
     """
     if task.parts == 1:
         return [build_area_task(task, start=start, end=end, regions=regions)]
     years_per_part = -(-(end.year - start.year + 1) // task.parts)
-    tasks = []
-    for index in range(task.parts):
-        first_year = start.year + index * years_per_part
-        part_start = max(start, date(first_year, 1, 1))
-        part_end = min(end, date(first_year + years_per_part - 1, 12, 31))
-        tasks.append(
-            build_area_task(
-                task,
-                start=part_start,
-                end=part_end,
-                regions=regions,
-                task_name=(
-                    f"trend-detective-{task.variable_id}-{end:%Y%m%d}"
-                    f"-p{index + 1}of{task.parts}"
-                ),
+    ranges = []
+    for first_year in range(start.year, end.year + 1, years_per_part):
+        ranges.append(
+            (
+                max(start, date(first_year, 1, 1)),
+                min(end, date(first_year + years_per_part - 1, 12, 31)),
             )
         )
+    tasks = [
+        build_area_task(
+            task,
+            start=part_start,
+            end=part_end,
+            regions=regions,
+            task_name=(
+                f"trend-detective-{task.variable_id}-{end:%Y%m%d}"
+                f"-p{index}of{len(ranges)}"
+            ),
+        )
+        for index, (part_start, part_end) in enumerate(ranges, start=1)
+    ]
     return tasks
 
 
@@ -151,7 +156,7 @@ def save_submission(
     submitted_at: str,
 ) -> Path:
     """把 task_id、送出時間與請求參數寫成 `submission.json`（不含憑證）。"""
-    path = raw_dir / variable_id / task_id / "submission.json"
+    path = raw_dir / variable_id / task_id / SUBMISSION_FILE
     path.parent.mkdir(parents=True, exist_ok=True)
     record = {"task_id": task_id, "submitted_at": submitted_at, "request": task}
     path.write_text(
@@ -169,6 +174,8 @@ def download_small_files(
     for entry in client.bundle_files(task_id):
         name = Path(entry["file_name"]).name
         if not name.lower().endswith(SMALL_FILE_SUFFIXES):
+            continue
+        if name == SUBMISSION_FILE:  # 不讓 bundle 裡的同名檔蓋掉本地的送件紀錄
             continue
         target = dest / name
         target.write_bytes(client.file_content(task_id, entry["file_id"]))
@@ -195,7 +202,7 @@ def read_token(env_file: Path) -> str:
 def _submissions(raw_dir: Path) -> list[dict[str, Any]]:
     return [
         json.loads(path.read_text(encoding="utf-8")) | {"dir": path.parent}
-        for path in sorted(raw_dir.glob("*/*/submission.json"))
+        for path in sorted(raw_dir.glob(f"*/*/{SUBMISSION_FILE}"))
     ]
 
 
@@ -212,6 +219,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "submit":
         today = date.today()
         # 已送過的 task_name 不重送，中途失敗後可以直接重跑。
+        # task_name 含當天日期，所以只在同一天去重；隔天重跑會送出新一批。
         sent = {r["request"]["task_name"] for r in _submissions(args.raw_dir)}
         for task_def in MODIS_TASKS.values():
             for task in build_area_tasks(task_def, start=START_DATE, end=today):
