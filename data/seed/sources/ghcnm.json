@@ -1,0 +1,58 @@
+{
+  "source": "noaa_ghcnm",
+  "name_en": "NOAA GHCN-Monthly v4 (GHCNm), TAVG",
+  "url": "https://www.ncei.noaa.gov/pub/data/ghcn/v4/",
+  "landing_page": "https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-monthly",
+  "files": [
+    "ghcnm.tavg.latest.qcf.tar.gz",
+    "ghcnm.tavg.latest.qcu.tar.gz"
+  ],
+  "data_kind": "in_situ",
+  "data_kind_note": "Station measurements. QCF is homogenized by NOAA (PHA); QCU is the reported value after quality control only.",
+  "variables": [
+    {
+      "id": "ghcnm_tavg",
+      "name_zh": "測站月均溫（GHCNm，均一化）",
+      "name_en": "Station monthly mean temperature (NOAA GHCNm v4, QCF adjusted)",
+      "definition_zh": "NOAA GHCNm v4 的測站月平均氣溫，QCF 版：通過品質管制，並用成對均一化演算法（PHA）修正測站遷移、儀器更換等造成的不連續。單位是攝氏度。",
+      "product_version": "GHCNm v4 QCF",
+      "note_zh": "實測參考，不是 NASA 資料。每個地點取距離 100 公里內、2001–2025 至少 240 個月有值的最近測站，存該站全部年份；測站不等於城市中心。缺月不補。",
+      "data_kind_note": "In situ station measurement; QCF has been homogenized (PHA adjustments applied) by NOAA, so it is not the raw reported value. QCF is the quality-controlled, pairwise-homogenized (PHA-adjusted) product; QCU is the quality-controlled but unadjusted product. The station is the nearest GHCNm station within 100 km with at least 240 months of data in 2001-2025, not the city centre.",
+      "category": "能量",
+      "source": "noaa_ghcnm",
+      "source_variable_id": "TAVG",
+      "native_temporal_res": "month",
+      "is_nasa": false,
+      "unit": "degC",
+      "aggregation": "point",
+      "data_kind": "in_situ",
+      "doi": "10.1175/JCLI-D-18-0094.1",
+      "product": "GHCNm v4",
+      "citation": "Menne, M. J., C. N. Williams, B. E. Gleason, J. J. Rennie, and J. H. Lawrimore, 2018: The Global Historical Climatology Network Monthly Temperature Dataset, Version 4. J. Climate, in press, doi:10.1175/JCLI-D-18-0094.1. Data: NOAA National Centers for Environmental Information, GHCN-Monthly v4 (ghcnm.tavg.v4.0.1.20261113), https://www.ncei.noaa.gov/pub/data/ghcn/v4/, accessed 2026-11-14. Only monthly station values (derived selection) are used, for educational, non-commercial use; no endorsement by NOAA is implied."
+    },
+    {
+      "id": "ghcnm_tavg_unadj",
+      "name_zh": "測站月均溫（GHCNm，未調整）",
+      "name_en": "Station monthly mean temperature (NOAA GHCNm v4, QCU unadjusted)",
+      "definition_zh": "NOAA GHCNm v4 的測站月平均氣溫，QCU 版：只做品質管制、不做均一化調整，是測站原始回報的月值；品管不通過的月份不採用。單位是攝氏度。",
+      "product_version": "GHCNm v4 QCU",
+      "note_zh": "實測參考，不是 NASA 資料，與 ghcnm_tavg 用同一個測站。保留測站遷移與儀器更換造成的不連續。品管旗標非空白（E、D、R、K、W、I、L、O、S、T、M）的月份不採用。",
+      "data_kind_note": "In situ station measurement as reported (quality control only, no homogenization adjustment); months failing a QC check are excluded. QCF is the quality-controlled, pairwise-homogenized (PHA-adjusted) product; QCU is the quality-controlled but unadjusted product. The station is the nearest GHCNm station within 100 km with at least 240 months of data in 2001-2025, not the city centre.",
+      "category": "能量",
+      "source": "noaa_ghcnm",
+      "source_variable_id": "TAVG",
+      "native_temporal_res": "month",
+      "is_nasa": false,
+      "unit": "degC",
+      "aggregation": "point",
+      "data_kind": "in_situ",
+      "doi": "10.1175/JCLI-D-18-0094.1",
+      "product": "GHCNm v4",
+      "citation": "Menne, M. J., C. N. Williams, B. E. Gleason, J. J. Rennie, and J. H. Lawrimore, 2018: The Global Historical Climatology Network Monthly Temperature Dataset, Version 4. J. Climate, in press, doi:10.1175/JCLI-D-18-0094.1. Data: NOAA National Centers for Environmental Information, GHCN-Monthly v4 (ghcnm.tavg.v4.0.1.20261113), https://www.ncei.noaa.gov/pub/data/ghcn/v4/, accessed 2026-11-14. Only monthly station values (derived selection) are used, for educational, non-commercial use; no endorsement by NOAA is implied."
+    }
+  ],
+  "locations": {
+    "rule": "every location with kind = point in data/seed/locations.json and data/seed/locations.world.json",
+    "matching": "data/observed/ghcnm/stations.json (not in git)"
+  }
+}
