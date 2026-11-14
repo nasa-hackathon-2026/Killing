@@ -35,6 +35,8 @@ class ModisTask:
     variable_id: str
     product: str
     layers: tuple[str, ...]
+    # 日期範圍切成幾段送出；8 日合成的檔案數多，一次送會超過 AppEEARS 上限。
+    parts: int = 1
 
 
 # layer 名稱於 2026-11-14 用 GET /product/<product> 確認。
@@ -44,7 +46,9 @@ MODIS_TASKS: dict[str, ModisTask] = {
         "MOD13A3.061",
         ("_1_km_monthly_NDVI", "_1_km_monthly_pixel_reliability"),
     ),
-    "modis_lst": ModisTask("modis_lst", "MOD11A2.061", ("LST_Day_1km", "QC_Day")),
+    "modis_lst": ModisTask(
+        "modis_lst", "MOD11A2.061", ("LST_Day_1km", "QC_Day"), parts=2
+    ),
 }
 
 
@@ -58,11 +62,12 @@ def build_area_task(
     start: date,
     end: date,
     regions: tuple[Region, ...] = DEFAULT_REGIONS,
+    task_name: str | None = None,
 ) -> dict[str, Any]:
     """組出 `POST /task` 的 body。日期用 AppEEARS 要求的 MM-DD-YYYY。"""
     return {
         "task_type": "area",
-        "task_name": f"trend-detective-{task.variable_id}-{end:%Y%m%d}",
+        "task_name": task_name or f"trend-detective-{task.variable_id}-{end:%Y%m%d}",
         "params": {
             "dates": [{"startDate": f"{start:%m-%d-%Y}", "endDate": f"{end:%m-%d-%Y}"}],
             "layers": [
@@ -72,6 +77,40 @@ def build_area_task(
             "output": {"format": {"type": "netcdf4"}, "projection": "geographic"},
         },
     }
+
+
+def build_area_tasks(
+    task: ModisTask,
+    *,
+    start: date,
+    end: date,
+    regions: tuple[Region, ...] = DEFAULT_REGIONS,
+) -> list[dict[str, Any]]:
+    """依 `task.parts` 把日期切成以整年為界、首尾相接的幾段，各組一個 task。
+
+    task_name 一律帶整體的結束日，分段時加 `-p<i>of<n>`。
+    """
+    if task.parts == 1:
+        return [build_area_task(task, start=start, end=end, regions=regions)]
+    years_per_part = -(-(end.year - start.year + 1) // task.parts)
+    tasks = []
+    for index in range(task.parts):
+        first_year = start.year + index * years_per_part
+        part_start = max(start, date(first_year, 1, 1))
+        part_end = min(end, date(first_year + years_per_part - 1, 12, 31))
+        tasks.append(
+            build_area_task(
+                task,
+                start=part_start,
+                end=part_end,
+                regions=regions,
+                task_name=(
+                    f"trend-detective-{task.variable_id}-{end:%Y%m%d}"
+                    f"-p{index + 1}of{task.parts}"
+                ),
+            )
+        )
+    return tasks
 
 
 class AppeearsClient:
@@ -172,14 +211,19 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "submit":
         today = date.today()
+        # 已送過的 task_name 不重送，中途失敗後可以直接重跑。
+        sent = {r["request"]["task_name"] for r in _submissions(args.raw_dir)}
         for task_def in MODIS_TASKS.values():
-            task = build_area_task(task_def, start=START_DATE, end=today)
-            task_id = client.submit(task)
-            now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-            path = save_submission(
-                args.raw_dir, task_def.variable_id, task_id, task, submitted_at=now
-            )
-            print(f"{task_def.variable_id}\t{task_id}\t{now}\t{path}")
+            for task in build_area_tasks(task_def, start=START_DATE, end=today):
+                if task["task_name"] in sent:
+                    print(f"{task['task_name']}\t已送過，略過")
+                    continue
+                task_id = client.submit(task)
+                now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+                path = save_submission(
+                    args.raw_dir, task_def.variable_id, task_id, task, submitted_at=now
+                )
+                print(f"{task['task_name']}\t{task_id}\t{now}\t{path}")
         return 0
 
     for record in _submissions(args.raw_dir):

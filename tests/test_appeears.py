@@ -12,6 +12,7 @@ from trend_detective.appeears import (
     AppeearsClient,
     AppeearsError,
     build_area_task,
+    build_area_tasks,
     download_small_files,
     save_submission,
 )
@@ -165,3 +166,27 @@ def test_download_keeps_statistics_csv_and_request_json_and_skips_rasters(
     ]
     assert (tmp_path / "MOD13A3-061-Statistics.csv").read_text() == "content-2"
     assert not (tmp_path / "MOD13A3.061_1km_aid0001.nc").exists()
+
+
+def test_lst_is_split_into_two_consecutive_date_ranges_to_fit_the_file_limit():
+    # 2026-11-14 實測：LST 2001 起一次送會超過 AppEEARS 檔案數上限 18.1%
+    tasks = build_area_tasks(
+        MODIS_TASKS["modis_lst"], start=date(2001, 1, 1), end=date(2026, 11, 14)
+    )
+
+    assert [t["task_name"] for t in tasks] == [
+        "trend-detective-modis_lst-20261114-p1of2",
+        "trend-detective-modis_lst-20261114-p2of2",
+    ]
+    assert [t["params"]["dates"] for t in tasks] == [
+        [{"startDate": "01-01-2001", "endDate": "12-31-2013"}],
+        [{"startDate": "01-01-2014", "endDate": "11-14-2026"}],
+    ]
+
+
+def test_ndvi_stays_a_single_task():
+    tasks = build_area_tasks(
+        MODIS_TASKS["modis_ndvi"], start=date(2001, 1, 1), end=date(2026, 11, 14)
+    )
+
+    assert [t["task_name"] for t in tasks] == ["trend-detective-modis_ndvi-20261114"]

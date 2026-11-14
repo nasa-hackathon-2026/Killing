@@ -48,9 +48,11 @@ cd <名稱> && scripts/sync-labels.sh
 AppEEARS 是非同步 task，送出後可能排隊數小時以上：
 
 ```bash
-uv run python -m trend_detective.appeears submit    # 送出兩個 task 並記錄 task_id
+uv run python -m trend_detective.appeears submit    # 送出 task 並記錄 task_id（已送過的不重送）
 uv run python -m trend_detective.appeears status    # 查狀態
 uv run python -m trend_detective.appeears download  # 完成後取回統計 CSV
 ```
 
 需要本機 `.env` 裡的 `APPEEARS_TOKEN`：用 Earthdata Login 帳密呼叫 AppEEARS 的 `POST /login` 取得，約 48 小時到期。AppEEARS 不接受 EDL 的 `EARTHDATA_TOKEN`（2026-11-14 實測回 403）。
+
+LST（8 日合成）從 2001 年起一次送會超過 AppEEARS 的檔案數上限（2026-11-14 實測超出 18.1%），所以切成 2001–2013、2014–今兩個 task；轉序列檔時（#10）要把兩份統計 CSV 接起來。
