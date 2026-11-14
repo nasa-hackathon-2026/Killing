@@ -88,7 +88,7 @@ export function amountFor(value: number, least: number, most: number): number {
 function no2Photolysis({ time, value }: ScriptInput, paint: Painter) {
   const lanes = amountFor(value, 1, 4);
   for (let lane = 0; lane < lanes; lane += 1) {
-    const y = (lane - (lanes - 1) / 2) * 1.05;
+    const y = (lane - (lanes - 1) / 2) * 0.8;
     const u = fract(time / 9 + lane * 0.27);
     const size = appear(u);
     const split = stage(u, 0.28, 0.3);
@@ -147,7 +147,7 @@ function no2Photolysis({ time, value }: ScriptInput, paint: Painter) {
 function ozoneChapman({ time, value }: ScriptInput, paint: Painter) {
   const lanes = amountFor(value, 1, 4);
   for (let lane = 0; lane < lanes; lane += 1) {
-    const y = (lane - (lanes - 1) / 2) * 1.05;
+    const y = (lane - (lanes - 1) / 2) * 0.8;
     const u = fract(time / 9 + lane * 0.27);
     const size = appear(u);
     const split = stage(u, 0.28, 0.3);

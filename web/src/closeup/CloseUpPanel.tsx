@@ -9,7 +9,7 @@ import { ATOM_RADIUS_FRACTION, PHOTON_COLOR } from "./scripts";
 // How far back the camera sits for each kind of scene (scene units).
 const CAMERA_DISTANCE: Record<SceneKind, number> = {
   water: 7.2,
-  reaction: 5.6,
+  reaction: 4.4,
   thermal: 6.4,
   aerosol: 6.4,
   photosynthesis: 6.4,

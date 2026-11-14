@@ -81,10 +81,10 @@ export const closeUps: CloseUpDefinition[] = [
     id: "no2-photolysis",
     titleEn: "NO₂ and sunlight make ozone near the ground",
     scene: "reaction",
-    molecules: ["NO2", "NO", "O", "O2", "O3"],
+    molecules: ["NO2", "NO", "O", "O2", "O3", "N2"],
     equations: ["NO₂ + hν → NO + O", "O + O₂ + M → O₃ + M"],
     textEn:
-      "Sunlight at wavelengths shorter than roughly 400 nm splits NO₂. The freed oxygen atom joins an O₂ molecule to form ozone; M is any air molecule that carries away the extra energy.",
+      "Sunlight at wavelengths shorter than roughly 400 nm splits NO₂. The freed oxygen atom joins an O₂ molecule to form ozone; M is any air molecule that carries away the extra energy (drawn as N₂).",
     valueEn: "A larger NO₂ column shows more NO₂ molecules taking part.",
     sources: [JACOB, SEINFELD],
   },
@@ -92,10 +92,10 @@ export const closeUps: CloseUpDefinition[] = [
     id: "ozone-chapman",
     titleEn: "How ozone forms in the stratosphere",
     scene: "reaction",
-    molecules: ["O2", "O", "O3"],
+    molecules: ["O2", "O", "O3", "N2"],
     equations: ["O₂ + hν → O + O", "O + O₂ + M → O₃ + M"],
     textEn:
-      "Ultraviolet light at wavelengths shorter than about 242 nm splits O₂. Each oxygen atom joins another O₂ to form ozone (first steps of the Chapman mechanism). Total ozone counts the whole column, most of it in the stratosphere.",
+      "Ultraviolet light at wavelengths shorter than about 242 nm splits O₂. Each oxygen atom joins another O₂ to form ozone (first steps of the Chapman mechanism); M is any air molecule, drawn as N₂. Total ozone counts the whole column, most of it in the stratosphere.",
     valueEn: "A larger ozone column shows more ozone being formed.",
     sources: [
       JACOB,
@@ -139,7 +139,7 @@ export const closeUps: CloseUpDefinition[] = [
     molecules: [],
     equations: [],
     textEn:
-      "Aerosols are solid or liquid particles such as dust, smoke and sea salt, from a few nanometers to tens of micrometers across: thousands of times larger than a gas molecule (about 0.3 nm). The UV aerosol index is a unitless measure that responds mainly to UV-absorbing aerosols such as dust and smoke.",
+      "Aerosols are solid or liquid particles such as dust, smoke and sea salt, from a few nanometers to tens of micrometers across. Even a small 100 nm particle is hundreds of times wider than a gas molecule (about 0.3 nm). The UV aerosol index is a unitless measure that responds mainly to UV-absorbing aerosols such as dust and smoke.",
     valueEn: "A higher index shows more grains.",
     sources: [SEINFELD],
   },
@@ -160,7 +160,7 @@ export const closeUps: CloseUpDefinition[] = [
     id: "soil-pores",
     titleEn: "Soil moisture: water between soil grains",
     scene: "soil",
-    molecules: ["H2O"],
+    molecules: [],
     equations: [],
     textEn:
       "Soil is grains with gaps (pores) between them. Soil moisture is the water held in those pores; here it is the water in the top 10 cm, in kilograms per square meter.",
