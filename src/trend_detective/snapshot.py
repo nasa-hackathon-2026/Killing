@@ -17,7 +17,7 @@ from typing import Any
 
 import httpx
 
-from trend_detective import ghcnh
+from trend_detective import ghcnh, power
 from trend_detective.env import read_secret
 from trend_detective.giovanni import (
     GiovanniClient,
@@ -44,7 +44,7 @@ STATION_START_YEAR = 2000
 STATION_UTC_OFFSET_HOURS = 8
 # 靠海點位被遮罩時，最多往內陸移幾格
 MAX_INLAND_STEPS = 2
-SOURCES = ("giovanni", "noaa_ghcnh")
+SOURCES = ("giovanni", "noaa_ghcnh", "nasa_power")
 
 Key = tuple[str, str]
 
@@ -124,10 +124,11 @@ def build_snapshot(
     now: str,
     raw_dir: Path | None = None,
     station_http: httpx.Client | None = None,
+    power_http: httpx.Client | None = None,
 ) -> SnapshotResult:
     """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
-    變數依 `source` 分派：`giovanni` 抓一般點位，`noaa_ghcnh` 抓有 `ghcnh_id` 的測站。
+    變數依 `source` 分派：`giovanni`、`nasa_power` 抓一般點位，`noaa_ghcnh` 抓有 `ghcnh_id` 的測站。
     對應的 client 沒給（None）就略過該來源，既有的序列檔照樣列在目錄檔。
     單一序列失敗不中斷整批，先前寫出的檔案保留；quota 用完時 Giovanni 之後的序列都不再送。
     """
@@ -141,6 +142,8 @@ def build_snapshot(
             targets = points
         elif source == "noaa_ghcnh" and station_http is not None:
             targets = stations
+        elif source == "nasa_power" and power_http is not None:
+            targets = points
         else:
             continue
         for location in targets:
@@ -152,6 +155,11 @@ def build_snapshot(
                     assert client is not None
                     series = _one_series(
                         client, variable, location, today, now, raw_dir
+                    )
+                elif source == "nasa_power":
+                    assert power_http is not None
+                    series = _power_series(
+                        power_http, variable, location, today, now, raw_dir
                     )
                 else:
                     assert station_http is not None
@@ -182,6 +190,45 @@ def build_snapshot(
         )
     )
     return result
+
+
+def _power_series(
+    http: httpx.Client,
+    variable: dict[str, Any],
+    location: dict[str, Any],
+    today: date,
+    now: str,
+    raw_dir: Path | None,
+) -> Series:
+    """從 NASA POWER 抓一個點位的月平均序列。"""
+    parameter = variable["source_variable_id"]
+    params = power.query(
+        parameter,
+        lat=float(location["lat"]),
+        lon=float(location["lon"]),
+        end_year=today.year,
+    )
+    payload = power.fetch_monthly(http, params)
+    parsed = power.parse_monthly(payload, parameter)
+    if raw_dir is not None:
+        raw_path = raw_dir / "power" / f"{variable['id']}__{location['id']}.json"
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    # 結束年是執行當年，每年不同；理由同 Giovanni 的 end_policy
+    request = {key: value for key, value in params.items() if key != "end"}
+    request["end_policy"] = "run_date"
+    return Series(
+        variable_id=variable["id"],
+        location_id=location["id"],
+        aggregation="point",
+        unit=parsed.unit,
+        source_api="nasa_power",
+        request=request,
+        retrieved_at=now,
+        product_version=variable["product_version"],
+        grid=None,
+        points=monthly_points(parsed.rows),
+    )
 
 
 def _station_series(
@@ -319,6 +366,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         giovanni_client = GiovanniClient(token)
     station_http = httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None
+    power_http = httpx.Client(timeout=120) if "nasa_power" in sources else None
     variables, locations = load_seed(args.seed_dir)
     now = datetime.now(UTC)
     result = build_snapshot(
@@ -330,6 +378,7 @@ def main(argv: list[str] | None = None) -> int:
         now=now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         raw_dir=args.raw_dir,
         station_http=station_http,
+        power_http=power_http,
     )
     print(f"成功 {len(result.succeeded)} 條，失敗 {len(result.failures)} 條")
     for (variable_id, location_id), used in result.shifted.items():

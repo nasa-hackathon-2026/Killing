@@ -45,8 +45,9 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 靜態快照在 `data/snapshot/`（`catalog.json` 加 `series/*.json`，統一格式見 #4），會進 git；公開 demo 只讀這些檔。
 
 - 重新產生：`uv run python -m trend_detective.snapshot`（在 repo 根目錄；本機 `.env` 要有 `EARTHDATA_TOKEN`）。
-- 只重抓單一來源：加 `--source giovanni` 或 `--source noaa_ghcnh`（可重複）；其他來源的既有序列檔保留，目錄檔永遠由 `data/snapshot/series/` 裡現有的檔案組成。
+- 只重抓單一來源：加 `--source giovanni`、`--source noaa_ghcnh` 或 `--source nasa_power`（可重複）；其他來源的既有序列檔保留，目錄檔永遠由 `data/snapshot/series/` 裡現有的檔案組成。
 - 測站（`noaa_ghcnh`）不需要 token：從 AWS Open Data 匿名下載 GHCNh 逐時檔，存到 `data/raw/ghcnh/`（不進 git，約 100 MB），過去的年份有存檔就不重抓。repo 只放月平均。
+- NASA POWER（`nasa_power`）也不需要 token；原始回應存到 `data/raw/power/`。
 - 抓取前會先查 Giovanni `/quota`，用量達 0.95 就停。
 - 重跑是冪等的：資料沒變時檔案不動，`git diff` 為空。所以 `retrieved_at`、`generated_at` 的意思是「內容上次變動的時間」，不是「上次執行的時間」。
 - 序列檔的 `request.end_policy = "run_date"` 表示查詢結束日是執行當天；實際涵蓋範圍看 `points` 的起訖月。`grid` 是資料實際所在的網格中心，可能與請求座標不同。

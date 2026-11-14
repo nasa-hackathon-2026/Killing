@@ -137,5 +137,19 @@
     "is_nasa": false,
     "note_zh": "驗證層，不是 NASA 資料。只做氣溫：這兩站在 GHCNh 的降水欄位幾乎是空的，測站降水沒有做。當月有觀測的天數不到 20 天時不給月平均。",
     "citation": "NOAA NCEI Global Historical Climatology Network – hourly (GHCNh)，accessed via AWS Open Data (NODD)，2026-11-14。原始觀測來自中央氣象署，經 WMO 交換；本 repo 只收錄月平均（衍生資料），供教育、非商業用途，不代表 NOAA 背書。"
+  },
+  {
+    "id": "power_t2m",
+    "name_zh": "2 m 氣溫（NASA POWER）",
+    "name_en": "2 m air temperature (NASA POWER, MERRA-2)",
+    "definition_zh": "離地 2 公尺高的空氣溫度，和 MERRA-2 氣溫是同一套再分析資料，只是從 NASA POWER 這個服務取得，單位是攝氏度。",
+    "category": "能量",
+    "source": "nasa_power",
+    "source_variable_id": "T2M",
+    "product_version": "MERRA-2",
+    "native_temporal_res": "month",
+    "is_nasa": true,
+    "note_zh": "交叉驗證用：和 merra2_t2m（Giovanni，單位 K）同源，換算後應該很接近。不要接成同一條線。POWER 的 IMERG 降水參數對台中回傳全是缺值，沒有使用。",
+    "citation": "The data was obtained from the National Aeronautics and Space Administration (NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resources (POWER) Project funded through the NASA Earth Science Division. POWER Monthly and Annual API v2.10.0, accessed 2026-11-14."
   }
 ]

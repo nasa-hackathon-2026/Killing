@@ -438,3 +438,61 @@ def test_last_years_file_is_downloaded_again_after_the_year_turns(tmp_path: Path
     assert any("_2026.psv" in path for path in requested)
     assert any("_2027.psv" in path for path in requested)
     assert not any("_2025.psv" in path for path in requested)
+
+
+POWER_FIXTURE = Path(__file__).parent / "fixtures" / "power_t2m_taichung_2025_2026.json"
+POWER_T2M = {
+    "id": "power_t2m",
+    "source": "nasa_power",
+    "source_variable_id": "T2M",
+    "product_version": "MERRA-2",
+    "native_temporal_res": "month",
+    "is_nasa": True,
+}
+
+
+def test_power_series_is_written_for_points_only_under_its_own_variable_id(
+    tmp_path: Path,
+):
+    asked: list[dict[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        asked.append(dict(request.url.params))
+        return httpx.Response(200, text=POWER_FIXTURE.read_text(encoding="utf-8"))
+
+    result = build_snapshot(
+        None,
+        tmp_path,
+        [POWER_T2M],
+        [TAICHUNG, TAICHUNG_STATION],
+        power_http=httpx.Client(transport=httpx.MockTransport(handler)),
+        **RUN,
+    )
+
+    assert result.succeeded == [("power_t2m", "taichung")]
+    assert asked == [
+        {
+            "parameters": "T2M",
+            "community": "AG",
+            "longitude": "120.68",
+            "latitude": "24.15",
+            "start": "2001",
+            "end": "2026",
+            "format": "JSON",
+        }
+    ]
+    series = json.loads(
+        (tmp_path / "series" / "power_t2m__taichung__point.json").read_text()
+    )
+    assert series["unit"] == "C"
+    assert series["source_api"] == "nasa_power"
+    assert "end" not in series["request"]
+    assert len(series["points"]) == 23
+    assert series["points"][-1] == {
+        "month": "2026-11-01",
+        "value": None,
+        "n_samples": 0,
+        "coverage": 0,
+    }
+    catalog = json.loads((tmp_path / "catalog.json").read_text())
+    assert catalog["snapshot"]["latest_month"] == {"power_t2m": "2026-09-01"}

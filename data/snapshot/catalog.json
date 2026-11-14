@@ -171,6 +171,23 @@
       "unit": "degC",
       "valid_from": "2000-01-01",
       "valid_to": "2026-10-01"
+    },
+    {
+      "id": "power_t2m",
+      "name_zh": "2 m 氣溫（NASA POWER）",
+      "name_en": "2 m air temperature (NASA POWER, MERRA-2)",
+      "definition_zh": "離地 2 公尺高的空氣溫度，和 MERRA-2 氣溫是同一套再分析資料，只是從 NASA POWER 這個服務取得，單位是攝氏度。",
+      "category": "能量",
+      "source": "nasa_power",
+      "source_variable_id": "T2M",
+      "product_version": "MERRA-2",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "note_zh": "交叉驗證用：和 merra2_t2m（Giovanni，單位 K）同源，換算後應該很接近。不要接成同一條線。POWER 的 IMERG 降水參數對台中回傳全是缺值，沒有使用。",
+      "citation": "The data was obtained from the National Aeronautics and Space Administration (NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resources (POWER) Project funded through the NASA Earth Science Division. POWER Monthly and Annual API v2.10.0, accessed 2026-11-14.",
+      "unit": "C",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-09-01"
     }
   ],
   "locations": [
@@ -696,6 +713,51 @@
       "last_month": "2026-11-01"
     },
     {
+      "variable_id": "power_t2m",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/power_t2m__hualien__point.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "power_t2m",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/power_t2m__kaohsiung__point.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "power_t2m",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/power_t2m__taichung__point.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "power_t2m",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/power_t2m__taipei__point.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "power_t2m",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/power_t2m__yushan__point.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
       "variable_id": "station_temp",
       "location_id": "taichung_station",
       "aggregation": "station",
@@ -715,7 +777,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T08:14:59Z",
+    "generated_at": "2026-11-14T08:21:34Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",
@@ -727,7 +789,8 @@
       "omi_no2": "2026-03-01",
       "omi_o3": "2026-11-01",
       "omi_aerosol": "2026-11-01",
-      "station_temp": "2026-10-01"
+      "station_temp": "2026-10-01",
+      "power_t2m": "2026-09-01"
     }
   }
 }
