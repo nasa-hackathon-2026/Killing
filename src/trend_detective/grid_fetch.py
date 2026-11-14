@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import netCDF4
 import numpy as np
 
 from trend_detective.env import read_secret
@@ -90,6 +91,8 @@ class GridProduct:
     `north_west_corner`——OPeNDAP 替 AIRS 的 HDF-EOS2 檔產生的 `YDim`／`XDim` 是格子的
     北緣與西緣（2026-11-14 實測：和檔案自己的 `Latitude`／`Longitude` 欄位差半格），
     建立方體時會換算成格子中心。
+    `temporal` 是產品的時間解析度：`month`，或 `day`（OMI；每天一個檔，下載後先算成
+    月平均再建立方體，見 `aggregate_days`）。
     """
 
     id: str
@@ -115,6 +118,7 @@ class GridProduct:
     long_name: str = ""
     needs_translation: bool = False
     cell_reference: str = "centre"
+    temporal: str = "month"
 
     @property
     def path(self) -> str:
@@ -197,10 +201,19 @@ def plan_batches(
     記下這一批有哪些變數。變數清單變了就是另一個目錄，不會誤用缺變數的舊檔。
     """
     if batch_size <= 1:
-        return [Batch((p,), raw_dir / p.id / "months") for p in products]
-    groups: dict[tuple[str, str, str, bool], list[GridProduct]] = {}
+        return [
+            Batch((p,), raw_dir / p.id / ("days" if p.temporal == "day" else "months"))
+            for p in products
+        ]
+    groups: dict[tuple[str, str, str, bool, str], list[GridProduct]] = {}
     for product in products:
-        key = (product.collection, product.lat, product.lon, product.with_time)
+        key = (
+            product.collection,
+            product.lat,
+            product.lon,
+            product.with_time,
+            product.temporal,
+        )
         groups.setdefault(key, []).append(product)
     batches = []
     for members in groups.values():
@@ -245,8 +258,13 @@ class RetryLog:
         return "、".join(f"{reason} × {count}" for reason, count in items) or "無"
 
 
-def list_granules(http: httpx.Client, collection: str, start: date) -> dict[date, str]:
-    """查 CMR，回傳 {月份（當月 1 號）: 雲端 OPeNDAP 網址}，只含 `start` 之後的月份。"""
+def list_granules(
+    http: httpx.Client, collection: str, start: date, *, daily: bool = False
+) -> dict[date, str]:
+    """查 CMR，回傳 {月份（當月 1 號）: 雲端 OPeNDAP 網址}，只含 `start` 之後的月份。
+
+    `daily` 為 True 時（日資料產品）鍵是每個檔案的資料日期。
+    """
     found: dict[date, str] = {}
     page = 1
     while True:
@@ -268,7 +286,9 @@ def list_granules(http: httpx.Client, collection: str, start: date) -> dict[date
         for item in items:
             umm = item["umm"]
             begin = umm["TemporalExtent"]["RangeDateTime"]["BeginningDateTime"]
-            month = date(int(begin[:4]), int(begin[5:7]), 1)
+            month = date(
+                int(begin[:4]), int(begin[5:7]), int(begin[8:10]) if daily else 1
+            )
             urls = [
                 link["URL"]
                 for link in umm.get("RelatedUrls", [])
@@ -341,6 +361,10 @@ def month_path(month_dir: Path, month: date) -> Path:
     return month_dir / f"{month:%Y%m}.nc4"
 
 
+def day_path(day_dir: Path, day: date) -> Path:
+    return day_dir / f"{day:%Y%m%d}.nc4"
+
+
 def fetch_months(
     http: httpx.Client,
     token: str,
@@ -352,13 +376,17 @@ def fetch_months(
     sleep: Callable[[float], None] = time.sleep,
     on_retry: Callable[[str], None] | None = None,
 ) -> tuple[int, int, list[str]]:
-    """由新到舊下載還沒有的月份。回傳 (新下載的月數, 位元組數, 失敗訊息)。"""
+    """由新到舊下載還沒有的月份（日資料產品是每一天）。
+
+    回傳 (新下載的檔案數, 位元組數, 失敗訊息)。
+    """
     members = [products] if isinstance(products, GridProduct) else list(products)
     expression = constraint(members)
+    path_of = day_path if members[0].temporal == "day" else month_path
     todo = [
         month
         for month in sorted(granules, reverse=True)
-        if not month_path(month_dir, month).exists()
+        if not path_of(month_dir, month).exists()
     ]
 
     def one(month: date) -> int | str:
@@ -368,7 +396,7 @@ def fetch_months(
                 token,
                 granules[month],
                 expression,
-                month_path(month_dir, month),
+                path_of(month_dir, month),
                 sleep=sleep,
                 on_retry=on_retry,
             )
@@ -402,6 +430,74 @@ def contiguous_months(month_dir: Path) -> list[date]:
     return run[::-1]
 
 
+def read_source_file(
+    product: GridProduct, path: Path
+) -> tuple[Floats, Floats, Floats, str]:
+    """讀一個下載回來的檔案裡這個產品的變數；座標換算成格子中心。"""
+    lat, lon, values, unit = read_month_file(
+        path, product.path, lat=product.lat, lon=product.lon
+    )
+    if product.cell_reference == "north_west_corner":
+        lat = lat - (lat[1] - lat[0]) / 2
+        lon = lon + (lon[1] - lon[0]) / 2
+    return lat, lon, values, unit
+
+
+def aggregate_days(
+    product: GridProduct, day_dir: Path, month_dir: Path, days: Sequence[date]
+) -> int:
+    """把日資料算成月平均檔（`<month_dir>/YYYYMM.nc4`），回傳新寫的月數。
+
+    `days` 是 CMR 列出的所有資料日。一個月要它列出的每一天都下載好才算，所以抓到一半時
+    不會有只含部分日子的月份。月平均是「當月該格有值的日子」的算術平均，一天都沒有就是
+    NaN；每格有值的天數存在同一個檔的 `n_days`。已寫過且天數沒變的月份不重算。
+    """
+    by_month: dict[date, list[date]] = {}
+    for day in days:
+        by_month.setdefault(day.replace(day=1), []).append(day)
+    written = 0
+    for month, members in sorted(by_month.items()):
+        dest = month_path(month_dir, month)
+        if not all(day_path(day_dir, day).exists() for day in members):
+            continue
+        if dest.exists():
+            with netCDF4.Dataset(dest) as done:
+                if int(done.getncattr("days_in_file")) == len(members):
+                    continue
+        lat0, lon0, first, unit = read_source_file(
+            product, day_path(day_dir, members[0])
+        )
+        total = np.zeros(first.shape, dtype=np.float64)
+        count = np.zeros(first.shape, dtype=np.int16)
+        for i, day in enumerate(sorted(members)):
+            if i:
+                lat, lon, layer, _ = read_source_file(product, day_path(day_dir, day))
+                if not (np.array_equal(lat, lat0) and np.array_equal(lon, lon0)):
+                    raise GridError(f"{day:%Y-%m-%d} 的網格與 {members[0]} 不同")
+            else:
+                layer = first
+            valid = np.isfinite(layer)
+            total += np.where(valid, layer, 0.0)
+            count += valid
+        with np.errstate(invalid="ignore", divide="ignore"):
+            mean = np.where(count > 0, total / count, np.nan).astype(np.float32)
+        month_dir.mkdir(parents=True, exist_ok=True)
+        temp = dest.with_suffix(".part")
+        with netCDF4.Dataset(temp, "w", format="NETCDF4") as dataset:
+            dataset.createDimension("lat", len(lat0))
+            dataset.createDimension("lon", len(lon0))
+            dataset.createVariable("lat", "f8", ("lat",))[:] = lat0
+            dataset.createVariable("lon", "f8", ("lon",))[:] = lon0
+            var = dataset.createVariable(product.name, "f4", ("lat", "lon"), zlib=True)
+            var.units = unit or product.unit
+            var[:] = mean
+            dataset.createVariable("n_days", "i2", ("lat", "lon"), zlib=True)[:] = count
+            dataset.days_in_file = len(members)
+        temp.replace(dest)
+        written += 1
+    return written
+
+
 @dataclass(frozen=True)
 class Built:
     """`build_cube` 的結果：立方體已寫到 `path`；`coarse` 是降解析度後的值（給衍生檔用）。"""
@@ -433,16 +529,9 @@ def build_cube(product: GridProduct, month_dir: Path, cube_path: Path) -> Built:
         )
 
     def read(month: date) -> tuple[Floats, Floats, Floats, str]:
-        lat, lon, values, unit = read_month_file(
-            month_path(month_dir, month),
-            product.path,
-            lat=product.lat,
-            lon=product.lon,
-        )
-        if product.cell_reference == "north_west_corner":
-            lat = lat - (lat[1] - lat[0]) / 2
-            lon = lon + (lon[1] - lon[0]) / 2
-        return lat, lon, values, unit
+        if product.temporal == "day":  # `aggregate_days` 寫的月平均檔
+            return read_month_file(month_path(month_dir, month), product.name)
+        return read_source_file(product, month_path(month_dir, month))
 
     lat0, lon0, first, unit = read(months[0])
     unit = unit or product.unit
@@ -595,9 +684,20 @@ def cube_is_current(product: GridProduct, month_dir: Path, cube_path: Path) -> b
 
 
 def assemble_product(
-    product: GridProduct, month_dir: Path, raw_dir: Path, out_dir: Path
+    product: GridProduct,
+    month_dir: Path,
+    raw_dir: Path,
+    out_dir: Path,
+    days: Sequence[date] = (),
 ) -> str:
-    """建一個產品的立方體（與衍生檔），回傳一行摘要；已是最新就不重建。"""
+    """建一個產品的立方體（與衍生檔），回傳一行摘要；已是最新就不重建。
+
+    日資料產品的 `month_dir` 是逐日檔的目錄、`days` 是 CMR 列出的資料日：先算成月平均
+    （放在 `<raw_dir>/<id>/months/`）再建立方體。
+    """
+    if product.temporal == "day":
+        day_dir, month_dir = month_dir, raw_dir / product.id / "months"
+        aggregate_days(product, day_dir, month_dir, days)
     cube_path = raw_dir / product.id / f"{product.id}.nc"
     derived_dir = out_dir / product.id
     if cube_is_current(product, month_dir, cube_path) and (
@@ -620,10 +720,14 @@ def assemble_product(
 
 
 def _assemble_safely(
-    product: GridProduct, month_dir: Path, raw_dir: Path, out_dir: Path
+    product: GridProduct,
+    month_dir: Path,
+    raw_dir: Path,
+    out_dir: Path,
+    days: Sequence[date] = (),
 ) -> tuple[str, bool]:
     try:
-        return assemble_product(product, month_dir, raw_dir, out_dir), True
+        return assemble_product(product, month_dir, raw_dir, out_dir, days), True
     except (GridError, OSError, ValueError) as err:
         return f"{product.id}：立方體失敗：{err}", False
 
@@ -712,9 +816,12 @@ def run(
     granules: dict[str, dict[date, str]] = {}
     listing_failed: list[str] = []
     for collection in dict.fromkeys(p.collection for p in products):
-        first = min(p.start for p in products if p.collection == collection)
+        members = [p for p in products if p.collection == collection]
+        first = min(p.start for p in members)
         try:
-            granules[collection] = list_granules(http, collection, first)
+            granules[collection] = list_granules(
+                http, collection, first, daily=members[0].temporal == "day"
+            )
         except (GridFetchError, httpx.HTTPError) as err:
             listing_failed.append(collection)
             report(f"CMR 查 {collection} 失敗：{type(err).__name__}: {err}")
@@ -752,9 +859,10 @@ def run(
                 batch = result.batch
                 total_size += result.size
                 ok &= not result.failures
+                unit = "天" if batch.products[0].temporal == "day" else "個月"
                 report(
-                    f"{batch.label}：CMR 有 {result.months} 個月，新下載 "
-                    f"{result.downloaded} 個月、{result.size / 1e6:.1f} MB，"
+                    f"{batch.label}：CMR 有 {result.months} {unit}，新下載 "
+                    f"{result.downloaded} {unit}、{result.size / 1e6:.1f} MB，"
                     f"失敗 {len(result.failures)}，耗時 {result.seconds:.0f} 秒"
                 )
                 for failure in result.failures:
@@ -762,7 +870,12 @@ def run(
                 if fetch_only:
                     continue
                 for product in batch.products:
-                    job = (product, batch.month_dir, raw_dir, out_dir)
+                    days = (
+                        sorted(granules[product.collection])
+                        if product.temporal == "day"
+                        else ()
+                    )
+                    job = (product, batch.month_dir, raw_dir, out_dir, days)
                     if builders:
                         builds.append(builders.submit(_assemble_safely, *job))
                     else:

@@ -13,9 +13,11 @@ from trend_detective.grid import GridError, read_cube, read_frontend
 from trend_detective.grid_fetch import (
     GridFetchError,
     GridProduct,
+    aggregate_days,
     build_cube,
     constraint,
     contiguous_months,
+    day_path,
     download_month,
     fetch_months,
     list_granules,
@@ -673,3 +675,132 @@ def test_corner_referenced_coordinates_become_cell_centres_in_the_cube(tmp_path:
     # 北緣 26 的那一列（值 1、2）是中心 25.5 的格子
     assert cube.values[0, 2].tolist() == [1.0, 2.0]
     assert cube.unit == "kg m-2"
+
+
+def test_daily_granules_are_listed_by_their_data_date():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "items": [
+                    granule("2004-10-01T00:00:00.000Z", "d1.he5"),
+                    granule("2004-10-02T00:00:00.000Z", "d2.he5"),
+                ]
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        found = list_granules(http, "C1-X", date(2004, 10, 1), daily=True)
+
+    assert found == {
+        date(2004, 10, 1): OPENDAP + "d1.he5",
+        date(2004, 10, 2): OPENDAP + "d2.he5",
+    }
+
+
+def daily_product(tmp_path: Path) -> GridProduct:
+    (product,) = load_extended(
+        tmp_path,
+        {
+            **extended("demo_o3", "/G/O3"),
+            "lat": "/G/YDim",
+            "lon": "/G/XDim",
+            "temporal": "day",
+            "start": "2004-10",
+        },
+    )
+    return product
+
+
+def write_day(day_dir: Path, day: date, values: list[list[float]]) -> None:
+    """一天的檔：群組 G 裡 2 × 2 的網格，缺值是 -1e30。"""
+    day_dir.mkdir(parents=True, exist_ok=True)
+    with netCDF4.Dataset(day_path(day_dir, day), "w") as dataset:
+        group = dataset.createGroup("G")
+        group.createDimension("YDim", 2)
+        group.createDimension("XDim", 2)
+        group.createVariable("YDim", "f4", ("YDim",))[:] = [-45.0, 45.0]
+        group.createVariable("XDim", "f4", ("XDim",))[:] = [-90.0, 90.0]
+        var = group.createVariable("O3", "f4", ("YDim", "XDim"), fill_value=-1e30)
+        var.Units = "DU"
+        var.set_auto_mask(False)
+        var[:] = np.array(values, dtype=np.float32)
+
+
+def test_daily_files_become_a_monthly_mean_of_the_days_that_have_data(tmp_path: Path):
+    product = daily_product(tmp_path)
+    day_dir, month_dir = tmp_path / "days", tmp_path / "months"
+    days = [date(2004, 10, 1), date(2004, 10, 2), date(2004, 10, 4)]
+    write_day(day_dir, days[0], [[300.0, 200.0], [-1e30, -1e30]])
+    write_day(day_dir, days[1], [[310.0, -1e30], [-1e30, 250.0]])
+    write_day(day_dir, days[2], [[320.0, 240.0], [-1e30, 270.0]])
+
+    assert aggregate_days(product, day_dir, month_dir, days) == 1
+
+    with netCDF4.Dataset(month_path(month_dir, date(2004, 10, 1))) as dataset:
+        mean = dataset["O3"][:].filled(np.nan)
+        n_days = dataset["n_days"][:]
+        assert dataset["O3"].units == "DU"
+    # 西南格三天都有值；東南格兩天；西北格一天都沒有；東北格兩天
+    np.testing.assert_allclose(mean[0], [310.0, 220.0])
+    assert np.isnan(mean[1, 0]) and mean[1, 1] == 260.0
+    assert n_days.tolist() == [[3, 2], [0, 2]]
+    # 沒有新的日子就不重算
+    assert aggregate_days(product, day_dir, month_dir, days) == 0
+
+
+def test_a_month_waits_until_every_listed_day_is_downloaded(tmp_path: Path):
+    product = daily_product(tmp_path)
+    day_dir, month_dir = tmp_path / "days", tmp_path / "months"
+    october = [date(2004, 10, 30), date(2004, 10, 31)]
+    november = [date(2004, 11, 1), date(2004, 11, 2)]
+    for day in (october[1], *november):
+        write_day(day_dir, day, [[1.0, 1.0], [1.0, 1.0]])
+
+    assert aggregate_days(product, day_dir, month_dir, october + november) == 1
+
+    assert month_path(month_dir, date(2004, 11, 1)).exists()
+    assert not month_path(month_dir, date(2004, 10, 1)).exists()
+
+    # 最新的月份多了一天：重算那個月
+    write_day(day_dir, date(2004, 11, 3), [[4.0, 4.0], [4.0, 4.0]])
+    grown = [*october, *november, date(2004, 11, 3)]
+    assert aggregate_days(product, day_dir, month_dir, grown) == 1
+    with netCDF4.Dataset(month_path(month_dir, date(2004, 11, 1))) as dataset:
+        assert dataset["O3"][:].tolist() == [[2.0, 2.0], [2.0, 2.0]]
+
+
+def test_a_daily_product_run_ends_with_a_monthly_cube(tmp_path: Path):
+    product = daily_product(tmp_path)
+    days = ["2004-10-30", "2004-10-31", "2004-11-01"]
+    write_day(tmp_path / "make", date(2004, 10, 30), [[300.0, 300.0], [300.0, 300.0]])
+    reply = day_path(tmp_path / "make", date(2004, 10, 30)).read_bytes()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "cmr.earthdata.nasa.gov":
+            return httpx.Response(
+                200,
+                json={
+                    "items": [granule(f"{d}T00:00:00.000Z", f"{d}.he5") for d in days]
+                },
+            )
+        assert request.url.params["dap4.ce"] == "/G/O3;/G/YDim;/G/XDim"
+        return httpx.Response(200, content=reply)
+
+    lines: list[str] = []
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        ok = run(
+            [product],
+            http=http,
+            token=SECRET,
+            raw_dir=tmp_path / "raw",
+            out_dir=tmp_path / "out",
+            report=lines.append,
+        )
+
+    assert ok
+    assert len(list((tmp_path / "raw" / "demo_o3" / "days").glob("*.nc4"))) == 3
+    cube = read_cube(tmp_path / "raw" / "demo_o3" / "demo_o3.nc")
+    assert cube.months == [date(2004, 10, 1), date(2004, 11, 1)]
+    assert cube.unit == "DU"
+    assert (cube.values == 300.0).all()

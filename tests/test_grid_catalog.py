@@ -203,6 +203,13 @@ def test_seed_entries_come_from_the_file_listing_and_the_collection_record():
     assert "frontend" not in seed[2]
 
 
+def test_a_daily_product_can_be_limited_to_its_core_variables():
+    seed = make_seed({**CONFIG, "temporal": "day", "only_core": True})
+
+    assert [entry["id"] for entry in seed] == ["demo_count", "demo_rain"]
+    assert {entry["temporal"] for entry in seed} == {"day"}
+
+
 def test_a_products_cell_reference_is_copied_to_each_of_its_entries():
     seed = make_seed({**CONFIG, "cell_reference": "north_west_corner"})
 
@@ -261,4 +268,10 @@ def test_the_repo_extended_seed_loads_and_marks_what_needs_translation():
         "airs_tsurf",
         "airs_h2ovap",
     }
-    assert all(product.needs_translation != product.derive for product in products)
+    named = derived | {"omi_o3", "omi_aerosol", "omi_no2"}
+    assert {p.id for p in products if not p.needs_translation} == named
+    assert {p.product for p in products if p.temporal == "day"} == {
+        "OMTO3d.003",
+        "OMAERUVd.003",
+        "OMNO2d.003",
+    }

@@ -17,6 +17,9 @@
 座標值指的是格子的哪裡，DMR 看不出來：AIRS 經 OPeNDAP 得到的 `YDim`／`XDim` 是格子的
 北緣與西緣而不是中心（實測），所以在設定檔替該產品寫 `cell_reference`，照抄到每個條目。
 
+日資料產品（OMI）在設定檔寫 `temporal: "day"`；`only_core: true` 表示只列核心變數
+（OMNO2d 0.25° 的日資料每個變數全期約 18 GB，其餘變數先不抓）。
+
 `data/seed/grids.json` 已有的（collection、變數）不重複列。
 """
 
@@ -162,6 +165,8 @@ def entries(
         leaf = variable.path.rsplit("/", 1)[-1]
         if (concept, leaf) in existing:
             continue
+        if config.get("only_core") and variable.path not in core:
+            continue
         chosen = core.get(variable.path, {})
         slug = re.sub(r"[^a-z0-9]+", "_", leaf.lower()).strip("_")
         ident = chosen.get("id") or f"{config['prefix']}_{slug}"
@@ -179,8 +184,9 @@ def entries(
             "lat": variable.lat,
             "lon": variable.lon,
         }
-        if "cell_reference" in config:
-            entry["cell_reference"] = config["cell_reference"]
+        for key in ("cell_reference", "temporal"):
+            if key in config:
+                entry[key] = config[key]
         if "frontend" in chosen:
             entry["frontend"] = chosen["frontend"]
         result.append(entry)
