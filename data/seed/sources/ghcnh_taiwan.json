@@ -1,0 +1,233 @@
+{
+  "source": "ghcnh_taiwan",
+  "name_en": "NOAA GHCNh hourly station air temperature, Taiwan stations with long records",
+  "issue_ref": "#88",
+  "source_api": "noaa_ghcnh",
+  "station_list_url": "https://noaa-ghcnh-pds.s3.amazonaws.com/hourly/doc/ghcnh-station-list.csv",
+  "inventory_url": "https://noaa-ghcnh-pds.s3.amazonaws.com/hourly/doc/ghcnh-inventory.txt",
+  "file_url_template": "https://noaa-ghcnh-pds.s3.amazonaws.com/hourly/access/by-year/{year}/psv/GHCNh_{station_id}_{year}.psv",
+  "search_box": {
+    "lat": [
+      21.5,
+      25.5
+    ],
+    "lon": [
+      118.0,
+      122.5
+    ]
+  },
+  "evaluation": {
+    "first_month": "2001-01",
+    "last_month": "2025-12",
+    "min_valid_months": 240,
+    "min_coverage": 0.25
+  },
+  "variables": [
+    {
+      "id": "station_temp",
+      "reuse_core_variable": true,
+      "name_en": "Station air temperature (NOAA GHCNh)",
+      "unit": "degC",
+      "product": "GHCNh",
+      "product_version": "GHCNh",
+      "native_temporal_res": "hour",
+      "is_nasa": false,
+      "citation": "NOAA NCEI Global Historical Climatology Network – hourly (GHCNh), accessed via AWS Open Data (NODD) on 2026-11-14/15. Original observations are from Taiwan's Central Weather Administration (and the Taiwan military/civil airport weather services), exchanged through WMO/ICAO. Only monthly means (derived data) are kept here, for educational, non-commercial use; no endorsement by NOAA is implied.",
+      "data_kind": "in_situ",
+      "data_kind_note": "Hourly air temperature measured by the station's thermometer, averaged to local-day means and then to monthly means with the same algorithm as the core station_temp series (docs/data/sources/ghcnh_taiwan.md).",
+      "note_zh": "驗證層，不是 NASA 資料。與核心快照的 station_temp 是同一個量、同一個算法（逐時氣溫 → 當地日（UTC+8）平均 → 月平均，當月有觀測的天數不到 20 天不給月平均）；測站是台灣所有在 GHCNh 逐年檔（2000 年起）裡 2001–2025 至少有 240 個可用月份的測站。原始觀測來自中央氣象署與機場氣象單位，經 WMO／ICAO 交換；本 repo 只收錄月平均（衍生資料），供教育、非商業用途，不代表 NOAA 背書。"
+    }
+  ],
+  "core_stations": {
+    "CHM00058968": "taipei_station",
+    "CHM00059158": "taichung_station"
+  },
+  "offshore_station_ids": [
+    "TWM00046780"
+  ],
+  "candidate_decisions": {
+    "CHA00593461": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；澎湖（P'ENG-HU，23.53N 119.57E）"
+    },
+    "CHM00058965": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；桃園（WMO 58965）"
+    },
+    "CHM00058968": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；台北（WMO 58968），核心快照已有"
+    },
+    "CHM00059152": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；新竹（WMO 59152）"
+    },
+    "CHM00059158": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；台中（WMO 59158），核心快照已有"
+    },
+    "CHM00059345": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；馬公（WMO 59345，澎湖）"
+    },
+    "CHM00059353": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；阿里山（WMO 59353）"
+    },
+    "CHM00059358": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；台南（WMO 59358）"
+    },
+    "CHM00059362": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；花蓮（WMO 59362）"
+    },
+    "CHM00059553": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；東港（WMO 59553）"
+    },
+    "CHM00059554": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；高雄（WMO 59554）"
+    },
+    "CHM00059559": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；恆春（WMO 59559）"
+    },
+    "CHM00059567": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；蘭嶼（WMO 59567）"
+    },
+    "CHU00046736": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；金門（KINMEN，QUEMOY）"
+    },
+    "CHU00059135": {
+      "class": "taiwan",
+      "reason": "GHCNh 把中央氣象署（WMO 區塊 589xx–595xx）的測站記成國別碼 CN；金門（CHIN-MEN，QUEMOY IS）"
+    },
+    "CHA00591330": {
+      "class": "mainland_coast",
+      "reason": "晉江（JIN-JIANG，24.80N 118.58E），福建泉州，中國大陸沿岸"
+    },
+    "CHI0000ZSQZ": {
+      "class": "mainland_coast",
+      "reason": "晉江機場（ICAO ZSQZ，ZS 開頭是中國大陸），福建泉州"
+    },
+    "CHM00058938": {
+      "class": "mainland_coast",
+      "reason": "HUNG-LAI（WMO 58938，25.08N 118.52E），福建沿岸"
+    },
+    "CHM00058947": {
+      "class": "mainland_coast",
+      "reason": "DAI-TOU（WMO 58947，25.27N 119.20E），福建沿岸"
+    },
+    "CHU00000013": {
+      "class": "mainland_coast",
+      "reason": "AMOY（廈門的舊名）"
+    },
+    "CHU00000052": {
+      "class": "mainland_coast",
+      "reason": "AMOY（CUSTOMS ST），廈門海關"
+    },
+    "CHU00058944": {
+      "class": "mainland_coast",
+      "reason": "站名含 CHINA（平潭，福建）"
+    },
+    "CHU00059133": {
+      "class": "mainland_coast",
+      "reason": "站名含 CHINA（CHUNG-WU，福建）"
+    },
+    "CHU00059134": {
+      "class": "mainland_coast",
+      "reason": "HSIA-MEN CHINA（SHAMEN，廈門）"
+    },
+    "CHU00amoy-1": {
+      "class": "mainland_coast",
+      "reason": "CHINAAMOY（廈門）"
+    },
+    "CHU059134-1": {
+      "class": "mainland_coast",
+      "reason": "XIAMEN（廈門）"
+    },
+    "CHU20-00028": {
+      "class": "mainland_coast",
+      "reason": "AMOY（廈門的舊名）"
+    },
+    "CHU00000051": {
+      "class": "needs_review",
+      "reason": "CHAPEL ISLAND：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    },
+    "CHU00000054": {
+      "class": "needs_review",
+      "reason": "OCKSEU：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    },
+    "CHU00000055": {
+      "class": "needs_review",
+      "reason": "TURNABOUT：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    },
+    "CHU20-00021": {
+      "class": "needs_review",
+      "reason": "TURNABOUT：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    },
+    "CHU20-00024": {
+      "class": "needs_review",
+      "reason": "OCKSEU：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    },
+    "CHU20-00026": {
+      "class": "needs_review",
+      "reason": "CHAPEL ISLAND：1930 年代燈塔測站的舊名，判斷不了在福建沿岸還是台灣管轄的離島；盤點表在 2001 年以後沒有觀測，不影響結果"
+    }
+  },
+  "locations": [
+    {
+      "id": "stn_chm00059358",
+      "kind": "point",
+      "name_zh": "臺南測站",
+      "name_en": "Tainan (CWA / WMO 59358)",
+      "lat": 23.0,
+      "lon": 120.2167,
+      "elevation_m": 14.0,
+      "ghcnh_id": "CHM00059358",
+      "region": "south",
+      "note_zh": "GHCNh 國別碼 CN（實為中央氣象署測站）。同一地點另有機場測站 TWI0000RCNN，2001–2025 月數不足，未保留。"
+    },
+    {
+      "id": "stn_chm00059559",
+      "kind": "point",
+      "name_zh": "恆春測站",
+      "name_en": "Hengchun (CWA / WMO 59559)",
+      "lat": 22.0,
+      "lon": 120.75,
+      "elevation_m": 24.0,
+      "ghcnh_id": "CHM00059559",
+      "region": "south",
+      "note_zh": "GHCNh 國別碼 CN（實為中央氣象署測站）。"
+    },
+    {
+      "id": "stn_chm00059567",
+      "kind": "point",
+      "name_zh": "蘭嶼測站",
+      "name_en": "Lanyu (CWA / WMO 59567)",
+      "lat": 22.0333,
+      "lon": 121.55,
+      "elevation_m": 325.0,
+      "ghcnh_id": "CHM00059567",
+      "region": "offshore",
+      "island": true,
+      "note_zh": "離島；GHCNh 國別碼 CN（實為中央氣象署測站）。測站高度 325 m，和島上低處的格點平均有高度落差。"
+    },
+    {
+      "id": "stn_twi0000rckh",
+      "kind": "point",
+      "name_zh": "高雄國際機場測站",
+      "name_en": "Kaohsiung International Airport (ICAO RCKH)",
+      "lat": 22.5771,
+      "lon": 120.35,
+      "elevation_m": 7.9,
+      "ghcnh_id": "TWI0000RCKH",
+      "region": "south",
+      "note_zh": "機場氣象觀測（METAR/SYNOP），國別碼 TW；與 TWA00467440（高雄，只到 1998 年）、CHM00059554（高雄，只有 2002 年）是同一地區的不同 id。"
+    }
+  ]
+}
