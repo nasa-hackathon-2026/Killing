@@ -88,9 +88,12 @@ export type Fold = {
     };
     // Always guess the most common class of the test months (hindsight)
     test_majority: { predicted_class: string; test_accuracy: number };
+    // Guess that the target stays in last month's state
+    persistence: { test_accuracy: number };
   };
   above_train_majority: boolean;
   above_test_majority: boolean;
+  above_persistence: boolean;
   confusion_matrix_test: Record<string, ClassCounts>;
   feature_importances: { feature: string; importance: number }[];
   tree_text: string;
@@ -106,15 +109,18 @@ export type DecisionTreeFile = FileHeader & {
     { n_rows: number; n_complete_rows: number; missing_variables: string[] }
   >;
   excluded_variables: ExcludedVariable[];
+  // Same physical quantity as the target, so never used as features
+  same_quantity_excluded: string[];
   validation: { n_folds: number; min_train_months: number };
   folds: Fold[];
   summary: {
     n_folds: number;
-    n_folds_above_both: number;
-    above_both_in_every_fold: boolean;
+    n_folds_above_all: number;
+    above_all_in_every_fold: boolean;
     mean_test_accuracy: number;
     mean_train_majority_accuracy: number;
     mean_test_majority_accuracy: number;
+    mean_persistence_accuracy: number;
     text_en: string;
   };
 };
@@ -186,15 +192,14 @@ export function formatExcluded(
 }
 
 export function foldVerdict(fold: Fold): string {
-  if (fold.above_train_majority && fold.above_test_majority) {
-    return "above both baselines";
-  }
-  if (!fold.above_train_majority && !fold.above_test_majority) {
-    return "not above either baseline";
-  }
-  return fold.above_train_majority
-    ? "not above the test-majority guess"
-    : "not above the training-majority guess";
+  const notAbove = [
+    fold.above_train_majority ? null : "training-majority guess",
+    fold.above_test_majority ? null : "test-majority guess",
+    fold.above_persistence ? null : "persistence guess",
+  ].filter((name) => name !== null);
+  return notAbove.length
+    ? `not above: ${notAbove.join(", ")}`
+    : "above all three baselines";
 }
 
 export function formatShare(value: number): string {

@@ -529,18 +529,89 @@ def test_tree_is_validated_on_three_later_blocks_of_months():
 
 
 def test_tree_features_include_the_previous_month_of_every_variable():
+    # 預設不含目標自己的前一個月
     result = run_decision_tree(tree_data(), None, TREE_PARAMS)
-    assert result["features"] == ["noise", "x", "prev:noise", "prev:x", "prev:y"]
+    assert result["features"] == ["noise", "x", "prev:noise", "prev:x"]
 
-    without = MiningParams(
-        tree_target="y", max_abs_correlation=1.0, tree_include_target_lag=False
+    with_lag = MiningParams(
+        tree_target="y", max_abs_correlation=1.0, tree_include_target_lag=True
     )
-    assert run_decision_tree(tree_data(), None, without)["features"] == [
+    assert run_decision_tree(tree_data(), None, with_lag)["features"] == [
         "noise",
         "x",
         "prev:noise",
         "prev:x",
+        "prev:y",
     ]
+
+
+def test_variables_of_the_same_quantity_as_the_target_are_not_features():
+    # x 與 y 設成同一個物理量：x 與 prev:x 都不當特徵，樹只剩無關的 noise
+    params = MiningParams(
+        tree_target="y",
+        max_abs_correlation=1.0,
+        same_quantity_groups=(("x", "y", "not_in_table"), ("noise", "other")),
+    )
+    result = run_decision_tree(tree_data(), None, params)
+
+    assert result["features"] == ["noise", "prev:noise"]
+    assert result["same_quantity_excluded"] == ["x"]
+    assert result["summary"]["above_all_in_every_fold"] is False
+    # 這條規則只看目標在哪一組：目標換成 noise 時，x 與 y 都還是特徵
+    as_noise = MiningParams(
+        tree_target="noise",
+        max_abs_correlation=1.0,
+        same_quantity_groups=(("x", "y"),),
+    )
+    result = run_decision_tree(tree_data(), None, as_noise)
+    assert result["features"] == ["x", "y", "prev:x", "prev:y"]
+    assert result["same_quantity_excluded"] == []
+
+
+def test_default_groups_pair_the_two_ndvi_products_and_the_air_temperatures():
+    from trend_detective.mining import same_quantity_variables
+
+    params = MiningParams()
+    assert same_quantity_variables("modis_ndvi", params) == ["modis_ndvi_pc"]
+    assert same_quantity_variables("modis_lst_pc", params) == ["modis_lst"]
+    assert same_quantity_variables("merra2_t2m", params) == [
+        "airs_tsurf",
+        "gldas_tair",
+        "power_t2m",
+    ]
+    assert same_quantity_variables("imerg_precip", params) == []
+    assert params.tree_include_target_lag is False
+
+
+def test_persistence_baseline_guesses_last_months_state_of_the_target():
+    # y 每 5 個月在高低之間切換（週期 10 個月，不是 12 的因數，所以不會被月份平均
+    # 消掉；另加與 y 無關的特徵）：猜「和上個月一樣」只在切換的那個月猜錯，所以每折的
+    # 準確率是 1 − 切換次數 ÷ 測試月數
+    rng = np.random.default_rng(3)
+    y = np.tile(np.r_[np.full(5, 1.0), np.full(5, -1.0)], 20)
+    y = y + rng.normal(0, 0.01, 200)
+    data = anomalies_file(
+        {
+            "y__r1__area_mean": ("2005-01-01", y.tolist()),
+            "x__r1__area_mean": ("2005-01-01", rng.normal(0, 1, 200).tolist()),
+        }
+    )
+    params = MiningParams(tree_target="y", low_quantile=0.5, high_quantile=0.5)
+    result = run_decision_tree(data, None, params)
+
+    # 測試折是位置 121–147、148–173、174–199；狀態在位置 5 的倍數切換
+    switches = [
+        sum(1 for i in range(start, stop) if i % 5 == 0)
+        for start, stop in ((121, 148), (148, 174), (174, 200))
+    ]
+    for fold, n_switch in zip(result["folds"], switches, strict=True):
+        expected = 1 - n_switch / fold["n_test"]
+        assert fold["baselines"]["persistence"]["test_accuracy"] == pytest.approx(
+            expected
+        )
+        assert fold["above_persistence"] is False
+    assert result["summary"]["n_folds_above_persistence"] == 0
+    assert result["summary"]["n_folds_above_all"] == 0
 
 
 def test_tree_finds_the_informative_feature_and_beats_both_baselines():
@@ -553,12 +624,15 @@ def test_tree_finds_the_informative_feature_and_beats_both_baselines():
         assert fold["baselines"]["train_majority"]["test_accuracy"] < 0.6
         assert fold["baselines"]["test_majority"]["test_accuracy"] < 0.6
         assert fold["above_train_majority"] and fold["above_test_majority"]
+        # y 是逐月獨立的：猜「和上個月一樣」約三分之一
+        assert fold["baselines"]["persistence"]["test_accuracy"] < 0.6
+        assert fold["above_persistence"]
         assert sum(fold["tree"]["class_counts"].values()) == fold["n_train"]
         matrix = fold["confusion_matrix_test"]
         assert sum(sum(row.values()) for row in matrix.values()) == fold["n_test"]
     summary = result["summary"]
-    assert summary["n_folds_above_both"] == 3
-    assert summary["above_both_in_every_fold"] is True
+    assert summary["n_folds_above_all"] == 3
+    assert summary["above_all_in_every_fold"] is True
     assert "3 of 3 folds" in summary["text_en"]
     assert "does not beat" not in summary["text_en"]
 
@@ -570,13 +644,14 @@ def test_tree_says_so_when_it_does_not_beat_the_baselines():
         f"{variable}__r1__area_mean": ("2005-01-01", rng.normal(0, 1, 200).tolist())
         for variable in ("x", "noise", "y")
     }
-    params = MiningParams(tree_target="y", tree_include_target_lag=False)
+    params = MiningParams(tree_target="y")
     result = run_decision_tree(anomalies_file(series), None, params)
     summary = result["summary"]
 
-    assert summary["n_folds_above_both"] < 3
-    assert summary["above_both_in_every_fold"] is False
-    assert "does not beat always guessing one class" in summary["text_en"]
+    assert summary["n_folds_above_all"] < 3
+    assert summary["above_all_in_every_fold"] is False
+    assert f"in {summary['n_folds_above_all']} of 3 folds" in summary["text_en"]
+    assert "does not beat at least one guess" in summary["text_en"]
     for fold in result["folds"]:
         # 測試期最多的類別至少佔三分之一，而且不會低於訓練期最多的類別在測試期的比例
         best = fold["baselines"]["test_majority"]["test_accuracy"]
@@ -631,6 +706,7 @@ def test_rows_with_a_missing_feature_are_left_out_and_counted():
     result = run_decision_tree(data, None, TREE_PARAMS)
 
     # 位置 3 缺 x：那個月的列與下一個月（要用它當前一個月）的列都不能用
+    # （r2 缺 noise 整條序列，一列都不成）
     assert result["rows_by_location"]["r1"] == {
         "n_rows": 199,
         "n_complete_rows": 197,
@@ -708,6 +784,10 @@ def test_command_writes_exploratory_results_and_reruns_identically(tmp_path: Pat
     tree = json.loads(second["decision_tree.json"])
     assert tree["parameters"]["tree_n_folds"] == 3
     assert tree["parameters"]["tree_min_train_months"] == 120
+    assert tree["parameters"]["tree_include_target_lag"] is False
+    assert ["modis_ndvi", "modis_ndvi_pc"] in tree["parameters"]["same_quantity_groups"]
+    assert tree["same_quantity_excluded"] == []
+    assert "persistence" in tree["folds"][0]["baselines"]
     assert len(tree["folds"]) == 3
 
 

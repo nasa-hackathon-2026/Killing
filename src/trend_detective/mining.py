@@ -34,11 +34,14 @@
    q < `rule_alpha` 的。同一變數的持續性（延遲規則的後項變數也在前項）另外放在
    `persistence_rules`，自成一組做 FDR。交易彼此不獨立（相鄰月份、相鄰地點），p 值偏樂觀。
 5. 決策樹：目標是某個變數的狀態，特徵是同一列其他變數的值，加上各變數前一個月的值
-   （`prev:變數`；`tree_include_target_lag` 決定含不含目標自己的前一個月）。驗證依月份往前
+   （`prev:變數`）。兩種特徵預設不用，因為等於拿目標預測目標：目標自己的前一個月
+   （`tree_include_target_lag`），以及與目標同一個物理量的變數（`same_quantity_groups`，
+   例如兩套 NDVI 產品；這條規則和 3 的相關係數無關，排除了誰記在 `same_quantity_excluded`）。驗證依月份往前
    走：最前面 `tree_min_train_months` 個月只當訓練，其餘月份切成 `tree_n_folds` 段不重疊的
    測試折，每折的訓練期是該折之前的全部月份。為了不外洩，每一折都只用訓練期重新估計：各月份
-   的平均（重新置中）、線性趨勢、目標的分位數門檻，再套到測試期。每折同時報告兩種基準：永遠
-   猜訓練期最多的類別、永遠猜測試期最多的類別（事後才知道）。變數篩選（3）用的是全期資料。
+   的平均（重新置中）、線性趨勢、目標的分位數門檻，再套到測試期。每折同時報告三種基準：永遠
+   猜訓練期最多的類別、永遠猜測試期最多的類別（事後才知道）、猜「和目標自己前一個月的狀態
+   一樣」（持續性）。變數篩選（3）用的是全期資料。
 
 資料沒變時重跑，結果檔逐位元組相同（時間戳只在執行紀錄）。
 """
@@ -124,8 +127,15 @@ class MiningParams:
     # 走動驗證：測試折數；最前面至少這麼多個月只當訓練
     tree_n_folds: int = 3
     tree_min_train_months: int = 120
-    # 特徵含不含目標變數自己前一個月的值
-    tree_include_target_lag: bool = True
+    # 特徵含不含目標變數自己前一個月的值。預設不含：那等於拿目標預測目標
+    tree_include_target_lag: bool = False
+    # 同一個物理量的變數組。目標在某一組裡時，同組的其他變數（含前一個月）不當特徵；
+    # 這和「依相關係數排除」是兩條獨立的規則
+    same_quantity_groups: tuple[tuple[str, ...], ...] = (
+        ("modis_ndvi", "modis_ndvi_pc"),
+        ("modis_lst", "modis_lst_pc"),
+        ("gldas_tair", "merra2_t2m", "airs_tsurf", "power_t2m"),
+    )
     tree_random_state: int = 0
 
 
@@ -607,6 +617,19 @@ def walk_forward_folds(
     return folds
 
 
+def same_quantity_variables(target: str, params: MiningParams) -> list[str]:
+    """與目標同一個物理量的其他變數（依 `same_quantity_groups`）。"""
+    return sorted(
+        {
+            variable
+            for group in params.same_quantity_groups
+            if target in group
+            for variable in group
+            if variable != target
+        }
+    )
+
+
 def majority_baselines(
     train_labels: list[str], test_labels: list[str]
 ) -> dict[str, Any]:
@@ -670,17 +693,20 @@ def _tree_nodes(model: DecisionTreeClassifier, features: list[str]) -> dict[str,
     return node(0)
 
 
-def summary_text(n_folds: int, n_both: int, n_train: int, n_test: int) -> str:
+def summary_text(
+    n_folds: int, n_all: int, n_train: int, n_test: int, n_persistence: int
+) -> str:
     """給網頁直接顯示的中性說明：樹在幾折裡高於基準。"""
     text = (
-        f"The tree's test accuracy is above both baselines in {n_both} of "
+        f"The tree's test accuracy is above all three baselines in {n_all} of "
         f"{n_folds} folds (above the training-majority guess in {n_train}, above "
-        f"the test-majority guess in {n_test})."
+        f"the test-majority guess in {n_test}, above the previous-month "
+        f"persistence guess in {n_persistence})."
     )
-    if n_both < n_folds:
+    if n_all < n_folds:
         text += (
-            f" In {n_folds - n_both} of {n_folds} folds the tree does not beat "
-            "always guessing one class."
+            f" In {n_folds - n_all} of {n_folds} folds the tree does not beat "
+            "at least one guess that uses no other variable."
         )
     return text
 
@@ -706,11 +732,22 @@ def run_decision_tree(
             "",
         )
         raise ValueError(f"目標變數 {target} 不在 {params.tree_table} 寬表裡{reason}")
-    others = [variable for variable in table.variables if variable != target]
+    # 與目標同一個物理量的變數不當特徵（同月與前一個月都不用）
+    same_quantity = [
+        variable
+        for variable in same_quantity_variables(target, params)
+        if variable in table.variables
+    ]
+    others = [
+        variable
+        for variable in table.variables
+        if variable != target and variable not in same_quantity
+    ]
     lagged = [
         variable
         for variable in table.variables
-        if variable != target or params.tree_include_target_lag
+        if variable not in same_quantity
+        and (variable != target or params.tree_include_target_lag)
     ]
     features = [*others, *(f"prev:{variable}" for variable in lagged)]
     n = table.n_months
@@ -720,10 +757,12 @@ def run_decision_tree(
     rows_by_location = {}
     for location in table.locations:
         by_variable = table.values[location]
-        missing = sorted(set(table.variables) - set(by_variable))
+        missing = sorted({target, *others, *lagged} - set(by_variable))
         complete = np.zeros(n, dtype=bool)
         if not missing and n > 1:
+            # 目標這個月與前一個月都要有值（前一個月給持續性基準用）
             complete[1:] = ~np.isnan(by_variable[target][1:])
+            complete[1:] &= ~np.isnan(by_variable[target][:-1])
             for variable in others:
                 complete[1:] &= ~np.isnan(by_variable[variable][1:])
             for variable in lagged:
@@ -749,12 +788,14 @@ def run_decision_tree(
         x_test: list[list[float]] = []
         y_train: list[str] = []
         y_test: list[str] = []
+        previous_test: list[str] = []
         cuts = {}
         for location in sorted(usable):
             # 趨勢、月份平均、目標門檻都只用這一折的訓練期（位置 < train_stop）估計
             residual = {
                 variable: fold_residuals(series, table.first_index, train_stop)
                 for variable, series in table.values[location].items()
+                if variable not in same_quantity
             }
             low, high = thresholds(residual[target][:train_stop], params)
             cuts[location] = {"low": low, "high": high}
@@ -769,6 +810,7 @@ def run_decision_tree(
                 else:
                     x_test.append(x)
                     y_test.append(label)
+                    previous_test.append(labels[i - 1] or "normal")
         model = DecisionTreeClassifier(
             max_depth=params.tree_max_depth,
             min_samples_leaf=params.tree_min_samples_leaf,
@@ -780,6 +822,13 @@ def run_decision_tree(
             y_test
         )
         baselines = majority_baselines(y_train, y_test)
+        # 持續性基準：猜「和目標自己前一個月的狀態一樣」，不用任何其他變數
+        baselines["persistence"] = {
+            "test_accuracy": sum(
+                a == g for a, g in zip(y_test, previous_test, strict=True)
+            )
+            / len(y_test)
+        }
         importances = sorted(
             zip(features, (float(v) for v in model.feature_importances_), strict=True),
             key=lambda pair: (-pair[1], pair[0]),
@@ -810,6 +859,8 @@ def run_decision_tree(
                 > baselines["train_majority"]["test_accuracy"],
                 "above_test_majority": accuracy
                 > baselines["test_majority"]["test_accuracy"],
+                "above_persistence": accuracy
+                > baselines["persistence"]["test_accuracy"],
                 "confusion_matrix_test": {
                     actual: {
                         guess: sum(
@@ -831,8 +882,12 @@ def run_decision_tree(
         )
     n_train = sum(fold["above_train_majority"] for fold in folds)
     n_test = sum(fold["above_test_majority"] for fold in folds)
-    n_both = sum(
-        fold["above_train_majority"] and fold["above_test_majority"] for fold in folds
+    n_persistence = sum(fold["above_persistence"] for fold in folds)
+    n_all = sum(
+        fold["above_train_majority"]
+        and fold["above_test_majority"]
+        and fold["above_persistence"]
+        for fold in folds
     )
     return {
         "table": params.tree_table,
@@ -842,6 +897,8 @@ def run_decision_tree(
         "rows_by_location": rows_by_location,
         "dropped_series": table.dropped_series,
         "excluded_variables": excluded,
+        # 與目標同一個物理量、因此不當特徵的變數（另一條規則，與相關係數無關）
+        "same_quantity_excluded": same_quantity,
         "validation": {
             "method": (
                 "walk-forward by month: each fold tests on the next block of months "
@@ -856,8 +913,9 @@ def run_decision_tree(
             "n_folds": len(folds),
             "n_folds_above_train_majority": n_train,
             "n_folds_above_test_majority": n_test,
-            "n_folds_above_both": n_both,
-            "above_both_in_every_fold": n_both == len(folds),
+            "n_folds_above_persistence": n_persistence,
+            "n_folds_above_all": n_all,
+            "above_all_in_every_fold": n_all == len(folds),
             "mean_test_accuracy": float(
                 np.mean([fold["accuracy"]["test"] for fold in folds])
             ),
@@ -871,7 +929,10 @@ def run_decision_tree(
                     [f["baselines"]["test_majority"]["test_accuracy"] for f in folds]
                 )
             ),
-            "text_en": summary_text(len(folds), n_both, n_train, n_test),
+            "mean_persistence_accuracy": float(
+                np.mean([f["baselines"]["persistence"]["test_accuracy"] for f in folds])
+            ),
+            "text_en": summary_text(len(folds), n_all, n_train, n_test, n_persistence),
         },
     }
 
@@ -902,6 +963,7 @@ TREE_PARAMS = (
     "tree_n_folds",
     "tree_min_train_months",
     "tree_include_target_lag",
+    "same_quantity_groups",
     "tree_random_state",
 )
 
@@ -1007,6 +1069,9 @@ def write_outputs(
                         "test_majority_accuracy": fold["baselines"]["test_majority"][
                             "test_accuracy"
                         ],
+                        "persistence_accuracy": fold["baselines"]["persistence"][
+                            "test_accuracy"
+                        ],
                     }
                     for fold in tree["folds"]
                 ],
@@ -1077,9 +1142,17 @@ def main(argv: list[str] | None = None) -> int:
         "--tree-min-train-months", type=int, default=d.tree_min_train_months
     )
     parser.add_argument(
-        "--tree-no-target-lag",
+        "--tree-target-lag",
         action="store_true",
-        help="特徵不放目標變數自己前一個月的值",
+        help="特徵加上目標變數自己前一個月的值（預設不加）",
+    )
+    parser.add_argument(
+        "--same-quantity-group",
+        action="append",
+        help=(
+            "同一個物理量的變數組，逗號分隔，可重複；給了就取代預設的各組"
+            "（給空字串表示沒有任何組）"
+        ),
     )
     args = parser.parse_args(argv)
     params = MiningParams(
@@ -1107,7 +1180,16 @@ def main(argv: list[str] | None = None) -> int:
         tree_min_samples_leaf=args.tree_min_samples_leaf,
         tree_n_folds=args.tree_n_folds,
         tree_min_train_months=args.tree_min_train_months,
-        tree_include_target_lag=not args.tree_no_target_lag,
+        tree_include_target_lag=args.tree_target_lag,
+        same_quantity_groups=(
+            d.same_quantity_groups
+            if args.same_quantity_group is None
+            else tuple(
+                tuple(name for name in group.split(",") if name)
+                for group in args.same_quantity_group
+                if group
+            )
+        ),
     )
     anomalies_path = args.analysis_dir / "anomalies.json"
     if not anomalies_path.exists():
@@ -1147,7 +1229,8 @@ def main(argv: list[str] | None = None) -> int:
             f"{fold['test_last_month'][:7]}（訓練 {fold['n_train']} 列、測試 "
             f"{fold['n_test']} 列）：準確率 {fold['accuracy']['test']:.3f}；"
             f"猜訓練期最多的類別 {baselines['train_majority']['test_accuracy']:.3f}；"
-            f"猜測試期最多的類別 {baselines['test_majority']['test_accuracy']:.3f}"
+            f"猜測試期最多的類別 {baselines['test_majority']['test_accuracy']:.3f}；"
+            f"猜和前一個月一樣 {baselines['persistence']['test_accuracy']:.3f}"
         )
     print(f"  {tree['summary']['text_en']}")
     print(f"已寫出 {args.analysis_dir}/fpgrowth.json、decision_tree.json 與執行紀錄")

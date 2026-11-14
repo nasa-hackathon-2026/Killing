@@ -221,27 +221,33 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
         last month&apos;s value of each variable
         {file.features.includes(`prev:${file.target}`)
           ? " (including the target itself)"
+          : " (not the target's own previous month)"}
+        .{" "}
+        {file.same_quantity_excluded.length
+          ? `Not used as features because they measure the same quantity as the target: ${file.same_quantity_excluded
+              .map((id) => names[id] ?? id)
+              .join(", ")}. `
           : ""}
-        . Validation walks forward in time: each fold tests on the next block of
+        Validation walks forward in time: each fold tests on the next block of
         months and trains on every month before it. Monthly means, the linear
         trend and the target&apos;s quantiles are estimated from the training
         months of each fold only.
       </p>
       <p
-        className={
-          summary.above_both_in_every_fold ? "verdict" : "verdict warn"
-        }
+        className={summary.above_all_in_every_fold ? "verdict" : "verdict warn"}
       >
         {summary.text_en}
       </p>
       <p className="note">
-        Two baselines per fold, both scored on the test months: always guess the
-        most common class of the training months, and always guess the most
-        common class of the test months (known only afterwards). Mean test
-        accuracy over {summary.n_folds} folds: tree{" "}
+        Three baselines per fold, all scored on the test months and none using
+        any other variable: always guess the most common class of the training
+        months; always guess the most common class of the test months (known
+        only afterwards); guess that the target stays in last month&apos;s state
+        (persistence). Mean test accuracy over {summary.n_folds} folds: tree{" "}
         {formatShare(summary.mean_test_accuracy)}, training-majority guess{" "}
         {formatShare(summary.mean_train_majority_accuracy)}, test-majority guess{" "}
-        {formatShare(summary.mean_test_majority_accuracy)}.
+        {formatShare(summary.mean_test_majority_accuracy)}, persistence guess{" "}
+        {formatShare(summary.mean_persistence_accuracy)}.
       </p>
       <div className="scroll">
         <table>
@@ -253,6 +259,7 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
               <th className="number">Tree, test</th>
               <th className="number">Training-majority guess</th>
               <th className="number">Test-majority guess</th>
+              <th className="number">Persistence guess</th>
               <th>Tree against baselines</th>
             </tr>
           </thead>
@@ -277,6 +284,9 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
                 <td className="number">
                   {formatShare(fold.baselines.test_majority.test_accuracy)} (
                   {fold.baselines.test_majority.predicted_class})
+                </td>
+                <td className="number">
+                  {formatShare(fold.baselines.persistence.test_accuracy)}
                 </td>
                 <td>{foldVerdict(fold)}</td>
               </tr>

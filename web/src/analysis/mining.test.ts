@@ -205,7 +205,12 @@ describe("visibleRules", () => {
   });
 });
 
-function fold(test: number, trainMajority: number, testMajority: number): Fold {
+function fold(
+  test: number,
+  trainMajority: number,
+  testMajority: number,
+  persistence: number,
+): Fold {
   return {
     accuracy: { train: 0.9, test },
     baselines: {
@@ -215,22 +220,28 @@ function fold(test: number, trainMajority: number, testMajority: number): Fold {
         test_accuracy: trainMajority,
       },
       test_majority: { predicted_class: "high", test_accuracy: testMajority },
+      persistence: { test_accuracy: persistence },
     },
     above_train_majority: test > trainMajority,
     above_test_majority: test > testMajority,
+    above_persistence: test > persistence,
   } as Fold;
 }
 
 describe("foldVerdict", () => {
-  it("says plainly whether the tree is above the baselines", () => {
-    expect(foldVerdict(fold(0.6, 0.3, 0.4))).toBe("above both baselines");
-    expect(foldVerdict(fold(0.35, 0.3, 0.4))).toBe(
-      "not above the test-majority guess",
+  it("says plainly which baselines the tree is not above", () => {
+    expect(foldVerdict(fold(0.6, 0.3, 0.4, 0.5))).toBe(
+      "above all three baselines",
     );
-    expect(foldVerdict(fold(0.35, 0.4, 0.3))).toBe(
-      "not above the training-majority guess",
+    expect(foldVerdict(fold(0.45, 0.3, 0.4, 0.5))).toBe(
+      "not above: persistence guess",
     );
-    expect(foldVerdict(fold(0.2, 0.3, 0.4))).toBe("not above either baseline");
+    expect(foldVerdict(fold(0.35, 0.3, 0.4, 0.5))).toBe(
+      "not above: test-majority guess, persistence guess",
+    );
+    expect(foldVerdict(fold(0.2, 0.3, 0.4, 0.5))).toBe(
+      "not above: training-majority guess, test-majority guess, persistence guess",
+    );
   });
 });
 
