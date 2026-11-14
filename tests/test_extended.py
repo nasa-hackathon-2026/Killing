@@ -456,6 +456,32 @@ def test_an_interrupted_run_keeps_waiting_for_the_job_it_already_submitted(
     assert result.succeeded == [("runoff", "global", "area_mean")]
 
 
+def test_collect_only_finishes_submitted_jobs_and_submits_nothing_new(tmp_path: Path):
+    harmony_dir = tmp_path / "raw" / "harmony"
+    harmony_dir.mkdir(parents=True)
+    (harmony_dir / "jobs.extended.json").write_text(
+        json.dumps(
+            {
+                "runoff__global": {
+                    "job_id": "job-from-before",
+                    "end": "2026-11-14",
+                    "status": "running",
+                }
+            }
+        )
+    )
+    requests: list[str] = []
+
+    result = _areas(
+        tmp_path, _harmony(requests), [(RUNOFF, GLOBE), (RUNOFF, AFRICA)], submit=False
+    )
+
+    assert not any(path.endswith("/rangeset") for path in requests)
+    assert result.succeeded == [("runoff", "global", "area_mean")]
+    assert result.failures == {}
+    assert not (tmp_path / "extended/series/runoff__africa__area_mean.json").exists()
+
+
 def test_a_region_known_to_hold_no_grid_cell_is_not_submitted_and_not_a_failure(
     tmp_path: Path,
 ):

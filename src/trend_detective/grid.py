@@ -13,6 +13,7 @@
 
 import calendar
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -70,61 +71,131 @@ class Layers:
     offset: float = 0.0
 
 
-def read_month_file(path: Path, variable: str) -> tuple[Floats, Floats, Floats, str]:
-    """讀單月的 NetCDF 子集，回傳 (lat, lon, 二維值, 單位)；fill value 轉成 NaN。"""
+def _variable(dataset: netCDF4.Dataset, path: Path, name: str) -> Any:
+    try:
+        return dataset[name]
+    except (IndexError, KeyError):
+        raise GridError(f"{path.name} 裡沒有變數 {name}") from None
+
+
+def read_month_file(
+    path: Path, variable: str, *, lat: str = "lat", lon: str = "lon"
+) -> tuple[Floats, Floats, Floats, str]:
+    """讀單月的 NetCDF 子集，回傳 (lat, lon, 二維值, 單位)；fill value 轉成 NaN。
+
+    `variable`、`lat`、`lon` 可以是群組路徑（`/Grid/precipitation`）。檔案裡的軸順序
+    （IMERG 是 lon × lat）與方向（AIRS 的緯度由北到南）都轉成緯度由南到北、經度由西到東；
+    長度為 1 的時間軸可有可無。沒有 `units` 屬性時單位是空字串。
+    """
     with netCDF4.Dataset(path) as dataset:
-        if variable not in dataset.variables:
-            raise GridError(f"{path.name} 裡沒有變數 {variable}")
-        var = dataset.variables[variable]
+        var = _variable(dataset, path, variable)
+        lat_var = _variable(dataset, path, lat)
+        lon_var = _variable(dataset, path, lon)
         var.set_auto_mask(False)
         raw = np.asarray(var[:], dtype=np.float32)
-        if raw.ndim != 3 or raw.shape[0] != 1:
+        axes = (lat_var.dimensions[0], lon_var.dimensions[0])
+        kept = [
+            (name, size)
+            for name, size in zip(var.dimensions, raw.shape, strict=True)
+            if name in axes
+        ]
+        if sorted(name for name, _ in kept) != sorted(axes) or raw.size != (
+            kept[0][1] * kept[1][1]
+        ):
             raise GridError(
                 f"{path.name} 的 {variable} 不是 (1, lat, lon)：{raw.shape}"
             )
-        values = raw[0]
-        for name in ("_FillValue", "missing_value"):
-            if name in var.ncattrs():
-                values = np.where(
-                    values == np.float32(var.getncattr(name)), np.nan, values
-                )
-        lat = np.asarray(dataset.variables["lat"][:], dtype=np.float64)
-        lon = np.asarray(dataset.variables["lon"][:], dtype=np.float64)
-        unit = str(var.getncattr("units")) if "units" in var.ncattrs() else ""
-    return lat, lon, values.astype(np.float32), unit
+        values = raw.reshape([size for _, size in kept])
+        if kept[0][0] != axes[0]:
+            values = values.T
+        attrs = set(var.ncattrs())
+        for name in ("_FillValue", "missing_value", "MissingValue"):
+            if name in attrs:
+                fill = np.float32(np.asarray(var.getncattr(name)).ravel()[0])
+                values = np.where(values == fill, np.nan, values)
+        lat_values = np.asarray(lat_var[:], dtype=np.float64)
+        lon_values = np.asarray(lon_var[:], dtype=np.float64)
+        unit = next(
+            (str(var.getncattr(name)) for name in ("units", "Units") if name in attrs),
+            "",
+        )
+    if lat_values[0] > lat_values[-1]:
+        lat_values, values = lat_values[::-1], values[::-1]
+    if lon_values[0] > lon_values[-1]:
+        lon_values, values = lon_values[::-1], values[:, ::-1]
+    return lat_values, lon_values, np.ascontiguousarray(values, np.float32), unit
 
 
-def write_cube(path: Path, cube: Cube, variable: str) -> None:
-    """把立方體寫成一個壓縮的 NetCDF-4 檔（先寫暫存檔再改名）。"""
+def write_cube_layers(
+    path: Path,
+    variable: str,
+    months: list[date],
+    lat: Floats,
+    lon: Floats,
+    unit: str,
+    attrs: dict[str, str],
+    layers: Iterable[Floats],
+) -> None:
+    """把逐月的二維值一層一層寫成壓縮的 NetCDF-4 立方體（先寫暫存檔再改名）。
+
+    `layers` 依 `months` 的順序給出 (緯度, 經度)；一次只有一個月在記憶體裡，
+    0.1° 的產品（IMERG、FLDAS，每個月 2 千萬格以上）也不必整個載入。
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     temp = path.with_suffix(".part")
     with netCDF4.Dataset(temp, "w", format="NETCDF4") as dataset:
-        dataset.createDimension("time", len(cube.months))
-        dataset.createDimension("lat", len(cube.lat))
-        dataset.createDimension("lon", len(cube.lon))
+        dataset.createDimension("time", len(months))
+        dataset.createDimension("lat", len(lat))
+        dataset.createDimension("lon", len(lon))
         time = dataset.createVariable("time", "i4", ("time",))
         time.units = "days since 1970-01-01"
         time.calendar = "standard"
         time.long_name = "first day of the month"
-        time[:] = [(month - EPOCH).days for month in cube.months]
-        lat = dataset.createVariable("lat", "f8", ("lat",))
-        lat.units = "degrees_north"
-        lat[:] = cube.lat
-        lon = dataset.createVariable("lon", "f8", ("lon",))
-        lon.units = "degrees_east"
-        lon[:] = cube.lon
+        time[:] = [(month - EPOCH).days for month in months]
+        lat_var = dataset.createVariable("lat", "f8", ("lat",))
+        lat_var.units = "degrees_north"
+        lat_var[:] = lat
+        lon_var = dataset.createVariable("lon", "f8", ("lon",))
+        lon_var.units = "degrees_east"
+        lon_var[:] = lon
         data = dataset.createVariable(
             variable,
             "f4",
             ("time", "lat", "lon"),
             zlib=True,
             complevel=4,
+            chunksizes=(1, len(lat), len(lon)),
             fill_value=np.float32(np.nan),
         )
-        data.units = cube.unit
-        data[:] = cube.values
-        dataset.setncatts({"variable": variable, **cube.attrs})
+        data.units = unit
+        count = 0
+        for layer in layers:
+            data[count] = layer
+            count += 1
+        if count != len(months):
+            raise GridError(f"{path.name}：{len(months)} 個月卻只有 {count} 層")
+        dataset.setncatts({"variable": variable, **attrs})
     temp.replace(path)
+
+
+def write_cube(path: Path, cube: Cube, variable: str) -> None:
+    """把記憶體裡的立方體寫成一個壓縮的 NetCDF-4 檔。"""
+    write_cube_layers(
+        path,
+        variable,
+        cube.months,
+        cube.lat,
+        cube.lon,
+        cube.unit,
+        cube.attrs,
+        iter(cube.values),
+    )
+
+
+def read_cube_attrs(path: Path) -> dict[str, str]:
+    """只讀立方體的全域屬性（`first_month`、`last_month`、`n_months`…），不載入值。"""
+    with netCDF4.Dataset(path) as dataset:
+        return {name: str(dataset.getncattr(name)) for name in dataset.ncattrs()}
 
 
 def read_cube(path: Path) -> Cube:
