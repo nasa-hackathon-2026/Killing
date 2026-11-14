@@ -1,14 +1,28 @@
 {
   "command": "uv run python -m trend_detective.pg clean && uv run python -m trend_detective.pg export",
-  "generated_at": "2026-11-14T21:30:44Z",
+  "generated_at": "2026-11-14T22:12:17Z",
   "database": {
     "run_id": 2,
-    "git_commit": "b2c673d980d595afc14c4219ed8808f7e0c8c366",
+    "git_commit": "32c5be193cffda04b04932409080caa17d0cd36d",
     "server": "17.11 (Ubuntu 17.11-1.pgdg22.04+2)",
     "extensions": {
+      "btree_gist": "1.7",
+      "file_fdw": "1.0",
+      "h3": "4.2.3",
+      "h3_postgis": "4.2.3",
+      "ltree": "1.3",
+      "pg_cron": "1.6",
+      "pg_textsearch": "1.5.1",
       "pg_trgm": "1.6",
+      "pgrouting": "4.0.2",
+      "plpython3u": "1.0",
       "postgis": "3.7.0",
-      "timescaledb": "2.32.0"
+      "postgis_raster": "3.7.0",
+      "tablefunc": "1.0",
+      "timescaledb": "2.32.0",
+      "timescaledb_toolkit": "1.26.0",
+      "unit": "7",
+      "vector": "0.8.7"
     }
   },
   "parameters": {

@@ -1,0 +1,220 @@
+{
+  "note": "Category tree for meta.variables.category_path (PostgreSQL ltree). Core variables are assigned by hand in `core`. Every other variable is matched against `rules` in order; the first rule whose keys all match wins: variable_pattern (regular expression on the variable id), name_pattern (case-insensitive, on the English name), product_pattern (on the product), unit_pattern (on the unit). No match gives `unclassified`. Labels may only contain letters, digits and underscores.",
+  "unclassified": "unclassified",
+  "core": {
+    "airs_h2ovap": "atmosphere.water.vapor",
+    "airs_tsurf": "atmosphere.temperature.near_surface",
+    "gldas_evap": "land.water.evapotranspiration",
+    "gldas_soilmoist": "land.water.soil_moisture",
+    "gldas_tair": "atmosphere.temperature.near_surface",
+    "imerg_precip": "atmosphere.water.precipitation",
+    "merra2_t2m": "atmosphere.temperature.near_surface",
+    "modis_lst": "land.temperature.skin",
+    "modis_lst_pc": "land.temperature.skin",
+    "modis_ndvi": "land.vegetation.ndvi",
+    "modis_ndvi_pc": "land.vegetation.ndvi",
+    "omi_aerosol": "atmosphere.aerosol.index",
+    "omi_no2": "atmosphere.gas.no2",
+    "omi_o3": "atmosphere.gas.o3",
+    "power_t2m": "atmosphere.temperature.near_surface",
+    "station_temp": "atmosphere.temperature.near_surface"
+  },
+  "rules": [
+    {
+      "variable_pattern": "(_ct$|totalcounts)",
+      "path": "auxiliary.count"
+    },
+    {
+      "variable_pattern": "_sdev$",
+      "path": "auxiliary.sdev"
+    },
+    {
+      "variable_pattern": "^merra2_var_",
+      "path": "auxiliary.variance"
+    },
+    {
+      "product_pattern": "^M2",
+      "unit_pattern": "^(\\S+(?: \\S+)*) \\1$",
+      "path": "auxiliary.variance"
+    },
+    {
+      "variable_pattern": "zenithangle",
+      "path": "auxiliary.geometry"
+    },
+    {
+      "product_pattern": "^GPM",
+      "variable_pattern": "(qualityindex|randomerror|gaugerelativeweighting)",
+      "path": "auxiliary.quality"
+    },
+    {
+      "variable_pattern": "columnamountno2",
+      "path": "atmosphere.gas.no2"
+    },
+    {
+      "variable_pattern": "columnamountso2",
+      "path": "atmosphere.gas.so2"
+    },
+    {
+      "name_pattern": "hcho",
+      "path": "atmosphere.gas.hcho"
+    },
+    {
+      "variable_pattern": "(columnamounto3|toto3|_to3$)",
+      "path": "atmosphere.gas.o3"
+    },
+    {
+      "name_pattern": "ozone",
+      "unit_pattern": "^(DU|Dobsons)$",
+      "path": "atmosphere.gas.o3"
+    },
+    {
+      "variable_pattern": "_tox$",
+      "path": "atmosphere.gas.odd_oxygen"
+    },
+    {
+      "variable_pattern": "aerosolabsopticaldepth",
+      "path": "atmosphere.aerosol.absorption_optical_depth"
+    },
+    {
+      "variable_pattern": "singlescattalb",
+      "path": "atmosphere.aerosol.single_scattering_albedo"
+    },
+    {
+      "variable_pattern": "aerosolopticaldepth",
+      "path": "atmosphere.aerosol.optical_depth"
+    },
+    {
+      "variable_pattern": "aerosolindex",
+      "path": "atmosphere.aerosol.index"
+    },
+    {
+      "product_pattern": "^OMUVB",
+      "path": "atmosphere.radiation.uv"
+    },
+    {
+      "variable_pattern": "olr",
+      "path": "atmosphere.radiation.outgoing_longwave"
+    },
+    {
+      "variable_pattern": "(cloudfrc|cloudfraction)",
+      "path": "atmosphere.cloud.fraction"
+    },
+    {
+      "variable_pattern": "cloudtop",
+      "path": "atmosphere.cloud.top"
+    },
+    {
+      "variable_pattern": "cloudopticaldepth",
+      "path": "atmosphere.cloud.optical_depth"
+    },
+    {
+      "variable_pattern": "(totcldliqh2o|_tq[il]$)",
+      "path": "atmosphere.cloud.water_path"
+    },
+    {
+      "variable_pattern": "(toth2ovap|_tqv$)",
+      "path": "atmosphere.water.vapor"
+    },
+    {
+      "variable_pattern": "(relhum|h2o_mmr|_qair_|_qv\\d+m$)",
+      "path": "atmosphere.water.humidity"
+    },
+    {
+      "variable_pattern": "(rainf|snowf|precip)",
+      "path": "atmosphere.water.precipitation"
+    },
+    {
+      "variable_pattern": "(troptemp|_tropt$)",
+      "path": "atmosphere.tropopause.temperature"
+    },
+    {
+      "variable_pattern": "(troppres|_tropp[btv]$)",
+      "path": "atmosphere.tropopause.pressure"
+    },
+    {
+      "variable_pattern": "tropheight",
+      "path": "atmosphere.tropopause.height"
+    },
+    {
+      "variable_pattern": "_tropq$",
+      "path": "atmosphere.tropopause.humidity"
+    },
+    {
+      "variable_pattern": "_slp$",
+      "path": "atmosphere.pressure.sea_level"
+    },
+    {
+      "variable_pattern": "(psurf|surfpres|_ps$)",
+      "path": "atmosphere.pressure.surface"
+    },
+    {
+      "variable_pattern": "(_wind_|_[uv]\\d+m$)",
+      "path": "atmosphere.wind.near_surface"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "(soilmoi|rootmoist)",
+      "path": "land.water.soil_moisture"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "soilte?mp",
+      "path": "land.temperature.soil"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "(snowdepth|snowcover|_swe_|_qsm_)",
+      "path": "land.water.snow"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "_qsb?_",
+      "path": "land.water.runoff"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "canopint",
+      "path": "land.water.canopy"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "(evap|ecanop|esoil|tveg)",
+      "path": "land.water.evapotranspiration"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "_q(g|h|le)_",
+      "path": "land.energy.heat_flux"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "_(lw|sw)(down|net)_",
+      "path": "land.energy.radiation"
+    },
+    {
+      "product_pattern": "^(GLDAS|FLDAS)",
+      "variable_pattern": "albedo",
+      "path": "land.energy.albedo"
+    },
+    {
+      "variable_pattern": "(avgsurft|_radt_|surfskintemp|_ts$)",
+      "path": "land.temperature.skin"
+    },
+    {
+      "variable_pattern": "disph",
+      "path": "land.surface.displacement_height"
+    },
+    {
+      "variable_pattern": "(_tair_|surfairtemp|_t\\d+m$)",
+      "path": "atmosphere.temperature.near_surface"
+    },
+    {
+      "unit_pattern": "^K$",
+      "path": "atmosphere.temperature.other"
+    },
+    {
+      "unit_pattern": "^h?Pa$",
+      "path": "atmosphere.pressure.other"
+    }
+  ]
+}

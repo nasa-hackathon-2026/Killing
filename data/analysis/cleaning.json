@@ -531,6 +531,85 @@
       }
     }
   },
+  "taxonomy": {
+    "note": "category_path is a PostgreSQL ltree path (labels separated by dots). basis: manual (assigned by hand), rule:<n> (n-th rule of data/seed/variable_taxonomy.json) or unclassified.",
+    "counts_by_second_level": {
+      "atmosphere.aerosol": 1,
+      "atmosphere.gas": 2,
+      "atmosphere.temperature": 5,
+      "atmosphere.water": 2,
+      "land.temperature": 2,
+      "land.vegetation": 2,
+      "land.water": 2
+    },
+    "n_unclassified": 0,
+    "variables": {
+      "airs_h2ovap": {
+        "category_path": "atmosphere.water.vapor",
+        "basis": "manual"
+      },
+      "airs_tsurf": {
+        "category_path": "atmosphere.temperature.near_surface",
+        "basis": "manual"
+      },
+      "gldas_evap": {
+        "category_path": "land.water.evapotranspiration",
+        "basis": "manual"
+      },
+      "gldas_soilmoist": {
+        "category_path": "land.water.soil_moisture",
+        "basis": "manual"
+      },
+      "gldas_tair": {
+        "category_path": "atmosphere.temperature.near_surface",
+        "basis": "manual"
+      },
+      "imerg_precip": {
+        "category_path": "atmosphere.water.precipitation",
+        "basis": "manual"
+      },
+      "merra2_t2m": {
+        "category_path": "atmosphere.temperature.near_surface",
+        "basis": "manual"
+      },
+      "modis_lst": {
+        "category_path": "land.temperature.skin",
+        "basis": "manual"
+      },
+      "modis_lst_pc": {
+        "category_path": "land.temperature.skin",
+        "basis": "manual"
+      },
+      "modis_ndvi": {
+        "category_path": "land.vegetation.ndvi",
+        "basis": "manual"
+      },
+      "modis_ndvi_pc": {
+        "category_path": "land.vegetation.ndvi",
+        "basis": "manual"
+      },
+      "omi_aerosol": {
+        "category_path": "atmosphere.aerosol.index",
+        "basis": "manual"
+      },
+      "omi_no2": {
+        "category_path": "atmosphere.gas.no2",
+        "basis": "manual"
+      },
+      "omi_o3": {
+        "category_path": "atmosphere.gas.o3",
+        "basis": "manual"
+      },
+      "power_t2m": {
+        "category_path": "atmosphere.temperature.near_surface",
+        "basis": "manual"
+      },
+      "station_temp": {
+        "category_path": "atmosphere.temperature.near_surface",
+        "basis": "manual"
+      }
+    }
+  },
   "series_tier": "core",
   "series": {
     "airs_h2ovap__central__area_mean": {

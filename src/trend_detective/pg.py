@@ -9,7 +9,10 @@
     uv run python -m trend_detective.pg clean      # 旗標、距平、補值、清洗摘要
     uv run python -m trend_detective.pg export     # cleaning.json、db/schema.sql、資料 dump
     uv run python -m trend_detective.pg analysis   # 把趨勢與探勘的結果檔寫回 analysis.*（#85）
-    uv run python -m trend_detective.pg status     # 各表列數
+    uv run python -m trend_detective.pg derive     # 序列向量、關聯圖、探勘寬表（#91；要先有上面兩步）
+    uv run python -m trend_detective.pg rasters-monthly  # 月立方體載成 raster（#91；選用，要有 data/raw/grid/）
+    uv run python -m trend_detective.pg check      # 其他擴充算的結果和 Python 的結果核對（#91）
+    uv run python -m trend_detective.pg status     # 各表列數、各擴充的版本與對應物件的列數
 
 `load` 每次都從頭重建（先 DROP 六個 schema），所以是冪等的。輸入與 SQLite 匯出相同：
 `data/snapshot/`（核心）、`data/extended/`（擴充，有目錄檔才載）、`data/raw/`（各來源表；沒有就留空）、
@@ -41,7 +44,7 @@ import numpy as np
 import psycopg
 from psycopg.types.json import Jsonb
 
-from trend_detective import cleaning
+from trend_detective import cleaning, pg_extensions, taxonomy
 from trend_detective.extended import EXTENDED_DIR
 from trend_detective.grid import read_frontend
 from trend_detective.snapshot import RAW_DIR, SEED_DIR, SNAPSHOT_DIR
@@ -613,6 +616,9 @@ def load(
 
         clock = time.monotonic()
         _load_lookups(conn, variables, locations, issues, rules, rule_notes, kind_rules)
+        taxonomy_counts = pg_extensions.load_taxonomy(
+            conn, variables, seed_file.parent / taxonomy.TAXONOMY_SEED.name
+        )
         timings["lookups"] = time.monotonic() - clock
 
         clock = time.monotonic()
@@ -627,11 +633,20 @@ def load(
         n_cells = _load_grid(conn, grid_dir)
         timings["grid"] = time.monotonic() - clock
 
+        # 其他擴充（#91）：趨勢與逐年平均的 raster、H3 的彙整、BM25 的文件
+        clock = time.monotonic()
+        raster_counts = pg_extensions.load_rasters(conn, grid_dir)
+        refreshed = pg_extensions.refresh_after_load(conn)
+        timings["extensions"] = time.monotonic() - clock
+
         rows = {
             "meta.series": n_series,
             "obs.observations": n_observations,
             **raw_counts,
             "geo.grid_cells": n_cells,
+            **raster_counts,
+            **refreshed,
+            **{f"category_path ({k})": v for k, v in taxonomy_counts.items()},
         }
         record_run(
             conn,
@@ -968,6 +983,7 @@ def cleaning_summary(conn: psycopg.Connection[Any], tier: str) -> dict[str, Any]
                 },
             },
             "data_kinds": data_kinds(conn, tier),
+            "taxonomy": pg_extensions.taxonomy_summary(conn, tier),
             "series_tier": tier,
             "series": series,
         }
@@ -1042,7 +1058,7 @@ def export(
                     "extensions": dict(
                         conn.execute(
                             "SELECT extname, extversion FROM pg_extension"
-                            " WHERE extname IN ('timescaledb', 'postgis', 'pg_trgm')"
+                            " WHERE extname <> 'plpgsql'"
                             " ORDER BY 1"
                         ).fetchall()
                     ),
@@ -1344,7 +1360,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     results.add_argument("--analysis-dir", type=Path, default=ANALYSIS_DIR)
     results.add_argument("--extended-dir", type=Path, default=EXTENDED_DIR)
-    commands.add_parser("status", help="列出各表列數")
+    commands.add_parser(
+        "derive", help="序列向量、關聯圖、探勘寬表（要先跑過 clean 與 analysis）"
+    )
+    monthly = commands.add_parser(
+        "rasters-monthly",
+        help="把核心變數的月立方體載成 raster（要有 data/raw/grid/ 的立方體）",
+    )
+    monthly.add_argument("--raw-grid-dir", type=Path, default=RAW_DIR / "grid")
+    monthly.add_argument("--since", help="只載這個月之後（YYYY-MM）；預設全部月份")
+    monthly.add_argument("--workers", type=int, default=4)
+    checker = commands.add_parser(
+        "check", help="其他擴充算的結果和 Python 的結果核對，印出 JSON"
+    )
+    checker.add_argument("--analysis-dir", type=Path, default=ANALYSIS_DIR)
+    commands.add_parser("status", help="列出各表列數與各擴充的版本")
     args = parser.parse_args(argv)
 
     if args.command == "init-env":
@@ -1398,8 +1428,40 @@ def main(argv: list[str] | None = None) -> int:
             ).items()
         )
         return 0
+    if args.command == "derive":
+        started = datetime.now(UTC)
+        with connect(args.env_file) as conn:
+            counts = pg_extensions.derive(conn)
+            record_run(conn, "derive", started, {}, counts)
+            conn.commit()
+        _print_counts(counts.items())
+        return 0
+    if args.command == "rasters-monthly":
+        started = datetime.now(UTC)
+        with connect(args.env_file) as conn:
+            counts = pg_extensions.load_monthly_rasters(
+                conn, args.raw_grid_dir, since=args.since, workers=args.workers
+            )
+            record_run(
+                conn,
+                "rasters_monthly",
+                started,
+                {"raw_grid_dir": args.raw_grid_dir.as_posix(), "since": args.since},
+                counts,
+            )
+            conn.commit()
+        _print_counts(counts.items())
+        return 0
+    if args.command == "check":
+        with connect(args.env_file, autocommit=True) as conn:
+            report = pg_extensions.run_checks(conn, args.analysis_dir)
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 0
     with connect(args.env_file) as conn:
         _print_counts(table_counts(conn).items())
+        print("擴充（版本、對應的物件、列數）：")
+        for name, version, target, count in pg_extensions.extension_status(conn):
+            print(f"  {name:<20} {version:<8} {target:<44} {count:>9}")
     return 0
 
 

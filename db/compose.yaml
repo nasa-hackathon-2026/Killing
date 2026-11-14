@@ -1,4 +1,4 @@
-# 本機的清洗資料庫（#83）：PostgreSQL 17＋TimescaleDB＋PostGIS，官方映像 timescale/timescaledb-ha。
+# 本機的清洗資料庫（#83、#91）：PostgreSQL 17＋TimescaleDB＋PostGIS 與其他擴充，官方映像 timescale/timescaledb-ha。
 # 啟動（在 repo 根目錄；密碼來自 .env 的 PGPASSWORD，先跑 `uv run python -m trend_detective.pg init-env`）：
 #   docker compose --env-file .env -f db/compose.yaml up -d
 # 停止：docker compose --env-file .env -f db/compose.yaml down（資料留在具名 volume；加 -v 才刪）
@@ -15,8 +15,27 @@ services:
     ports:
       # 只綁本機；不用 5432，避免撞到機器上別的 PostgreSQL
       - "127.0.0.1:${PGPORT:-55432}:5432"
+    # pg_cron（#91）要在啟動時載入，而且只能用在 cron.database_name 這一個資料庫。
+    # timescaledb、pg_textsearch 是映像原本就預先載入的（postgresql.conf），這裡要一起列。
+    # 排程的工作用 background worker 執行，不必另外設連線密碼。
+    # 不要 pg_cron：拿掉整段 command 後 `up -d` 重建容器（資料在 volume，不受影響）。
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=timescaledb,pg_textsearch,pg_cron
+      - -c
+      - cron.database_name=${PGDATABASE:-trend_detective}
+      - -c
+      - cron.use_background_workers=on
     volumes:
       - pgdata:/home/postgres/pgdata
+      # file_fdw（#91）：唯讀掛入 Planetary Computer 的統計 CSV，給 raw.file_planetary_computer_* 查。
+      # 在 worktree 裡啟動時設 TREND_DETECTIVE_RAW_DIR=<主 checkout>/data/raw。
+      # 來源目錄不存在時 Docker 會建一個空目錄（那幾張 foreign table 查詢時會報找不到檔案）。
+      - type: bind
+        source: ${TREND_DETECTIVE_RAW_DIR:-../data/raw}/planetary_computer
+        target: /data/raw/planetary_computer
+        read_only: true
     shm_size: 1g
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-trend} -d ${PGDATABASE:-trend_detective}"]
