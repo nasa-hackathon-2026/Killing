@@ -154,3 +154,61 @@ def test_quota_response_without_a_usable_number_is_a_giovanni_error():
 
     with pytest.raises(GiovanniError):
         _client(handler).quota()
+
+
+def _flaky(statuses: list[int], waits: list[float], **options) -> GiovanniClient:
+    """`/timeseries` 依序回這些狀態碼，用完之後回 200。"""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/quota":
+            return httpx.Response(200, json={"quota": 0.0})
+        if statuses:
+            return httpx.Response(statuses.pop(0), text="busy")
+        return httpx.Response(200, text=FIXTURE.read_text(encoding="utf-8"))
+
+    http = httpx.Client(
+        transport=httpx.MockTransport(handler), base_url="https://giovanni.test/"
+    )
+    return GiovanniClient(token=SECRET, http=http, sleep=waits.append, **options)
+
+
+def _fetch(client: GiovanniClient) -> str:
+    text, _ = client.fetch_timeseries(
+        "V", lat=1.0, lon=2.0, start=date(2020, 1, 1), end=date(2020, 12, 31)
+    )
+    return text
+
+
+def test_a_throttled_or_busy_response_is_retried_with_growing_waits():
+    waits: list[float] = []
+    client = _flaky([429, 503], waits, retries=3, backoff=2.0)
+
+    assert _fetch(client) == FIXTURE.read_text(encoding="utf-8")
+    assert waits == [2.0, 4.0]
+
+
+def test_retries_give_up_after_the_configured_number_of_attempts():
+    waits: list[float] = []
+    client = _flaky([503, 503, 503], waits, retries=2)
+
+    with pytest.raises(GiovanniError, match="503"):
+        _fetch(client)
+    assert len(waits) == 2
+
+
+def test_a_client_error_is_not_retried():
+    waits: list[float] = []
+    client = _flaky([404], waits, retries=3)
+
+    with pytest.raises(GiovanniError, match="404"):
+        _fetch(client)
+    assert waits == []
+
+
+def test_parse_reads_the_english_parameter_name_from_metadata():
+    text = (
+        "param_name,Storm surface runoff\nunit,kg m-2\nlat,1.0\nlon,2.0\n\n"
+        "Timestamp (UTC),Data\n2020-01-01 00:00,1.0\n"
+    )
+
+    assert parse_timeseries_csv(text).param_name == "Storm surface runoff"

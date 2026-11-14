@@ -7,6 +7,9 @@
 
 import csv
 import math
+import threading
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
@@ -38,6 +41,8 @@ class GiovanniSeries:
     lon_resolution: float | None
     # 缺值（metadata 的 undef）轉成 None
     rows: list[tuple[date, float | None]]
+    # 來源對這個變數的英文說明；metadata 沒給就是空字串
+    param_name: str = ""
 
 
 def _optional_float(raw: str | None) -> float | None:
@@ -101,31 +106,76 @@ def parse_timeseries_csv(text: str) -> GiovanniSeries:
         lat_resolution=_optional_float(meta.get("lat_resolution")),
         lon_resolution=_optional_float(meta.get("lon_resolution")),
         rows=rows,
+        param_name=meta.get("param_name", ""),
     )
 
 
+# 遇到這些狀態碼代表服務忙或限流，退避後重試
+RETRY_STATUS = {429, 500, 502, 503, 504}
+
+
 class GiovanniClient:
-    def __init__(self, token: str, http: httpx.Client | None = None) -> None:
+    """`quota_ttl`：`/quota` 的結果沿用幾秒。預設 0（每次抓取前都查）；大量平行抓取時設成
+    幾十秒，quota 檢查才不會讓請求數加倍。`retries`：遇到 429、5xx 或連線錯誤時最多再試幾次，
+    每次等待時間加倍。同一個 client 可以給多個執行緒共用。
+    """
+
+    def __init__(
+        self,
+        token: str,
+        http: httpx.Client | None = None,
+        *,
+        quota_ttl: float = 0.0,
+        retries: int = 0,
+        backoff: float = 2.0,
+        sleep: Callable[[float], None] = time.sleep,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._http = http or httpx.Client(base_url=API_URL, timeout=300)
         self._headers = {"Authorization": f"Bearer {token}"}
+        self._quota_ttl = quota_ttl
+        self._retries = retries
+        self._backoff = backoff
+        self._sleep = sleep
+        self._clock = clock
+        self._lock = threading.Lock()
+        self._quota_cache: tuple[float, float] | None = None
 
     def _get(self, path: str, params: dict[str, str] | None = None) -> httpx.Response:
-        response = self._http.get(path, params=params, headers=self._headers)
-        if response.status_code >= 400:
-            raise GiovanniError(
-                f"Giovanni GET {path} → HTTP {response.status_code}: {response.text[:300]}"
-            )
-        return response
+        for attempt in range(self._retries + 1):
+            last = attempt == self._retries
+            try:
+                response = self._http.get(path, params=params, headers=self._headers)
+            except httpx.TransportError as err:
+                if last:
+                    raise GiovanniError(
+                        f"Giovanni GET {path} → {type(err).__name__}"
+                    ) from err
+            else:
+                if response.status_code < 400:
+                    return response
+                if last or response.status_code not in RETRY_STATUS:
+                    raise GiovanniError(
+                        f"Giovanni GET {path} → HTTP {response.status_code}: {response.text[:300]}"
+                    )
+            self._sleep(self._backoff * 2**attempt)
+        raise AssertionError("unreachable")
 
     def quota(self) -> float:
-        """本月已用的 quota 比例（0–1）。"""
-        response = self._get("quota")
-        try:
-            return float(response.json()["quota"])
-        except (KeyError, TypeError, ValueError) as err:
-            raise GiovanniError(
-                f"無法解讀 /quota 的回應：{response.text[:200]!r}"
-            ) from err
+        """本月已用的 quota 比例（0–1）。`quota_ttl` 內重複呼叫沿用上次的結果。"""
+        with self._lock:
+            cached = self._quota_cache
+            if cached is not None and self._clock() - cached[0] < self._quota_ttl:
+                return cached[1]
+            response = self._get("quota")
+            try:
+                used = float(response.json()["quota"])
+            except (KeyError, TypeError, ValueError) as err:
+                raise GiovanniError(
+                    f"無法解讀 /quota 的回應：{response.text[:200]!r}"
+                ) from err
+            self._quota_cache = (self._clock(), used)
+            return used
 
     def fetch_timeseries(
         self, variable: str, *, lat: float, lon: float, start: date, end: date

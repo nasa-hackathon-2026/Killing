@@ -1,0 +1,147 @@
+html,
+body,
+#root,
+.app {
+  height: 100%;
+  margin: 0;
+}
+
+.app {
+  position: relative;
+  background: #0b1220;
+  touch-action: none;
+}
+
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  max-width: calc(100% - 24px);
+  color: #e8eef7;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+}
+
+.badge,
+.hud a,
+.hud button,
+.hud select {
+  margin: 0;
+  padding: 8px 12px;
+  color: inherit;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+}
+
+.hud a {
+  text-decoration: none;
+}
+
+.hud label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hud input[type="range"] {
+  width: 140px;
+}
+
+.hud a,
+.hud button,
+.hud select {
+  cursor: pointer;
+}
+
+.hud button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.layers {
+  position: absolute;
+  top: 64px;
+  right: 12px;
+  z-index: 1;
+  width: min(280px, calc(100% - 24px));
+  max-height: calc(100% - 120px);
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  color: #e8eef7;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+}
+
+.layers-title,
+.layers-note {
+  margin: 0 0 8px;
+}
+
+.layers-note {
+  color: #b7c6da;
+}
+
+.layers ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layers li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layers label,
+.month {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.month {
+  margin: 0 0 8px;
+}
+
+.reading {
+  margin-left: auto;
+  color: #d5e4f5;
+  text-align: right;
+}
+
+.layers input[type="range"] {
+  width: 100%;
+}
+
+.credit {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1;
+  max-width: min(420px, calc(100% - 24px));
+  margin: 0;
+  color: #d7e2f0;
+  font:
+    12px/1.4 system-ui,
+    sans-serif;
+}
+
+.credit a {
+  color: inherit;
+}

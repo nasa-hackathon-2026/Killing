@@ -21,3 +21,6 @@ __pycache__/
 
 # SQLite 匯出檔（由 trend_detective.sqlite_export 重建，含各來源的原始粒度資料，不進 git）
 data/sqlite/
+
+# 擴充資料（#46）：量大，不進 git；由 trend_detective.extended 重新抓取
+data/extended/

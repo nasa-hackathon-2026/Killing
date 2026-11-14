@@ -84,3 +84,41 @@ def test_pipes_and_newlines_in_free_text_do_not_break_the_table():
 
     assert "A \\| B C" in row
     assert row.count(" | ") == 4  # 5 欄
+
+
+def test_point_series_from_a_different_source_and_product_are_listed_as_such():
+    catalog = {
+        **CATALOG,
+        "variables": [
+            {
+                "id": "modis_ndvi",
+                "name_en": "NDVI",
+                "product": "MOD13A3.061",
+                "source": "appeears",
+                "is_nasa": True,
+                "valid_from": "2001-01-01",
+                "valid_to": "2026-10-01",
+                "point_source": {
+                    "source": "planetary_computer",
+                    "product": "MOD13Q1.061",
+                },
+            }
+        ],
+        "series": [
+            {"variable_id": "modis_ndvi", "location_id": "t", "aggregation": "point"},
+            {
+                "variable_id": "modis_ndvi",
+                "location_id": "r",
+                "aggregation": "area_mean",
+            },
+        ],
+    }
+
+    row = next(
+        line for line in render_nasa_data(catalog).splitlines() if "NDVI" in line
+    )
+
+    assert "Microsoft Planetary Computer" in row
+    assert "pixel window around the point" in row
+    assert "[product MOD13Q1.061]" in row
+    assert "NASA AppEEARS area request" in row

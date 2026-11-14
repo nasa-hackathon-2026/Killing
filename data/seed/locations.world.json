@@ -1,0 +1,533 @@
+[
+  {
+    "id": "global",
+    "kind": "region",
+    "group": "global",
+    "name_zh": "全球",
+    "name_en": "Global",
+    "bbox": [
+      -180,
+      -90,
+      180,
+      90
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "global"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -180,
+              -90
+            ],
+            [
+              180,
+              -90
+            ],
+            [
+              180,
+              90
+            ],
+            [
+              -180,
+              90
+            ],
+            [
+              -180,
+              -90
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "全球平均：整個經緯度範圍，含海洋與極區。"
+  },
+  {
+    "id": "north_america",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "北美洲",
+    "name_en": "North America",
+    "bbox": [
+      -170,
+      7,
+      -50,
+      84
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "north_america"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -170,
+              7
+            ],
+            [
+              -50,
+              7
+            ],
+            [
+              -50,
+              84
+            ],
+            [
+              -170,
+              84
+            ],
+            [
+              -170,
+              7
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，含中美洲、加勒比海與格陵蘭西半部，也含周圍海面。"
+  },
+  {
+    "id": "south_america",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "南美洲",
+    "name_en": "South America",
+    "bbox": [
+      -82,
+      -56,
+      -34,
+      13
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "south_america"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -82,
+              -56
+            ],
+            [
+              -34,
+              -56
+            ],
+            [
+              -34,
+              13
+            ],
+            [
+              -82,
+              13
+            ],
+            [
+              -82,
+              -56
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，含周圍海面。"
+  },
+  {
+    "id": "europe",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "歐洲",
+    "name_en": "Europe",
+    "bbox": [
+      -25,
+      35,
+      45,
+      72
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "europe"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -25,
+              35
+            ],
+            [
+              45,
+              35
+            ],
+            [
+              45,
+              72
+            ],
+            [
+              -25,
+              72
+            ],
+            [
+              -25,
+              35
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，東界取東經 45 度，含地中海與周圍海面。"
+  },
+  {
+    "id": "africa",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "非洲",
+    "name_en": "Africa",
+    "bbox": [
+      -18,
+      -35,
+      52,
+      38
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "africa"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -18,
+              -35
+            ],
+            [
+              52,
+              -35
+            ],
+            [
+              52,
+              38
+            ],
+            [
+              -18,
+              38
+            ],
+            [
+              -18,
+              -35
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，含馬達加斯加與周圍海面，北緣與歐洲方框的地中海部分重疊。"
+  },
+  {
+    "id": "asia",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "亞洲",
+    "name_en": "Asia",
+    "bbox": [
+      45,
+      -11,
+      180,
+      78
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "asia"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              45,
+              -11
+            ],
+            [
+              180,
+              -11
+            ],
+            [
+              180,
+              78
+            ],
+            [
+              45,
+              78
+            ],
+            [
+              45,
+              -11
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，西界取東經 45 度（不含土耳其與阿拉伯半島西部），含周圍海面。"
+  },
+  {
+    "id": "oceania",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "大洋洲",
+    "name_en": "Oceania",
+    "bbox": [
+      110,
+      -48,
+      180,
+      0
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "oceania"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              110,
+              -48
+            ],
+            [
+              180,
+              -48
+            ],
+            [
+              180,
+              0
+            ],
+            [
+              110,
+              0
+            ],
+            [
+              110,
+              -48
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "簡化的方框，含澳洲、紐西蘭、新幾內亞與周圍海面；東經 180 度以東的太平洋島嶼不含。"
+  },
+  {
+    "id": "arctic",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "北極圈以北",
+    "name_en": "Arctic (north of the Arctic Circle)",
+    "bbox": [
+      -180,
+      66.5,
+      180,
+      90
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "arctic"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -180,
+              66.5
+            ],
+            [
+              180,
+              66.5
+            ],
+            [
+              180,
+              90
+            ],
+            [
+              -180,
+              90
+            ],
+            [
+              -180,
+              66.5
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "北緯 66.5 度以北。"
+  },
+  {
+    "id": "tropics",
+    "kind": "region",
+    "group": "world_region",
+    "name_zh": "熱帶",
+    "name_en": "Tropics (between the Tropics of Cancer and Capricorn)",
+    "bbox": [
+      -180,
+      -23.5,
+      180,
+      23.5
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "tropics"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -180,
+              -23.5
+            ],
+            [
+              180,
+              -23.5
+            ],
+            [
+              180,
+              23.5
+            ],
+            [
+              -180,
+              23.5
+            ],
+            [
+              -180,
+              -23.5
+            ]
+          ]
+        ]
+      }
+    },
+    "note_zh": "南北回歸線（南北緯 23.5 度）之間。"
+  },
+  {
+    "id": "tokyo",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "東京",
+    "name_en": "Tokyo",
+    "lat": 35.68,
+    "lon": 139.69
+  },
+  {
+    "id": "delhi",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "德里",
+    "name_en": "Delhi",
+    "lat": 28.61,
+    "lon": 77.21
+  },
+  {
+    "id": "beijing",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "北京",
+    "name_en": "Beijing",
+    "lat": 39.9,
+    "lon": 116.41
+  },
+  {
+    "id": "jakarta",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "雅加達",
+    "name_en": "Jakarta",
+    "lat": -6.21,
+    "lon": 106.85
+  },
+  {
+    "id": "cairo",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "開羅",
+    "name_en": "Cairo",
+    "lat": 30.04,
+    "lon": 31.24
+  },
+  {
+    "id": "lagos",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "拉哥斯",
+    "name_en": "Lagos",
+    "lat": 6.52,
+    "lon": 3.38
+  },
+  {
+    "id": "london",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "倫敦",
+    "name_en": "London",
+    "lat": 51.51,
+    "lon": -0.13
+  },
+  {
+    "id": "moscow",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "莫斯科",
+    "name_en": "Moscow",
+    "lat": 55.76,
+    "lon": 37.62
+  },
+  {
+    "id": "new_york",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "紐約",
+    "name_en": "New York",
+    "lat": 40.71,
+    "lon": -74.01
+  },
+  {
+    "id": "los_angeles",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "洛杉磯",
+    "name_en": "Los Angeles",
+    "lat": 34.05,
+    "lon": -118.24
+  },
+  {
+    "id": "sao_paulo",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "聖保羅",
+    "name_en": "São Paulo",
+    "lat": -23.55,
+    "lon": -46.63
+  },
+  {
+    "id": "sydney",
+    "kind": "point",
+    "group": "world_city",
+    "name_zh": "雪梨",
+    "name_en": "Sydney",
+    "lat": -33.87,
+    "lon": 151.21
+  }
+]

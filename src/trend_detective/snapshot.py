@@ -224,7 +224,13 @@ def build_snapshot(
         _appeears_series(appeears_dir, snapshot_dir, variables, regions, now, result)
     if planetary_computer_dir is not None:
         _planetary_computer_series(
-            planetary_computer_dir, snapshot_dir, variables, regions, now, result
+            planetary_computer_dir,
+            snapshot_dir,
+            variables,
+            regions,
+            points,
+            now,
+            result,
         )
     variable_ids = {variable["id"] for variable in variables}
     location_ids = {location["id"] for location in locations}
@@ -529,29 +535,52 @@ def _planetary_computer_series(
     snapshot_dir: Path,
     variables: list[dict[str, Any]],
     regions: list[dict[str, Any]],
+    points: list[dict[str, Any]],
     now: str,
     result: SnapshotResult,
 ) -> None:
     """把 `planetary_computer fetch` 算好的 `stats.csv` 轉成區域月序列。不連網。
 
     轉月的算法與 AppEEARS 來源相同（`composites_to_monthly_points`），兩邊才能對照。
+    變數有 `point_source`（來源是這裡）時另外寫出點位月序列（`aggregation = "point"`），
+    與變數自己來源的區域序列並存。
     """
+    jobs: list[tuple[dict[str, Any], list[dict[str, Any]], str]] = []
     for variable in variables:
-        if variable["source"] != "planetary_computer":
-            continue
-        keys = [(variable["id"], region["id"]) for region in regions]
+        if variable["source"] == "planetary_computer":
+            jobs.append((variable, regions, "area_mean"))
+        spec = planetary_computer.point_variable(variable)
+        if spec is not None:
+            jobs.append((spec, points, "point"))
+    for variable, targets, aggregation in jobs:
+        keys = [(variable["id"], region["id"]) for region in targets]
         try:
             stats_path = source_dir / variable["id"] / planetary_computer.STATS_FILE
             if not stats_path.exists():
                 raise ValueError(f"{stats_path} 不存在；先跑 planetary_computer fetch")
             asset = variable["source_variable_id"]
             rows_by_region, used = planetary_computer.stat_rows(stats_path, asset)
+            # 點位視窗裡有值像元太少的合成期（多半是雲邊緣的殘留）當成沒有值
+            least = variable.get("min_valid_pixels", 0) if aggregation == "point" else 0
+            sparse: dict[str, int] = {}
+            for location_id, found in rows_by_region.items():
+                for index, row in enumerate(found):
+                    if 0 < row.count < least:
+                        sparse[location_id] = sparse.get(location_id, 0) + 1
+                        found[index] = replace(
+                            row,
+                            count=0,
+                            mean=None,
+                            standard_deviation=None,
+                            minimum=None,
+                            maximum=None,
+                        )
             low, high = variable["valid_range"]
             ready: list[Series] = []
-            for region in regions:
+            for region in targets:
                 rows = rows_by_region.get(region["id"], [])
                 if not rows:
-                    raise ValueError(f"stats.csv 裡沒有區域 {region['id']}")
+                    raise ValueError(f"stats.csv 裡沒有 {region['id']}")
                 bad = [
                     r.mean
                     for r in rows
@@ -565,7 +594,7 @@ def _planetary_computer_series(
                     Series(
                         variable_id=variable["id"],
                         location_id=region["id"],
-                        aggregation="area_mean",
+                        aggregation=aggregation,
                         unit=variable["unit"],
                         source_api="planetary_computer",
                         request={
@@ -574,7 +603,17 @@ def _planetary_computer_series(
                             "item_id_prefix": variable.get("pc_item_prefix"),
                             "product": variable["product"],
                             "asset": asset,
-                            "bbox": region["bbox"],
+                            **_planetary_computer_extent(variable, region, rows),
+                            **(
+                                {
+                                    "min_valid_pixels": least,
+                                    "n_composites_below_min_valid_pixels": sparse.get(
+                                        region["id"], 0
+                                    ),
+                                }
+                                if least
+                                else {}
+                            ),
                             "tiles": used[region["id"]]["tiles"],
                             "n_items": used[region["id"]]["n_items"],
                             "n_composites": len(rows),
@@ -596,6 +635,25 @@ def _planetary_computer_series(
             for key in keys:
                 if key not in result.succeeded:
                     result.failures[key] = f"{type(err).__name__}: {err}"
+
+
+def _planetary_computer_extent(
+    variable: dict[str, Any],
+    location: dict[str, Any],
+    rows: list[appeears_stats.StatRow],
+) -> dict[str, Any]:
+    """序列檔 `request` 裡描述取樣範圍的欄位：區域是 bbox，點位是座標與像元視窗。"""
+    size = variable.get("window_pixels")
+    if not size:
+        return {"bbox": location["bbox"]}
+    return {
+        "location": {"lat": location["lat"], "lon": location["lon"]},
+        "sampling": "mean of valid pixels in a window centred on the pixel containing the location",
+        "window_pixels": [size, size],
+        "window_km": round(size * variable["pixel_size_m"] / 1000, 2),
+        "n_pixels_in_window": size * size,
+        "max_valid_pixels": max((row.count for row in rows), default=0),
+    }
 
 
 def appeears_rows(
