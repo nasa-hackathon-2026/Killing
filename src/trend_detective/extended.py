@@ -278,6 +278,8 @@ def fetch_areas(
     now: str,
     raw_dir: Path,
     max_jobs: int = 12,
+    submit: bool = True,
+    max_wait: float = HARMONY_MAX_WAIT_SECONDS,
     sleep: Callable[[float], None] = time.sleep,
     clock: Callable[[], float] = time.monotonic,
     log: Callable[[str], None] = lambda _message: None,
@@ -285,7 +287,8 @@ def fetch_areas(
     """每個 (變數, 區域) 送一個 Harmony 區域平均 job，同時最多掛 `max_jobs` 個。
 
     job id 記在 `raw_dir/harmony/jobs.extended.json`、結果 CSV 存在旁邊：同一天重跑時，
-    已成功的不重送，還在跑的接著等。
+    已成功的不重送，還在跑的接著等。`submit=False` 時只收先前送出的 job 的結果，
+    不送任何新 job（還沒送過的任務原封不動留著，不算失敗）。
     """
     result = RunResult()
     state = _State(out_dir / "state.area.json")
@@ -376,7 +379,7 @@ def fetch_areas(
             finish(variable, region, cached.read_text(encoding="utf-8"))
         elif same_day and record.get("status") not in FINISHED and record.get("job_id"):
             running[name] = (variable, region, record["job_id"], clock())
-        else:
+        elif submit:
             pending.append((variable, region, 0))
 
     out_of_quota = False
@@ -453,11 +456,11 @@ def fetch_areas(
                 continue
             strikes.pop(job_id, None)
             if status not in FINISHED:
-                if clock() - started >= HARMONY_MAX_WAIT_SECONDS:
+                if clock() - started >= max_wait:
                     del running[name]
                     fail(
                         key,
-                        f"job {job_id} 等了 {HARMONY_MAX_WAIT_SECONDS} 秒仍未完成；同一天重跑會接著等",
+                        f"job {job_id} 等了 {round(max_wait)} 秒仍未完成；同一天重跑會接著等",
                     )
                 continue
             del running[name]
@@ -598,6 +601,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshot-dir", type=Path, default=SNAPSHOT_DIR)
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
     parser.add_argument("--status", action="store_true")
+    parser.add_argument(
+        "--collect-only",
+        action="store_true",
+        help="只收先前送出的 Harmony job 的結果，不送新 job、不抓單點",
+    )
+    parser.add_argument(
+        "--harmony-max-wait", type=float, default=HARMONY_MAX_WAIT_SECONDS
+    )
     args = parser.parse_args(argv)
 
     def log(message: str) -> None:
@@ -621,6 +632,9 @@ def main(argv: list[str] | None = None) -> int:
     areas: list[Task] = []
     for stage in args.stage or sorted(STAGES):
         stage_points, stage_areas = stage_tasks(stage, variables, locations)
+        if args.collect_only:
+            areas += stage_areas
+            continue
         points += stage_points if args.kind != "area" else []
         areas += stage_areas if args.kind != "point" else []
     log(f"單點 {len(points)} 條，區域平均 {len(areas)} 條")
@@ -657,6 +671,8 @@ def main(argv: list[str] | None = None) -> int:
                 now=now,
                 raw_dir=args.raw_dir,
                 max_jobs=args.harmony_jobs,
+                submit=not args.collect_only,
+                max_wait=args.harmony_max_wait,
                 log=progress,
             ),
         )
