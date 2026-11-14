@@ -27,6 +27,11 @@ ACCESS = {
 }
 
 
+def _cell(text: object) -> str:
+    """表格儲存格：`|` 與換行會讓 Markdown 表格錯欄，先處理掉。"""
+    return str(text or "").replace("|", "\\|").replace("\n", " ").strip()
+
+
 def _period(variable: dict[str, Any]) -> str:
     start, end = variable.get("valid_from"), variable.get("valid_to")
     return f"{start[:7]} to {end[:7]}" if start and end else "n/a"
@@ -81,9 +86,9 @@ def render_nasa_data(catalog: dict[str, Any]) -> str:
         doi = variable.get("doi")
         reference = f"https://doi.org/{doi}" if doi else variable.get("citation", "")
         lines.append(
-            f"| {variable.get('name_en', variable['id'])} | {variable.get('product', '')} "
-            f"| {variable.get('product_version', '')} | {_period(variable)} "
-            f"| {'; '.join(access)} | {reference} |"
+            f"| {_cell(variable.get('name_en', variable['id']))} | {_cell(variable.get('product'))} "
+            f"| {_cell(variable.get('product_version'))} | {_period(variable)} "
+            f"| {'; '.join(access)} | {_cell(reference)} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -102,8 +107,8 @@ def render_references(catalog: dict[str, Any], packages: list[str]) -> str:
     ]
     for variable, access in _used(catalog, nasa=False):
         lines.append(
-            f"| {variable.get('name_en', variable['id'])} | {variable.get('product', '')} "
-            f"| {_period(variable)} | {'; '.join(access)} | {variable.get('citation', '')} |"
+            f"| {_cell(variable.get('name_en', variable['id']))} | {_cell(variable.get('product'))} "
+            f"| {_period(variable)} | {'; '.join(access)} | {_cell(variable.get('citation'))} |"
         )
     lines += [
         "",

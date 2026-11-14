@@ -641,8 +641,9 @@ def main(argv: list[str] | None = None) -> int:
         station_http=httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None,
         power_http=httpx.Client(timeout=120) if "nasa_power" in sources else None,
         harmony_client=HarmonyClient(token) if token and "harmony" in sources else None,
-        # 快照日（generated_at）每次執行都更新，就算資料沒變
-        stamp=True,
+        # 快照日（generated_at）只在「全部來源都跑、沒有略過」時更新，就算資料沒變；
+        # 只重抓部分來源時快照日不動，免得讓人以為全部重抓過
+        stamp=not args.source and not skipped,
     )
     print(f"成功 {len(result.succeeded)} 條，失敗 {len(result.failures)} 條")
     for (variable_id, location_id), used in result.shifted.items():

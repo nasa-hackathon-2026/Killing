@@ -70,3 +70,17 @@ def test_references_list_non_nasa_data_with_its_citation_and_the_packages_used()
     assert "2000-01 to 2026-10" in text
     assert "httpx" in text
     assert "OMNO2d" not in text
+
+
+def test_pipes_and_newlines_in_free_text_do_not_break_the_table():
+    catalog = {
+        **CATALOG,
+        "variables": [{**CATALOG["variables"][1], "citation": "A | B\nC"}],
+    }
+
+    row = next(
+        line for line in render_references(catalog, []).splitlines() if "GHCNh" in line
+    )
+
+    assert "A \\| B C" in row
+    assert row.count(" | ") == 4  # 5 欄
