@@ -1,15 +1,27 @@
 import { describe, expect, it } from "vitest";
 import {
-  filterRules,
+  foldVerdict,
+  formatExcluded,
+  formatFeature,
   formatItem,
   formatParameter,
+  formatQ,
   formatRule,
   formatShare,
+  labelTreeText,
   loadMining,
   nextSort,
   sortRules,
+  visibleRules,
+  type Fold,
   type Rule,
+  type RuleSet,
 } from "./mining";
+
+const names = {
+  imerg_precip: "Precipitation (GPM IMERG Final)",
+  omi_o3: "Total column ozone (OMI)",
+};
 
 function rule(
   antecedents: string[],
@@ -25,6 +37,8 @@ function rule(
     support,
     confidence,
     lift,
+    p: 0.001,
+    q: 0.002,
     same_variable: sameVariable,
   };
 }
@@ -36,19 +50,87 @@ const rules = [
 ];
 
 describe("formatItem", () => {
-  it("writes the variable and its state", () => {
-    expect(formatItem("imerg_precip=high")).toBe("imerg_precip high");
+  it("writes the variable name and its state", () => {
+    expect(formatItem("imerg_precip=high", names)).toBe(
+      "Precipitation (GPM IMERG Final) high",
+    );
   });
 
   it("marks an item taken from the previous month", () => {
-    expect(formatItem("prev:omi_o3=low")).toBe("omi_o3 low (previous month)");
+    expect(formatItem("prev:omi_o3=low", names)).toBe(
+      "Total column ozone (OMI) low (previous month)",
+    );
+  });
+
+  it("falls back to the id when the variable has no name", () => {
+    expect(formatItem("mystery=low", names)).toBe("mystery low");
   });
 });
 
 describe("formatRule", () => {
   it("joins the antecedents and points to the consequent", () => {
-    expect(formatRule(rules[2]!)).toBe(
-      "airs_tsurf low + gldas_tair low → merra2_t2m low",
+    expect(
+      formatRule(
+        rule(["imerg_precip=high", "x=low"], "omi_o3=low", 0, 0, 0),
+        names,
+      ),
+    ).toBe(
+      "Precipitation (GPM IMERG Final) high + x low → Total column ozone (OMI) low",
+    );
+  });
+});
+
+describe("formatFeature", () => {
+  it("names a feature and marks the previous month", () => {
+    expect(formatFeature("omi_o3", names)).toBe("Total column ozone (OMI)");
+    expect(formatFeature("prev:omi_o3", names)).toBe(
+      "Total column ozone (OMI) (previous month)",
+    );
+  });
+});
+
+describe("labelTreeText", () => {
+  it("replaces feature ids in the split lines only", () => {
+    const text = [
+      "if prev:omi_o3 <= 1.5:",
+      "  if imerg_precip <= -0.2:",
+      "    -> low (n = 20: high 1, low 15, normal 4)",
+      "else:",
+      "  -> high (n = 30: high 20, low 5, normal 5)",
+    ].join("\n");
+
+    expect(labelTreeText(text, names).split("\n")).toEqual([
+      "if Total column ozone (OMI) (previous month) <= 1.5:",
+      "  if Precipitation (GPM IMERG Final) <= -0.2:",
+      "    -> low (n = 20: high 1, low 15, normal 4)",
+      "else:",
+      "  -> high (n = 30: high 20, low 5, normal 5)",
+    ]);
+  });
+});
+
+describe("formatQ", () => {
+  it("shows three decimals and a floor for very small values", () => {
+    expect(formatQ(0.0312)).toBe("0.031");
+    expect(formatQ(0.001)).toBe("0.001");
+    expect(formatQ(3.2e-15)).toBe("<0.001");
+  });
+});
+
+describe("formatExcluded", () => {
+  it("says which kept variable it duplicates and how strongly", () => {
+    expect(
+      formatExcluded(
+        {
+          variable_id: "omi_o3",
+          correlated_with: "imerg_precip",
+          correlation: -0.8581,
+          n_pairs: 1008,
+        },
+        names,
+      ),
+    ).toBe(
+      "Total column ozone (OMI) (correlation -0.858 with Precipitation (GPM IMERG Final), 1008 location-months)",
     );
   });
 });
@@ -70,7 +152,8 @@ describe("sortRules", () => {
   });
 
   it("orders by the rule text", () => {
-    const sorted = sortRules(rules, { key: "rule", descending: false });
+    // By displayed name: "airs_tsurf…", "Precipitation…", "Total column ozone…"
+    const sorted = sortRules(rules, { key: "rule", descending: false }, names);
 
     expect(sorted.map((item) => item.consequent)).toEqual([
       "merra2_t2m=low",
@@ -105,13 +188,60 @@ describe("nextSort", () => {
       key: "rule",
       descending: false,
     });
+    // Small q first
+    expect(nextSort(current, "q")).toEqual({ key: "q", descending: false });
   });
 });
 
-describe("filterRules", () => {
-  it("can hide rules whose consequent variable is also an antecedent", () => {
-    expect(filterRules(rules, true)).toHaveLength(2);
-    expect(filterRules(rules, false)).toHaveLength(3);
+describe("visibleRules", () => {
+  const set = {
+    rules: [rules[0]!, rules[2]!],
+    persistence_rules: [rules[1]!],
+  } as RuleSet;
+
+  it("hides same-variable persistence rules unless asked", () => {
+    expect(visibleRules(set, false)).toEqual([rules[0], rules[2]]);
+    expect(visibleRules(set, true)).toEqual([rules[0], rules[2], rules[1]]);
+  });
+});
+
+function fold(
+  test: number,
+  trainMajority: number,
+  testMajority: number,
+  persistence: number,
+): Fold {
+  return {
+    accuracy: { train: 0.9, test },
+    baselines: {
+      train_majority: {
+        predicted_class: "low",
+        tie: false,
+        test_accuracy: trainMajority,
+      },
+      test_majority: { predicted_class: "high", test_accuracy: testMajority },
+      persistence: { test_accuracy: persistence },
+    },
+    above_train_majority: test > trainMajority,
+    above_test_majority: test > testMajority,
+    above_persistence: test > persistence,
+  } as Fold;
+}
+
+describe("foldVerdict", () => {
+  it("says plainly which baselines the tree is not above", () => {
+    expect(foldVerdict(fold(0.6, 0.3, 0.4, 0.5))).toBe(
+      "above all three baselines",
+    );
+    expect(foldVerdict(fold(0.45, 0.3, 0.4, 0.5))).toBe(
+      "not above: persistence guess",
+    );
+    expect(foldVerdict(fold(0.35, 0.3, 0.4, 0.5))).toBe(
+      "not above: test-majority guess, persistence guess",
+    );
+    expect(foldVerdict(fold(0.2, 0.3, 0.4, 0.5))).toBe(
+      "not above: training-majority guess, test-majority guess, persistence guess",
+    );
   });
 });
 
@@ -124,6 +254,8 @@ describe("formatParameter", () => {
     expect(formatParameter([])).toBe("none");
     expect(formatParameter(null)).toBe("none");
     expect(formatParameter(3)).toBe("3");
+    expect(formatParameter(true)).toBe("yes");
+    expect(formatParameter(false)).toBe("no");
   });
 });
 

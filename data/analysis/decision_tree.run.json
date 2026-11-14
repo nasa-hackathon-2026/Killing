@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T14:15:38Z",
+  "generated_at": "2026-11-14T14:53:09Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -16,20 +16,40 @@
   "parameters": {
     "low_quantile": 0.33333333,
     "high_quantile": 0.66666667,
-    "exclude_variables": [
-      "power_t2m",
-      "modis_ndvi_pc"
+    "exclude_variables": [],
+    "exclude_locations": [
+      "taiwan"
     ],
+    "max_abs_correlation": 0.85,
     "tree_table": "region",
     "tree_target": "modis_ndvi",
     "tree_max_depth": 3,
     "tree_min_samples_leaf": 20,
-    "tree_train_fraction": 0.8,
+    "tree_n_folds": 3,
+    "tree_min_train_months": 120,
+    "tree_include_target_lag": false,
+    "same_quantity_groups": [
+      [
+        "modis_ndvi",
+        "modis_ndvi_pc"
+      ],
+      [
+        "modis_lst",
+        "modis_lst_pc"
+      ],
+      [
+        "gldas_tair",
+        "merra2_t2m",
+        "airs_tsurf",
+        "power_t2m"
+      ]
+    ],
     "tree_random_state": 0
   },
   "packages": {
     "numpy": "2.5.4",
     "pandas": "3.1.1",
+    "scipy": "1.18.1",
     "mlxtend": "0.25.0",
     "scikit-learn": "1.9.1"
   },
@@ -37,21 +57,45 @@
     "decision_tree.json"
   ],
   "summary": {
-    "n_train": 789,
-    "n_test": 200,
-    "accuracy": {
-      "train": 0.54499366,
-      "test": 0.425
-    },
-    "baseline_majority_class": {
-      "predicted_class": "low",
-      "tie": true,
-      "train_accuracy": 0.33333333,
-      "test_accuracy": 0.125,
-      "best_constant_on_test": {
-        "predicted_class": "high",
-        "test_accuracy": 0.635
+    "n_folds": 3,
+    "n_folds_above_train_majority": 2,
+    "n_folds_above_test_majority": 0,
+    "n_folds_above_persistence": 0,
+    "n_folds_above_all": 0,
+    "above_all_in_every_fold": false,
+    "mean_test_accuracy": 0.3994709,
+    "mean_train_majority_accuracy": 0.31481481,
+    "mean_test_majority_accuracy": 0.43121693,
+    "mean_persistence_accuracy": 0.54761905,
+    "text_en": "The tree's test accuracy is above all three baselines in 0 of 3 folds (above the training-majority guess in 2, above the test-majority guess in 0, above the previous-month persistence guess in 0). In 3 of 3 folds the tree does not beat at least one guess that uses no other variable.",
+    "folds": [
+      {
+        "fold": 1,
+        "n_train": 354,
+        "n_test": 126,
+        "test_accuracy": 0.46031746,
+        "train_majority_accuracy": 0.26984127,
+        "test_majority_accuracy": 0.46825397,
+        "persistence_accuracy": 0.48412698
+      },
+      {
+        "fold": 2,
+        "n_train": 480,
+        "n_test": 126,
+        "test_accuracy": 0.42063492,
+        "train_majority_accuracy": 0.32539683,
+        "test_majority_accuracy": 0.42063492,
+        "persistence_accuracy": 0.55555556
+      },
+      {
+        "fold": 3,
+        "n_train": 606,
+        "n_test": 126,
+        "test_accuracy": 0.31746032,
+        "train_majority_accuracy": 0.34920635,
+        "test_majority_accuracy": 0.4047619,
+        "persistence_accuracy": 0.6031746
       }
-    }
+    ]
   }
 }
