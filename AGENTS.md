@@ -81,10 +81,10 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **中文名稱、定義、分類由隊伍寫**：產生時 `name_zh` 暫用英文名、`definition_zh` 空白、`category = "待分類"`、`needs_translation = true`。直接在 `variables.extended.json` 填這幾欄並把 `needs_translation` 改成 `false`；重新產生時這幾欄（與 `note_zh`）會保留。不要自動翻譯後當成定稿。
 - **世界地點**在 `data/seed/locations.world.json`（清單是資料，可以改）：`group` 是 `global`（全球平均，bbox −180, −90, 180, 90）、`world_region`（各洲、北極圈以北、熱帶的簡化方框）、`world_city`（12 個城市點位）。核心的台灣地點仍在 `locations.json`。
 - **抓取**：`uv run python -m trend_detective.extended`（`.env` 要有 `EARTHDATA_TOKEN`）。**預設只抓單點**（Giovanni `/timeseries`，執行緒池，`--point-workers` 預設 8）：2,177 條約 10 分鐘，quota 幾乎不動。階段 a–f 依序是：核心變數 × 全球平均、核心變數 × 世界區域與城市、擴充變數 × 全球平均、× 世界區域、× 世界城市、× 台灣地點；`--stage b e` 只跑指定階段。
-- **不要用 Harmony 做全球或洲尺度的區域平均**（2026-11-14 實測）：送出 21 個全球／洲尺度的 job 後，Giovanni 月 quota 在 25 分鐘內從 0.00007 升到 0.249，而且這些 job 16 分鐘後仍沒有一個完成；單點實測每條只耗 3e-9（月資料）至 9e-8（OMI 日資料）。quota 是整個隊伍共用的，≥ 0.95 之後整個月都不能再抓。所以全球平均與世界區域的平均改由全球格點在本機計算（見「全球格點月資料」），階段 a、c、d 與 b 的區域部分目前沒有資料。`--kind area`／`both` 仍保留（同時掛 `--harmony-jobs` 個 job、所有階段排成一個佇列），只適合台灣大小的 bbox（每個約 4e-7），送之前先確認 quota 與使用者的決定。
+- **不要用 Harmony 做全球或洲尺度的區域平均**（2026-11-14 實測）：送出 21 個全球／洲尺度的 job 後，Giovanni 月 quota 在 25 分鐘內從 0.00007 升到 0.249，而且這些 job 16 分鐘後仍沒有一個完成；單點實測每條只耗 3e-9（月資料）至 9e-8（OMI 日資料）。quota 是整個隊伍共用的，≥ 0.95 之後整個月都不能再抓。所以全球平均與世界區域的平均改由全球格點在本機計算（見「格點區域平均」，`aggregation = "area_mean_grid"`）；階段 a、c、d 與 b 的區域部分沒有 Harmony 的 `area_mean`，`--status` 仍會把它們列為尚未抓。`--kind area`／`both` 仍保留（同時掛 `--harmony-jobs` 個 job、所有階段排成一個佇列），只適合台灣大小的 bbox（每個約 4e-7），送之前先確認 quota 與使用者的決定。
 - **可續跑**：同一天已成功的序列不重抓（紀錄在 `data/extended/state.point.json`、`state.area.json`）；Harmony 的 job id 記在 `data/raw/harmony/jobs.extended.json`，中斷後同一天重跑會接著等原本的 job。失敗的序列下次會重試。單一序列失敗不中斷，結束時依原因分組列出失敗數。
 - **看進度**：`uv run python -m trend_detective.extended --status`（不連網）列出各階段已有、失敗、尚未抓的數量，並依磁碟上的序列檔重寫 `data/extended/catalog.json`。抓取進行中每 5 分鐘也會重寫一次目錄檔，先完成的先能用。每次執行的平行度、耗時、quota 記在 `data/extended/runs.jsonl`。
-- 世界區域是經緯度方框，含海面（GLDAS、FLDAS 這類陸面模式只有陸地格點有值）；之後算區域平均時要自己決定面積加權與陸地遮罩。
+- 世界區域是經緯度方框，含海面（GLDAS、FLDAS 這類陸面模式只有陸地格點有值）；格點區域平均用 cos(緯度) 加權、沒有陸地遮罩（見「格點區域平均」）。
 - 海面上或該產品沒有資料的點位會整條缺值，記為失敗、不內移（世界城市沒有設 `inland_direction`）。
 - 原始回應照舊存在 `data/raw/giovanni/`、`data/raw/harmony/`，檔名是 `<變數 id>__<地點 id>.csv`。
 
@@ -107,6 +107,20 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 - 各產品檔案結構的坑（2026-11-14 實測，程式已處理）：IMERG 的變數在 `/Grid` 群組、軸是 `lon × lat`；AIRS 是 HDF-EOS2，變數在 `/ascending/Data_Fields` 等四個群組、沒有時間軸、緯度由北到南，而且 **OPeNDAP 給的 `YDim`／`XDim` 是格子的北緣與西緣，不是中心**（和檔案自己的 `Latitude`／`Longitude` 差半格），seed 用 `cell_reference: north_west_corner` 標記，建立方體時換算成中心；FLDAS 的座標叫 `X`、`Y`。
 - 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 的月平均沒有另外做品質或雲量篩選，照 L3 檔案裡的值直接平均。
+
+## 格點區域平均（#64）
+全球、世界區域與台灣 5 個區域的月平均，由全球格點立方體在本機算出，取代原本太耗 quota 的 Harmony 大範圍區域平均。**完全不連網、不需要 token、不耗 quota。**
+
+- **盤點立方體**：`uv run python -m trend_detective.grid_regions --check`（12 個行程約 3 分鐘；加 `--no-scan` 只看結構、2 秒）。檢查每個立方體讀不讀得到、月份是否連續、起始月是否等於 seed 的 `start`、結束月是否與同產品其他立方體相同、逐月原始檔（或日檔）有沒有月份沒進立方體，並找出整張都是缺值的月份。明細寫到 `data/extended/grid_cubes.check.json`；有不完整的立方體時 exit code 為 1。結束月沒有外部基準可比（離線不查 CMR），只能和同產品的其他立方體互相比。
+- **算區域平均**：`uv run python -m trend_detective.grid_regions`（345 個立方體 × 14 個區域，`--workers 12` 約 3 分鐘；`--variable 'gldas_*'` 只算部分，可重複）。只算盤點為完整的立方體。區域是 seed 裡 `kind = region` 的地點（`locations.world.json` 的全球與世界區域、`locations.json` 的台灣 5 區）。跑完會重寫 `data/extended/catalog.json`，執行報告在 `data/extended/grid_regions.report.json`（各類地點寫了幾條、沒寫的原因、每個立方體的耗時）。
+- **算法**：格點中心落在 bbox 內（含邊界）的格子；權重 cos(緯度)；只對有值的格子平均。bbox 的 `west > east` 視為跨 180° 經線（目前的世界區域都沒有跨）。一次只讀一個月的切片。
+- **序列怎麼認**：一律 `aggregation = "area_mean_grid"`、`source_api = "grid"`，檔名 `<變數 id>__<地點 id>__area_mean_grid.json`，全部寫在 `data/extended/series/`（不進 git，SQLite 的 `tier = 'extended'`），核心快照不動。Harmony 的區域平均仍是 `area_mean`，兩者並存、互不覆蓋；目標檔已被其他來源佔用時不寫並記在報告的 `refused`。`request` 記產品、變數路徑、`cube_id`（格點 seed 的 id）、bbox、權重、網格間距、bbox 內的格子數與立方體起訖月。
+- **變數 id**：格點 seed 與既有變數是同一個產品的同一個變數時，用既有的 id 與單位字串——id 相同（10 個核心變數），或既有變數的 `source_variable_id` 等於 `<產品，點換成底線>_<變數名>`（`variables.extended.json` 的 98 個，例如 `airs_cloudfrc_a` → `airs3stm_7_0_cloudfrc_a`）。對不上的 237 個用格點 seed 的 id，變數說明寫在 `data/extended/grid_variables.json`（`source = "grid"`），`write_extended_catalog` 重建目錄檔時會併入，所以 `extended --status` 重寫目錄檔也不會漏掉它們。
+- **`coverage` 是空間的**：有值格子的權重和 ÷ bbox 內全部格子的權重和。陸面模式（GLDAS、FLDAS）只有陸地有值，所以它們的區域平均是陸地平均，`coverage` 約等於方框裡的陸地比例；這和其他來源的 `coverage`（時間上的覆蓋）不是同一件事，不要用同一個門檻。月資料 `n_samples = 1`；OMI（日資料產品）是當月的日檔數（讀 `data/raw/grid/<id>/months/` 的 `days_in_file`，那個目錄不在時是 1），所以還沒過完的最新月份（例如只有 9 天）看得出來。
+- **沒有序列的情況**（2026-11-14 實跑，345 個立方體寫出 4,499 條）：`north` 對 1° 的 AIRS、OMTO3d、OMAERUVd 沒有格點中心（227 個立方體）；AIRS 的 8 個 `*_mw_*` 變數（微波反演的水氣與雲液態水及其標準差）整段期間全是缺值——原始月檔就是 fill value（實測），推斷是 AIRS-only 產品不含微波反演。
+- **與 Harmony 區域平均的比較**（2026-11-14 實測，逐月比對 60 條）：月資料產品（IMERG、MERRA-2、AIRS、GLDAS 氣溫）在全球、世界區域與台灣各區都相符，平均絕對差 ÷ 平均值在 4e-8 至 6e-6，相關 1.00000；由此推斷 Harmony 的區域平均也是緯度面積加權、也以格點中心在 bbox 內為準。GLDAS 的土壤水與蒸散只有 2025-12 不同（同「全球格點月資料」的已知限制），其餘月份相符。OMI（日資料）不相符是預期的：這裡是「每格先對日子平均、再對空間平均」，Harmony 是「每天先對空間平均、再對日子平均」，缺測多的小區域差最多（`omi_no2` 的 `east` 相關 0.87、`omi_aerosol` 的 `taiwan` 平均絕對差是平均值的 20%；全球的 `omi_aerosol` 是 3.7%）。同一個變數的兩種序列不要接成一條線。
+- **清理逐月原始檔**：`uv run python -m trend_detective.grid_regions --clean` 列出可刪的目錄，加 `--confirm` 才刪。只刪月資料產品：變數自己的 `months/`，以及「裡面每個變數的立方體都完整」的批次目錄；立方體本身不刪。日資料產品（OMI）的日檔與 `months/` 一律保留（日檔是否齊全離線無法對照 CMR，`months/` 裡每格有值的天數立方體沒有）。2026-11-14 已清過：`data/raw/grid/` 由 210 GB 降到 116 GB（立方體約 90 GB、OMI 原始檔約 26 GB）。清掉之後重跑 `grid_fetch` 會整批重抓。
+- 已知限制：區域是經緯度方框，沒有陸地遮罩；各產品的缺值範圍不同（GLDAS、FLDAS 不含 60°S 以南與海面，IMERG 的全球 `coverage` 約 0.999），跨產品比絕對值會誤導。MERRA-2 的格點中心落在兩極，cos(±90°) = 0，極點那一列不計。趨勢與顯著性不在這裡算。
 
 ## 如何重產分析結果（#55）
 由核心快照算出的統計結果在 `data/analysis/`，會進 git；前端在開發與建置時讀它（`web/snapshot-static.ts` 把它和 `data/snapshot/` 一起提供並複製進 `dist`）。不連網、不需要 token。
@@ -142,9 +156,9 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
 
-- 重建：`uv run python -m trend_detective.sqlite_export`，約 2 秒，產生 `data/sqlite/trend_detective.sqlite`（約 30 MB，不進 git）。每次都從頭重建，冪等。
+- 重建：`uv run python -m trend_detective.sqlite_export`，只有核心快照時約 2 秒、約 30 MB；含擴充資料與格點區域平均時約 40 秒、約 1.5 GB（2026-11-14：6,817 條序列、統一表 2,275,723 列）。產生 `data/sqlite/trend_detective.sqlite`（不進 git）。每次都從頭重建，冪等。
 - 輸入是 `data/snapshot/`（統一表與對照表）加 `data/raw/`（各來源表），以及 `data/extended/`（擴充資料，有目錄檔才匯入；`--extended-dir` 可改位置）。`observations`、`series`、`variables`、`locations` 都有 `tier` 欄（`core`／`extended`），只看核心就加 `WHERE tier = 'core'`。只有快照、沒有 `data/raw/` 的機器也能建，來源表會是空的。
-- 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`。用途見 `src/trend_detective/sqlite_export.py` 開頭與 README。
+- 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`、`src_grid`（格點區域平均的月值與有值面積比例，由序列檔自己填入；立方體不進資料庫）。用途見 `src/trend_detective/sqlite_export.py` 開頭與 README。
 - 新增資料來源時：在 `SOURCE_TABLES` 加一筆、在 `SCHEMA` 加來源表、寫一個 `_insert_<來源>`，並補測試。
 - `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。
 - 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 README 的連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。

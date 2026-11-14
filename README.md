@@ -98,6 +98,7 @@ uv run python -m trend_detective.sqlite_export
 | `src_noaa_ghcnh` | 測站當地日的日平均與觀測筆數 | 追溯測站月均溫（不含逐時原始值） |
 | `src_appeears` | AppEEARS（MODIS）一個合成期的區域統計量：平均、標準差、像元數… | 追溯 `modis_ndvi`、`modis_lst` |
 | `src_planetary_computer` | Planetary Computer（MODIS）一個合成期的區域統計量，以及用到的 tile 與 item id | 追溯 `modis_lst_pc`、`modis_ndvi_pc` |
+| `src_grid` | 全球格點立方體在本機算出的區域面積加權月平均（`aggregation = 'area_mean_grid'`）：月值、有值面積比例、用的立方體、bbox、網格間距 | 追溯全球、世界區域、台灣區域的格點平均；立方體本身太大，不進資料庫 |
 
 ### 核心與擴充
 

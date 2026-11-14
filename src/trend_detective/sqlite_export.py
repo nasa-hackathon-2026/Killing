@@ -13,6 +13,8 @@
     src_noaa_ghcnh   測站當地日的日平均與觀測筆數（逐時原始值不收）
     src_appeears     AppEEARS（MODIS）每個合成期的區域統計量：平均、標準差、像元數…
     src_planetary_computer   Planetary Computer（MODIS）每個合成期的區域統計量，本機算出
+    src_grid         全球格點立方體在本機算出的區域面積加權月平均（`aggregation = 'area_mean_grid'`）：
+                     月值、有值面積比例，以及用的立方體、bbox、網格間距、格子數（立方體本身不進資料庫）
 
 `observations`、`series`、`variables`、`locations` 都有 `tier` 欄：`core` 是進 git 的核心快照
 （`data/snapshot/`），`extended` 是擴充資料（`data/extended/`，#46；這台機器沒有就只有核心）。
@@ -48,6 +50,7 @@ SOURCE_TABLES = {
     "noaa_ghcnh": "src_noaa_ghcnh",
     "appeears": "src_appeears",
     "planetary_computer": "src_planetary_computer",
+    "grid": "src_grid",
 }
 
 SCHEMA = """
@@ -112,6 +115,13 @@ CREATE TABLE src_planetary_computer (
     minimum REAL, maximum REAL, pixels_in_bbox INTEGER, tiles TEXT, item_ids TEXT,
     PRIMARY KEY (variable_id, location_id, date)
 );
+CREATE TABLE src_grid (
+    variable_id TEXT NOT NULL, location_id TEXT NOT NULL, month TEXT NOT NULL,
+    value REAL, coverage REAL, cube_id TEXT, product TEXT, source_variable TEXT,
+    bbox_w REAL, bbox_s REAL, bbox_e REAL, bbox_n REAL,
+    lat_step REAL, lon_step REAL, n_cells INTEGER, weights TEXT,
+    PRIMARY KEY (variable_id, location_id, month)
+);
 CREATE INDEX observations_by_month ON observations(month);
 CREATE INDEX observations_by_tier ON observations(tier);
 """
@@ -170,6 +180,7 @@ def build_database(
         _insert_planetary_computer(
             db, all_series, raw_dir / planetary_computer.SOURCE_DIR
         )
+        _insert_grid(db, all_series)
         violations = db.execute("PRAGMA foreign_key_check").fetchall()
         if violations:
             raise ValueError(f"資料庫的外鍵對不上：{violations[:5]}")
@@ -487,6 +498,34 @@ def _insert_planetary_computer(
                 )
                 if location_id == s["location_id"]
                 and row["asset"] == s["request"]["asset"]
+            ],
+        )
+
+
+def _insert_grid(db: sqlite3.Connection, all_series: list[dict[str, Any]]) -> None:
+    """格點算出的區域平均（#64）。來源是序列檔自己：立方體太大，不進資料庫。"""
+    for s in _of(all_series, "grid"):
+        request = s["request"]
+        cells = request.get("grid") or {}
+        db.executemany(
+            "INSERT INTO src_grid VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                (
+                    s["variable_id"],
+                    s["location_id"],
+                    p["month"],
+                    p["value"],
+                    p["coverage"],
+                    request.get("cube_id"),
+                    request.get("product"),
+                    request.get("variable"),
+                    *(request.get("bbox") or [None] * 4),
+                    cells.get("lat_step"),
+                    cells.get("lon_step"),
+                    request.get("n_cells"),
+                    request.get("weights"),
+                )
+                for p in s["points"]
             ],
         )
 

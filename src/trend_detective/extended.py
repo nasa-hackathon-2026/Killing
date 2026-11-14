@@ -65,6 +65,8 @@ from trend_detective.snapshot import (
 )
 
 EXTENDED_DIR = Path("data/extended")
+# 用格點 seed id 的變數說明（`grid_regions.write_grid_variables` 寫出）
+GRID_VARIABLES_FILE = "grid_variables.json"
 QUOTA_LIMIT = 0.95
 # Harmony job 最多等多久；逾時記為失敗，job 留在紀錄裡，同一天重跑會接著等
 HARMONY_MAX_WAIT_SECONDS = 3600
@@ -514,9 +516,16 @@ def write_extended_catalog(
 ) -> Path:
     """依磁碟上的序列檔寫目錄檔，格式與核心快照的 `catalog.json` 相同。
 
-    只列出至少有一條序列的變數與地點。
+    只列出至少有一條序列的變數與地點。`grid_variables.json`（由 `grid_regions` 寫出，#64）
+    裡的變數說明會併入：格點算出的區域平均有些變數不在 Giovanni 的變數 seed 裡。
     """
     all_series = _series_on_disk(out_dir)
+    known = {v["id"] for v in variables}
+    try:
+        extra = json.loads((out_dir / GRID_VARIABLES_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        extra = []
+    variables = [*variables, *(v for v in extra if v["id"] not in known)]
     variable_ids = {s.variable_id for s in all_series}
     location_ids = {s.location_id for s in all_series}
     return write_catalog(
