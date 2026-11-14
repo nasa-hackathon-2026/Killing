@@ -59,7 +59,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 區域平均（`harmony`）：Giovanni `/timeseries` 只支援單點，所以有 `harmony_collection` 的變數 × `kind = region` 的地點各送一個 Harmony 非同步 job（`aggregation = "area_mean"`），一次同時跑 6 個，50 個約 15–30 分鐘。要先有該變數的點位序列（單位與起始月從那裡來）。job id 與結果 CSV 記在 `data/raw/harmony/`；中斷後同一天重跑會接著等原本的 job，已完成的不重送。
 - Harmony 的兩個限制（2026-11-14 實測）：起始日不能早於產品第一筆資料；bbox 裡若沒有任何格點中心（例如 `north` 對 1° 的 AIRS、OMI 臭氧、OMI 氣膠），job 會失敗且不說原因。
 - 讀區域平均時要注意：區域是 bbox，不是陸地遮罩，除了 GLDAS（純陸地）以外都含海面格點，跨產品比絕對值會誤導；日資料的 `coverage` 是「當天區域內至少一格有值」的天數比例，區域越大越高，不代表空間覆蓋，不能和點位的 `coverage` 等同看待。已知沒有資料的組合記在變數的 `harmony_skip_regions`，不會送出也不算失敗。
-- MODIS（`appeears`）分兩步，因為 AppEEARS 是非同步 task：先 `uv run python -m trend_detective.appeears submit`、等完成後 `… appeears download`（見 README「原始資料」），快照指令的 `appeears` 來源只把已下載的統計 CSV 轉成區域月序列，不連網。分段送出的變數（LST）要全部分段都下載好才會寫出序列。統計 CSV 的值已套用 scale factor；單位與合理範圍記在 seed 的 `unit`、`valid_range`，超出範圍會報錯。`coverage` 是可用像元數 ÷ 該區域出現過的最大像元數（變數在 seed 設了 `appeears_qa` 時，可用像元數是通過 QA 的像元數，否則是有值像元數；分母會隨批次略有變動）；8 日合成依起始日歸月，`n_samples` 是當月有值的合成期數。
+- MODIS（`appeears`）分兩步，因為 AppEEARS 是非同步 task：先 `uv run python -m trend_detective.appeears submit`、等完成後 `… appeears download`（見 `docs/data/raw-data.md`），快照指令的 `appeears` 來源只把已下載的統計 CSV 轉成區域月序列，不連網。分段送出的變數（LST）要全部分段都下載好才會寫出序列。統計 CSV 的值已套用 scale factor；單位與合理範圍記在 seed 的 `unit`、`valid_range`，超出範圍會報錯。`coverage` 是可用像元數 ÷ 該區域出現過的最大像元數（變數在 seed 設了 `appeears_qa` 時，可用像元數是通過 QA 的像元數，否則是有值像元數；分母會隨批次略有變動）；8 日合成依起始日歸月，`n_samples` 是當月有值的合成期數。
 - MODIS 經 Planetary Computer（`planetary_computer`，變數 `modis_lst_pc`、`modis_ndvi_pc`）也分兩步、不需要任何帳號：先 `uv run python -m trend_detective.planetary_computer fetch`（查 STAC、用 HTTP Range 只讀區域涵蓋到的 COG 區塊、在本機算每個合成期 × 區域的統計量，存到 `data/raw/planetary_computer/<變數 id>/stats.csv`；2001 至今全抓：LST 約 3 分鐘、440 MB，NDVI（250 m）約 6 分鐘、1.1 GB，12 個執行緒；已算過的合成期不重抓），快照指令的 `planetary_computer` 來源再把 `stats.csv` 轉成區域月序列，不連網。轉月算法與 `appeears` 相同。它和 AppEEARS 版本（`modis_lst`）是同一個 NASA 產品但分開存：區域裁切方式不同（這裡是像元中心落在 bbox 內），不要接成同一條線。
 - Planetary Computer 的三個坑（2026-11-14 實測）：Terra 與 Aqua 在同一個 collection，而 2024-03 至 2025-06 的 item 沒有 `platform` 屬性，所以用 item id 開頭（`MOD11A2.`）分辨、讀檔時再核對檔案的 SHORTNAME；collection 的 SAS token 端點（`/token/modis-11A2-061`）給的是 HDF container 的 token，讀 COG 要用 `/token/<account>/<container>`；有些合成期那裡沒有 Terra 的 item（LST：2022-10 整月、2025-07-04 至 2025-11-17），序列在整月都沒有合成期的月份沒有點。scale factor、fill value、單位從 COG 檔自己的 metadata 讀，並和 STAC 宣告的 scale 核對，每次執行記在 `fetch.json`；NDVI 的檔案把 scale_factor 寫成除數（10000），與 STAC 的 0.0001 互為倒數，對不上其他情況就報錯。區域跨兩個 tile（h28v06、h29v06）時，缺一個 tile 的合成期不採用。
 - MODIS 點位序列（#51，`modis_lst`、`modis_ndvi` × 5 個點位，`aggregation = "point"`）：這兩個變數的區域序列來自 AppEEARS，點位序列來自 Planetary Computer，由 seed 的 `point_source` 區塊指定（collection、資產、產品、`window_pixels`）。同一個 `planetary_computer fetch` 會一併抓（`--variable modis_lst` 可只抓一個），取「點所在像元為中心、`window_pixels` 見方」有值像元的平均，存到 `data/raw/planetary_computer/<變數 id>/stats.csv`（id 不帶 `_pc`）；快照指令的 `planetary_computer` 來源再轉成月序列。LST 是 MOD11A2 的 3 × 3 個 1 km 像元；NDVI 因為 Planetary Computer 沒有 MOD13A3（2026-11-14 查 STAC collection 清單），用 MOD13Q1 的 13 × 13 個 250 m 像元（約 3 km），和 AppEEARS 區域序列（MOD13A3）不是同一個產品，點位與區域的絕對值不要直接比。
@@ -72,7 +72,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 單一序列失敗不會中斷整批；結束時印出成功、內移、失敗清單，有失敗時 exit code 為 1。失敗的序列若先前已有檔案，舊檔保留。
 - 靠海格點被遮罩時 Giovanni 不報錯，而是整條回傳缺值；地點有 `inland_direction` 時會往內陸移一格重試，實際座標記在序列檔的 `request.location`，原本的座標記在 `request.requested_location`。
 - 每條序列的原始回應存到 `data/raw/giovanni/<變數>__<地點>.csv`（不進 git），之後建 SQLite 的來源表用（#26）。
-- 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 README「原始資料」。
+- 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 `docs/data/raw-data.md`。
 
 ## 擴充資料（#46）
 核心快照之外的「Giovanni 全球月資料全部變數 × 全球平均與世界各地」。量大（約核心的 50 倍），**不進 git**，放在 `data/extended/`，格式與 `data/snapshot/` 相同（`catalog.json` 加 `series/*.json`），並匯入 SQLite（`tier = 'extended'`）。公開 demo 不讀它。
@@ -158,10 +158,10 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
 - 重建：`uv run python -m trend_detective.sqlite_export`，只有核心快照時約 2 秒、約 30 MB；含擴充資料與格點區域平均時約 40 秒、約 1.5 GB（2026-11-14：6,817 條序列、統一表 2,275,723 列）。產生 `data/sqlite/trend_detective.sqlite`（不進 git）。每次都從頭重建，冪等。
 - 輸入是 `data/snapshot/`（統一表與對照表）加 `data/raw/`（各來源表），以及 `data/extended/`（擴充資料，有目錄檔才匯入；`--extended-dir` 可改位置）。`observations`、`series`、`variables`、`locations` 都有 `tier` 欄（`core`／`extended`），只看核心就加 `WHERE tier = 'core'`。只有快照、沒有 `data/raw/` 的機器也能建，來源表會是空的。
-- 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`、`src_grid`（格點區域平均的月值與有值面積比例，由序列檔自己填入；立方體不進資料庫）。用途見 `src/trend_detective/sqlite_export.py` 開頭與 README。
+- 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`、`src_grid`（格點區域平均的月值與有值面積比例，由序列檔自己填入；立方體不進資料庫）。用途見 `src/trend_detective/sqlite_export.py` 開頭與 `docs/data/sqlite.md`。
 - 新增資料來源時：在 `SOURCE_TABLES` 加一筆、在 `SCHEMA` 加來源表、寫一個 `_insert_<來源>`，並補測試。
 - `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。
-- 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。Release 只放核心資料的版本（完整版約 1.5 GB，太大）：`uv run python -m trend_detective.sqlite_export --extended-dir <一個空目錄> --db data/sqlite/trend_detective_core.sqlite`。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 README 的連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。
+- 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。Release 只放核心資料的版本（完整版約 1.5 GB，太大）：`uv run python -m trend_detective.sqlite_export --extended-dir <一個空目錄> --db data/sqlite/trend_detective_core.sqlite`。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 `docs/data/sqlite.md` 與 README 的下載連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。
 
 ## Agent skills
 

@@ -13,7 +13,11 @@ Generated from `data/snapshot/catalog.json` and `pyproject.toml`. Do not edit by
 Python packages the data pipeline depends on:
 
 - `httpx>=0.28.1`
+- `mlxtend>=0.25.0`
 - `netcdf4>=1.7.5.1.post1`
 - `numpy>=2.4.6`
+- `pymannkendall>=1.4.3`
 - `rasterio>=1.4.4`
+- `scikit-learn>=1.9.1`
+- `scipy>=1.17.1`
 - Python standard library (`sqlite3`, `csv`, `json`)

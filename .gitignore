@@ -10,7 +10,7 @@
 # 雜項
 .DS_Store
 
-# 原始下載檔（AppEEARS bundle 等），不進 git，見 README「原始資料」
+# 原始下載檔（AppEEARS bundle 等），不進 git，見 docs/data/raw-data.md
 data/raw/
 
 # Python
