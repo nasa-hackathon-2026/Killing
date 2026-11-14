@@ -24,6 +24,10 @@ type LayerPanelProps = {
   onOpacity: (id: string, opacity: number) => void;
   // Opens the close-up view of a layer; the button is hidden without it.
   onCloseUp?: (id: string) => void;
+  // Opens (or closes, with null) the time series chart of a layer; the
+  // button is hidden without it. `chartId` is the layer charted now.
+  chartId?: string | null;
+  onChart?: (id: string | null) => void;
 };
 
 export function LayerPanel({
@@ -39,6 +43,8 @@ export function LayerPanel({
   onToggle,
   onOpacity,
   onCloseUp,
+  chartId,
+  onChart,
 }: LayerPanelProps) {
   const monthIndex = month ? months.indexOf(month) : -1;
 
@@ -117,16 +123,31 @@ export function LayerPanel({
                 </p>
               ) : null}
               {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
-              {onCloseUp ? (
-                <button
-                  type="button"
-                  className="closeup-open"
-                  aria-label={`${layer.nameEn} close-up`}
-                  onClick={() => onCloseUp(layer.id)}
-                >
-                  Close-up
-                </button>
-              ) : null}
+              <div className="timeline-layer-actions">
+                {onCloseUp ? (
+                  <button
+                    type="button"
+                    className="closeup-open"
+                    aria-label={`${layer.nameEn} close-up`}
+                    onClick={() => onCloseUp(layer.id)}
+                  >
+                    Close-up
+                  </button>
+                ) : null}
+                {onChart ? (
+                  <button
+                    type="button"
+                    className="closeup-open"
+                    aria-label={`${layer.nameEn} time series chart`}
+                    aria-pressed={chartId === layer.id}
+                    onClick={() =>
+                      onChart(chartId === layer.id ? null : layer.id)
+                    }
+                  >
+                    Chart
+                  </button>
+                ) : null}
+              </div>
               <input
                 type="range"
                 min={0.15}

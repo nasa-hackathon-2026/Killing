@@ -182,6 +182,19 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **近看的文字標籤**：`web/src/closeup/labels.ts` 的 `labelingPainter` 包住 `Painter`，script 不用改：每畫一個分子就記一個化學式標籤、光子記 `hν`，同一種最多 `MAX_LABELS_PER_KIND` 個、全部最多 `MAX_CLOSEUP_LABELS` 個。標籤是疊在 canvas 上的 HTML（`CloseUpPanel` 的 `.closeup-labels`），每一幀由 `CloseUpScene` 投影定位，「減少動態效果」時照樣顯示。沒有分子的檢視（土壤水）沒有標籤。
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
 
+## 前端的時間軸與時間序列圖（#99）
+主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
+
+- **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`TIMELINE_SPEEDS`：1、4、12）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板原本的 Month 滑桿也讀寫這個 context。
+- **播放**：provider 裡一個 `setTimeout` 鏈，每 1000 ÷ speed 毫秒前進一個月，到最後一個月自動停；在最後一個月按播放會從第一個月重來。粒子圖層本來就在 `useFrame` 裡讀 `intensity`，換月只是換 props，不重建幾何。系統開「減少動態效果」時 `?play=1` 不自動播放（手動按仍可）。鍵盤（`TimelineBar.tsx`）：空白鍵播放／暫停、左右鍵前後一個月；焦點在 input、select、textarea、button、連結上時不攔截。
+- **純函式（都有測試）**：`timelineMath.ts`（月份與索引、播放的下一格、`?month` 解析）、`seriesMath.ts`（對齊到時間軸月份、距平、移動平均、趨勢線、距平條、已知跳變月份）、`chartGeometry.ts`（座標換算、刻度、缺月斷線的 path、滑鼠位置換月份）。
+- **距平**：優先用 `data/analysis/anomalies.json`（`loadAnomalies.ts`；被清洗排除的月份是 null）；沒有該序列時才用 `calendarAnomalies`（減去同一日曆月的平均，沒有覆蓋率篩選）。
+- **趨勢線怎麼畫**：`trends.json` 只有斜率與信賴區間、沒有截距。最小平方法的直線必過（平均時間，平均值），所以 `trendLine` 用斜率通過「有納入分析的月份」的平均點重建；Monthly values 與 12-month running mean 模式下線畫在月值的平均高度、斜率仍是距平的斜率。色帶是信賴區間上下界的斜率通過同一點的兩條線，只代表斜率的不確定性，不是預測區間（圖下有註明）。
+- **12-month running mean** 是置中的 12 個月平均（前 6、後 5），視窗內 12 個月都有值才畫，缺月不會被連過去。
+- **距平條**（時間軸滑桿上方）：跟著時間序列圖的變數，沒開圖時用第一個開著的圖層；高度除以絕對距平的第 98 百分位數（`STRIP_QUANTILE`）。已知跳變月份來自該序列在 `trends.json` 的 `known_issues` → 最上層 `known_issues[*].break_months`（源頭是 `data/seed/cleaning.json`），圖上與距平條上都畫虛線。`web/src/analysis/trendCaveats.ts` 有警語的變數照樣顯示 `TrendCaveatNote`。
+- **版面**：CSS 類別一律 `timeline-` 前綴，集中在 `index.css` 最後一段；時間軸列的位置與高度是 `.app` 上的 `--timeline-bottom`、`--timeline-height`，其他面板要避開它就用這兩個變數。寬螢幕時圖在左側面板；1180px 以下時間軸列與圖改靠左、讓出右側圖層面板；700px 以下滿寬。
+- 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有 5 個台灣點位的 `point` 序列；觸控裝置上沒有 hover，點一下就是跳到該月。
+
 ## 前端的分層視圖（#101）
 主畫面 HUD 的「Layer view」（或拉近到 `NEAR_HINT_DISTANCE` 以內出現的提示鈕「Enter layer view at <地點>」，或網址 `?strata=1&at=<地點 id>`，可和 `?layers=` 並用）：地球場景的鏡頭先飛到目前選定的地點上空，再換成分層視圖自己的 canvas（比照近看檢視，預設的 WebGL renderer；地球的 canvas 在底下 `frameloop="never"` 暫停），鏡頭由正上方傾斜成斜俯視、六個半透明平台上下拉開。離開時倒著播，地球鏡頭回到進入前的位置。程式全部在 `web/src/strata/`，樣式在 `strata.css`（類別一律 `strata-` 開頭）；`App.tsx`、`EarthCanvas.tsx` 各只有一段（`useStrataMode`、`paused`／`controlsLocked`／`children`）。只呈現數值、趨勢與方法說明，不寫解讀，不畫國界。
 
@@ -190,10 +203,11 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **粒子沿用既有形態與預算**：`StrataParticles.tsx` 用 `forms/geometries.ts` 的形狀（`dropletGeometry`、`roundAirGeometry` 為此從元件搬到那裡）、`formColor`、`encodeForm` 與 `layerParticleCap`（依圖層面板開著的層數平分 `TOTAL_PARTICLE_BUDGET`），只畫面板裡開著的變數；地球 canvas 暫停時不畫，所以總數不會超過預算（有測試）。形狀放大 `PARTICLE_SCALE` 倍。
 - **標籤與角色是疊在 canvas 上的 HTML**（`StrataView.tsx`）：`StrataScene` 每一幀投影定位；左欄的層標籤跟著該層的高度，但不會壓到圖例或彼此重疊。點平台、標籤或角色會展開該層（鏡頭靠近、其他層變淡），側邊的數值、趨勢、顯著性與警語直接用圖層面板的 `readings`、`trends`、`signals`、`trendCaveat`，不重算。
 - **兩個轉接檔**：
-  - `useCurrentMonth.ts`：目前回傳 `App.tsx` 傳下來的 Month 滑桿月份。時間軸（`web/src/timeline/TimelineContext.tsx`）合併後，把函式內容換成 `const { month } = useTimeline(); return month ?? appMonth;`。
+  - `useCurrentMonth.ts`：已接上時間軸，回傳 `useTimeline().month`（沒有月份時退回 `AppView` 傳下來的月份），所以時間軸播放時分層視圖跟著更新。只能在 `TimelineProvider` 裡用。
   - `companionSlot.tsx`：目前是有顏色的圓形佔位。資料夥伴（`web/src/companions/`）合併後，把 `CompanionSlot` 的內容換成 `<Companion variableId value anomalyZ trend significant size />`（props 已對齊）並刪掉 `placeholderColor`；`anomalyZ` 目前沒有傳，要顯示就在 `StrataView.tsx` 產生角色的地方補上。角色站在哪一層仍以 `strataSpec.ts` 為準。
 - **進出的狀態機**：`useStrataMode.ts` 的 `nextPhase`（`off → approach → on → closing → return → off`，有測試）；地球場景裡的飛行是 `StrataApproach.tsx`（放在 `EarthCanvas` 的 `children`）。「減少動態效果」時鏡頭與層直接到位、粒子靜止。
-- 已知限制：高度與層距是示意；兩個對流層平台其實是同一層空氣，為了看得清楚分成兩片；跨層粒子只表示方向；地表貼圖的經緯度範圍是粗略裁切（沒有做 cos 緯度修正）；窄螢幕（≤ 700 px）在分層視圖開著時會隱藏 HUD、把圖層面板縮成底部一小片；觸控只有單指拖曳，沒有雙指縮放；切換 Force WebGL 會重建地球 canvas，分層視圖開著時切換的話離開後鏡頭不會回到原位。
+- **和時間軸並存**：時間軸列（`z-index: 1`）疊在分層視圖上、照常可用；`viewInsets` 在下方留出時間軸列的高度（常數 `TIMELINE_RESERVE`，要和 `index.css` 的 `--timeline-bottom`＋`--timeline-height` 對得上），展開單層的面板用這兩個 CSS 變數排在時間軸列上方。時間序列圖（寬螢幕在左側）開著時會蓋住圖例與左欄標籤，關掉就看得到。
+- 已知限制：高度與層距是示意；兩個對流層平台其實是同一層空氣，為了看得清楚分成兩片；跨層粒子只表示方向；地表貼圖的經緯度範圍是粗略裁切（沒有做 cos 緯度修正）；窄螢幕（≤ 700 px）在分層視圖開著時會隱藏 HUD 與標籤的高度文字、把圖層面板縮成時間軸列上方的一小片；觸控只有單指拖曳，沒有雙指縮放；切換 Force WebGL 會重建地球 canvas，分層視圖開著時切換的話離開後鏡頭不會回到原位。
 
 ## 前端的全球趨勢地圖（#72）
 主畫面上方的「Global trend map」選單（預設 Off；選項名稱是 `trendMapConfig.ts` 的 `label`，與 `meta.json` 的 `name_en` 相同、帶產品簡稱）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   loadTrends,
   summarizeTrend,
@@ -26,10 +26,15 @@ import {
   sortedMonths,
   valueAt,
 } from "./snapshot/reading";
-import { usePlaceSnapshot } from "./snapshot/usePlaceSnapshot";
+import {
+  usePlaceSnapshot,
+  type SnapshotState,
+} from "./snapshot/usePlaceSnapshot";
 import { StrataApproach } from "./strata/StrataApproach";
 import { StrataHint, StrataView } from "./strata/StrataView";
 import { useStrataMode } from "./strata/useStrataMode";
+import { TimelineProvider, useTimeline } from "./timeline/TimelineContext";
+import { TimelineDock } from "./timeline/TimelineDock";
 import { useTrendMap } from "./trendmap/useTrendMap";
 import {
   DEFAULT_OVERLAY_OPACITY,
@@ -58,36 +63,68 @@ const askedPlace = requestedPlace();
 const initialLocation =
   mockLocations.find((item) => item.id === askedPlace)?.id ?? "taichung";
 
+// Loads the snapshot and owns the place; the month, playback and the charted
+// variable live in the timeline context (web/src/timeline/TimelineContext.tsx)
+// so every panel reads the same month.
 export function App() {
+  const [locationId, setLocationId] = useState(initialLocation);
+  const snapshot = usePlaceSnapshot();
+  const data = snapshot.status === "ready" ? snapshot.data : null;
+  const { months, defaultMonth } = useMemo(() => {
+    const groups = (data?.series ?? [])
+      .filter((item) => item.locationId === locationId)
+      .map((item) => item.points);
+    return {
+      months: sortedMonths(groups),
+      defaultMonth: bestDefaultMonth(groups),
+    };
+  }, [data, locationId]);
+  return (
+    <TimelineProvider
+      months={months}
+      defaultMonth={defaultMonth}
+      locationId={locationId}
+    >
+      <AppView
+        snapshot={snapshot}
+        locationId={locationId}
+        setLocationId={setLocationId}
+      />
+    </TimelineProvider>
+  );
+}
+
+function AppView({
+  snapshot,
+  locationId,
+  setLocationId,
+}: {
+  snapshot: SnapshotState;
+  locationId: string;
+  setLocationId: (id: string) => void;
+}) {
+  const timeline = useTimeline();
   const [forceWebGL, setForceWebGL] = useState(false);
   const [flying, setFlying] = useState(false);
   const [kind, setKind] = useState<RendererKind>("webgl");
-  const [locationId, setLocationId] = useState(initialLocation);
   // Layer view (web/src/strata): one block of state, one block of JSX below.
   const strata = useStrataMode(requestedStrata());
   const [nearGround, setNearGround] = useState(false);
   const [controls, setControls] = useState(initialControls);
-  const [month, setMonth] = useState<string | null>(null);
   const [closeUpId, setCloseUpId] = useState<string | null>(requestedCloseUp);
   const [trendMapId, setTrendMapId] = useState<string | null>(initialTrendMap);
   const [trendMapOpacity, setTrendMapOpacity] = useState(
     DEFAULT_OVERLAY_OPACITY,
   );
   const trendMap = useTrendMap(trendMapId);
-  const snapshot = usePlaceSnapshot();
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const location =
     data?.places.find((item) => item.id === locationId) ??
     mockLocations.find((item) => item.id === locationId);
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
-  const months = sortedMonths(here.map((item) => item.points));
-  const activeMonth =
-    month && months.includes(month)
-      ? month
-      : (bestDefaultMonth(here.map((item) => item.points)) ??
-        months.at(-1) ??
-        null);
+  const months = timeline.months;
+  const activeMonth = timeline.month;
   const intensities: Record<string, number> = {};
   const available: Record<string, boolean> = {};
   const readings: Record<string, string> = {};
@@ -232,7 +269,7 @@ export function App() {
         locationName={location?.nameEn ?? locationId}
         months={months}
         month={activeMonth}
-        onMonth={setMonth}
+        onMonth={timeline.setMonth}
         onToggle={(id) =>
           setControls((current) =>
             current.map((layer) =>
@@ -248,6 +285,17 @@ export function App() {
           )
         }
         onCloseUp={setCloseUpId}
+        chartId={timeline.selectedVariableId}
+        onChart={timeline.setSelectedVariableId}
+      />
+      <TimelineDock
+        series={here}
+        variables={layerRegistry}
+        visibleIds={controls
+          .filter((layer) => layer.visible)
+          .map((layer) => layer.id)}
+        locationName={location?.nameEn ?? locationId}
+        trends={trendsFile}
       />
       <TrendMapLegend
         state={trendMap}

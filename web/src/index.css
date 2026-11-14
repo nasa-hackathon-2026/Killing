@@ -462,3 +462,382 @@ body,
   flex: 1;
   min-width: 0;
 }
+
+/* Timeline bar and time series chart (web/src/timeline/). The bar sits above
+   the credit in the bottom-left corner; the chart is a left-hand panel on a
+   wide screen and a drawer above the bar on a narrow one. */
+.app {
+  --timeline-bottom: 72px;
+  --timeline-height: 108px;
+}
+
+.timeline-bar,
+.timeline-chart {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  color: #e8eef7;
+  background: rgba(8, 14, 28, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+  touch-action: auto;
+}
+
+.timeline-bar {
+  left: 50%;
+  bottom: var(--timeline-bottom);
+  width: min(640px, calc(100% - 24px));
+  min-height: var(--timeline-height);
+  padding: 8px 12px 6px;
+  transform: translateX(-50%);
+}
+
+.timeline-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.timeline-bar button,
+.timeline-chart button {
+  padding: 4px 10px;
+  color: inherit;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.timeline-bar button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.timeline-bar button[aria-pressed="true"],
+.timeline-chart button[aria-pressed="true"],
+.timeline-layer-actions button[aria-pressed="true"] {
+  color: #0b1220;
+  background: #cfe3ff;
+  border-color: #cfe3ff;
+}
+
+.timeline-bar .timeline-play {
+  width: 44px;
+  height: 36px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.timeline-now {
+  flex: 1;
+  margin: 0;
+  font-size: 22px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.timeline-speed {
+  display: flex;
+  gap: 4px;
+}
+
+.timeline-track {
+  margin-top: 6px;
+}
+
+/* The strip is inset by half the slider thumb so a bar sits over the thumb
+   position of its month. */
+.timeline-strip {
+  display: block;
+  width: calc(100% - 16px);
+  height: 22px;
+  margin: 0 8px;
+}
+
+.timeline-strip-high {
+  fill: #f4a582;
+  background: #f4a582;
+}
+
+.timeline-strip-low {
+  fill: #92c5de;
+  background: #92c5de;
+}
+
+.timeline-strip line {
+  vector-effect: non-scaling-stroke;
+}
+
+.timeline-strip-zero {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 1;
+}
+
+.timeline-strip-break {
+  stroke: #ffd166;
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+  background: #ffd166;
+}
+
+.timeline-strip-cursor {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+.timeline-track input[type="range"] {
+  display: block;
+  width: 100%;
+  margin: 2px 0 0;
+}
+
+.timeline-ends {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin: 2px 0 0;
+  color: #b7c6da;
+  font-size: 11px;
+}
+
+.timeline-ends span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.timeline-ends .timeline-strip-key {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-strip-key i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+}
+
+.timeline-strip-key i.timeline-strip-break {
+  width: 2px;
+}
+
+.timeline-layer-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.timeline-chart {
+  top: 64px;
+  left: 12px;
+  width: min(440px, calc(100% - 24px));
+  max-height: calc(
+    100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 16px
+  );
+  overflow: auto;
+  padding: 10px 12px;
+  background: rgba(8, 14, 28, 0.94);
+}
+
+/* Beside the trend map legend when both are open. */
+.app:has(.trendmap) .timeline-chart {
+  left: 314px;
+}
+
+.timeline-chart header {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.timeline-chart h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+}
+
+.timeline-chart h2 span {
+  color: #b7c6da;
+  font-weight: 400;
+}
+
+.timeline-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 6px;
+}
+
+.timeline-plot {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.timeline-grid {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.timeline-zero {
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.timeline-axis {
+  fill: #b7c6da;
+  font-size: 11px;
+}
+
+.timeline-series {
+  fill: none;
+  stroke: #9cc8ff;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.timeline-trend {
+  stroke: #ffd166;
+  stroke-width: 2;
+}
+
+.timeline-band {
+  fill: rgba(255, 209, 102, 0.22);
+}
+
+.timeline-break {
+  stroke: #ff9f6b;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.timeline-cursor {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+.timeline-hover {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 1;
+}
+
+.timeline-readout {
+  margin: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-chart-note {
+  margin: 6px 0 0;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.timeline-key {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.timeline-key-series {
+  background: #9cc8ff;
+}
+
+.timeline-key-trend {
+  background: #ffd166;
+}
+
+.timeline-key-band {
+  height: 9px;
+  background: rgba(255, 209, 102, 0.35);
+}
+
+.timeline-key-break {
+  background: #ff9f6b;
+}
+
+.timeline-key-cursor {
+  background: #ffffff;
+}
+
+.timeline-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.timeline-stats dt {
+  color: #b7c6da;
+}
+
+.timeline-stats dd {
+  margin: 0;
+}
+
+.timeline-chart .trend-caveat {
+  margin-top: 8px;
+}
+
+/* Medium widths: the layer panel on the right would overlap a centred bar,
+   so the bar and the chart take the space to its left; the chart becomes a
+   drawer above the bar. */
+@media (max-width: 1180px) {
+  .timeline-bar {
+    left: 12px;
+    width: calc(100% - 280px - 36px);
+    transform: none;
+  }
+
+  .timeline-chart,
+  .app:has(.trendmap) .timeline-chart {
+    top: auto;
+    left: 12px;
+    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
+    width: calc(100% - 280px - 36px);
+  }
+}
+
+/* Phone widths: full-width bar above the (taller, wrapped) credit; the layer
+   panel ends above it. */
+@media (max-width: 700px) {
+  .app {
+    --timeline-bottom: 92px;
+    --timeline-height: 112px;
+  }
+
+  .timeline-bar,
+  .timeline-chart,
+  .app:has(.trendmap) .timeline-chart {
+    width: calc(100% - 24px);
+  }
+
+  .timeline-chart {
+    z-index: 2;
+  }
+
+  .timeline-now {
+    font-size: 18px;
+  }
+
+  .timeline-strip-key {
+    display: none;
+  }
+
+  .app:has(.timeline-bar) .layers {
+    /* 26px: the panel's own padding and border (it is not border-box). */
+    max-height: calc(
+      100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 8px - 26px
+    );
+  }
+}

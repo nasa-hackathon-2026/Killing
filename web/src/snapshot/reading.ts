@@ -1,6 +1,8 @@
 export type SeriesPoint = {
   month: string;
   value: number | null;
+  // Share of the month the product covered (its meaning differs by source).
+  coverage?: number | null;
 };
 
 export function valueAt(points: SeriesPoint[], month: string): number | null {

@@ -174,20 +174,31 @@ export type ViewInsets = {
 };
 
 export const NARROW_WIDTH = 700;
+// Height kept free at the bottom for the timeline bar (index.css:
+// --timeline-bottom + --timeline-height, plus a gap).
+export const TIMELINE_RESERVE = 192;
+export const TIMELINE_RESERVE_NARROW = 216;
 
 export function viewInsets(width: number, height: number): ViewInsets {
   if (!(width > 0) || !(height > 0)) {
     return { top: 0, right: 0, bottom: 0, left: 0 };
   }
   if (width <= NARROW_WIDTH) {
+    // Legend at the top; labels on the left; the timeline bar and, above
+    // it, the short sheet of the layer panel at the bottom.
     return {
-      top: Math.min(110, height * 0.14),
+      top: Math.min(150, height * 0.18),
       right: 0,
-      bottom: height * 0.36,
+      bottom: Math.min(TIMELINE_RESERVE_NARROW + height * 0.17, height * 0.5),
       left: width * 0.34,
     };
   }
-  return { top: Math.min(150, height * 0.18), right: 0, bottom: 0, left: 0 };
+  return {
+    top: Math.min(150, height * 0.18),
+    right: 0,
+    bottom: Math.min(TIMELINE_RESERVE, height * 0.3),
+    left: 0,
+  };
 }
 
 // How far the picture's center moves from the middle of the viewport, and

@@ -15,6 +15,7 @@ import {
   MIN_ZOOM,
   NARROW_WIDTH,
   posePosition,
+  TIMELINE_RESERVE,
   viewInsets,
   zoomTargetY,
   type OrbitPose,
@@ -109,10 +110,11 @@ describe("fitDistance and insets", () => {
     expect(Number.isFinite(fitDistance(0))).toBe(true);
   });
 
-  it("reserves the top on a wide screen, and the left and bottom on a narrow one", () => {
+  it("reserves the top and the timeline bar on a wide screen, and also the left on a narrow one", () => {
     const wide = viewInsets(1400, 900);
     expect(wide.top).toBeGreaterThan(0);
-    expect(wide.left + wide.right + wide.bottom).toBe(0);
+    expect(wide.bottom).toBe(TIMELINE_RESERVE);
+    expect(wide.left + wide.right).toBe(0);
     const narrow = viewInsets(NARROW_WIDTH - 1, 844);
     expect(narrow.left).toBeGreaterThan(0);
     expect(narrow.bottom).toBeGreaterThan(narrow.top);
