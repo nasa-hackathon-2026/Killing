@@ -105,19 +105,19 @@ uv run python -m trend_detective.sqlite_export
 | `tier` | 內容 | 來源目錄 |
 |---|---|---|
 | `core` | 14 個核心變數 × 台灣的點位、區域與測站，學生版頁面用的資料 | `data/snapshot/`（進 git） |
-| `extended` | Giovanni 全球月資料產品的其餘變數（GLDAS、AIRS、MERRA-2、FLDAS、IMERG 的月資料，加 OMI 日資料），以及所有 Giovanni 變數在全球平均、世界區域、世界城市的序列 | `data/extended/`（不進 git，量大；用 `uv run python -m trend_detective.extended` 重新抓取） |
+| `extended` | Giovanni 全球月資料產品的其餘 121 個變數（GLDAS、AIRS、MERRA-2、FLDAS、IMERG 的月資料，加 OMI 日資料）在台灣 5 個點位與 12 個世界城市的單點序列，以及 10 個核心 Giovanni 變數在 12 個世界城市的單點序列 | `data/extended/`（不進 git，量大；用 `uv run python -m trend_detective.extended` 重新抓取） |
 
-擴充變數的 `name_zh` 目前是來源的英文名、`category` 是「待分類」（`variables.needs_translation = 1`），中文說明還沒寫。全球與世界區域是經緯度方框的平均，含海面；陸面模式的變數只有陸地格點有值。例如看全球平均的地表氣溫與台灣的對照：
+擴充變數的 `name_zh` 目前是來源的英文名、`category` 是「待分類」（`variables.needs_translation = 1`），中文說明還沒寫。全球平均與世界區域（各洲、北極、熱帶）的地點已列在 `data/seed/locations.world.json`，但還沒有資料：用 Harmony 算這麼大範圍的平均會把共用的月 quota 用完，之後改由全球格點在本機計算。例如比較 2025 年各城市的 2 m 氣溫：
 
 ```sql
-SELECT month, location_id, ROUND(value, 2) AS kelvin
-FROM observations
-WHERE variable_id = 'merra2_t2m' AND location_id IN ('global', 'taiwan')
-  AND aggregation = 'area_mean' AND month >= '2025-01-01'
-ORDER BY month, location_id;
+SELECT o.location_id, l.name_zh, ROUND(AVG(o.value) - 273.15, 1) AS mean_c
+FROM observations o JOIN locations l ON l.id = o.location_id
+WHERE o.variable_id = 'merra2_t2m' AND o.aggregation = 'point'
+  AND o.month BETWEEN '2025-01-01' AND '2025-12-01'
+GROUP BY o.location_id ORDER BY mean_c DESC;
 ```
 
-只 clone repo 的機器沒有 `data/extended/`，建出來的檔就只有 `tier = 'core'`。
+含擴充資料的檔案約 800 MB（其中 OMI 日資料的原始值在 `src_giovanni` 佔大部分）；只 clone repo 的機器沒有 `data/extended/`，建出來的檔就只有 `tier = 'core'`（約 30 MB）。
 
 ### 追回來源
 

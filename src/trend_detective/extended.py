@@ -1,8 +1,8 @@
 """擴充資料的抓取（#46）：Giovanni 全球月資料的全部變數 × 全球平均與世界各地。
 
 用法（在 repo 根目錄，`.env` 要有 `EARTHDATA_TOKEN`）：
-    uv run python -m trend_detective.extended                # 依序跑階段 a–f
-    uv run python -m trend_detective.extended --stage a b    # 只跑指定階段
+    uv run python -m trend_detective.extended                # 階段 a–f 的單點序列
+    uv run python -m trend_detective.extended --stage b e    # 只跑指定階段
     uv run python -m trend_detective.extended --status       # 各階段目前抓到多少，並重寫目錄檔（不連網）
 
 階段（先做完的先有資料）：
@@ -16,6 +16,11 @@
 輸出在 `data/extended/`（不進 git）：`series/*.json` 與 `catalog.json`，格式與
 `data/snapshot/` 相同。原始回應照舊存在 `data/raw/giovanni/`、`data/raw/harmony/`。
 單點（Giovanni）用執行緒池平行抓；區域平均（Harmony）同時掛多個非同步 job。
+
+**預設只抓單點。** 區域平均要明確加 `--kind area` 或 `both`，而且大範圍的區域不要送：
+2026-11-14 實測，全球與洲尺度的 Harmony job 會大量消耗 Giovanni 的月 quota（25 分鐘內從
+0.00007 升到 0.249，見 #46 留言），單點則幾乎不耗（每條 3e-9 至 9e-8）。全球平均與世界
+區域的平均改由全球格點在本機計算（#50）。
 各階段的區域平均排成同一個佇列、依階段順序送出，前面階段跑得慢的 job 不會擋住後面的。
 同一天已成功的序列不重抓，中斷後重跑會接著等原本的 job；單一序列失敗不中斷整批。
 """
@@ -582,8 +587,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--kind",
         choices=("point", "area", "both"),
-        default="both",
-        help="只跑單點或只跑區域平均（兩個行程可以同時各跑一種）",
+        default="point",
+        help="預設只抓單點。area、both 會送 Harmony job：大範圍區域很耗 quota，送之前先讀本檔開頭",
     )
     parser.add_argument("--point-workers", type=int, default=8)
     parser.add_argument("--harmony-jobs", type=int, default=12)
