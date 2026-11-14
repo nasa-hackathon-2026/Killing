@@ -300,7 +300,8 @@
         270,
         330
       ],
-      "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。 點位序列（aggregation = point）不經 AppEEARS，而是經 Microsoft Planetary Computer 取同一個產品（MOD11A2.061）：以點所在的 1 km 像元為中心、3 × 3 個像元（約 2.8 km 見方）有值像元的平均，值已套用檔案 metadata 的 scale factor 0.02，未經 QA 過濾；coverage 是有值像元數 ÷ 這個點位出現過的最大有值像元數（最多 9）。 視窗內有值像元少於 3 個的合成期不採用（當成沒有值）：只剩一兩個像元多半是雲邊緣的殘留，例如玉山 2001-06-02 只有 1 個像元、266.64 K，夏季白天不合理。",
+      "doi": "10.5067/MODIS/MOD11A2.061",
+      "note_zh": "區域平均：AppEEARS 對區域 bbox 算的統計平均（值已套用 scale factor 0.02，未經 QA 過濾；coverage 是有值像元數 ÷ 這個區域出現過的最大有值像元數）。8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來；只收起始日在各 task 請求日期內的合成期，所以 AppEEARS 多給的 2000-12-26 那一期不採用、兩段都有的 2013-12-27 只算一次。 點位序列（aggregation = point）不經 AppEEARS，而是經 Microsoft Planetary Computer 取同一個產品（MOD11A2.061）：以點所在的 1 km 像元為中心、3 × 3 個像元（約 2.8 km 見方）有值像元的平均，值已套用檔案 metadata 的 scale factor 0.02，未經 QA 過濾；coverage 是有值像元數 ÷ 這個點位出現過的最大有值像元數（最多 9）。 視窗內有值像元少於 3 個的合成期不採用（當成沒有值）：只剩一兩個像元多半是雲邊緣的殘留，例如玉山 2001-06-02 只有 1 個像元、266.64 K，夏季白天不合理。",
       "point_source": {
         "source": "planetary_computer",
         "source_variable_id": "LST_Day_1km",
@@ -313,7 +314,7 @@
         "min_valid_pixels": 3
       },
       "valid_from": "2001-01-01",
-      "valid_to": "2026-10-01"
+      "valid_to": "2026-11-01"
     },
     {
       "id": "modis_lst_pc",
@@ -1277,6 +1278,24 @@
     },
     {
       "variable_id": "modis_lst",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst__central__area_mean.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "modis_lst",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst__east__area_mean.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "modis_lst",
       "location_id": "hualien",
       "aggregation": "point",
       "file": "series/modis_lst__hualien__point.json",
@@ -1295,6 +1314,24 @@
     },
     {
       "variable_id": "modis_lst",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst__north__area_mean.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "modis_lst",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst__south__area_mean.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "modis_lst",
       "location_id": "taichung",
       "aggregation": "point",
       "file": "series/modis_lst__taichung__point.json",
@@ -1310,6 +1347,15 @@
       "n_points": 305,
       "first_month": "2001-01-01",
       "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_lst",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst__taiwan__area_mean.json",
+      "n_points": 311,
+      "first_month": "2001-01-01",
+      "last_month": "2026-11-01"
     },
     {
       "variable_id": "modis_lst",
@@ -1832,7 +1878,7 @@
       "station_temp": "2026-10-01",
       "power_t2m": "2026-09-01",
       "modis_ndvi": "2026-10-01",
-      "modis_lst": "2026-10-01",
+      "modis_lst": "2026-11-01",
       "modis_lst_pc": "2026-10-01",
       "modis_ndvi_pc": "2026-09-01"
     }

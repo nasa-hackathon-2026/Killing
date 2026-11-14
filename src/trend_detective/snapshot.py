@@ -246,13 +246,19 @@ def build_snapshot(
         for series in all_series
         if Path(series.file).name not in refreshed
     ]
+    generated_at = now
+    catalog_path = snapshot_dir / "catalog.json"
+    if not stamp and catalog_path.exists():
+        # 只重抓部分來源：目錄檔的內容就算變了，快照日仍是上次整份重產的時間
+        previous = json.loads(catalog_path.read_text(encoding="utf-8"))
+        generated_at = previous.get("snapshot", {}).get("generated_at", now)
     result.written.append(
         write_catalog(
             snapshot_dir,
             catalog_variables,
             locations,
             all_series,
-            generated_at=now,
+            generated_at=generated_at,
             stamp=stamp,
         )
     )
@@ -684,9 +690,11 @@ def appeears_rows(
             raise ValueError(
                 f"{name} 的統計 CSV 還沒下載（task 可能還在跑）；跑 appeears download"
             )
-        regions = appeears_stats.region_ids_by_aid(
-            requests[0].read_text(encoding="utf-8")
-        )
+        request_text = requests[0].read_text(encoding="utf-8")
+        regions = appeears_stats.region_ids_by_aid(request_text)
+        # AppEEARS 會多給與請求日期重疊、但起始日在範圍外的合成期（LST 第一段的 2000-12-26、
+        # 第二段的 2013-12-27）。只收起始日在請求範圍內的，分段邊界那一期才不會算兩次。
+        first_day, last_day = appeears_stats.requested_date_range(request_text)
         good: dict[tuple[str, date], int] = {}
         qa = variable.get("appeears_qa")
         if qa:
@@ -703,6 +711,7 @@ def appeears_rows(
                 if (
                     row.dataset != variable["source_variable_id"]
                     or row.aid not in regions
+                    or not first_day <= row.day <= last_day
                 ):
                     continue
                 if (row.aid, row.day) in good:

@@ -1113,6 +1113,112 @@ def test_parts_whose_date_ranges_overlap_are_rejected(tmp_path: Path):
     assert "重複的日期" in result.failures[("modis_ndvi", "taiwan")]
 
 
+APPEEARS_LST_FIXTURE = Path(__file__).parent / "fixtures" / "appeears_lst"
+LST = {
+    "id": "modis_lst",
+    "source": "appeears",
+    "source_variable_id": "LST_Day_1km",
+    "product": "MOD11A2.061",
+    "product_version": "061",
+    "native_temporal_res": "8day",
+    "is_nasa": True,
+    "unit": "K",
+    "valid_range": [270, 330],
+}
+
+
+def _appeears_lst_tasks(root: Path) -> None:
+    """真實 bundle 的節錄：兩段各自的統計 CSV（taiwan、east 的頭尾幾期）與請求 JSON。"""
+    for part in ("p1of2", "p2of2"):
+        task_dir = root / "modis_lst" / f"task-{part}"
+        task_dir.mkdir(parents=True)
+        (task_dir / "submission.json").write_text(
+            json.dumps(
+                {
+                    "task_id": f"task-{part}",
+                    "request": {
+                        "task_name": f"trend-detective-modis_lst-20261114-{part}"
+                    },
+                }
+            )
+        )
+        for path in (APPEEARS_LST_FIXTURE / part).iterdir():
+            (task_dir / path.name).write_text(path.read_text(encoding="utf-8"))
+
+
+def test_real_lst_parts_join_into_monthly_kelvin_series(tmp_path: Path):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_lst_tasks(raw)
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [LST], [TAIWAN, EAST], appeears_dir=raw, **RUN
+    )
+
+    assert result.failures == {}
+    series = json.loads(
+        (tmp_path / "snap" / "series" / "modis_lst__taiwan__area_mean.json").read_text()
+    )
+    assert series["unit"] == "K"
+    assert all(270 <= p["value"] <= 330 for p in series["points"])
+    by_month = {p["month"]: p for p in series["points"]}
+    # 2001-01-25 起的合成期跨到 2 月，依起始日算 1 月：1 月 4 期、2 月 1 期
+    assert by_month["2001-01-01"]["n_samples"] == 4
+    assert by_month["2001-02-01"]["n_samples"] == 1
+    assert by_month["2001-02-01"]["value"] == 293.9990973
+
+
+def test_composites_starting_outside_a_tasks_requested_dates_are_dropped(
+    tmp_path: Path,
+):
+    """AppEEARS 會多給一期與請求日期重疊的合成期：第一段多出 2000-12-26，
+    第二段多出第一段已有的 2013-12-27。"""
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_lst_tasks(raw)
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [LST], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    assert result.failures == {}
+    series = json.loads(
+        (tmp_path / "snap" / "series" / "modis_lst__taiwan__area_mean.json").read_text()
+    )
+    by_month = {p["month"]: p for p in series["points"]}
+    assert list(by_month) == [
+        "2001-01-01",
+        "2001-02-01",
+        "2013-12-01",
+        "2014-01-01",
+        "2026-11-01",
+    ]
+    # 2013-12-19 與 2013-12-27 各算一次
+    assert by_month["2013-12-01"]["n_samples"] == 2
+    assert by_month["2013-12-01"]["value"] == (290.5455377 + 290.2741121) / 2
+
+
+def test_a_partial_run_that_adds_series_keeps_the_snapshot_date(tmp_path: Path):
+    """只重抓部分來源時，就算目錄檔多了序列，快照日也不動（它代表上次整份重產的時間）。"""
+    build_snapshot(
+        _client(), tmp_path / "snap", [PRECIP], [TAICHUNG], stamp=True, **RUN
+    )
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114")
+
+    build_snapshot(
+        None,
+        tmp_path / "snap",
+        [PRECIP, NDVI],
+        [TAICHUNG, TAIWAN],
+        today=date(2026, 11, 15),
+        now="2026-11-15T09:00:00Z",
+        appeears_dir=raw,
+    )
+
+    catalog = json.loads((tmp_path / "snap" / "catalog.json").read_text())
+    assert len(catalog["series"]) == 2
+    assert catalog["snapshot"]["generated_at"] == RUN["now"]
+
+
 LST_PC = {
     "id": "modis_lst_pc",
     "source": "planetary_computer",

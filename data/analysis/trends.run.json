@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.trends",
-  "generated_at": "2026-11-14T14:11:22Z",
+  "generated_at": "2026-11-14T19:07:16Z",
   "input": {
     "snapshot": "data/snapshot",
     "snapshot_generated_at": "2026-11-14T13:02:25Z"
@@ -22,34 +22,34 @@
     "anomalies.json"
   ],
   "summary": {
-    "n_series": 128,
-    "n_analyzed": 125,
+    "n_series": 133,
+    "n_analyzed": 130,
     "n_insufficient": 3,
     "insufficient_by_reason": {
       "too_many_missing": 3
     },
     "significant_by_test": {
       "ols": {
-        "n_tested": 125,
-        "significant": 81,
+        "n_tested": 130,
+        "significant": 83,
         "significant_fdr": 74
       },
       "mk_original": {
-        "n_tested": 125,
-        "significant": 87,
+        "n_tested": 130,
+        "significant": 88,
         "significant_fdr": 86
       },
       "mk_hamed_rao": {
-        "n_tested": 124,
+        "n_tested": 129,
         "significant": 69,
         "significant_fdr": 65
       },
       "mk_seasonal": {
-        "n_tested": 125,
-        "significant": 88,
+        "n_tested": 130,
+        "significant": 89,
         "significant_fdr": 86
       }
     },
-    "n_ols_uncorrected_significant": 97
+    "n_ols_uncorrected_significant": 101
   }
 }

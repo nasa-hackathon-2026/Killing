@@ -11,6 +11,7 @@ from trend_detective.appeears_stats import (
     parse_qa_counts,
     parse_statistics_csv,
     region_ids_by_aid,
+    requested_date_range,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "appeears_ndvi"
@@ -112,3 +113,10 @@ def test_coverage_uses_the_qa_filtered_pixel_count_when_there_is_one():
     ]
 
     assert [p["coverage"] for p in composites_to_monthly_points(rows)] == [0.6, 1.0]
+
+
+def test_requested_date_range_reads_the_month_day_year_dates_of_the_request():
+    assert requested_date_range(REQUEST.read_text(encoding="utf-8")) == (
+        date(2001, 1, 1),
+        date(2026, 11, 14),
+    )

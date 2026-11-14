@@ -87,6 +87,19 @@ def region_ids_by_aid(request_json: str) -> dict[str, str]:
     }
 
 
+def requested_date_range(request_json: str) -> tuple[date, date]:
+    """由 bundle 裡的請求 JSON 得到這個 task 請求的起訖日（AppEEARS 的格式是 MM-DD-YYYY）。"""
+    dates = json.loads(request_json)["params"]["dates"]
+    if len(dates) != 1:
+        raise ValueError(f"請求 JSON 應只有一段日期，實際有 {len(dates)} 段")
+
+    def parse(text: str) -> date:
+        month, day, year = text.split("-")
+        return date(int(year), int(month), int(day))
+
+    return parse(dates[0]["startDate"]), parse(dates[0]["endDate"])
+
+
 def composites_to_monthly_points(rows: list[StatRow]) -> list[dict[str, Any]]:
     """同一區域、同一 layer 的合成期 → 月序列的點。
 
