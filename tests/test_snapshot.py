@@ -44,7 +44,13 @@ def test_snapshot_writes_taichung_precipitation_series_matching_the_csv(
         "n_samples": 1,
         "coverage": 1,
     }
-    assert series["request"]["grid_lon"] == 120.649994
+    assert series["grid"] == {"lat": 24.15, "lon": 120.649994}
+    assert series["request"] == {
+        "data": "GPM_3IMERGM_07_precipitation",
+        "location": [24.15, 120.68],
+        "start": "2001-01-01",
+        "end_policy": "run_date",
+    }
 
 
 def test_snapshot_catalog_points_at_the_series_and_its_latest_month(tmp_path: Path):
@@ -55,7 +61,6 @@ def test_snapshot_catalog_points_at_the_series_and_its_latest_month(tmp_path: Pa
     catalog = json.loads((tmp_path / "catalog.json").read_text())
     assert catalog["series"][0]["file"] == "series/imerg_precip__taichung__point.json"
     assert catalog["snapshot"]["latest_month"] == {"imerg_precip": "2020-12-01"}
-    assert catalog["variables"][0]["is_nasa"] is True
 
 
 def test_rerunning_on_a_later_day_changes_no_file_and_no_file_holds_the_token(

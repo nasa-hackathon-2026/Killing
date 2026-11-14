@@ -115,3 +115,34 @@ def test_http_error_message_never_contains_the_token():
 
     assert "401" in str(err.value)
     assert SECRET not in str(err.value)
+
+
+def _table(*lines: str, undef: str = "-9999.9") -> str:
+    head = f"unit,K\nundef,{undef}\nlat,1.0\nlon,2.0\n\nTimestamp (UTC),Data\n"
+    return head + "\n".join(lines) + "\n"
+
+
+def test_parse_treats_nan_and_empty_values_as_missing():
+    text = _table("2020-01-01 00:00,NaN", "2020-02-01 00:00,", "2020-03-01 00:00,1.5")
+
+    assert [value for _, value in parse_timeseries_csv(text).rows] == [None, None, 1.5]
+
+
+def test_parse_matches_the_fill_value_despite_float32_rounding():
+    text = _table("2020-01-01 00:00,-9999.900391")
+
+    assert parse_timeseries_csv(text).rows == [(date(2020, 1, 1), None)]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "unit,K\n\nTimestamp (UTC),Data\n2020-01-01 00:00,1.0\n",  # 缺 lat、lon
+        _table("2020-01-01 00:00,abc"),  # 值不是數字
+        _table("2020-01-01 00:00"),  # 只有一欄
+        _table("2020-01-01,1.0"),  # 時間格式不對
+    ],
+)
+def test_parse_reports_malformed_content_as_giovanni_error(text: str):
+    with pytest.raises(GiovanniError):
+        parse_timeseries_csv(text)

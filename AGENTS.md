@@ -46,7 +46,8 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
 - 重新產生：`uv run python -m trend_detective.snapshot`（在 repo 根目錄；本機 `.env` 要有 `EARTHDATA_TOKEN`）。
 - 抓取前會先查 Giovanni `/quota`，用量達 0.95 就停。
-- 重跑是冪等的：資料沒變時檔案不動（保留原本的 `retrieved_at`、`generated_at`），`git diff` 為空。
+- 重跑是冪等的：資料沒變時檔案不動，`git diff` 為空。所以 `retrieved_at`、`generated_at` 的意思是「內容上次變動的時間」，不是「上次執行的時間」。
+- 序列檔的 `request.end_policy = "run_date"` 表示查詢結束日是執行當天；實際涵蓋範圍看 `points` 的起訖月。`grid` 是資料實際所在的網格中心，可能與請求座標不同。
 - 本機看最小驗證頁：`python3 -m http.server 8791` 後開 `http://localhost:8791/web/`。
 - 新增變數或地點：改 `src/trend_detective/snapshot.py` 的 `VARIABLES`、`LOCATIONS`。
 - 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 README「原始資料」。

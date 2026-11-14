@@ -6,6 +6,7 @@
 """
 
 import csv
+import math
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
@@ -36,33 +37,58 @@ class GiovanniSeries:
     rows: list[tuple[date, float | None]]
 
 
+def _value(raw: str, undef: float | None) -> float | None:
+    """空字串、NaN 與 fill value 都是缺值。fill value 以相對誤差比對，容忍 float32 展開。"""
+    if raw.strip() == "":
+        return None
+    value = float(raw)
+    if math.isnan(value):
+        return None
+    if undef is not None and math.isclose(value, undef, rel_tol=1e-6):
+        return None
+    return value
+
+
 def parse_timeseries_csv(text: str) -> GiovanniSeries:
-    """解析 `/timeseries` 的 CSV。以 `Timestamp` 開頭的表頭分界，不寫死行數。"""
+    """解析 `/timeseries` 的 CSV。以 `Timestamp` 開頭的表頭分界，不寫死行數。
+
+    內容不合預期（沒有資料表、缺座標、值或時間無法解讀）一律丟 `GiovanniError`。
+    """
     meta: dict[str, str] = {}
-    rows: list[tuple[date, float | None]] = []
+    table: list[list[str]] = []
     in_table = False
     for record in csv.reader(text.splitlines()):
         if not record:
             continue
-        if not in_table:
-            if record[0].startswith("Timestamp"):
-                in_table = True
-            elif len(record) >= 2:
-                meta[record[0]] = ",".join(record[1:])
-            continue
-        rows.append(
-            (datetime.strptime(record[0], "%Y-%m-%d %H:%M").date(), float(record[1]))
-        )
+        if in_table:
+            table.append(record)
+        elif record[0].startswith("Timestamp"):
+            in_table = True
+        elif len(record) >= 2:
+            meta[record[0]] = ",".join(record[1:])
     if not in_table:
         raise GiovanniError(f"回應裡找不到資料表：{text[:200]!r}")
-    undef = float(meta["undef"]) if "undef" in meta else None
+    try:
+        undef = float(meta["undef"]) if "undef" in meta else None
+        if undef is not None and math.isnan(undef):
+            undef = None
+        grid_lat, grid_lon = float(meta["lat"]), float(meta["lon"])
+    except (KeyError, ValueError) as err:
+        raise GiovanniError(f"metadata 缺少或無法解讀 {err}") from err
+    rows: list[tuple[date, float | None]] = []
+    for record in table:
+        try:
+            day = datetime.strptime(record[0], "%Y-%m-%d %H:%M").date()
+            rows.append((day, _value(record[1], undef)))
+        except (ValueError, IndexError) as err:
+            raise GiovanniError(f"無法解讀資料列 {record!r}：{err}") from err
     return GiovanniSeries(
         unit=meta.get("unit", ""),
-        grid_lat=float(meta["lat"]),
-        grid_lon=float(meta["lon"]),
+        grid_lat=grid_lat,
+        grid_lon=grid_lon,
         product=meta.get("prod_name", ""),
         doi=meta.get("doi", ""),
-        rows=[(day, None if value == undef else value) for day, value in rows],
+        rows=rows,
     )
 
 
@@ -86,7 +112,7 @@ class GiovanniClient:
     def fetch_timeseries(
         self, variable: str, *, lat: float, lon: float, start: date, end: date
     ) -> tuple[str, dict[str, Any]]:
-        """回傳 (CSV 文字, 查詢參數)。查詢參數可直接記進序列檔的 `request`。"""
+        """回傳 (CSV 文字, 實際送出的查詢參數)。參數不含憑證。"""
         used = self.quota()
         if used >= QUOTA_LIMIT:
             raise QuotaExceeded(

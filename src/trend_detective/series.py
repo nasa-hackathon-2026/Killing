@@ -25,6 +25,8 @@ class Series:
     request: dict[str, Any]
     retrieved_at: str
     product_version: str
+    # 資料實際所在的網格中心（點位序列）；區域平均沒有就留 None
+    grid: dict[str, float] | None
     points: list[Point]
 
     @property
@@ -33,16 +35,21 @@ class Series:
 
 
 def monthly_points(rows: list[Row]) -> list[Point]:
-    """原本就是月資料：每月一點，有值時 n_samples = 1、coverage = 1。"""
-    return [
-        {
-            "month": day.replace(day=1).isoformat(),
-            "value": value,
-            "n_samples": 0 if value is None else 1,
-            "coverage": 0 if value is None else 1,
-        }
-        for day, value in sorted(rows, key=lambda row: row[0])
-    ]
+    """原本就是月資料：每月一點，有值時 n_samples = 1、coverage = 1；缺值時兩者為 0。"""
+    points: list[Point] = []
+    for day, value in sorted(rows, key=lambda row: row[0]):
+        month = day.replace(day=1).isoformat()
+        if points and points[-1]["month"] == month:
+            raise ValueError(f"月資料在 {month[:7]} 出現不只一列")
+        points.append(
+            {
+                "month": month,
+                "value": value,
+                "n_samples": 0 if value is None else 1,
+                "coverage": 0 if value is None else 1,
+            }
+        )
+    return points
 
 
 def daily_to_monthly_points(rows: list[Row]) -> list[Point]:
@@ -85,7 +92,8 @@ def _write_unless_same(path: Path, content: dict[str, Any], *, ignore: str) -> N
             return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps(content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(content, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
     )
 
 
@@ -106,7 +114,8 @@ def write_catalog(
 ) -> Path:
     """寫目錄檔：變數、地點、每條序列的檔名與起訖月，以及各變數的最新月份。"""
     entries = []
-    latest: dict[str, str] = {}
+    # 沒有任何有值月份的變數記為 None，讓讀的人能分辨「沒資料」與「沒這個變數」
+    latest: dict[str, str | None] = {}
     ordered = sorted(
         series, key=lambda s: (s.variable_id, s.location_id, s.aggregation)
     )
@@ -124,10 +133,9 @@ def write_catalog(
             }
         )
         with_value = [p["month"] for p in item.points if p["value"] is not None]
+        previous = latest.setdefault(item.variable_id, None)
         if with_value:
-            latest[item.variable_id] = max(
-                latest.get(item.variable_id, ""), max(with_value)
-            )
+            latest[item.variable_id] = max(previous or "", max(with_value))
     catalog = {
         "variables": variables,
         "locations": locations,

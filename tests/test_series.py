@@ -4,6 +4,8 @@ import json
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from trend_detective.series import (
     Series,
     daily_to_monthly_points,
@@ -47,6 +49,7 @@ def _series(retrieved_at: str, value: float = 0.075) -> Series:
         request={"data": "GPM_3IMERGM_07_precipitation", "location": [24.15, 120.68]},
         retrieved_at=retrieved_at,
         product_version="07",
+        grid={"lat": 24.15, "lon": 120.649994},
         points=monthly_points([(date(2020, 1, 1), value)]),
     )
 
@@ -139,3 +142,26 @@ def test_regenerating_an_identical_catalog_keeps_the_original_generated_at(
     write_catalog(tmp_path, *args, generated_at="2026-11-15T09:00:00Z")
 
     assert path.read_bytes() == before
+
+
+def test_two_rows_in_the_same_month_are_rejected_for_monthly_data():
+    with pytest.raises(ValueError, match="2020-01"):
+        monthly_points([(date(2020, 1, 1), 1.0), (date(2020, 1, 15), 2.0)])
+
+
+def test_catalog_marks_a_variable_without_any_value_as_having_no_latest_month(
+    tmp_path: Path,
+):
+    series = Series(
+        **{
+            **_series("2026-11-14T08:00:00Z").__dict__,
+            "points": monthly_points([(date(2020, 1, 1), None)]),
+        }
+    )
+
+    path = write_catalog(
+        tmp_path, [], [], [series], generated_at="2026-11-14T08:00:00Z"
+    )
+
+    catalog = json.loads(path.read_text(encoding="utf-8"))
+    assert catalog["snapshot"]["latest_month"] == {"imerg_precip": None}

@@ -39,23 +39,28 @@ async function main() {
   const series = await (await fetch(DATA + entry.file)).json();
 
   el("title").textContent = `${location.name_zh} ${variable.name_zh}（${series.unit}）`;
-  const latest = catalog.snapshot.latest_month[variable.id].slice(0, 7);
+  const latestMonth = catalog.snapshot.latest_month[variable.id];
   const snapshotDay = catalog.snapshot.generated_at.slice(0, 10);
-  el("asof").textContent = `資料截至 ${latest}，快照日 ${snapshotDay}`;
+  el("asof").textContent = latestMonth
+    ? `資料截至 ${latestMonth.slice(0, 7)}，快照日 ${snapshotDay}`
+    : `這個變數目前沒有資料，快照日 ${snapshotDay}`;
   el("source").textContent =
     `${variable.definition_zh} 來源：NASA ${variable.source_variable_id}` +
     `（doi:${variable.doi}），經 Giovanni 取得。`;
 
   const pts = series.points;
   const values = pts.map((p) => p.value).filter((v) => v !== null);
-  const max = Math.max(...values);
+  if (values.length === 0) return;
+  // y 軸用資料的 min 到 max（降水從 0 起算）；只有一個值或全部相同時留一點高度
+  const min = Math.min(0, ...values);
+  const max = Math.max(...values) > min ? Math.max(...values) : min + 1;
   const [L, R, T, B] = [48, 944, 16, 320];
-  const x = (i) => L + ((R - L) * i) / (pts.length - 1);
-  const y = (v) => B - ((B - T) * v) / max;
+  const x = (i) => (pts.length > 1 ? L + ((R - L) * i) / (pts.length - 1) : (L + R) / 2);
+  const y = (v) => B - ((B - T) * (v - min)) / (max - min);
   const chart = el("chart");
 
   for (const frac of [0, 0.5, 1]) {
-    const v = max * frac;
+    const v = min + (max - min) * frac;
     chart.append(svg("line", { x1: L, x2: R, y1: y(v), y2: y(v), stroke: "var(--grid)" }));
     const label = svg("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 12, fill: "var(--muted)" });
     label.textContent = v.toFixed(2);
@@ -76,6 +81,11 @@ async function main() {
     pen = true;
   });
   chart.append(svg("path", { d, fill: "none", stroke: "var(--line)", "stroke-width": 1.5 }));
+  // 前後都缺值的孤立點沒有線段，補一個圓點才看得見
+  pts.forEach((p, i) => {
+    const alone = p.value !== null && (pts[i - 1]?.value ?? null) === null && (pts[i + 1]?.value ?? null) === null;
+    if (alone) chart.append(svg("circle", { cx: x(i), cy: y(p.value), r: 2, fill: "var(--line)" }));
+  });
 }
 
 main().catch((err) => {

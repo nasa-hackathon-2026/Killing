@@ -74,18 +74,17 @@ def build_snapshot(
                 aggregation="point",
                 unit=parsed.unit,
                 source_api="giovanni",
-                # 結束日每天不同，不記進 request，否則重跑會產生無意義的 diff；
-                # 實際涵蓋範圍看 points 的起訖月。
+                # 實際送出的結束日是執行當天，每天不同；記成 end_policy 而不是日期，
+                # 重跑才不會產生無意義的 diff。實際涵蓋範圍看 points 的起訖月。
                 request={
                     "data": request["data"],
                     "location": request["location"],
                     "start": f"{START_DATE:%Y-%m-%d}",
-                    "end": "latest",
-                    "grid_lat": parsed.grid_lat,
-                    "grid_lon": parsed.grid_lon,
+                    "end_policy": "run_date",
                 },
                 retrieved_at=now,
                 product_version=variable["product_version"],
+                grid={"lat": parsed.grid_lat, "lon": parsed.grid_lon},
                 points=monthly_points(parsed.rows),
             )
             written.append(write_series(snapshot_dir, series))
@@ -108,7 +107,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     for path in build_snapshot(
-        GiovanniClient(token), args.snapshot_dir, today=date.today(), now=now
+        GiovanniClient(token),
+        args.snapshot_dir,
+        today=datetime.now(UTC).date(),
+        now=now,
     ):
         print(path)
     return 0

@@ -11,12 +11,14 @@
       120.68
     ],
     "start": "2001-01-01",
-    "end": "latest",
-    "grid_lat": 24.15,
-    "grid_lon": 120.649994
+    "end_policy": "run_date"
   },
-  "retrieved_at": "2026-11-14T07:46:11Z",
+  "retrieved_at": "2026-11-14T07:51:08Z",
   "product_version": "07",
+  "grid": {
+    "lat": 24.15,
+    "lon": 120.649994
+  },
   "points": [
     {
       "month": "2001-01-01",
