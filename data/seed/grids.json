@@ -1,0 +1,40 @@
+[
+  {
+    "id": "merra2_t2m",
+    "name_zh": "2 m 氣溫（MERRA-2）",
+    "name_en": "2 m air temperature (MERRA-2)",
+    "product": "M2IMNXASM.5.12.4",
+    "product_version": "5.12.4",
+    "collection": "C1276812823-GES_DISC",
+    "variable": "T2M",
+    "doi": "10.5067/5ESKGQTZG7FO",
+    "citation": "Global Modeling and Assimilation Office (GMAO) (2015), MERRA-2 instM_2d_asm_Nx: 2d,Monthly mean,Single-Level,Assimilation,Single-Level Diagnostics V5.12.4, Greenbelt, MD, USA, Goddard Earth Sciences Data and Information Services Center (GES DISC), doi:10.5067/5ESKGQTZG7FO",
+    "start": "2001-01",
+    "frontend": {
+      "lat_step": 1.0,
+      "lon_factor": 2,
+      "scale": 0.01,
+      "offset": 273.15,
+      "slope_scale": 0.001
+    }
+  },
+  {
+    "id": "gldas_soilmoist",
+    "name_zh": "表層土壤水（GLDAS Noah）",
+    "name_en": "Soil moisture 0-10 cm (GLDAS Noah)",
+    "product": "GLDAS_NOAH025_M.2.1",
+    "product_version": "2.1",
+    "collection": "C1342986036-GES_DISC",
+    "variable": "SoilMoi0_10cm_inst",
+    "doi": "10.5067/SXAVCZFAQLNO",
+    "citation": "Beaudoing, H. and M. Rodell, NASA/GSFC/HSL (2020), GLDAS Noah Land Surface Model L4 monthly 0.25 x 0.25 degree V2.1, Greenbelt, Maryland, USA, Goddard Earth Sciences Data and Information Services Center (GES DISC), doi:10.5067/SXAVCZFAQLNO",
+    "start": "2001-01",
+    "frontend": {
+      "lat_step": 1.0,
+      "lon_factor": 4,
+      "scale": 0.01,
+      "offset": 0.0,
+      "slope_scale": 0.001
+    }
+  }
+]

@@ -13,6 +13,10 @@ metadata 讀（GDAL 的 scale、nodata、units），不寫死。
 
 結果逐列存成 `data/raw/planetary_computer/<變數 id>/stats.csv`（每列是合成期 × 區域），
 已算過的合成期不重抓；快照指令的 `planetary_computer` 來源再把它轉成區域月序列，不連網。
+
+點位（#51）：seed 的變數若有 `point_source.source = "planetary_computer"`，另外對每個點位取
+「點所在像元為中心、`window_pixels` × `window_pixels` 個像元」有值像元的平均，存在
+`data/raw/planetary_computer/<變數 id>/stats.csv`（變數 id 不帶 `_pc`，每列是合成期 × 點位）。
 """
 
 import argparse
@@ -64,6 +68,8 @@ STATS_COLUMNS = [
 ]
 
 Bbox = tuple[float, float, float, float]
+# 點位視窗裡的像元全部都算：統計時用這個涵蓋全球的 bbox
+EVERYWHERE: Bbox = (-180.0, -90.0, 180.0, 90.0)
 
 
 class PlanetaryComputerError(RuntimeError):
@@ -374,6 +380,59 @@ def read_tile_pixels(
     row_1 = min(dataset.height, int(np.ceil(max(row_a, row_b))))
     if col_0 >= col_1 or row_0 >= row_1:
         return None
+    return _window_pixels(
+        dataset, (col_0, row_0, col_1, row_1), radius, tile, item_id, declared_scale
+    )
+
+
+def read_point_window(
+    dataset: Any,
+    lon: float,
+    lat: float,
+    size: int,
+    *,
+    tile: str,
+    item_id: str,
+    declared_scale: float | None = None,
+) -> TilePixels | None:
+    """以點所在的像元為中心、`size` × `size`（奇數）個像元的視窗。
+
+    點不在這個檔案的範圍內回 None。視窗超出檔案邊界的部分裁掉，不跨到相鄰 tile
+    （目前的點位離 tile 邊界都超過 10 km）。
+    """
+    if size < 1 or size % 2 == 0:
+        raise PlanetaryComputerError(f"視窗邊長要是正奇數：{size}")
+    radius = _sinusoidal_radius(dataset.crs)
+    transform = dataset.transform
+    if transform.b or transform.d:
+        raise PlanetaryComputerError("預期是沒有旋轉的網格")
+    x = radius * np.radians(lon) * np.cos(np.radians(lat))
+    y = radius * np.radians(lat)
+    col = int(np.floor((x - transform.c) / transform.a))
+    row = int(np.floor((y - transform.f) / transform.e))
+    if not (0 <= col < dataset.width and 0 <= row < dataset.height):
+        return None
+    half = size // 2
+    window = (
+        max(0, col - half),
+        max(0, row - half),
+        min(dataset.width, col + half + 1),
+        min(dataset.height, row + half + 1),
+    )
+    return _window_pixels(dataset, window, radius, tile, item_id, declared_scale)
+
+
+def _window_pixels(
+    dataset: Any,
+    window: tuple[int, int, int, int],
+    radius: float,
+    tile: str,
+    item_id: str,
+    declared_scale: float | None,
+) -> TilePixels:
+    """讀 (col_0, row_0, col_1, row_1) 這塊像元，連同每個像元中心的經緯度。"""
+    col_0, row_0, col_1, row_1 = window
+    transform = dataset.transform
     raw = dataset.read(1, window=Window(col_0, row_0, col_1 - col_0, row_1 - row_0))  # pyright: ignore[reportCallIssue]
     cols, rows = np.meshgrid(
         np.arange(col_0, col_1) + 0.5, np.arange(row_0, row_1) + 0.5
@@ -617,14 +676,13 @@ def _union(bboxes: list[Bbox]) -> Bbox:
 def _read_blob(
     blob: RemoteBlob,
     href: str,
-    bbox: Bbox,
-    tile: str,
+    read: Callable[[Any], dict[str, TilePixels | None]],
     item_id: str,
     metadata: dict[str, Any],
     short_name: str | None = None,
     declared_scale: float | None = None,
-) -> TilePixels | None:
-    """開遠端 COG、讀視窗；第一個讀到的檔案的 metadata 記進 `metadata`（scale 等的依據）。
+) -> dict[str, TilePixels | None]:
+    """開遠端 COG、用 `read` 讀視窗；第一個讀到的檔案的 metadata 記進 `metadata`（scale 等的依據）。
 
     給了 `short_name` 時，檔案裡的 SHORTNAME 必須相同，免得把別顆衛星的產品算進來。
     """
@@ -634,9 +692,7 @@ def _read_blob(
             raise PlanetaryComputerError(
                 f"{item_id} 的 SHORTNAME 是 {found}，預期 {short_name}"
             )
-        pixels = read_tile_pixels(
-            dataset, bbox, tile=tile, item_id=item_id, declared_scale=declared_scale
-        )
+        pixels = read(dataset)
         metadata.setdefault(
             "file_metadata",
             {
@@ -671,6 +727,18 @@ def _read_blob(
     return pixels
 
 
+def point_variable(variable: dict[str, Any]) -> dict[str, Any] | None:
+    """變數的點位序列若來自這裡（seed 的 `point_source`），回傳點位抓取用的設定，否則 None。
+
+    設定是變數本身蓋上 `point_source` 的欄位（collection、資產、產品、`window_pixels` 等），
+    id 不變：區域序列可以來自別的來源（AppEEARS），點位序列來自 Planetary Computer。
+    """
+    spec = variable.get("point_source")
+    if not spec or spec.get("source") != SOURCE_DIR:
+        return None
+    return {**variable, **spec}
+
+
 def fetch_variable(
     http: httpx.Client,
     variable: dict[str, Any],
@@ -686,12 +754,24 @@ def fetch_variable(
     """查 item、讀視窗、算每個合成期 × 區域的統計量，寫進 `stats.csv`。回傳這次執行的摘要。
 
     `stats.csv` 裡已有、且用的 item 相同的合成期不重抓；單一合成期失敗不中斷整批。
+
+    變數有 `window_pixels` 時（見 `point_variable`），`regions` 是點位（`lat`、`lon`）：
+    每個點位取以它所在像元為中心、`window_pixels` 見方的視窗，視窗內有值像元全部算。
     """
     started = time.monotonic()
     collection = variable["pc_collection"]
     asset = variable["source_variable_id"]
-    bboxes: dict[str, Bbox] = {r["id"]: tuple(r["bbox"]) for r in regions}
-    union = _union(list(bboxes.values()))
+    window_pixels: int | None = variable.get("window_pixels")
+    coordinates = {
+        r["id"]: (float(r["lon"]), float(r["lat"])) for r in regions if window_pixels
+    }
+    bboxes: dict[str, Bbox]
+    if window_pixels:
+        bboxes = dict.fromkeys(coordinates, EVERYWHERE)
+        union = _union([(lon, lat, lon, lat) for lon, lat in coordinates.values()])
+    else:
+        bboxes = {r["id"]: tuple(r["bbox"]) for r in regions}
+        union = _union(list(bboxes.values()))
     out_dir = raw_dir / SOURCE_DIR / variable["id"]
     stats_path = out_dir / STATS_FILE
     rows = read_stats(stats_path)
@@ -720,37 +800,68 @@ def fetch_variable(
         return True
 
     def compute(day: date, by_tile: dict[str, dict[str, Any]]) -> dict[str, RegionStat]:
-        tiles = []
+        tiles: dict[str, list[TilePixels]] = {target: [] for target in bboxes}
         for tile, item in sorted(by_tile.items()):
             href = item["assets"][asset]["href"]
+            declared = (item["assets"][asset].get("raster:bands") or [{}])[0].get(
+                "scale"
+            )
+
+            def read(
+                dataset: Any,
+                tile: str = tile,
+                item_id: str = item["id"],
+                declared: float | None = declared,
+            ) -> dict[str, TilePixels | None]:
+                if window_pixels:
+                    return {
+                        target: read_point_window(
+                            dataset,
+                            lon,
+                            lat,
+                            window_pixels,
+                            tile=tile,
+                            item_id=item_id,
+                            declared_scale=declared,
+                        )
+                        for target, (lon, lat) in coordinates.items()
+                    }
+                pixels = read_tile_pixels(
+                    dataset, union, tile=tile, item_id=item_id, declared_scale=declared
+                )
+                return dict.fromkeys(bboxes, pixels)
 
             blob = RemoteBlob(http, tokens, href, transfer, sleep=sleep)
             # 先在 GDAL 外面讀第一塊：檔案不存在、token 無效這類錯誤在這裡就會丟出來
             _ = blob.size
             try:
-                pixels = _read_blob(
+                read_pixels = _read_blob(
                     blob,
                     href,
-                    union,
-                    tile,
+                    read,
                     item["id"],
                     metadata,
                     (variable.get("pc_item_prefix") or "").rstrip(".") or None,
-                    (item["assets"][asset].get("raster:bands") or [{}])[0].get("scale"),
+                    declared,
                 )
             except Exception:
                 if blob.error is not None:
                     raise blob.error from None
                 raise
-            if pixels is not None:
-                tiles.append(pixels)
-        signature = {(t.scale, t.offset, t.nodata, t.unit) for t in tiles}
+            for target, pixels in read_pixels.items():
+                if pixels is not None:
+                    tiles[target].append(pixels)
+        signature = {
+            (t.scale, t.offset, t.nodata, t.unit)
+            for found in tiles.values()
+            for t in found
+        }
         if len(signature) > 1:
             raise PlanetaryComputerError(
                 f"{day} 各 tile 的 scale／nodata／單位不一致：{signature}"
             )
         return {
-            region_id: region_statistics(tiles, bbox)
+            region_id: region_statistics(tiles[region_id], bbox)
             for region_id, bbox in bboxes.items()
         }
 
@@ -804,6 +915,7 @@ def fetch_variable(
         "asset": asset,
         "item_id_prefix": variable.get("pc_item_prefix"),
         "bbox": list(union),
+        **({"window_pixels": window_pixels} if window_pixels else {}),
         "stac_api": STAC_URL,
         "run_at": now().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "n_items_found": len(items),
@@ -855,10 +967,19 @@ def main(argv: list[str] | None = None) -> int:
         (args.seed_dir / "locations.json").read_text(encoding="utf-8")
     )
     regions = [loc for loc in locations if loc.get("kind") == "region"]
+    points = [
+        loc for loc in locations if loc.get("kind") == "point" and "ghcnh_id" not in loc
+    ]
+    # (抓取設定, 地點)：區域統計的變數，加上點位序列來自這裡的變數
     wanted = [
-        v
+        (v, regions)
         for v in variables
         if v["source"] == SOURCE_DIR and (not args.variable or v["id"] in args.variable)
+    ] + [
+        (spec, points)
+        for v in variables
+        if (spec := point_variable(v))
+        and (not args.variable or v["id"] in args.variable)
     ]
     if not wanted:
         print("seed 裡沒有符合的 planetary_computer 變數")
@@ -866,11 +987,11 @@ def main(argv: list[str] | None = None) -> int:
     failed = False
     limits = httpx.Limits(max_connections=args.workers * 2)
     with httpx.Client(timeout=60, limits=limits) as http:
-        for variable in wanted:
+        for variable, targets in wanted:
             summary = fetch_variable(
                 http,
                 variable,
-                regions,
+                targets,
                 args.raw_dir,
                 today=datetime.now(UTC).date(),
                 workers=args.workers,

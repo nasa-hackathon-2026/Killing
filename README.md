@@ -48,6 +48,7 @@ cd <名稱> && scripts/sync-labels.sh
 
 | Giovanni（10 個變數 × 5 點位） | `data/raw/giovanni/<變數 id>__<地點 id>.csv` | `/timeseries` 的原始 CSV 回應 |
 | Harmony（區域平均） | `data/raw/harmony/<變數 id>__<區域 id>.csv`、`jobs.json` | 區域平均的結果 CSV 與 job 紀錄 |
+| 全球格點（MERRA-2 氣溫、GLDAS 表層土壤水） | `data/raw/grid/<變數 id>/` | `<變數 id>.nc`（時間 × 緯度 × 經度的月資料立方體，NetCDF-4）與 `months/` 下的逐月子集檔；repo 只收錄降解析度的衍生檔 `data/grid/<變數 id>/`，格式見 `AGENTS.md`「全球格點月資料」 |
 | NASA POWER（MERRA-2 氣溫） | `data/raw/power/<變數 id>__<地點 id>.json` | API 的原始 JSON 回應 |
 | NOAA GHCNh（測站氣溫） | `data/raw/ghcnh/GHCNh_<站號>_<年>.psv` | 逐時原始檔，約 100 MB；repo 只收錄月平均 |
 

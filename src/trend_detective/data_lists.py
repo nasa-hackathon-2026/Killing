@@ -29,6 +29,10 @@ ACCESS = {
         "Accessed via Microsoft Planetary Computer (STAC API, cloud-optimized GeoTIFF); "
         "area statistics computed locally"
     ),
+    ("planetary_computer", "point"): (
+        "Accessed via Microsoft Planetary Computer (STAC API, cloud-optimized GeoTIFF); "
+        "mean of a small pixel window around the point, computed locally"
+    ),
 }
 
 
@@ -60,10 +64,15 @@ def _used(
         )
         if not kinds:
             continue
-        access = [
-            ACCESS.get((variable["source"], kind), f"{variable['source']} ({kind})")
-            for kind in kinds
-        ]
+        access = []
+        for kind in kinds:
+            # 點位序列可以來自和變數本身不同的來源與產品（seed 的 `point_source`）
+            spec = variable.get("point_source") if kind == "point" else None
+            source = (spec or variable)["source"]
+            text = ACCESS.get((source, kind), f"{source} ({kind})")
+            if spec and spec.get("product") != variable.get("product"):
+                text += f" [product {spec['product']}]"
+            access.append(text)
         rows.append((variable, access))
     return rows
 

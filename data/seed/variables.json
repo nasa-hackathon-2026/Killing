@@ -225,13 +225,23 @@
       1
     ],
     "doi": "10.5067/MODIS/MOD13A3.061",
-    "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均（AppEEARS 的統計值，已套用 scale factor，未經 QA 過濾，含被雲影響的像元）。coverage 是 pixel reliability 為 0（好）或 1（尚可）的像元數 ÷ 這個區域出現過的最大像元數，多雲的月份會偏低。",
+    "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均（AppEEARS 的統計值，已套用 scale factor，未經 QA 過濾，含被雲影響的像元）。coverage 是 pixel reliability 為 0（好）或 1（尚可）的像元數 ÷ 這個區域出現過的最大像元數，多雲的月份會偏低。 點位序列（aggregation = point）用的是不同產品：Microsoft Planetary Computer 沒有 MOD13A3，所以改用 MOD13Q1.061（Terra，250 m、16 日合成，DOI 10.5067/MODIS/MOD13Q1.061），以點所在像元為中心、13 × 13 個像元（約 3 km 見方）有值像元的平均，原始值 × 0.0001，未經 QA 過濾；16 日合成依起始日歸月後取平均。點位與區域平均來自不同產品與解析度，絕對值不要直接相減當結論。",
     "appeears_qa": {
       "file_suffix": "pixel-reliability-Statistics-QA.csv",
       "good_values": [
         "0",
         "1"
       ]
+    },
+    "point_source": {
+      "source": "planetary_computer",
+      "source_variable_id": "250m_16_days_NDVI",
+      "pc_collection": "modis-13Q1-061",
+      "pc_item_prefix": "MOD13Q1.",
+      "product": "MOD13Q1.061",
+      "product_version": "061",
+      "window_pixels": 13,
+      "pixel_size_m": 231.7
     }
   },
   {
@@ -251,7 +261,18 @@
       270,
       330
     ],
-    "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。"
+    "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。 點位序列（aggregation = point）不經 AppEEARS，而是經 Microsoft Planetary Computer 取同一個產品（MOD11A2.061）：以點所在的 1 km 像元為中心、3 × 3 個像元（約 2.8 km 見方）有值像元的平均，值已套用檔案 metadata 的 scale factor 0.02，未經 QA 過濾；coverage 是有值像元數 ÷ 這個點位出現過的最大有值像元數（最多 9）。 視窗內有值像元少於 3 個的合成期不採用（當成沒有值）：只剩一兩個像元多半是雲邊緣的殘留，例如玉山 2001-06-02 只有 1 個像元、266.64 K，夏季白天不合理。",
+    "point_source": {
+      "source": "planetary_computer",
+      "source_variable_id": "LST_Day_1km",
+      "pc_collection": "modis-11A2-061",
+      "pc_item_prefix": "MOD11A2.",
+      "product": "MOD11A2.061",
+      "product_version": "061",
+      "window_pixels": 3,
+      "pixel_size_m": 926.6,
+      "min_valid_pixels": 3
+    }
   },
   {
     "id": "modis_lst_pc",

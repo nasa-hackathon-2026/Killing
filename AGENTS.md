@@ -55,6 +55,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - MODIS（`appeears`）分兩步，因為 AppEEARS 是非同步 task：先 `uv run python -m trend_detective.appeears submit`、等完成後 `… appeears download`（見 README「原始資料」），快照指令的 `appeears` 來源只把已下載的統計 CSV 轉成區域月序列，不連網。分段送出的變數（LST）要全部分段都下載好才會寫出序列。統計 CSV 的值已套用 scale factor；單位與合理範圍記在 seed 的 `unit`、`valid_range`，超出範圍會報錯。`coverage` 是可用像元數 ÷ 該區域出現過的最大像元數（變數在 seed 設了 `appeears_qa` 時，可用像元數是通過 QA 的像元數，否則是有值像元數；分母會隨批次略有變動）；8 日合成依起始日歸月，`n_samples` 是當月有值的合成期數。
 - MODIS 經 Planetary Computer（`planetary_computer`，變數 `modis_lst_pc`、`modis_ndvi_pc`）也分兩步、不需要任何帳號：先 `uv run python -m trend_detective.planetary_computer fetch`（查 STAC、用 HTTP Range 只讀區域涵蓋到的 COG 區塊、在本機算每個合成期 × 區域的統計量，存到 `data/raw/planetary_computer/<變數 id>/stats.csv`；2001 至今全抓：LST 約 3 分鐘、440 MB，NDVI（250 m）約 6 分鐘、1.1 GB，12 個執行緒；已算過的合成期不重抓），快照指令的 `planetary_computer` 來源再把 `stats.csv` 轉成區域月序列，不連網。轉月算法與 `appeears` 相同。它和 AppEEARS 版本（`modis_lst`）是同一個 NASA 產品但分開存：區域裁切方式不同（這裡是像元中心落在 bbox 內），不要接成同一條線。
 - Planetary Computer 的三個坑（2026-11-14 實測）：Terra 與 Aqua 在同一個 collection，而 2024-03 至 2025-06 的 item 沒有 `platform` 屬性，所以用 item id 開頭（`MOD11A2.`）分辨、讀檔時再核對檔案的 SHORTNAME；collection 的 SAS token 端點（`/token/modis-11A2-061`）給的是 HDF container 的 token，讀 COG 要用 `/token/<account>/<container>`；有些合成期那裡沒有 Terra 的 item（LST：2022-10 整月、2025-07-04 至 2025-11-17），序列在整月都沒有合成期的月份沒有點。scale factor、fill value、單位從 COG 檔自己的 metadata 讀，並和 STAC 宣告的 scale 核對，每次執行記在 `fetch.json`；NDVI 的檔案把 scale_factor 寫成除數（10000），與 STAC 的 0.0001 互為倒數，對不上其他情況就報錯。區域跨兩個 tile（h28v06、h29v06）時，缺一個 tile 的合成期不採用。
+- MODIS 點位序列（#51，`modis_lst`、`modis_ndvi` × 5 個點位，`aggregation = "point"`）：這兩個變數的區域序列來自 AppEEARS，點位序列來自 Planetary Computer，由 seed 的 `point_source` 區塊指定（collection、資產、產品、`window_pixels`）。同一個 `planetary_computer fetch` 會一併抓（`--variable modis_lst` 可只抓一個），取「點所在像元為中心、`window_pixels` 見方」有值像元的平均，存到 `data/raw/planetary_computer/<變數 id>/stats.csv`（id 不帶 `_pc`）；快照指令的 `planetary_computer` 來源再轉成月序列。LST 是 MOD11A2 的 3 × 3 個 1 km 像元；NDVI 因為 Planetary Computer 沒有 MOD13A3（2026-11-14 查 STAC collection 清單），用 MOD13Q1 的 13 × 13 個 250 m 像元（約 3 km），和 AppEEARS 區域序列（MOD13A3）不是同一個產品，點位與區域的絕對值不要直接比。
 - NASA POWER（`nasa_power`）也不需要 token；原始回應存到 `data/raw/power/`。
 - 抓取前會先查 Giovanni `/quota`，用量達 0.95 就停。
 - 重跑時，資料沒變的序列檔不動（`retrieved_at` 是「這條序列內容上次變動的時間」）；目錄檔的 `snapshot.generated_at`（快照日）在「全部來源都跑、沒有略過」時每次都更新，所以資料沒變時整份重跑，`git diff` 只有 `generated_at` 一行不同；加 `--source` 只重抓部分來源、或缺 token 被略過時，快照日不動。
@@ -73,12 +74,22 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **中文名稱、定義、分類由隊伍寫**：產生時 `name_zh` 暫用英文名、`definition_zh` 空白、`category = "待分類"`、`needs_translation = true`。直接在 `variables.extended.json` 填這幾欄並把 `needs_translation` 改成 `false`；重新產生時這幾欄（與 `note_zh`）會保留。不要自動翻譯後當成定稿。
 - **世界地點**在 `data/seed/locations.world.json`（清單是資料，可以改）：`group` 是 `global`（全球平均，bbox −180, −90, 180, 90）、`world_region`（各洲、北極圈以北、熱帶的簡化方框）、`world_city`（12 個城市點位）。核心的台灣地點仍在 `locations.json`。
 - **抓取**：`uv run python -m trend_detective.extended`（`.env` 要有 `EARTHDATA_TOKEN`）。**預設只抓單點**（Giovanni `/timeseries`，執行緒池，`--point-workers` 預設 8）：2,177 條約 10 分鐘，quota 幾乎不動。階段 a–f 依序是：核心變數 × 全球平均、核心變數 × 世界區域與城市、擴充變數 × 全球平均、× 世界區域、× 世界城市、× 台灣地點；`--stage b e` 只跑指定階段。
-- **不要用 Harmony 做全球或洲尺度的區域平均**（2026-11-14 實測）：送出 21 個全球／洲尺度的 job 後，Giovanni 月 quota 在 25 分鐘內從 0.00007 升到 0.249，而且這些 job 16 分鐘後仍沒有一個完成；單點實測每條只耗 3e-9（月資料）至 9e-8（OMI 日資料）。quota 是整個隊伍共用的，≥ 0.95 之後整個月都不能再抓。所以全球平均與世界區域的平均改由全球格點在本機計算（#50），階段 a、c、d 與 b 的區域部分目前沒有資料。`--kind area`／`both` 仍保留（同時掛 `--harmony-jobs` 個 job、所有階段排成一個佇列），只適合台灣大小的 bbox（每個約 4e-7），送之前先確認 quota 與使用者的決定。
+- **不要用 Harmony 做全球或洲尺度的區域平均**（2026-11-14 實測）：送出 21 個全球／洲尺度的 job 後，Giovanni 月 quota 在 25 分鐘內從 0.00007 升到 0.249，而且這些 job 16 分鐘後仍沒有一個完成；單點實測每條只耗 3e-9（月資料）至 9e-8（OMI 日資料）。quota 是整個隊伍共用的，≥ 0.95 之後整個月都不能再抓。所以全球平均與世界區域的平均改由全球格點在本機計算（見「全球格點月資料」），階段 a、c、d 與 b 的區域部分目前沒有資料。`--kind area`／`both` 仍保留（同時掛 `--harmony-jobs` 個 job、所有階段排成一個佇列），只適合台灣大小的 bbox（每個約 4e-7），送之前先確認 quota 與使用者的決定。
 - **可續跑**：同一天已成功的序列不重抓（紀錄在 `data/extended/state.point.json`、`state.area.json`）；Harmony 的 job id 記在 `data/raw/harmony/jobs.extended.json`，中斷後同一天重跑會接著等原本的 job。失敗的序列下次會重試。單一序列失敗不中斷，結束時依原因分組列出失敗數。
 - **看進度**：`uv run python -m trend_detective.extended --status`（不連網）列出各階段已有、失敗、尚未抓的數量，並依磁碟上的序列檔重寫 `data/extended/catalog.json`。抓取進行中每 5 分鐘也會重寫一次目錄檔，先完成的先能用。每次執行的平行度、耗時、quota 記在 `data/extended/runs.jsonl`。
 - 世界區域是經緯度方框，含海面（GLDAS、FLDAS 這類陸面模式只有陸地格點有值）；之後算區域平均時要自己決定面積加權與陸地遮罩。
 - 海面上或該產品沒有資料的點位會整條缺值，記為失敗、不內移（世界城市沒有設 `inland_direction`）。
 - 原始回應照舊存在 `data/raw/giovanni/`、`data/raw/harmony/`，檔名是 `<變數 id>__<地點 id>.csv`。
+
+## 全球格點月資料（試做，#47）
+每個網格一條月序列，給之後的全球地圖用；和 `data/snapshot/` 的序列分開，快照指令不會動它。
+
+- 重產：`uv run python -m trend_detective.grid_fetch`（`.env` 要有 `EARTHDATA_TOKEN`；加 `--product <id>` 只跑一個、`--since YYYY-MM` 只抓某月之後）。產品清單在 `data/seed/grids.json`，目前是 `merra2_t2m`（M2IMNXASM 的 T2M，0.5° × 0.625°）與 `gldas_soilmoist`（GLDAS_NOAH025_M 的 SoilMoi0_10cm_inst，0.25°）。兩個全期約 3 分鐘、下載約 420 MB。
+- 取得方式：CMR 查每個月的 granule，經 Earthdata Cloud OPeNDAP（`opendap.earthdata.nasa.gov`）用 `dap4.ce` 只取一個變數，每月一個約 0.5–0.8 MB 的 NetCDF。由最新月份往回抓，已下載的不重抓；偶發的 403 或逾時重跑一次就會補上。
+- 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN；逐月原始檔在同目錄的 `months/`。用 `trend_detective.grid.read_cube` 讀。只含「從最新月份往回連續不中斷」的月份。
+- 前端衍生檔（進 git）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`、`exploratory_linear_slope_per_decade.i16`。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。降成 1° 緯度帶（MERRA-2 經度 1.25°、GLDAS 1°），面積加權。讀法的參考實作是 `trend_detective.grid.read_frontend`。
+- 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
+- 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
