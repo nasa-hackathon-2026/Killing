@@ -22,6 +22,7 @@ type EarthCanvasProps = {
   flying: boolean;
   layers: SceneLayer[];
   intensities: Record<string, number>;
+  trendDirections?: Record<string, number>;
   places: MockLocation[];
   locationId: string;
   onKind: (kind: RendererKind) => void;
@@ -33,6 +34,7 @@ function Scene({
   flying,
   layers,
   intensities,
+  trendDirections,
   places,
   locationId,
   onFlyDone,
@@ -41,6 +43,7 @@ function Scene({
   flying: boolean;
   layers: SceneLayer[];
   intensities: Record<string, number>;
+  trendDirections?: Record<string, number>;
   places: MockLocation[];
   locationId: string;
   onFlyDone: () => void;
@@ -68,6 +71,7 @@ function Scene({
           layer={layer}
           control={layers.find((item) => item.id === layer.id)}
           intensity={intensities[layer.id] ?? 0}
+          trendDirection={trendDirections?.[layer.id] ?? 0}
         />
       ))}
       <FlyCamera
@@ -92,10 +96,12 @@ function LayerView({
   layer,
   control,
   intensity,
+  trendDirection,
 }: {
   layer: LayerDefinition;
   control: SceneLayer | undefined;
   intensity: number;
+  trendDirection: number;
 }) {
   if (!control) return null;
   return (
@@ -104,6 +110,7 @@ function LayerView({
       visible={control.visible}
       opacity={control.opacity}
       intensity={intensity}
+      trendDirection={trendDirection}
     />
   );
 }
@@ -113,6 +120,7 @@ export function EarthCanvas({
   flying,
   layers,
   intensities,
+  trendDirections,
   places,
   locationId,
   onKind,
@@ -130,6 +138,7 @@ export function EarthCanvas({
         flying={flying}
         layers={layers}
         intensities={intensities}
+        trendDirections={trendDirections}
         places={places}
         locationId={locationId}
         onFlyDone={onFlyDone}

@@ -54,3 +54,25 @@ export function sortedMonths(groups: SeriesPoint[][]): string[] {
   }
   return [...months].sort();
 }
+
+// The month the slider starts on: the latest month in which the largest
+// number of series have a value. Products end in different months, so the
+// very last month is mostly empty.
+export function bestDefaultMonth(groups: SeriesPoint[][]): string | null {
+  const counts = new Map<string, number>();
+  for (const points of groups) {
+    for (const point of points) {
+      if (point.value === null) continue;
+      counts.set(point.month, (counts.get(point.month) ?? 0) + 1);
+    }
+  }
+  let best: string | null = null;
+  let bestCount = 0;
+  for (const [month, count] of counts) {
+    if (count > bestCount || (count === bestCount && month > (best ?? ""))) {
+      best = month;
+      bestCount = count;
+    }
+  }
+  return best;
+}

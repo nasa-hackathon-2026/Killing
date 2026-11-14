@@ -8,7 +8,9 @@ import {
   type MeshStandardMaterial,
   type PointsMaterial,
 } from "three";
+import { motionScale } from "../forms/reducedMotion";
 import { formRegistry } from "../forms/registry";
+import { TrendArrows } from "../forms/TrendArrows";
 import type { LayerDefinition } from "./registry";
 
 const MAX_PARTICLES = 480;
@@ -18,6 +20,8 @@ type GlassParticleLayerProps = {
   visible: boolean;
   opacity: number;
   intensity: number;
+  // +1, -1 or 0; see trendArrowDirection in forms/encoding.ts.
+  trendDirection?: number;
 };
 
 function shellGeometry(radius: number, seed: number) {
@@ -72,6 +76,7 @@ export function GlassParticleLayer({
   visible,
   opacity,
   intensity,
+  trendDirection = 0,
 }: GlassParticleLayerProps) {
   const glass = useRef<MeshStandardMaterial>(null);
   const points = useRef<Points>(null);
@@ -97,7 +102,7 @@ export function GlassParticleLayer({
   useFrame((_, delta) => {
     const target = visible ? opacity : 0;
     shown.current += (target - shown.current) * (1 - Math.exp(-5 * delta));
-    time.current += delta;
+    time.current += delta * motionScale();
     const amount = shown.current;
     if (glass.current) glass.current.opacity = amount * 0.38;
     if (form) return;
@@ -157,6 +162,7 @@ export function GlassParticleLayer({
           timeRef={time}
           opacityRef={shown}
           color={layer.particleColor}
+          variableId={layer.id}
         />
       ) : (
         <points ref={points} geometry={geometry}>
@@ -171,6 +177,15 @@ export function GlassParticleLayer({
           />
         </points>
       )}
+      {trendDirection !== 0 ? (
+        <TrendArrows
+          direction={trendDirection}
+          radius={layer.shellRadius + 0.34}
+          color={layer.glassColor}
+          timeRef={time}
+          opacityRef={shown}
+        />
+      ) : null}
     </group>
   );
 }

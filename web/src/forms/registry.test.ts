@@ -3,21 +3,28 @@ import { mockVariables } from "../mock/snapshot";
 import { formRegistry } from "./registry";
 
 describe("formRegistry", () => {
-  it("lists the two designed forms and their variables", () => {
-    expect(formRegistry.map((form) => form.id)).toEqual([
+  it("keeps the two original forms first, on their variables", () => {
+    expect(formRegistry.slice(0, 2).map((form) => form.id)).toEqual([
       "water-droplet",
       "round-air",
     ]);
-    expect(formRegistry.map((form) => form.variableId)).toEqual([
+    expect(formRegistry.slice(0, 2).map((form) => form.variableId)).toEqual([
       "imerg_precip",
       "omi_no2",
     ]);
-    const assigned = mockVariables
-      .filter((variable) => variable.formId)
-      .map((variable) => [variable.id, variable.formId]);
-    expect(assigned).toEqual([
-      ["imerg_precip", "water-droplet"],
-      ["omi_no2", "round-air"],
-    ]);
+  });
+
+  it("gives every variable a registered form", () => {
+    const ids = formRegistry.map((form) => form.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const variable of mockVariables) {
+      expect(ids).toContain(variable.formId);
+    }
+    for (const form of formRegistry) {
+      const example = mockVariables.find(
+        (variable) => variable.id === form.variableId,
+      );
+      expect(example?.formId).toBe(form.id);
+    }
   });
 });

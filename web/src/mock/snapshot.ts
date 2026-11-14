@@ -19,7 +19,15 @@ export type ParticleMotion = "fall" | "drift";
 
 export type ColorFamily = "water" | "warm" | "gas" | "aerosol" | "vegetation";
 
-export type FormId = "water-droplet" | "round-air";
+export type FormId =
+  | "water-droplet"
+  | "round-air"
+  | "thermal-motion"
+  | "water-vapor"
+  | "soil-water"
+  | "ozone-molecule"
+  | "aerosol-grain"
+  | "leaf";
 
 export type MockVariable = {
   id: string;
@@ -48,7 +56,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#ffd8bf",
     motion: "drift",
     colorFamily: "warm",
-    formId: null,
+    formId: "thermal-motion",
   },
   {
     id: "gldas_soilmoist",
@@ -57,7 +65,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#d5e6f7",
     motion: "drift",
     colorFamily: "water",
-    formId: null,
+    formId: "soil-water",
   },
   {
     id: "gldas_evap",
@@ -66,7 +74,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#e5f6fb",
     motion: "drift",
     colorFamily: "water",
-    formId: null,
+    formId: "water-vapor",
   },
   {
     id: "airs_tsurf",
@@ -75,7 +83,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#ffd0c4",
     motion: "drift",
     colorFamily: "warm",
-    formId: null,
+    formId: "thermal-motion",
   },
   {
     id: "airs_h2ovap",
@@ -84,7 +92,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#f3f8ff",
     motion: "drift",
     colorFamily: "water",
-    formId: null,
+    formId: "water-vapor",
   },
   {
     id: "merra2_t2m",
@@ -93,7 +101,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#ffe8bf",
     motion: "drift",
     colorFamily: "warm",
-    formId: null,
+    formId: "thermal-motion",
   },
   {
     id: "omi_no2",
@@ -111,7 +119,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#f0e0cc",
     motion: "drift",
     colorFamily: "gas",
-    formId: null,
+    formId: "ozone-molecule",
   },
   {
     id: "omi_aerosol",
@@ -120,7 +128,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#ece8e3",
     motion: "drift",
     colorFamily: "aerosol",
-    formId: null,
+    formId: "aerosol-grain",
   },
   {
     id: "modis_ndvi",
@@ -129,7 +137,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#d9f5e4",
     motion: "drift",
     colorFamily: "vegetation",
-    formId: null,
+    formId: "leaf",
   },
   {
     id: "modis_lst",
@@ -138,7 +146,7 @@ export const mockVariables: MockVariable[] = [
     particleColor: "#ffd2cb",
     motion: "drift",
     colorFamily: "warm",
-    formId: null,
+    formId: "thermal-motion",
   },
 ];
 

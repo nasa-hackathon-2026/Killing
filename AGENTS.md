@@ -121,6 +121,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 探勘的預設參數只是起點，由隊伍決定：`--low-quantile`／`--high-quantile`（三分位）、`--exclude-variable`（預設排除 `power_t2m`、`modis_ndvi_pc` 兩個近乎重複的變數）、`--min-support 0.1`、`--min-confidence 0.6`、`--min-lift 1.2`、`--max-itemset-size 3`、`--tree-table region`、`--tree-target modis_ndvi`、`--tree-max-depth 3`、`--tree-min-samples-leaf 20`、`--tree-train-fraction 0.8`。
 - 讀探勘結果時要注意：距平沒有去趨勢，有趨勢的變數「high」會集中在後期，所以測試期間的類別分布和訓練期間不同（結果檔的 `baseline_majority_class.best_constant_on_test` 是事後才知道的對照）；`taiwan` 的 bbox 包含其他區域，列與列不獨立；`north` 缺 AIRS 與 OMI 臭氧、氣膠，決策樹只用特徵齊全的列所以沒有 `north`；延遲規則多半是同一個變數的持續性（`same_variable: true`）。規則與樹都沒有顯著性檢定，不是因果。
 
+## 前端形態與近看檢視（#60）
+地球上每個圖層「遠看」是一種形態（粒子），從圖層面板的 Close-up 按鈕「近看」是分子結構與過程示意。展示實驗場 `web/lab/`（`/lab/`）可以逐一檢視，網址參數 `?variable=<變數 id>&value=0.6&trend=1&closeup=1` 可指定起始畫面；主畫面支援 `?layers=<id,id>&closeup=<變數 id>`。
+
+- **對應表只有一處**：`web/src/forms/formMapping.ts`，一個變數一列：用哪個形態（`formId`）、運動方式（`motion`）、粒子所在的高度帶（`band`）、數值怎麼變成數量／大小／速度（`encoding`）、近看是哪一個檢視（`closeUpId`）。想調整疏密、大小、速度，改這張表就好。顏色仍在 `web/src/mock/snapshot.ts`（`glassColor`、`particleColor`），那裡的 `formId` 要和對應表一致（有測試）。
+- **數值對應是純函式**：`web/src/forms/encoding.ts` 的 `encodeForm`（正規化數值 → 數量、大小、速度；`speedLaw: "sqrt"` 表示把數值當能量、速度取平方根）與 `trendSignal`（`trends.json` 的一筆 → 上升／下降／not significant／insufficient；只看 `ols` 的斜率正負與顯著性，不加任何解讀）。粒子位置是 `web/src/forms/motions.ts` 的 `particleState`。
+- **新增一種遠看形態**：在 `web/src/forms/geometries.ts` 加形狀、在 `fieldForms.tsx` 加一個包 `SubstanceField` 的元件、在 `registry.ts` 的 `formRegistry` 加一筆、在 `mock/snapshot.ts` 的 `FormId` 加 id，最後把對應表的 `formId` 指過去。需要新的運動方式就在 `motions.ts` 的 `MotionKind` 與 `particleState` 加一種。`water-droplet`、`round-air` 是原本的兩個形態，各自的數字寫在元件裡（對應表標 `engine: "legacy"`，那兩列只是描述）。
+- **近看檢視**：文字、反應式與出處在 `web/src/closeup/closeUps.ts`；每個檢視每一幀畫什麼是 `web/src/closeup/scripts.ts` 的純函式（只呼叫 `Painter`）；分子的鍵長、鍵角、原子半徑與配色在 `web/src/chemistry/molecules.ts`，**每筆都要有 `source`，查不到出處的數值不要加，改用示意並標明 schematic**。新增檢視：`closeUps.ts` 加一筆、`scripts.ts` 加一個 script 並登記到 `scripts`，再把對應表的 `closeUpId` 指過去。
+- **上限**：每個圖層的粒子數不超過 `MAX_FORM_PARTICLES`（480），各列的 `maxCount` 加總是 `TOTAL_PARTICLE_CAP`；趨勢箭頭每層 16 個；近看檢視的原子、固體、水滴各有上限（`MAX_CLOSEUP_*`），關閉時整個 canvas 會卸載。
+- **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
+
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
 

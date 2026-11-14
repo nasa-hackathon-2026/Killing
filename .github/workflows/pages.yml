@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "data/snapshot/**"
+      - "data/analysis/**"
+      - "data/grid/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 

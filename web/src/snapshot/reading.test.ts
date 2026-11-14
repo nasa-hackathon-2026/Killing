@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bestDefaultMonth,
   formatMeasurement,
   intensityAt,
   sortedMonths,
@@ -61,5 +62,30 @@ describe("sortedMonths", () => {
         [{ month: "2025-07-01", value: 2 }],
       ]),
     ).toEqual(["2025-07-01", "2025-08-01", "2025-09-01", "2025-10-01"]);
+  });
+});
+
+describe("bestDefaultMonth", () => {
+  it("picks the latest month with the most series that have a value", () => {
+    const long: SeriesPoint[] = [
+      { month: "2025-08-01", value: 1 },
+      { month: "2025-09-01", value: 2 },
+      { month: "2025-10-01", value: 3 },
+      { month: "2025-11-01", value: 4 },
+    ];
+    const short: SeriesPoint[] = [
+      { month: "2025-08-01", value: 1 },
+      { month: "2025-09-01", value: 2 },
+      { month: "2025-10-01", value: null },
+    ];
+    expect(bestDefaultMonth([long, short])).toBe("2025-09-01");
+    expect(bestDefaultMonth([long])).toBe("2025-11-01");
+  });
+
+  it("returns null when nothing has a value", () => {
+    expect(bestDefaultMonth([])).toBeNull();
+    expect(
+      bestDefaultMonth([[{ month: "2025-08-01", value: null }]]),
+    ).toBeNull();
   });
 });
