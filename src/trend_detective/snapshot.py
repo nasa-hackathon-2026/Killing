@@ -199,14 +199,18 @@ def _station_series(
         cached = (
             raw_dir / "ghcnh" / f"GHCNh_{station_id}_{year}.psv" if raw_dir else None
         )
-        # 過去的年份不會再變，有存檔就不重抓；今年的每次都重抓
-        if cached is not None and cached.exists() and year < today.year:
+        # 兩年以前的檔不會再變，有存檔就不重抓。今年與去年每次都重抓：
+        # 去年的存檔可能是年底前抓的，還不完整。
+        if cached is not None and cached.exists() and year < today.year - 1:
             text = cached.read_text(encoding="utf-8")
         else:
             text = ghcnh.fetch_year(http, station_id, year)
             if text is not None and cached is not None:
                 cached.parent.mkdir(parents=True, exist_ok=True)
-                cached.write_text(text, encoding="utf-8")
+                # 先寫暫存檔再改名，中斷時不會留下被當成完整的半個檔
+                partial = cached.with_suffix(".psv.part")
+                partial.write_text(text, encoding="utf-8")
+                partial.replace(cached)
         if text is not None:
             hourly.extend(ghcnh.parse_psv(text))
     if not hourly:

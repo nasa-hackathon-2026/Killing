@@ -6,6 +6,7 @@ repo 只放月平均；逐時原始檔留在 `data/raw/ghcnh/`，不進 git。
 """
 
 import csv
+import math
 from calendar import monthrange
 from collections import defaultdict
 from datetime import date, datetime, timedelta
@@ -50,15 +51,19 @@ def parse_psv(text: str) -> list[Hourly]:
     except ValueError as err:
         raise ValueError(f"PSV 表頭缺少 DATE 或 temperature 欄：{err}") from err
     rows: list[Hourly] = []
-    for record in reader:
+    for line_number, record in enumerate(reader, start=2):
         if (
             len(record) <= max(date_index, temp_index)
             or record[temp_index].strip() == ""
         ):
             continue
-        rows.append(
-            (datetime.fromisoformat(record[date_index]), float(record[temp_index]))
-        )
+        try:
+            value = float(record[temp_index])
+            if not math.isfinite(value):
+                raise ValueError(f"氣溫不是有限的數字：{record[temp_index]!r}")
+            rows.append((datetime.fromisoformat(record[date_index]), value))
+        except ValueError as err:
+            raise ValueError(f"PSV 第 {line_number} 行無法解讀：{err}") from err
     return rows
 
 

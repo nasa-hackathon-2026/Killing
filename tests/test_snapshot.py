@@ -407,15 +407,34 @@ def test_running_one_source_keeps_other_sources_series_in_the_catalog(tmp_path: 
     ]
 
 
-def test_past_years_are_read_from_the_raw_cache_instead_of_downloaded_again(
-    tmp_path: Path,
-):
+def test_files_older_than_last_year_are_read_from_the_raw_cache(tmp_path: Path):
     raw = tmp_path / "raw"
     args = (None, tmp_path / "snap", [STATION_TEMP], [TAICHUNG_STATION])
-    build_snapshot(*args, station_http=_station_http([]), raw_dir=raw, **RUN)
+    later = {"today": date(2027, 6, 1), "now": "2027-06-01T00:00:00Z"}
+    build_snapshot(*args, station_http=_station_http([]), raw_dir=raw, **later)
     assert (raw / "ghcnh" / "GHCNh_CHM00059158_2025.psv").exists()
 
     requested: list[str] = []
-    build_snapshot(*args, station_http=_station_http(requested), raw_dir=raw, **RUN)
+    build_snapshot(*args, station_http=_station_http(requested), raw_dir=raw, **later)
 
+    assert not any("_2025.psv" in path for path in requested)
+
+
+def test_last_years_file_is_downloaded_again_after_the_year_turns(tmp_path: Path):
+    # 2026 年底那次執行存下的 2026 年檔還不完整，隔年要再抓一次才補得齊
+    raw = tmp_path / "raw"
+    args = (None, tmp_path / "snap", [STATION_TEMP], [TAICHUNG_STATION])
+    build_snapshot(*args, station_http=_station_http([]), raw_dir=raw, **RUN)
+
+    requested: list[str] = []
+    build_snapshot(
+        *args,
+        station_http=_station_http(requested),
+        raw_dir=raw,
+        today=date(2027, 1, 5),
+        now="2027-01-05T00:00:00Z",
+    )
+
+    assert any("_2026.psv" in path for path in requested)
+    assert any("_2027.psv" in path for path in requested)
     assert not any("_2025.psv" in path for path in requested)

@@ -88,3 +88,11 @@ def test_months_without_any_observation_between_data_are_filled_as_missing():
         ("2021-02-01", None, 0),
         ("2021-03-01", 7.0, 31),
     ]
+
+
+@pytest.mark.parametrize("bad", ["M", "nan", "inf"])
+def test_parse_rejects_a_non_finite_temperature_and_says_which_row(bad: str):
+    text = f"STATION|DATE|temperature\nX|2025-01-01T00:00:00|20.0\nX|2025-01-01T03:00:00|{bad}\n"
+
+    with pytest.raises(ValueError, match="第 3 行"):
+        parse_psv(text)
