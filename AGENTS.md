@@ -182,6 +182,19 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **近看的文字標籤**：`web/src/closeup/labels.ts` 的 `labelingPainter` 包住 `Painter`，script 不用改：每畫一個分子就記一個化學式標籤、光子記 `hν`，同一種最多 `MAX_LABELS_PER_KIND` 個、全部最多 `MAX_CLOSEUP_LABELS` 個。標籤是疊在 canvas 上的 HTML（`CloseUpPanel` 的 `.closeup-labels`），每一幀由 `CloseUpScene` 投影定位，「減少動態效果」時照樣顯示。沒有分子的檢視（土壤水）沒有標籤。
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
 
+## 前端的時間軸與時間序列圖（#99）
+主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
+
+- **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`TIMELINE_SPEEDS`：1、4、12）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板原本的 Month 滑桿也讀寫這個 context。
+- **播放**：provider 裡一個 `setTimeout` 鏈，每 1000 ÷ speed 毫秒前進一個月，到最後一個月自動停；在最後一個月按播放會從第一個月重來。粒子圖層本來就在 `useFrame` 裡讀 `intensity`，換月只是換 props，不重建幾何。系統開「減少動態效果」時 `?play=1` 不自動播放（手動按仍可）。鍵盤（`TimelineBar.tsx`）：空白鍵播放／暫停、左右鍵前後一個月；焦點在 input、select、textarea、button、連結上時不攔截。
+- **純函式（都有測試）**：`timelineMath.ts`（月份與索引、播放的下一格、`?month` 解析）、`seriesMath.ts`（對齊到時間軸月份、距平、移動平均、趨勢線、距平條、已知跳變月份）、`chartGeometry.ts`（座標換算、刻度、缺月斷線的 path、滑鼠位置換月份）。
+- **距平**：優先用 `data/analysis/anomalies.json`（`loadAnomalies.ts`；被清洗排除的月份是 null）；沒有該序列時才用 `calendarAnomalies`（減去同一日曆月的平均，沒有覆蓋率篩選）。
+- **趨勢線怎麼畫**：`trends.json` 只有斜率與信賴區間、沒有截距。最小平方法的直線必過（平均時間，平均值），所以 `trendLine` 用斜率通過「有納入分析的月份」的平均點重建；Monthly values 與 12-month running mean 模式下線畫在月值的平均高度、斜率仍是距平的斜率。色帶是信賴區間上下界的斜率通過同一點的兩條線，只代表斜率的不確定性，不是預測區間（圖下有註明）。
+- **12-month running mean** 是置中的 12 個月平均（前 6、後 5），視窗內 12 個月都有值才畫，缺月不會被連過去。
+- **距平條**（時間軸滑桿上方）：跟著時間序列圖的變數，沒開圖時用第一個開著的圖層；高度除以絕對距平的第 98 百分位數（`STRIP_QUANTILE`）。已知跳變月份來自該序列在 `trends.json` 的 `known_issues` → 最上層 `known_issues[*].break_months`（源頭是 `data/seed/cleaning.json`），圖上與距平條上都畫虛線。`web/src/analysis/trendCaveats.ts` 有警語的變數照樣顯示 `TrendCaveatNote`。
+- **版面**：CSS 類別一律 `timeline-` 前綴，集中在 `index.css` 最後一段；時間軸列的位置與高度是 `.app` 上的 `--timeline-bottom`、`--timeline-height`，其他面板要避開它就用這兩個變數。寬螢幕時圖在左側面板；1180px 以下時間軸列與圖改靠左、讓出右側圖層面板；700px 以下滿寬。
+- 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有 5 個台灣點位的 `point` 序列；觸控裝置上沒有 hover，點一下就是跳到該月。
+
 ## 前端的全球趨勢地圖（#72）
 主畫面上方的「Global trend map」選單（預設 Off；選項名稱是 `trendMapConfig.ts` 的 `label`，與 `meta.json` 的 `name_en` 相同、帶產品簡稱）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。
 
