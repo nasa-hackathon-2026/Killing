@@ -61,6 +61,15 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 每條序列的原始回應存到 `data/raw/giovanni/<變數>__<地點>.csv`（不進 git），之後建 SQLite 的來源表用（#26）。
 - 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 README「原始資料」。
 
+## SQLite 匯出
+同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
+
+- 重建：`uv run python -m trend_detective.sqlite_export`，約 2 秒，產生 `data/sqlite/trend_detective.sqlite`（約 30 MB，不進 git）。每次都從頭重建，冪等。
+- 輸入是 `data/snapshot/`（統一表與對照表）加 `data/raw/`（各來源表）。只有快照、沒有 `data/raw/` 的機器也能建，來源表會是空的。
+- 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`。用途見 `src/trend_detective/sqlite_export.py` 開頭與 README。
+- 新增資料來源時：在 `SOURCE_TABLES` 加一筆、在 `SCHEMA` 加來源表、寫一個 `_insert_<來源>`，並補測試。AppEEARS（MODIS）的來源表等 #10 一起加。
+- `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。
+
 ## Agent skills
 
 `setup-matt-pocock-skills` 的設定已預先完成，不需要重跑；重跑會在 `CLAUDE.md` 產生重複的區塊。

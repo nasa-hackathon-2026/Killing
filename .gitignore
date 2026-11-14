@@ -18,3 +18,6 @@ data/raw/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+
+# SQLite 匯出檔（由 trend_detective.sqlite_export 重建，含各來源的原始粒度資料，不進 git）
+data/sqlite/

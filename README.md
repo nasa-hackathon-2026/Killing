@@ -63,3 +63,38 @@ uv run python -m trend_detective.appeears download  # 完成後取回統計 CSV
 需要本機 `.env` 裡的 `APPEEARS_TOKEN`：用 Earthdata Login 帳密呼叫 AppEEARS 的 `POST /login` 取得，約 48 小時到期。AppEEARS 不接受 EDL 的 `EARTHDATA_TOKEN`（2026-11-14 實測回 403）。
 
 LST（8 日合成）從 2001 年起一次送會超過 AppEEARS 的檔案數上限（2026-11-14 實測超出 18.1%），所以切成 2001–2013、2014–今兩個 task；轉序列檔時（#10）要把兩份統計 CSV 接起來。
+
+## 用 SQL 查資料
+
+快照之外，同一批資料也可以整理成一個 SQLite 檔，方便用 SQL 查、並從統一表追回每個來源的原始資料。公開 demo 不讀它。
+
+```bash
+uv run python -m trend_detective.sqlite_export
+```
+
+會產生 `data/sqlite/trend_detective.sqlite`（約 30 MB，不進 git：它含各來源原始時間粒度的資料，每次重建整個檔都會變）。
+
+| 表 | 每列是什麼 | 用途 |
+|---|---|---|
+| `observations` | 變數 × 地點 × 聚合方式 × 月份 | **統一表**，內容與 `data/snapshot/series/` 的序列檔相同 |
+| `series` | 一條序列 | 來源、查詢參數、實際網格座標，以及它對應哪一張來源表（`source_table`） |
+| `variables`、`locations` | 一個變數、一個地點 | 目錄檔的對照表（中文名、定義、單位、bbox…） |
+| `src_giovanni` | Giovanni 單點的一筆原始值（月或日） | 追溯點位序列 |
+| `src_harmony` | Harmony 區域平均的一筆原始值（月或日） | 追溯區域平均序列 |
+| `src_nasa_power` | NASA POWER 的一個原始鍵（含年平均 `YYYY13`） | 追溯 `power_t2m` |
+| `src_noaa_ghcnh` | 測站當地日的日平均與觀測筆數 | 追溯測站月均溫（不含逐時原始值） |
+
+來源表都有 `variable_id`、`location_id`，可以對回 `observations`。例如確認台中 2020-07 的臭氧月值是哪幾天平均出來的：
+
+```sql
+SELECT o.month, o.value AS monthly, AVG(g.value) AS from_daily, COUNT(g.value) AS days
+FROM observations o
+JOIN src_giovanni g
+  ON g.variable_id = o.variable_id AND g.location_id = o.location_id
+ AND substr(g.timestamp, 1, 7) = substr(o.month, 1, 7)
+WHERE o.variable_id = 'omi_o3' AND o.location_id = 'taichung'
+  AND o.aggregation = 'point' AND o.month = '2020-07-01';
+-- 2020-07-01 | 275.383 | 275.383 | 23
+```
+
+限制：單位沒有換算（`merra2_t2m` 是 K、`power_t2m` 是 C、`station_temp` 是 degC），跨變數比較要自己換算；MODIS（AppEEARS）的來源表還沒有，等統計 CSV 下載後再加。
