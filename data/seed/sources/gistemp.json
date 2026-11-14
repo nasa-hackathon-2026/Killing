@@ -1,0 +1,67 @@
+{
+  "source": "gistemp",
+  "name_en": "GISS Surface Temperature Analysis (GISTEMP) v4",
+  "provider": "NASA Goddard Institute for Space Studies (GISS)",
+  "url": "https://data.giss.nasa.gov/gistemp/",
+  "data_downloads": "https://data.giss.nasa.gov/gistemp/data_v4.html",
+  "data_kind": "in_situ",
+  "data_kind_note": "Gridded analysis of station (NOAA GHCN v4, homogenized) and ship/buoy (NOAA ERSST v5) observations, with spatial interpolation (smoothing radius 1200 km or 250 km); it is not a single-point measurement. The 250 km land-only product uses stations only.",
+  "citation": [
+    "GISTEMP Team, 2026: GISS Surface Temperature Analysis (GISTEMP), version 4. NASA Goddard Institute for Space Studies. Dataset accessed 2026-11-14 at https://data.giss.nasa.gov/gistemp/.",
+    "Lenssen, N., G.A. Schmidt, M. Hendrickson, P. Jacobs, M. Menne, and R. Ruedy, 2024: A GISTEMPv4 observational uncertainty ensemble. J. Geophys. Res. Atmos., 129, no. 17, e2023JD040179, doi:10.1029/2023JD040179."
+  ],
+  "doi": "10.1029/2023JD040179",
+  "doi_note": "DOI of the publication the GISTEMP page asks to cite; the dataset itself has no DOI on that page.",
+  "is_nasa": true,
+  "baseline": "1951-1980",
+  "variables": [
+    {
+      "id": "gistemp_anom",
+      "name_en": "Surface temperature anomaly, land and ocean (GISTEMP v4, 1200 km smoothing)",
+      "unit": "K",
+      "product": "gistemp1200_GHCNv4_ERSSTv5",
+      "product_version": "v4",
+      "native_temporal_res": "month",
+      "baseline": "1951-1980",
+      "aggregations": {
+        "point": "2°x2° grid cell containing the location (not a station measurement)",
+        "area_mean": "official global and hemispheric means (GLB/NH/SH.Ts+dSST.csv)"
+      },
+      "data_kind": "in_situ"
+    },
+    {
+      "id": "gistemp_land_anom",
+      "name_en": "Surface air temperature anomaly, land stations only (GISTEMP v4, 250 km smoothing)",
+      "unit": "K",
+      "product": "gistemp250_GHCNv4",
+      "product_version": "v4",
+      "native_temporal_res": "month",
+      "baseline": "1951-1980",
+      "aggregations": {
+        "point": "2°x2° grid cell containing the location; cells with no station within 250 km are missing"
+      },
+      "data_kind": "in_situ"
+    }
+  ],
+  "locations": "every kind=point location in data/seed/locations.json and data/seed/locations.world.json (aggregation point); global (aggregation area_mean)",
+  "new_locations": [
+    {
+      "id": "northern_hemisphere",
+      "kind": "region",
+      "group": "global",
+      "name_zh": "北半球",
+      "name_en": "Northern Hemisphere",
+      "bbox": [-180, 0, 180, 90],
+      "note_zh": "GISTEMP 官方的北半球平均（NH.Ts+dSST.csv）；bbox 只是標示範圍，值不是由 bbox 重算。"
+    },
+    {
+      "id": "southern_hemisphere",
+      "kind": "region",
+      "group": "global",
+      "name_zh": "南半球",
+      "name_en": "Southern Hemisphere",
+      "bbox": [-180, -90, 180, 0],
+      "note_zh": "GISTEMP 官方的南半球平均（SH.Ts+dSST.csv）；bbox 只是標示範圍，值不是由 bbox 重算。"
+    }
+  ]
+}
