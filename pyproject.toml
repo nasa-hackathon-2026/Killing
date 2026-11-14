@@ -5,6 +5,8 @@ description = "Earth System Trend Detective 的資料層：把 NASA 時間序列
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.28.1",
+    "numpy>=2.4.6",
+    "rasterio>=1.4.4",
 ]
 
 [build-system]

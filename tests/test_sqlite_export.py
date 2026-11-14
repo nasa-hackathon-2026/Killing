@@ -283,3 +283,55 @@ def test_appeears_series_trace_back_to_per_composite_statistics(tmp_path: Path):
         "SELECT date, pixel_count, mean FROM src_appeears WHERE location_id = 'taiwan' ORDER BY date LIMIT 1",
     ) == [("2001-01-01", 46822, 0.6766119)]
     assert series_without_source_rows(db_path) == []
+
+
+def test_planetary_computer_series_trace_back_to_per_composite_statistics(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw"
+    stats = raw / "planetary_computer" / "modis_lst_pc" / "stats.csv"
+    stats.parent.mkdir(parents=True)
+    stats.write_text(
+        "date,location_id,asset,count,mean,standard_deviation,minimum,maximum,"
+        "pixels_in_bbox,tiles,item_ids\n"
+        "2020-01-01,taiwan,LST_Day_1km,100,290.0,1.5,280.0,300.0,400,h28v06;h29v06,A.h28;A.h29\n"
+        "2020-01-09,taiwan,LST_Day_1km,0,,,,,400,h29v06,B.h29\n",
+        encoding="utf-8",
+    )
+    lst = {
+        "id": "modis_lst_pc",
+        "source": "planetary_computer",
+        "source_variable_id": "LST_Day_1km",
+        "pc_collection": "modis-11A2-061",
+        "product": "MOD11A2.061",
+        "product_version": "061",
+        "native_temporal_res": "8day",
+        "is_nasa": True,
+        "unit": "K",
+        "valid_range": [270, 330],
+    }
+    snapshot_dir = tmp_path / "snapshot"
+    build_snapshot(
+        None,
+        snapshot_dir,
+        [lst],
+        [LOCATIONS[2]],
+        planetary_computer_dir=raw / "planetary_computer",
+        **RUN,
+    )
+    db_path = tmp_path / "trend.sqlite"
+
+    build_database(snapshot_dir, raw, db_path)
+
+    assert _query(db_path, "SELECT source_table FROM series") == [
+        ("src_planetary_computer",)
+    ]
+    assert _query(
+        db_path,
+        "SELECT date, pixel_count, mean, pixels_in_bbox, tiles, item_ids "
+        "FROM src_planetary_computer WHERE location_id = 'taiwan' ORDER BY date",
+    ) == [
+        ("2020-01-01", 100, 290.0, 400, "h28v06;h29v06", "A.h28;A.h29"),
+        ("2020-01-09", 0, None, 400, "h29v06", "B.h29"),
+    ]
+    assert series_without_source_rows(db_path) == []

@@ -12,6 +12,7 @@
     src_nasa_power   NASA POWER 的原始鍵（含年平均鍵 YYYY13）
     src_noaa_ghcnh   測站當地日的日平均與觀測筆數（逐時原始值不收）
     src_appeears     AppEEARS（MODIS）每個合成期的區域統計量：平均、標準差、像元數…
+    src_planetary_computer   Planetary Computer（MODIS）每個合成期的區域統計量，本機算出
 
 來源表都有 (variable_id, location_id)，可以對回 observations 與 series。
 公開 demo 只讀靜態 JSON，不讀這個檔；它是給隊員與評審用 SQL 查的。
@@ -24,7 +25,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from trend_detective import ghcnh
+from trend_detective import ghcnh, planetary_computer
 from trend_detective.giovanni import parse_timeseries_csv
 from trend_detective.harmony import parse_area_csv
 from trend_detective.snapshot import (
@@ -41,6 +42,7 @@ SOURCE_TABLES = {
     "nasa_power": "src_nasa_power",
     "noaa_ghcnh": "src_noaa_ghcnh",
     "appeears": "src_appeears",
+    "planetary_computer": "src_planetary_computer",
 }
 
 SCHEMA = """
@@ -96,6 +98,12 @@ CREATE TABLE src_appeears (
     minimum REAL, maximum REAL, median REAL,
     PRIMARY KEY (variable_id, location_id, date)
 );
+CREATE TABLE src_planetary_computer (
+    variable_id TEXT NOT NULL, location_id TEXT NOT NULL, date TEXT NOT NULL,
+    asset TEXT, pixel_count INTEGER, mean REAL, standard_deviation REAL,
+    minimum REAL, maximum REAL, pixels_in_bbox INTEGER, tiles TEXT, item_ids TEXT,
+    PRIMARY KEY (variable_id, location_id, date)
+);
 CREATE INDEX observations_by_month ON observations(month);
 """
 
@@ -127,6 +135,9 @@ def build_database(snapshot_dir: Path, raw_dir: Path, db_path: Path) -> dict[str
         _insert_power(db, all_series, raw_dir / "power")
         _insert_ghcnh(db, all_series, raw_dir / "ghcnh")
         _insert_appeears(db, catalog, all_series, raw_dir / "appeears")
+        _insert_planetary_computer(
+            db, all_series, raw_dir / planetary_computer.SOURCE_DIR
+        )
         violations = db.execute("PRAGMA foreign_key_check").fetchall()
         if violations:
             raise ValueError(f"資料庫的外鍵對不上：{violations[:5]}")
@@ -399,6 +410,44 @@ def _insert_appeears(
                     for row in rows
                 ],
             )
+
+
+def _insert_planetary_computer(
+    db: sqlite3.Connection, all_series: list[dict[str, Any]], raw: Path
+) -> None:
+    """每個合成期的區域統計量，以及用到的 tile 與 item（`stats.csv` 的內容）。"""
+    for s in _of(all_series, "planetary_computer"):
+        path = raw / s["variable_id"] / planetary_computer.STATS_FILE
+        if not path.exists():
+            continue  # 這台機器沒有原始統計檔：來源表留空
+
+        def number(text: str) -> float | None:
+            return float(text) if text else None
+
+        db.executemany(
+            "INSERT INTO src_planetary_computer VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                (
+                    s["variable_id"],
+                    s["location_id"],
+                    row["date"],
+                    row["asset"],
+                    int(row["count"]),
+                    number(row["mean"]),
+                    number(row["standard_deviation"]),
+                    number(row["minimum"]),
+                    number(row["maximum"]),
+                    int(row["pixels_in_bbox"]),
+                    row["tiles"],
+                    row["item_ids"],
+                )
+                for (_, location_id), row in sorted(
+                    planetary_computer.read_stats(path).items()
+                )
+                if location_id == s["location_id"]
+                and row["asset"] == s["request"]["asset"]
+            ],
+        )
 
 
 def main(argv: list[str] | None = None) -> int:

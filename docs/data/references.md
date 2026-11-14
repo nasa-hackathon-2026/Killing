@@ -13,4 +13,6 @@ Generated from `data/snapshot/catalog.json` and `pyproject.toml`. Do not edit by
 Python packages the data pipeline depends on:
 
 - `httpx>=0.28.1`
+- `numpy>=2.4.6`
+- `rasterio>=1.4.4`
 - Python standard library (`sqlite3`, `csv`, `json`)

@@ -1110,3 +1110,115 @@ def test_parts_whose_date_ranges_overlap_are_rejected(tmp_path: Path):
     )
 
     assert "重複的日期" in result.failures[("modis_ndvi", "taiwan")]
+
+
+LST_PC = {
+    "id": "modis_lst_pc",
+    "source": "planetary_computer",
+    "source_variable_id": "LST_Day_1km",
+    "pc_collection": "modis-11A2-061",
+    "pc_item_prefix": "MOD11A2.",
+    "product": "MOD11A2.061",
+    "product_version": "061",
+    "native_temporal_res": "8day",
+    "is_nasa": True,
+    "unit": "K",
+    "valid_range": [270, 330],
+}
+PC_STATS_HEADER = (
+    "date,location_id,asset,count,mean,standard_deviation,minimum,maximum,"
+    "pixels_in_bbox,tiles,item_ids"
+)
+
+
+def _pc_stats(raw: Path, *rows: str) -> None:
+    path = raw / "modis_lst_pc" / "stats.csv"
+    path.parent.mkdir(parents=True)
+    path.write_text("\n".join([PC_STATS_HEADER, *rows]) + "\n", encoding="utf-8")
+
+
+def test_planetary_computer_statistics_become_monthly_area_mean_series(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw" / "planetary_computer"
+    _pc_stats(
+        raw,
+        "2020-01-01,taiwan,LST_Day_1km,100,290.0,1.0,280.0,300.0,400,h28v06;h29v06,A.h28;A.h29",
+        "2020-01-09,taiwan,LST_Day_1km,50,292.0,1.0,280.0,300.0,400,h28v06;h29v06,B.h28;B.h29",
+        # 整個合成期都被雲蓋住：沒有值
+        "2020-01-17,taiwan,LST_Day_1km,0,,,,,400,h28v06;h29v06,C.h28;C.h29",
+        "2020-02-02,taiwan,LST_Day_1km,80,295.0,1.0,280.0,300.0,400,h28v06;h29v06,D.h28;D.h29",
+        # 少了西邊 tile 的合成期：只涵蓋區域的一部分，不採用
+        "2020-02-10,taiwan,LST_Day_1km,60,299.0,1.0,280.0,300.0,300,h29v06,E.h29",
+    )
+
+    result = build_snapshot(
+        None,
+        tmp_path / "snap",
+        [LST_PC],
+        [TAIWAN],
+        planetary_computer_dir=raw,
+        **RUN,
+    )
+
+    assert result.failures == {}
+    series = json.loads(
+        (tmp_path / "snap/series/modis_lst_pc__taiwan__area_mean.json").read_text()
+    )
+    assert series["source_api"] == "planetary_computer"
+    assert series["unit"] == "K"
+    # 一月：兩個有值的合成期平均；coverage = (100/100 + 50/100 + 0) ÷ 3
+    # 二月：只採用完整的那一期；coverage = (80/100 + 0) ÷ 2
+    assert series["points"] == [
+        {"month": "2020-01-01", "value": 291.0, "n_samples": 2, "coverage": 0.5},
+        {"month": "2020-02-01", "value": 295.0, "n_samples": 1, "coverage": 0.4},
+    ]
+    assert series["request"] == {
+        "stac_api": "https://planetarycomputer.microsoft.com/api/stac/v1",
+        "collection": "modis-11A2-061",
+        "item_id_prefix": "MOD11A2.",
+        "product": "MOD11A2.061",
+        "asset": "LST_Day_1km",
+        "bbox": TAIWAN["bbox"],
+        "tiles": ["h28v06", "h29v06"],
+        "n_items": 9,
+        "n_composites": 5,
+        "n_incomplete_composites": 1,
+    }
+    catalog = json.loads((tmp_path / "snap/catalog.json").read_text())
+    assert [s["variable_id"] for s in catalog["series"]] == ["modis_lst_pc"]
+
+
+def test_planetary_computer_value_outside_valid_range_fails_the_variable(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw" / "planetary_computer"
+    # 忘了乘 scale factor 的原始值
+    _pc_stats(raw, "2020-01-01,taiwan,LST_Day_1km,100,14500.0,1,1,1,400,h29v06,A")
+
+    result = build_snapshot(
+        None,
+        tmp_path / "snap",
+        [LST_PC],
+        [TAIWAN],
+        planetary_computer_dir=raw,
+        **RUN,
+    )
+
+    assert "超出合理範圍" in result.failures[("modis_lst_pc", "taiwan")]
+    assert not (tmp_path / "snap/series").exists()
+
+
+def test_planetary_computer_without_fetched_statistics_reports_what_to_run(
+    tmp_path: Path,
+):
+    result = build_snapshot(
+        None,
+        tmp_path / "snap",
+        [LST_PC],
+        [TAIWAN],
+        planetary_computer_dir=tmp_path / "raw" / "planetary_computer",
+        **RUN,
+    )
+
+    assert "planetary_computer fetch" in result.failures[("modis_lst_pc", "taiwan")]

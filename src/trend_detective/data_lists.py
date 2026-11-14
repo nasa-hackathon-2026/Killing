@@ -25,6 +25,10 @@ ACCESS = {
     ("nasa_power", "point"): "NASA POWER Monthly API (point)",
     ("appeears", "area_mean"): "NASA AppEEARS area request (area statistics)",
     ("noaa_ghcnh", "station"): "AWS Open Data (NOAA NODD)",
+    ("planetary_computer", "area_mean"): (
+        "Accessed via Microsoft Planetary Computer (STAC API, cloud-optimized GeoTIFF); "
+        "area statistics computed locally"
+    ),
 }
 
 

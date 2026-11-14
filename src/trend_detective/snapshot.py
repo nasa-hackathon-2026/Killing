@@ -20,7 +20,7 @@ from typing import Any
 
 import httpx
 
-from trend_detective import appeears_stats, ghcnh, power
+from trend_detective import appeears_stats, ghcnh, planetary_computer, power
 from trend_detective.data_lists import OUT_DIR as LISTS_DIR
 from trend_detective.data_lists import write_lists
 from trend_detective.env import read_secret
@@ -55,7 +55,14 @@ STATION_START_YEAR = 2000
 STATION_UTC_OFFSET_HOURS = 8
 # 靠海點位被遮罩時，最多往內陸移幾格
 MAX_INLAND_STEPS = 2
-SOURCES = ("giovanni", "harmony", "noaa_ghcnh", "nasa_power", "appeears")
+SOURCES = (
+    "giovanni",
+    "harmony",
+    "noaa_ghcnh",
+    "nasa_power",
+    "appeears",
+    "planetary_computer",
+)
 # 區域平均一次同時跑幾個 Harmony job，以及每個 job 最多等多久
 HARMONY_BATCH = 6
 HARMONY_POLL_SECONDS = 10
@@ -146,6 +153,7 @@ def build_snapshot(
     sleep: Callable[[float], None] = time.sleep,
     stamp: bool = False,
     appeears_dir: Path | None = None,
+    planetary_computer_dir: Path | None = None,
 ) -> SnapshotResult:
     """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
@@ -214,6 +222,10 @@ def build_snapshot(
         )
     if appeears_dir is not None:
         _appeears_series(appeears_dir, snapshot_dir, variables, regions, now, result)
+    if planetary_computer_dir is not None:
+        _planetary_computer_series(
+            planetary_computer_dir, snapshot_dir, variables, regions, now, result
+        )
     variable_ids = {variable["id"] for variable in variables}
     location_ids = {location["id"] for location in locations}
     all_series = [
@@ -512,6 +524,80 @@ def _appeears_series(
                     result.failures[key] = f"{type(err).__name__}: {err}"
 
 
+def _planetary_computer_series(
+    source_dir: Path,
+    snapshot_dir: Path,
+    variables: list[dict[str, Any]],
+    regions: list[dict[str, Any]],
+    now: str,
+    result: SnapshotResult,
+) -> None:
+    """把 `planetary_computer fetch` 算好的 `stats.csv` 轉成區域月序列。不連網。
+
+    轉月的算法與 AppEEARS 來源相同（`composites_to_monthly_points`），兩邊才能對照。
+    """
+    for variable in variables:
+        if variable["source"] != "planetary_computer":
+            continue
+        keys = [(variable["id"], region["id"]) for region in regions]
+        try:
+            stats_path = source_dir / variable["id"] / planetary_computer.STATS_FILE
+            if not stats_path.exists():
+                raise ValueError(f"{stats_path} 不存在；先跑 planetary_computer fetch")
+            asset = variable["source_variable_id"]
+            rows_by_region, used = planetary_computer.stat_rows(stats_path, asset)
+            low, high = variable["valid_range"]
+            ready: list[Series] = []
+            for region in regions:
+                rows = rows_by_region.get(region["id"], [])
+                if not rows:
+                    raise ValueError(f"stats.csv 裡沒有區域 {region['id']}")
+                bad = [
+                    r.mean
+                    for r in rows
+                    if r.mean is not None and not low <= r.mean <= high
+                ]
+                if bad:
+                    raise ValueError(
+                        f"{region['id']} 有 {len(bad)} 個值超出合理範圍 [{low}, {high}]，例如 {bad[0]}"
+                    )
+                ready.append(
+                    Series(
+                        variable_id=variable["id"],
+                        location_id=region["id"],
+                        aggregation="area_mean",
+                        unit=variable["unit"],
+                        source_api="planetary_computer",
+                        request={
+                            "stac_api": planetary_computer.STAC_URL,
+                            "collection": variable["pc_collection"],
+                            "item_id_prefix": variable.get("pc_item_prefix"),
+                            "product": variable["product"],
+                            "asset": asset,
+                            "bbox": region["bbox"],
+                            "tiles": used[region["id"]]["tiles"],
+                            "n_items": used[region["id"]]["n_items"],
+                            "n_composites": len(rows),
+                            "n_incomplete_composites": used[region["id"]][
+                                "n_incomplete_composites"
+                            ],
+                        },
+                        retrieved_at=now,
+                        product_version=variable["product_version"],
+                        grid=None,
+                        points=appeears_stats.composites_to_monthly_points(rows),
+                    )
+                )
+            # 全部區域都驗證通過才寫，免得同一變數的區域新舊混雜
+            for series in ready:
+                result.written.append(write_series(snapshot_dir, series))
+                result.succeeded.append((series.variable_id, series.location_id))
+        except Exception as err:  # noqa: BLE001 單一變數失敗不中斷整批
+            for key in keys:
+                if key not in result.succeeded:
+                    result.failures[key] = f"{type(err).__name__}: {err}"
+
+
 def appeears_rows(
     variable_dir: Path, variable: dict[str, Any]
 ) -> tuple[dict[str, list[appeears_stats.StatRow]], list[dict[str, str]]]:
@@ -774,6 +860,9 @@ def main(argv: list[str] | None = None) -> int:
         power_http=httpx.Client(timeout=120) if "nasa_power" in sources else None,
         harmony_client=HarmonyClient(token) if token and "harmony" in sources else None,
         appeears_dir=args.raw_dir / "appeears" if "appeears" in sources else None,
+        planetary_computer_dir=args.raw_dir / planetary_computer.SOURCE_DIR
+        if "planetary_computer" in sources
+        else None,
         # 快照日（generated_at）只在「全部來源都跑、沒有略過」時更新，就算資料沒變；
         # 只重抓部分來源時快照日不動，免得讓人以為全部重抓過
         stamp=not args.source and not skipped,

@@ -293,6 +293,56 @@
       "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。",
       "valid_from": null,
       "valid_to": null
+    },
+    {
+      "id": "modis_lst_pc",
+      "name_zh": "地表溫度",
+      "name_en": "Daytime land surface temperature (MODIS Terra, via Planetary Computer)",
+      "definition_zh": "衛星量到的地面本身有多熱（不是空氣溫度），這裡是白天約上午十點半衛星經過時的值，單位是絕對溫度 K。",
+      "category": "能量（地面）",
+      "source": "planetary_computer",
+      "source_variable_id": "LST_Day_1km",
+      "pc_collection": "modis-11A2-061",
+      "pc_item_prefix": "MOD11A2.",
+      "product": "MOD11A2.061",
+      "product_version": "061",
+      "native_temporal_res": "8day",
+      "is_nasa": true,
+      "unit": "K",
+      "valid_range": [
+        270,
+        330
+      ],
+      "doi": "10.5067/MODIS/MOD11A2.061",
+      "citation": "Wan, Z., Hook, S., & Hulley, G. (2021). MODIS/Terra Land Surface Temperature/Emissivity 8-Day L3 Global 1km SIN Grid V061 [Data set]. NASA EOSDIS Land Processes DAAC. https://doi.org/10.5067/MODIS/MOD11A2.061. Accessed via Microsoft Planetary Computer.",
+      "note_zh": "與 modis_lst 是同一個 NASA 產品（MOD11A2.061，Terra），但這一份經 Microsoft Planetary Computer 取得、在本機算區域平均；AppEEARS 版本（modis_lst）分開存，兩者的區域裁切方式不同，不要接成同一條線。區域平均：像元中心落在區域 bbox 內、有值的 1 km 像元取平均（值已套用檔案 metadata 的 scale factor 0.02，fill value 0 不算；未經 QA 過濾）。8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空的陸地像元有值，coverage 是有值像元數 ÷ 這個區域出現過的最大有值像元數，多雲月份會偏低。",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "modis_ndvi_pc",
+      "name_zh": "植生綠度",
+      "name_en": "Vegetation greenness, NDVI (MODIS Terra 250 m 16-day, via Planetary Computer)",
+      "definition_zh": "衛星看到的地面有多綠：植物越茂密、越健康，數字越接近 1；裸地、都市接近 0，水面是負的。沒有單位。",
+      "category": "植物",
+      "source": "planetary_computer",
+      "source_variable_id": "250m_16_days_NDVI",
+      "pc_collection": "modis-13Q1-061",
+      "pc_item_prefix": "MOD13Q1.",
+      "product": "MOD13Q1.061",
+      "product_version": "061",
+      "native_temporal_res": "16day",
+      "is_nasa": true,
+      "unit": "1",
+      "valid_range": [
+        -1,
+        1
+      ],
+      "doi": "10.5067/MODIS/MOD13Q1.061",
+      "citation": "Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061 [Data set]. NASA EOSDIS Land Processes DAAC. https://doi.org/10.5067/MODIS/MOD13Q1.061. Accessed via Microsoft Planetary Computer.",
+      "note_zh": "經 Microsoft Planetary Computer 取得的 MOD13Q1.061（Terra，250 m、16 日合成），在本機算區域平均。與 modis_ndvi（AppEEARS 的 MOD13A3.061，1 km 月合成）是不同產品、不同解析度，分開存，不要接成同一條線。區域平均：像元中心落在區域 bbox 內、有值的像元取平均（原始值 × 0.0001；檔案 metadata 把 scale_factor 寫成除數 10000，與 STAC 宣告的 0.0001 互為倒數；fill value -3000 不算；未經 QA 過濾，含被雲影響的像元，海面多半沒有值）。16 日合成依起始日歸月後取平均，n_samples 是當月有值的合成期數（1 或 2）；coverage 是有值像元數 ÷ 這個區域出現過的最大有值像元數。",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-09-01"
     }
   ],
   "locations": [
@@ -1205,6 +1255,51 @@
       "last_month": "2026-09-01"
     },
     {
+      "variable_id": "modis_lst_pc",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst_pc__central__area_mean.json",
+      "n_points": 305,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_lst_pc",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst_pc__east__area_mean.json",
+      "n_points": 305,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_lst_pc",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst_pc__north__area_mean.json",
+      "n_points": 305,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_lst_pc",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst_pc__south__area_mean.json",
+      "n_points": 305,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_lst_pc",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/modis_lst_pc__taiwan__area_mean.json",
+      "n_points": 305,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
       "variable_id": "modis_ndvi",
       "location_id": "central",
       "aggregation": "area_mean",
@@ -1246,6 +1341,51 @@
       "aggregation": "area_mean",
       "file": "series/modis_ndvi__taiwan__area_mean.json",
       "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi_pc",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi_pc__central__area_mean.json",
+      "n_points": 306,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi_pc",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi_pc__east__area_mean.json",
+      "n_points": 306,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi_pc",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi_pc__north__area_mean.json",
+      "n_points": 306,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi_pc",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi_pc__south__area_mean.json",
+      "n_points": 306,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi_pc",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi_pc__taiwan__area_mean.json",
+      "n_points": 306,
       "first_month": "2001-01-01",
       "last_month": "2026-10-01"
     },
@@ -1566,7 +1706,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T11:38:48Z",
+    "generated_at": "2026-11-14T12:35:42Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",
@@ -1581,7 +1721,9 @@
       "station_temp": "2026-10-01",
       "power_t2m": "2026-09-01",
       "modis_ndvi": "2026-10-01",
-      "modis_lst": null
+      "modis_lst": null,
+      "modis_lst_pc": "2026-10-01",
+      "modis_ndvi_pc": "2026-09-01"
     }
   }
 }
