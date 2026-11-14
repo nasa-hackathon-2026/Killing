@@ -49,5 +49,23 @@
     "lat": 23.47,
     "lon": 120.95,
     "note_zh": "高山對照點。"
+  },
+  {
+    "id": "taichung_station",
+    "kind": "point",
+    "name_zh": "臺中測站",
+    "name_en": "Taichung (CWA / WMO 59158)",
+    "lat": 24.15,
+    "lon": 120.68,
+    "ghcnh_id": "CHM00059158"
+  },
+  {
+    "id": "taipei_station",
+    "kind": "point",
+    "name_zh": "臺北測站",
+    "name_en": "Taipei (CWA / WMO 58968)",
+    "lat": 25.04,
+    "lon": 121.51,
+    "ghcnh_id": "CHM00058968"
   }
 ]

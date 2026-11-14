@@ -238,8 +238,7 @@ def test_seed_lists_ten_giovanni_variables_and_five_points_with_student_facing_t
         assert (
             variable["name_zh"] and variable["definition_zh"] and variable["category"]
         )
-        assert variable["native_temporal_res"] in {"month", "day"}
-    assert [loc["id"] for loc in locations] == [
+    assert [loc["id"] for loc in locations if "ghcnh_id" not in loc] == [
         "taichung",
         "taipei",
         "kaohsiung",
@@ -329,3 +328,94 @@ def test_only_giovanni_variables_are_fetched_from_giovanni(tmp_path: Path):
 
     assert result.succeeded == [("imerg_precip", "taichung")]
     assert result.failures == {}
+
+
+STATION_FIXTURE = Path(__file__).parent / "fixtures" / "ghcnh_taichung_2025_sample.psv"
+STATION_TEMP = {
+    "id": "station_temp",
+    "source": "noaa_ghcnh",
+    "source_variable_id": "temperature",
+    "product_version": "GHCNh",
+    "native_temporal_res": "hour",
+    "is_nasa": False,
+}
+TAICHUNG_STATION = {
+    "id": "taichung_station",
+    "kind": "point",
+    "lat": 24.15,
+    "lon": 120.68,
+    "ghcnh_id": "CHM00059158",
+}
+
+
+def _station_http(requested: list[str]) -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested.append(request.url.path)
+        if request.url.path.endswith("GHCNh_CHM00059158_2025.psv"):
+            return httpx.Response(200, text=STATION_FIXTURE.read_text(encoding="utf-8"))
+        return httpx.Response(404, text="NoSuchKey")
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_station_series_holds_only_monthly_values_marked_as_non_nasa_station_data(
+    tmp_path: Path,
+):
+    requested: list[str] = []
+
+    result = build_snapshot(
+        None,
+        tmp_path,
+        [PRECIP, STATION_TEMP],
+        [TAICHUNG, TAICHUNG_STATION],
+        station_http=_station_http(requested),
+        **RUN,
+    )
+
+    assert result.succeeded == [("station_temp", "taichung_station")]
+    assert len(requested) == 27  # 2000 到 2026 每年一個檔
+    path = tmp_path / "series" / "station_temp__taichung_station__station.json"
+    series = json.loads(path.read_text())
+    assert series["aggregation"] == "station"
+    assert series["unit"] == "degC"
+    assert series["request"]["station"] == "CHM00059158"
+    # fixture 只有 4 個當地日，不到 20 天門檻：有天數、沒有月平均
+    assert series["points"] == [
+        {"month": "2025-01-01", "value": None, "n_samples": 4, "coverage": 4 / 31}
+    ]
+    assert "|" not in path.read_text()  # 序列檔不含逐時原始資料
+
+
+def test_running_one_source_keeps_other_sources_series_in_the_catalog(tmp_path: Path):
+    build_snapshot(
+        _client(), tmp_path, [PRECIP, STATION_TEMP], [TAICHUNG, TAICHUNG_STATION], **RUN
+    )
+
+    build_snapshot(
+        None,
+        tmp_path,
+        [PRECIP, STATION_TEMP],
+        [TAICHUNG, TAICHUNG_STATION],
+        station_http=_station_http([]),
+        **RUN,
+    )
+
+    catalog = json.loads((tmp_path / "catalog.json").read_text())
+    assert [(s["variable_id"], s["aggregation"]) for s in catalog["series"]] == [
+        ("imerg_precip", "point"),
+        ("station_temp", "station"),
+    ]
+
+
+def test_past_years_are_read_from_the_raw_cache_instead_of_downloaded_again(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw"
+    args = (None, tmp_path / "snap", [STATION_TEMP], [TAICHUNG_STATION])
+    build_snapshot(*args, station_http=_station_http([]), raw_dir=raw, **RUN)
+    assert (raw / "ghcnh" / "GHCNh_CHM00059158_2025.psv").exists()
+
+    requested: list[str] = []
+    build_snapshot(*args, station_http=_station_http(requested), raw_dir=raw, **RUN)
+
+    assert not any("_2025.psv" in path for path in requested)

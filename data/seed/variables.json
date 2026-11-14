@@ -123,5 +123,19 @@
     "product_version": "003",
     "native_temporal_res": "day",
     "is_nasa": true
+  },
+  {
+    "id": "station_temp",
+    "name_zh": "測站月均溫",
+    "name_en": "Station air temperature (NOAA GHCNh)",
+    "definition_zh": "地面氣象站百葉箱裡的溫度計實際量到的氣溫，把每天的平均再平均成一個月，單位是攝氏度。",
+    "category": "能量",
+    "source": "noaa_ghcnh",
+    "source_variable_id": "temperature",
+    "product_version": "GHCNh",
+    "native_temporal_res": "hour",
+    "is_nasa": false,
+    "note_zh": "驗證層，不是 NASA 資料。只做氣溫：這兩站在 GHCNh 的降水欄位幾乎是空的，測站降水沒有做。當月有觀測的天數不到 20 天時不給月平均。",
+    "citation": "NOAA NCEI Global Historical Climatology Network – hourly (GHCNh)，accessed via AWS Open Data (NODD)，2026-11-14。原始觀測來自中央氣象署，經 WMO 交換；本 repo 只收錄月平均（衍生資料），供教育、非商業用途，不代表 NOAA 背書。"
   }
 ]

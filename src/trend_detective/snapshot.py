@@ -15,6 +15,9 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
+
+from trend_detective import ghcnh
 from trend_detective.env import read_secret
 from trend_detective.giovanni import (
     GiovanniClient,
@@ -35,8 +38,13 @@ SNAPSHOT_DIR = Path("data/snapshot")
 SEED_DIR = Path("data/seed")
 RAW_DIR = Path("data/raw")
 START_DATE = date(2001, 1, 1)
+# 測站序列從這一年起（#11）
+STATION_START_YEAR = 2000
+# 台灣測站的當地時間，用來把逐時觀測歸到當地日
+STATION_UTC_OFFSET_HOURS = 8
 # 靠海點位被遮罩時，最多往內陸移幾格
 MAX_INLAND_STEPS = 2
+SOURCES = ("giovanni", "noaa_ghcnh")
 
 Key = tuple[str, str]
 
@@ -95,19 +103,19 @@ def _fetch_unmasked(
     raise GiovanniError(f"格點被遮罩（整條都是缺值），最後嘗試的座標 [{lat},{lon}]")
 
 
-def _existing_series(
-    snapshot_dir: Path, variable_id: str, location_id: str
-) -> Series | None:
-    """讀先前寫出的序列檔；不存在、損毀或欄位與現行格式不合都當作沒有。"""
-    path = snapshot_dir / "series" / f"{variable_id}__{location_id}__point.json"
-    try:
-        return Series(**json.loads(path.read_text(encoding="utf-8")))
-    except (OSError, ValueError, TypeError):
-        return None
+def _series_on_disk(snapshot_dir: Path) -> list[Series]:
+    """讀出目前所有序列檔；損毀或欄位與現行格式不合的檔案略過。"""
+    found = []
+    for path in sorted((snapshot_dir / "series").glob("*.json")):
+        try:
+            found.append(Series(**json.loads(path.read_text(encoding="utf-8"))))
+        except (OSError, ValueError, TypeError):
+            continue
+    return found
 
 
 def build_snapshot(
-    client: GiovanniClient,
+    client: GiovanniClient | None,
     snapshot_dir: Path,
     variables: list[dict[str, Any]],
     locations: list[dict[str, Any]],
@@ -115,24 +123,41 @@ def build_snapshot(
     today: date,
     now: str,
     raw_dir: Path | None = None,
+    station_http: httpx.Client | None = None,
 ) -> SnapshotResult:
-    """抓每個變數在每個點位的序列並寫檔，最後寫目錄檔。
+    """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
-    抓取失敗的序列若先前已有檔案，檔案保留並照樣列在目錄檔。
-    quota 用完時整批停止（已寫的檔案保留）。
+    變數依 `source` 分派：`giovanni` 抓一般點位，`noaa_ghcnh` 抓有 `ghcnh_id` 的測站。
+    對應的 client 沒給（None）就略過該來源，既有的序列檔照樣列在目錄檔。
+    單一序列失敗不中斷整批，先前寫出的檔案保留；quota 用完時 Giovanni 之後的序列都不再送。
     """
     result = SnapshotResult()
-    all_series: list[Series] = []
     out_of_quota = False
+    points = [loc for loc in locations if "ghcnh_id" not in loc]
+    stations = [loc for loc in locations if "ghcnh_id" in loc]
     for variable in variables:
-        if variable["source"] != "giovanni":
+        source = variable["source"]
+        if source == "giovanni" and client is not None:
+            targets = points
+        elif source == "noaa_ghcnh" and station_http is not None:
+            targets = stations
+        else:
             continue
-        for location in locations:
+        for location in targets:
             key = (variable["id"], location["id"])
             try:
-                if out_of_quota:
-                    raise QuotaExceeded("quota 已達上限，未抓取")
-                series = _one_series(client, variable, location, today, now, raw_dir)
+                if source == "giovanni":
+                    if out_of_quota:
+                        raise QuotaExceeded("quota 已達上限，未抓取")
+                    assert client is not None
+                    series = _one_series(
+                        client, variable, location, today, now, raw_dir
+                    )
+                else:
+                    assert station_http is not None
+                    series = _station_series(
+                        station_http, variable, location, today, now, raw_dir
+                    )
                 result.written.append(write_series(snapshot_dir, series))
             except QuotaExceeded as err:
                 out_of_quota = True
@@ -141,13 +166,15 @@ def build_snapshot(
                 result.failures[key] = f"{type(err).__name__}: {err}"
             else:
                 result.succeeded.append(key)
-                all_series.append(series)
                 if "requested_location" in series.request:
                     result.shifted[key] = series.request["location"]
-                continue
-            previous = _existing_series(snapshot_dir, *key)
-            if previous is not None:
-                all_series.append(previous)
+    variable_ids = {variable["id"] for variable in variables}
+    location_ids = {location["id"] for location in locations}
+    all_series = [
+        series
+        for series in _series_on_disk(snapshot_dir)
+        if series.variable_id in variable_ids and series.location_id in location_ids
+    ]
     catalog_variables = [_describe(variable, all_series) for variable in variables]
     result.written.append(
         write_catalog(
@@ -155,6 +182,55 @@ def build_snapshot(
         )
     )
     return result
+
+
+def _station_series(
+    http: httpx.Client,
+    variable: dict[str, Any],
+    location: dict[str, Any],
+    today: date,
+    now: str,
+    raw_dir: Path | None,
+) -> Series:
+    """下載一個測站各年的逐時檔，轉成月均溫序列。逐時原檔只存在 `raw_dir`。"""
+    station_id = location["ghcnh_id"]
+    hourly: list[ghcnh.Hourly] = []
+    for year in range(STATION_START_YEAR, today.year + 1):
+        cached = (
+            raw_dir / "ghcnh" / f"GHCNh_{station_id}_{year}.psv" if raw_dir else None
+        )
+        # 過去的年份不會再變，有存檔就不重抓；今年的每次都重抓
+        if cached is not None and cached.exists() and year < today.year:
+            text = cached.read_text(encoding="utf-8")
+        else:
+            text = ghcnh.fetch_year(http, station_id, year)
+            if text is not None and cached is not None:
+                cached.parent.mkdir(parents=True, exist_ok=True)
+                cached.write_text(text, encoding="utf-8")
+        if text is not None:
+            hourly.extend(ghcnh.parse_psv(text))
+    if not hourly:
+        raise ghcnh.GhcnhError(f"測站 {station_id} 沒有任何氣溫觀測")
+    daily = ghcnh.hourly_to_daily(hourly, utc_offset_hours=STATION_UTC_OFFSET_HOURS)
+    return Series(
+        variable_id=variable["id"],
+        location_id=location["id"],
+        aggregation="station",
+        unit="degC",
+        source_api="noaa_ghcnh",
+        request={
+            "station": station_id,
+            "element": "temperature",
+            "start_year": STATION_START_YEAR,
+            "end_policy": "run_date",
+            "min_days_per_month": ghcnh.MIN_DAYS_PER_MONTH,
+            "local_day_utc_offset_hours": STATION_UTC_OFFSET_HOURS,
+        },
+        retrieved_at=now,
+        product_version=variable["product_version"],
+        grid=None,
+        points=ghcnh.station_monthly_points(daily),
+    )
 
 
 def _one_series(
@@ -222,22 +298,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed-dir", type=Path, default=SEED_DIR)
     parser.add_argument("--raw-dir", type=Path, default=RAW_DIR)
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
-    args = parser.parse_args(argv)
-    token = read_secret(
-        "EARTHDATA_TOKEN",
-        args.env_file,
-        how_to_get="到 Earthdata Login 的 Generate Token 頁產生 token",
+    parser.add_argument(
+        "--source",
+        choices=SOURCES,
+        action="append",
+        help="只重抓這個來源（可重複指定）；預設全部。其他來源的既有序列檔保留",
     )
+    args = parser.parse_args(argv)
+    sources = args.source or list(SOURCES)
+    giovanni_client = None
+    if "giovanni" in sources:
+        token = read_secret(
+            "EARTHDATA_TOKEN",
+            args.env_file,
+            how_to_get="到 Earthdata Login 的 Generate Token 頁產生 token",
+        )
+        giovanni_client = GiovanniClient(token)
+    station_http = httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None
     variables, locations = load_seed(args.seed_dir)
     now = datetime.now(UTC)
     result = build_snapshot(
-        GiovanniClient(token),
+        giovanni_client,
         args.snapshot_dir,
         variables,
         locations,
         today=now.date(),
         now=now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         raw_dir=args.raw_dir,
+        station_http=station_http,
     )
     print(f"成功 {len(result.succeeded)} 條，失敗 {len(result.failures)} 條")
     for (variable_id, location_id), used in result.shifted.items():
