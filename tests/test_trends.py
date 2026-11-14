@@ -13,6 +13,7 @@ from trend_detective.trends import (
     analyze_snapshot,
     apply_fdr,
     benjamini_hochberg,
+    fdr_groups,
     lag1_autocorrelation,
     main,
     ols_trend,
@@ -278,6 +279,43 @@ def test_fdr_reports_raw_and_adjusted_significance_and_skips_insufficient():
     assert results["a"]["mann_kendall"]["hamed_rao"]["p_fdr"] == pytest.approx(0.04)
 
 
+def test_fdr_can_be_applied_separately_within_each_aggregation():
+    def analyzed(p: float, aggregation: str) -> dict:
+        tests = {name: {"p": p} for name in ("original", "hamed_rao", "seasonal")}
+        return {
+            "status": "analyzed",
+            "aggregation": aggregation,
+            "ols": {"p": p},
+            "mann_kendall": tests,
+        }
+
+    results = {
+        "a": analyzed(0.02, "point"),
+        "b": analyzed(0.04, "point"),
+        "c": analyzed(0.9, "point"),
+        "d": analyzed(0.03, "area_mean_grid"),
+    }
+    groups = fdr_groups(results, "aggregation")
+    apply_fdr(results, 0.05, groups)
+
+    assert groups == {"area_mean_grid": ["d"], "point": ["a", "b", "c"]}
+    # point 組：0.02、0.04、0.9 → 0.06、0.06、0.9；area_mean_grid 組只有一條，q = p
+    assert results["a"]["ols"]["p_fdr"] == pytest.approx(0.06)
+    assert results["b"]["ols"]["significant_fdr"] is False
+    assert results["d"]["ols"]["p_fdr"] == pytest.approx(0.03)
+    assert results["d"]["ols"]["significant_fdr"] is True
+    # 整批一組時是 0.02、0.03、0.04、0.9：0.03 × 4 ÷ 2 = 0.06，再被後一名的
+    # 0.04 × 4 ÷ 3 = 0.0533 壓低（BH 的單調化），仍不顯著
+    apply_fdr(results, 0.05)
+    assert results["d"]["ols"]["p_fdr"] == pytest.approx(0.16 / 3)
+    assert results["d"]["ols"]["significant_fdr"] is False
+
+
+def test_unknown_fdr_grouping_is_rejected():
+    with pytest.raises(ValueError):
+        fdr_groups({}, "variable_id")
+
+
 def write_snapshot(root: Path) -> None:
     rng = np.random.default_rng(11)
     n = 150
@@ -336,3 +374,39 @@ def test_rerun_changes_only_the_run_record_timestamp(tmp_path: Path):
     assert run["parameters"] == json.loads(second["trends.json"])["parameters"]
     assert "generated_at" in run
     assert "generated_at" not in json.loads(second["trends.json"])
+
+
+def test_grouped_run_records_groups_and_can_skip_anomalies_and_use_workers(
+    tmp_path: Path,
+):
+    snapshot = tmp_path / "extended"
+    out = tmp_path / "analysis"
+    write_snapshot(snapshot)
+    args = ["--snapshot-dir", str(snapshot), "--analysis-dir", str(out)]
+
+    assert main([*args, "--fdr-group", "aggregation", "--no-anomalies"]) == 0
+    serial = json.loads((out / "trends.json").read_text())
+    assert (
+        main([*args, "--fdr-group", "aggregation", "--no-anomalies", "--workers", "2"])
+        == 0
+    )
+    parallel = json.loads((out / "trends.json").read_text())
+
+    assert sorted(p.name for p in out.iterdir()) == ["trends.json", "trends.run.json"]
+    assert parallel == serial
+    assert serial["fdr"] == {
+        "group_by": "aggregation",
+        "n_series_by_group": {"point": 2},
+    }
+    assert serial["summary_by_group"]["point"]["n_analyzed"] == 1
+    assert "same aggregation" in serial["methods"]["fdr"]
+    run = json.loads((out / "trends.run.json").read_text())
+    assert run["outputs"] == ["trends.json"]
+    assert run["summary_by_group"] == serial["summary_by_group"]
+
+
+def test_default_run_has_no_group_fields(tmp_path: Path):
+    write_snapshot(tmp_path)
+    trends, _ = analyze_snapshot(tmp_path, PARAMS)
+
+    assert "fdr" not in trends and "summary_by_group" not in trends

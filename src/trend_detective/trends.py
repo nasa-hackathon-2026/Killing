@@ -21,6 +21,14 @@
 5. Sen 斜率與信賴區間：`scipy.stats.theilslopes`，時間用真實的月份間隔；這個信賴區間
    假設各點獨立，沒有自相關修正。
 6. 多重檢定：同一次執行裡所有有分析的序列，各檢定的 p 值分別做 Benjamini-Hochberg FDR。
+   加 `--fdr-group aggregation` 時改成「同一種聚合方式的序列自成一組」各做一次（#68）。
+
+擴充資料（#68，約 6,700 條，不進 git）用同一個指令、同一套方法：
+
+    uv run python -m trend_detective.trends --snapshot-dir data/extended \
+        --analysis-dir data/extended/analysis --fdr-group aggregation --no-anomalies --workers 12
+
+結果檔多了 `fdr`（分組方式與各組的序列數）與 `summary_by_group`（各組的摘要）。
 
 資料沒變時重跑，`trends.json` 與 `anomalies.json` 逐位元組相同（時間戳只在執行紀錄）。
 """
@@ -28,6 +36,8 @@
 import argparse
 import json
 import math
+import sys
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from importlib.metadata import version
@@ -289,12 +299,40 @@ def benjamini_hochberg(p_values: list[float]) -> list[float]:
     return [float(q) for q in stats.false_discovery_control(p_values, method="bh")]
 
 
-def apply_fdr(results: dict[str, dict[str, Any]], alpha: float) -> None:
+FDR_GROUPS = ("all", "aggregation")
+
+
+def fdr_groups(
+    results: dict[str, dict[str, Any]], group_by: str
+) -> dict[str, list[str]]:
+    """FDR 的分組：`all` 是整批一組；`aggregation` 是同一種聚合方式一組。"""
+    if group_by not in FDR_GROUPS:
+        raise ValueError(f"不認得的 FDR 分組方式：{group_by}")
+    groups: dict[str, list[str]] = {}
+    for key in sorted(results):
+        name = "all" if group_by == "all" else results[key]["aggregation"]
+        groups.setdefault(name, []).append(key)
+    return dict(sorted(groups.items()))
+
+
+def apply_fdr(
+    results: dict[str, dict[str, Any]],
+    alpha: float,
+    groups: dict[str, list[str]] | None = None,
+) -> None:
     """就地加上 `p_fdr`、`significant`、`significant_fdr`；只算有分析的序列。
 
     檢定算不出 p 值（`p` 是 None）的序列不列入該檢定的 FDR，三個欄位都是 None。
+    `groups`（組名 → 序列鍵）有給時，每一組各自做 BH；沒給就是整批一組。
     """
-    keys = [key for key in sorted(results) if results[key]["status"] == "analyzed"]
+    for group in (groups or {"all": list(results)}).values():
+        _apply_fdr_to(results, sorted(group), alpha)
+
+
+def _apply_fdr_to(
+    results: dict[str, dict[str, Any]], group: list[str], alpha: float
+) -> None:
+    keys = [key for key in group if results[key]["status"] == "analyzed"]
     for path in TESTS.values():
         nodes = []
         for key in keys:
@@ -363,41 +401,93 @@ def summarize(results: dict[str, dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def analyze_snapshot(
-    snapshot_dir: Path, params: TrendParams
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    """讀整份快照，回傳 (trends, anomalies) 兩個要寫出的結構。"""
-    catalog = json.loads((snapshot_dir / "catalog.json").read_text(encoding="utf-8"))
-    results: dict[str, dict[str, Any]] = {}
-    anomalies: dict[str, dict[str, Any]] = {}
-    for entry in sorted(catalog["series"], key=series_key):
-        series = json.loads((snapshot_dir / entry["file"]).read_text(encoding="utf-8"))
-        key = series_key(entry)
-        identity = {
-            "variable_id": entry["variable_id"],
-            "location_id": entry["location_id"],
-            "aggregation": entry["aggregation"],
-            "unit": series["unit"],
-        }
-        results[key] = {**identity, **analyze_points(series["points"], params)}
+def _analyze_entry(
+    job: tuple[Path, dict[str, Any], TrendParams, bool],
+) -> tuple[str, dict[str, Any], dict[str, Any] | None]:
+    """一條序列：讀檔、算統計量與（需要時）月距平。獨立成函式是為了能丟給行程池。"""
+    snapshot_dir, entry, params, with_anomalies = job
+    series = json.loads((snapshot_dir / entry["file"]).read_text(encoding="utf-8"))
+    identity = {
+        "variable_id": entry["variable_id"],
+        "location_id": entry["location_id"],
+        "aggregation": entry["aggregation"],
+        "unit": series["unit"],
+    }
+    result = {**identity, **analyze_points(series["points"], params)}
+    anomaly = None
+    if with_anomalies:
         prepared = prepare(series["points"], params)
         if prepared.n_valid:
             grid = seasonal_grid(prepared.index, prepared.anomalies)
-            anomalies[key] = {
+            anomaly = {
                 **identity,
                 "first_month": index_month(int(prepared.index[0])),
                 "values": [None if math.isnan(v) else float(v) for v in grid],
             }
-    apply_fdr(results, params.alpha)
+    return series_key(entry), result, anomaly
+
+
+def analyze_snapshot(
+    snapshot_dir: Path,
+    params: TrendParams,
+    *,
+    fdr_group: str = "all",
+    workers: int = 1,
+    with_anomalies: bool = True,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """讀整份快照，回傳 (trends, anomalies) 兩個要寫出的結構。
+
+    `fdr_group`、`workers`、`with_anomalies` 是給擴充資料用的（#68）；預設值下的輸出與
+    核心快照原本的結果檔逐位元組相同。
+    """
+    catalog = json.loads((snapshot_dir / "catalog.json").read_text(encoding="utf-8"))
+    jobs = [
+        (snapshot_dir, entry, params, with_anomalies)
+        for entry in sorted(catalog["series"], key=series_key)
+    ]
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            analyzed = list(pool.map(_analyze_entry, jobs, chunksize=16))
+    else:
+        analyzed = [_analyze_entry(job) for job in jobs]
+    results: dict[str, dict[str, Any]] = {}
+    anomalies: dict[str, dict[str, Any]] = {}
+    for key, result, anomaly in analyzed:
+        results[key] = result
+        if anomaly is not None:
+            anomalies[key] = anomaly
+    groups = fdr_groups(results, fdr_group)
+    apply_fdr(results, params.alpha, groups)
+    grouped = fdr_group != "all"
     header = {
         "schema_version": SCHEMA_VERSION,
         "input": {
-            "snapshot": "data/snapshot",
+            "snapshot": snapshot_dir.as_posix(),
             "snapshot_generated_at": catalog["snapshot"]["generated_at"],
         },
         "parameters": asdict(params),
         "packages": {name: version(name) for name in PACKAGES},
     }
+    fdr_method = (
+        "Benjamini-Hochberg, separately for each test and separately within each "
+        f"group of series sharing the same {fdr_group} (see `fdr`); "
+        "p_fdr is the adjusted p value"
+        if grouped
+        else "Benjamini-Hochberg across all analyzed series of this run, "
+        "separately for each test; p_fdr is the adjusted p value"
+    )
+    extra: dict[str, Any] = {}
+    if grouped:
+        extra = {
+            "fdr": {
+                "group_by": fdr_group,
+                "n_series_by_group": {name: len(keys) for name, keys in groups.items()},
+            },
+            "summary_by_group": {
+                name: summarize({key: results[key] for key in keys})
+                for name, keys in groups.items()
+            },
+        }
     trends = {
         **header,
         "methods": {
@@ -414,10 +504,10 @@ def analyze_snapshot(
             "mk_seasonal": "Seasonal Mann-Kendall (period 12) on the monthly values",
             "sen": "Theil-Sen slope of anomalies with its confidence interval "
             "(assumes independence)",
-            "fdr": "Benjamini-Hochberg across all analyzed series of this run, "
-            "separately for each test; p_fdr is the adjusted p value",
+            "fdr": fdr_method,
         },
         "summary": summarize(results),
+        **extra,
         "series": results,
     }
     return _round(trends), _round({**header, "series": anomalies})
@@ -436,22 +526,29 @@ def _dump(path: Path, content: dict[str, Any], *, compact: bool = False) -> None
 def write_outputs(
     analysis_dir: Path,
     trends: dict[str, Any],
-    anomalies: dict[str, Any],
+    anomalies: dict[str, Any] | None,
     *,
     generated_at: str,
+    command: str = "uv run python -m trend_detective.trends",
 ) -> None:
+    """`anomalies` 是 None 時不寫 `anomalies.json`（擴充資料量大，只留統計結果）。"""
     _dump(analysis_dir / "trends.json", trends)
-    _dump(analysis_dir / "anomalies.json", anomalies, compact=True)
+    outputs = ["trends.json"]
+    if anomalies is not None:
+        _dump(analysis_dir / "anomalies.json", anomalies, compact=True)
+        outputs.append("anomalies.json")
+    extra = {key: trends[key] for key in ("fdr", "summary_by_group") if key in trends}
     _dump(
         analysis_dir / "trends.run.json",
         {
-            "command": "uv run python -m trend_detective.trends",
+            "command": command,
             "generated_at": generated_at,
             "input": trends["input"],
             "parameters": trends["parameters"],
             "packages": trends["packages"],
-            "outputs": ["trends.json", "anomalies.json"],
+            "outputs": outputs,
             "summary": trends["summary"],
+            **extra,
         },
     )
 
@@ -470,6 +567,17 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--alpha", type=float, default=defaults.alpha)
     parser.add_argument("--hamed-rao-lags", type=int, default=defaults.hamed_rao_lags)
+    parser.add_argument(
+        "--fdr-group",
+        choices=FDR_GROUPS,
+        default="all",
+        help="FDR 的分組：all 是整批一組（核心快照的做法）；"
+        "aggregation 是同一種聚合方式的序列各自一組（擴充資料用）",
+    )
+    parser.add_argument("--workers", type=int, default=1, help="平行的行程數")
+    parser.add_argument(
+        "--no-anomalies", action="store_true", help="不寫 anomalies.json"
+    )
     args = parser.parse_args(argv)
     params = TrendParams(
         min_coverage=args.min_coverage,
@@ -478,9 +586,24 @@ def main(argv: list[str] | None = None) -> int:
         alpha=args.alpha,
         hamed_rao_lags=args.hamed_rao_lags,
     )
-    trends, anomalies = analyze_snapshot(args.snapshot_dir, params)
+    trends, anomalies = analyze_snapshot(
+        args.snapshot_dir,
+        params,
+        fdr_group=args.fdr_group,
+        workers=args.workers,
+        with_anomalies=not args.no_anomalies,
+    )
     generated_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-    write_outputs(args.analysis_dir, trends, anomalies, generated_at=generated_at)
+    command = "uv run python -m trend_detective.trends"
+    if argv is None and len(sys.argv) > 1:
+        command += " " + " ".join(sys.argv[1:])
+    write_outputs(
+        args.analysis_dir,
+        trends,
+        None if args.no_anomalies else anomalies,
+        generated_at=generated_at,
+        command=command,
+    )
     summary = trends["summary"]
     print(
         f"{summary['n_series']} 條序列：{summary['n_analyzed']} 條有分析、"
@@ -492,7 +615,17 @@ def main(argv: list[str] | None = None) -> int:
             f"p < {params.alpha} 有 {counts['significant']} 條，"
             f"FDR 校正後 {counts['significant_fdr']} 條"
         )
-    print(f"已寫出 {args.analysis_dir}/trends.json、anomalies.json、trends.run.json")
+    for name, group in trends.get("summary_by_group", {}).items():
+        ols = group["significant_by_test"]["ols"]
+        print(
+            f"  [{name}] {group['n_series']} 條，有分析 {group['n_analyzed']} 條；"
+            f"ols p < {params.alpha} 有 {ols['significant']} 條，"
+            f"FDR 校正後 {ols['significant_fdr']} 條"
+        )
+    written = "trends.json、trends.run.json"
+    if not args.no_anomalies:
+        written = "trends.json、anomalies.json、trends.run.json"
+    print(f"已寫出 {args.analysis_dir}/：{written}")
     return 0
 
 

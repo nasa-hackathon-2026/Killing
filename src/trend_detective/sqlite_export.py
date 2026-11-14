@@ -15,6 +15,15 @@
     src_planetary_computer   Planetary Computer（MODIS）每個合成期的區域統計量，本機算出
     src_grid         全球格點立方體在本機算出的區域面積加權月平均（`aggregation = 'area_mean_grid'`）：
                      月值、有值面積比例，以及用的立方體、bbox、網格間距、格子數（立方體本身不進資料庫）
+    trends           每條序列的趨勢統計（#55、#68）：每十年變化量、信賴區間、各檢定的 p 與 FDR 校正後的 q、
+                     分析期間、有效月數；沒有分析的序列 `status = 'insufficient'` 並附原因。
+                     來源是 `data/analysis/trends.json`（核心）與 `data/extended/analysis/trends.json`（擴充），
+                     沒有這兩個檔時是空表。q 的校正範圍記在 `fdr_scope`（核心：整批；擴充：同一種聚合方式）。
+
+查「哪些變數在哪些地點顯著」（自相關修正後的 t 檢定，FDR 校正後）：
+    SELECT variable_id, location_id, aggregation, slope_per_decade, ci_low_per_decade,
+           ci_high_per_decade, ols_p, ols_q
+    FROM trends WHERE ols_significant_fdr = 1 ORDER BY ols_q;
 
 `observations`、`series`、`variables`、`locations` 都有 `tier` 欄：`core` 是進 git 的核心快照
 （`data/snapshot/`），`extended` 是擴充資料（`data/extended/`，#46；這台機器沒有就只有核心）。
@@ -41,6 +50,7 @@ from trend_detective.snapshot import (
     STATION_UTC_OFFSET_HOURS,
     appeears_rows,
 )
+from trend_detective.trends import ANALYSIS_DIR
 
 DB_PATH = Path("data/sqlite/trend_detective.sqlite")
 SOURCE_TABLES = {
@@ -122,6 +132,25 @@ CREATE TABLE src_grid (
     lat_step REAL, lon_step REAL, n_cells INTEGER, weights TEXT,
     PRIMARY KEY (variable_id, location_id, month)
 );
+CREATE TABLE trends (
+    variable_id TEXT NOT NULL, location_id TEXT NOT NULL, aggregation TEXT NOT NULL,
+    tier TEXT NOT NULL, unit TEXT, status TEXT NOT NULL,
+    reason_code TEXT, reason_text TEXT,
+    first_month TEXT, last_month TEXT, n_points INTEGER, n_valid INTEGER,
+    n_null INTEGER, n_low_coverage INTEGER, missing_fraction REAL,
+    slope_per_decade REAL, ci_low_per_decade REAL, ci_high_per_decade REAL,
+    ols_p REAL, ols_q REAL, ols_significant INTEGER, ols_significant_fdr INTEGER,
+    ols_p_uncorrected REAL, lag1_autocorrelation REAL, n_effective REAL,
+    mk_original_p REAL, mk_original_q REAL, mk_original_tau REAL,
+    mk_hamed_rao_p REAL, mk_hamed_rao_q REAL,
+    mk_seasonal_p REAL, mk_seasonal_q REAL, mk_seasonal_slope_per_decade REAL,
+    sen_slope_per_decade REAL, sen_ci_low_per_decade REAL, sen_ci_high_per_decade REAL,
+    alpha REAL, fdr_scope TEXT, fdr_n_series INTEGER,
+    PRIMARY KEY (variable_id, location_id, aggregation),
+    FOREIGN KEY (variable_id, location_id, aggregation)
+        REFERENCES series(variable_id, location_id, aggregation)
+);
+CREATE INDEX trends_by_significance ON trends(ols_significant_fdr, aggregation);
 CREATE INDEX observations_by_month ON observations(month);
 CREATE INDEX observations_by_tier ON observations(tier);
 """
@@ -136,11 +165,15 @@ def build_database(
     raw_dir: Path,
     db_path: Path,
     extended_dir: Path | None = None,
+    analysis_dir: Path | None = None,
 ) -> dict[str, int]:
     """從快照與原始回應重建整個 SQLite 檔，回傳各表的列數。
 
     `extended_dir` 有目錄檔時，擴充資料（#46）一併匯入同一組表，`tier` 欄記成 `extended`；
     核心快照已有的變數與地點以核心為準。
+
+    `trends` 表（#68）由 `analysis_dir/trends.json`（核心）與
+    `extended_dir/analysis/trends.json`（擴充）填入；檔案不在就略過。
 
     每次都從頭建到暫存檔再換上去，所以重建是冪等的，中斷也不會留下半個資料庫。
     某來源的原始檔不在（例如別台機器只有快照）時，該來源表留空，統一表不受影響。
@@ -181,6 +214,10 @@ def build_database(
             db, all_series, raw_dir / planetary_computer.SOURCE_DIR
         )
         _insert_grid(db, all_series)
+        if analysis_dir is not None:
+            _insert_trends(db, analysis_dir / "trends.json", "core")
+        if extended_dir is not None:
+            _insert_trends(db, extended_dir / "analysis" / "trends.json", "extended")
         violations = db.execute("PRAGMA foreign_key_check").fetchall()
         if violations:
             raise ValueError(f"資料庫的外鍵對不上：{violations[:5]}")
@@ -191,6 +228,7 @@ def build_database(
             "series",
             "observations",
             *SOURCE_TABLES.values(),
+            "trends",
         ]
         counts = {
             table: db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
@@ -530,6 +568,98 @@ def _insert_grid(db: sqlite3.Connection, all_series: list[dict[str, Any]]) -> No
         )
 
 
+def _insert_trends(db: sqlite3.Connection, path: Path, tier: str) -> None:
+    """趨勢結果檔（`trends.py` 的輸出）攤平成一列一條序列。
+
+    只收 `series` 表裡同一個 `tier` 的序列：擴充目錄裡與核心重複的序列以核心為準，
+    結果檔比序列檔舊、對不到序列的也不收。
+    """
+    if not path.exists():
+        return
+    content = _load(path)
+    alpha = content["parameters"]["alpha"]
+    group_by = (content.get("fdr") or {}).get("group_by", "all")
+    group_sizes = (content.get("fdr") or {}).get("n_series_by_group") or {}
+    known = {
+        tuple(row)
+        for row in db.execute(
+            "SELECT variable_id, location_id, aggregation FROM series WHERE tier = ?",
+            (tier,),
+        )
+    }
+
+    def flag(value: Any) -> int | None:
+        return None if value is None else int(bool(value))
+
+    rows = []
+    for item in content["series"].values():
+        key = (item["variable_id"], item["location_id"], item["aggregation"])
+        if key not in known:
+            continue
+        data = item["data"]
+        reason = item.get("reason") or {}
+        ols = item.get("ols") or {}
+        mk = item.get("mann_kendall") or {}
+        original = mk.get("original") or {}
+        hamed_rao = mk.get("hamed_rao") or {}
+        seasonal = mk.get("seasonal") or {}
+        sen = item.get("sen") or {}
+        ci = ols.get("ci_per_decade") or [None, None]
+        sen_ci = sen.get("ci_per_decade") or [None, None]
+        scope = (
+            "all series of the run"
+            if group_by == "all"
+            else f"{group_by} = {item[group_by]}"
+        )
+        n_scope = (
+            len(content["series"])
+            if group_by == "all"
+            else group_sizes.get(item[group_by])
+        )
+        rows.append(
+            (
+                *key,
+                tier,
+                item.get("unit"),
+                item["status"],
+                reason.get("code"),
+                reason.get("text_en"),
+                data.get("first_month"),
+                data.get("last_month"),
+                data.get("n_points"),
+                data.get("n_valid"),
+                data.get("n_null"),
+                data.get("n_low_coverage"),
+                data.get("missing_fraction"),
+                ols.get("slope_per_decade"),
+                ci[0],
+                ci[1],
+                ols.get("p"),
+                ols.get("p_fdr"),
+                flag(ols.get("significant")),
+                flag(ols.get("significant_fdr")),
+                ols.get("p_uncorrected"),
+                ols.get("lag1_autocorrelation"),
+                ols.get("n_effective"),
+                original.get("p"),
+                original.get("p_fdr"),
+                original.get("tau"),
+                hamed_rao.get("p"),
+                hamed_rao.get("p_fdr"),
+                seasonal.get("p"),
+                seasonal.get("p_fdr"),
+                seasonal.get("slope_per_decade"),
+                sen.get("slope_per_decade"),
+                sen_ci[0],
+                sen_ci[1],
+                alpha,
+                scope,
+                n_scope,
+            )
+        )
+    db.executemany(f"INSERT INTO trends VALUES ({','.join('?' * 39)})", rows)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="從快照與原始回應重建 SQLite 檔")
     parser.add_argument("--snapshot-dir", type=Path, default=SNAPSHOT_DIR)
@@ -541,8 +671,16 @@ def main(argv: list[str] | None = None) -> int:
         default=EXTENDED_DIR,
         help="擴充資料的目錄（#46）；沒有目錄檔就只匯入核心",
     )
+    parser.add_argument(
+        "--analysis-dir",
+        type=Path,
+        default=ANALYSIS_DIR,
+        help="核心趨勢結果（trends.json）的目錄；擴充的在 <extended-dir>/analysis/",
+    )
     args = parser.parse_args(argv)
-    counts = build_database(args.snapshot_dir, args.raw_dir, args.db, args.extended_dir)
+    counts = build_database(
+        args.snapshot_dir, args.raw_dir, args.db, args.extended_dir, args.analysis_dir
+    )
     print(args.db)
     for table, count in counts.items():
         print(f"  {table:<16} {count:>8}")

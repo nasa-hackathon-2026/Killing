@@ -299,9 +299,10 @@ def test_cube_and_frontend_files_are_built_from_the_downloaded_months(tmp_path: 
     assert cube.attrs["doi"] == "10.1234/DEMO"
     assert sorted(path.name for path in written) == [
         "annual_mean.i16",
-        "exploratory_linear_slope_per_decade.i16",
         "meta.json",
         "monthly_climatology.i16",
+        "trend_significance.u8",
+        "trend_slope_per_decade.i16",
     ]
     meta, arrays = read_frontend(tmp_path / "out")
     assert meta["coverage"] == {
@@ -317,9 +318,47 @@ def test_cube_and_frontend_files_are_built_from_the_downloaded_months(tmp_path: 
     # 西南那一格只有一半有值，仍算有效；值不受缺值影響
     np.testing.assert_allclose(arrays["annual_mean"][:, 0, 0], [10.0, 12.0])
     np.testing.assert_allclose(arrays["monthly_climatology"], 11.0)
-    # 兩年差 2 → 每年 2 → 每十年 20
-    np.testing.assert_allclose(arrays["exploratory_linear_slope_per_decade"], 20.0)
-    assert "探索性" in meta["layers"][2]["description"]
+    # 只有 25 個月，不到 120 個月的門檻：趨勢地圖整張是缺值，不硬算斜率
+    assert np.isnan(arrays["trend_slope_per_decade"]).all()
+    assert (arrays["trend_significance"] == 0).all()
+    assert meta["trend"]["cells"]["n_too_few_months"] == 4
+    assert meta["trend"]["cells"]["n_analyzed"] == 0
+    assert meta["trend"]["parameters"]["min_valid_months"] == 120
+
+
+def test_trend_maps_replace_the_exploratory_slope_file(tmp_path: Path):
+    month_dir = tmp_path / "months"
+    # 12 年、每月比前一個月多 0.01：每年 0.12、每十年 1.2，沒有季節循環也沒有雜訊。
+    # 月距平法對 N 個完整年的純線性趨勢算出真值 × 144(N² − 1) ÷ (144N² − 1)（解析解）
+    expected = 1.2 * 144 * (12**2 - 1) / (144 * 12**2 - 1)
+    for i in range(144):
+        write_month(month_dir, date(2001 + i // 12, i % 12 + 1, 1), 10.0 + 0.01 * i)
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "exploratory_linear_slope_per_decade.i16").write_bytes(b"old")
+
+    built = build_cube(PRODUCT, month_dir, tmp_path / "raw" / "demo.nc")
+    write_derived(PRODUCT, built, out)
+
+    assert not (out / "exploratory_linear_slope_per_decade.i16").exists()
+    meta, arrays = read_frontend(out)
+    assert [layer["name"] for layer in meta["layers"]] == [
+        "annual_mean",
+        "monthly_climatology",
+        "trend_slope_per_decade",
+        "trend_significance",
+    ]
+    np.testing.assert_allclose(arrays["trend_slope_per_decade"], expected, atol=6e-4)
+    assert (arrays["trend_significance"] == 3).all()
+    assert meta["trend"]["period"] == {
+        "first_month": "2001-01",
+        "last_month": "2012-12",
+        "n_months": 144,
+    }
+    assert meta["trend"]["significant"]["fdr"]["area_fraction"] == 1.0
+    assert meta["trend"]["area_weighted_mean_slope_per_decade"] == pytest.approx(
+        expected, abs=1e-4
+    )
 
 
 def test_cube_refuses_months_on_a_different_grid(tmp_path: Path):

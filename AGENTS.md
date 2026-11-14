@@ -102,8 +102,8 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 平行度（2026-11-14 實測）：同時 4–5 批、每批 4 個執行緒沒有被限流（沒有 429，403 重試 8 次都補上）。重試次數明顯變多就調低 `--parallel`。一個請求的網址超過約 3000 字元時 CloudFront 回 414，`--batch-size` 再大也會自動切開。
 - 逐月原始檔（不進 git）：單一變數在 `data/raw/grid/<id>/months/`；批次在 `data/raw/grid/_batch/<產品>/<變數清單雜湊>/`（旁邊的 `variables.json` 記這一批有哪些變數）。立方體建好後它們只是中間產物，可以刪掉省空間，但刪掉之後重跑會整批重抓。
 - 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN、緯度由南到北，一個月一個 chunk。用 `trend_detective.grid.read_cube` 讀（0.1° 的 IMERG、FLDAS 一個變數解開約 9–12 GB，要逐月讀就直接用 netCDF4）。只含「從最新月份往回連續不中斷」的月份，起訖月在檔案屬性 `first_month`、`last_month`。
-- 前端衍生檔（進 git，只有 seed 裡有 `frontend` 的變數）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`、`exploratory_linear_slope_per_decade.i16`。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。一律降成 1° 緯度帶、面積加權（經度：MERRA-2 1.25°，其餘 1°）。讀法的參考實作是 `trend_detective.grid.read_frontend`。目前有 7 個：`merra2_t2m`、`gldas_soilmoist`、`gldas_tair`、`gldas_evap`、`imerg_precip`、`airs_tsurf`、`airs_h2ovap`。
-- 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
+- 前端衍生檔（進 git，只有 seed 裡有 `frontend` 的變數）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`，以及趨勢地圖 `trend_slope_per_decade.i16`、`trend_significance.u8`（見「世界級趨勢」）。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768（`.u8` 是 uint8 的類別代碼，圖層條目有 `dtype: "uint8"`，缺值 0）；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。一律降成 1° 緯度帶、面積加權（經度：MERRA-2 1.25°，其餘 1°）。讀法的參考實作是 `trend_detective.grid.read_frontend`。目前有 7 個：`merra2_t2m`、`gldas_soilmoist`、`gldas_tair`、`gldas_evap`、`imerg_precip`、`airs_tsurf`、`airs_h2ovap`。
+- 原本的 `exploratory_linear_slope_per_decade.i16`（逐年平均的斜率，沒有檢定）已由趨勢地圖取代（#68）；`grid_fetch` 與 `grid_derive` 重產時都會刪掉舊檔。前端目前沒有讀 `data/grid/`（2026-11-15 `grep` 確認）。
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 - 各產品檔案結構的坑（2026-11-14 實測，程式已處理）：IMERG 的變數在 `/Grid` 群組、軸是 `lon × lat`；AIRS 是 HDF-EOS2，變數在 `/ascending/Data_Fields` 等四個群組、沒有時間軸、緯度由北到南，而且 **OPeNDAP 給的 `YDim`／`XDim` 是格子的北緣與西緣，不是中心**（和檔案自己的 `Latitude`／`Longitude` 差半格），seed 用 `cell_reference: north_west_corner` 標記，建立方體時換算成中心；FLDAS 的座標叫 `X`、`Y`。
 - 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 的月平均沒有另外做品質或雲量篩選，照 L3 檔案裡的值直接平均。
@@ -140,6 +140,27 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 資料外洩的界線：決策樹每一折的月份平均（重新置中）、線性趨勢、目標的分位數門檻都只用該折的訓練期估計，再套到測試期（有測試：改測試期的資料不影響訓練期估出來的門檻與樹）。FP-growth 與變數篩選是描述性的，用表內全期估計趨勢；也就是說決策樹「用哪些變數」是看過全期資料決定的。改這一段時維持這條界線。
 - 讀探勘結果時還要注意：「先算距平再去趨勢」會留下一點年內的鋸齒（月份平均吸收了部分趨勢），量級是一年的趨勢量；`north` 缺 AIRS 與 OMI 臭氧、氣膠，決策樹只用特徵齊全的地點所以沒有 `north`；每個地點的第一個月沒有「前一個月」，不成列。規則與樹都不是因果。
 
+## 世界級趨勢（#68）
+把 #55 的趨勢統計擴到擴充序列與逐格點的地圖。**完全不連網、不需要 token。** 方法都在 `trends.py`，這裡沒有另一套；結果只有數字，解讀留給隊伍。
+
+- **擴充序列的趨勢**（不進 git）：`uv run python -m trend_detective.trends --snapshot-dir data/extended --analysis-dir data/extended/analysis --fdr-group aggregation --no-anomalies --workers 12`，約 10 秒。寫出 `data/extended/analysis/trends.json`（約 12 MB，格式與核心的相同）與 `trends.run.json`（執行紀錄加數字摘要，4 KB）。擴充序列有新增或重算後要重跑，再重建 SQLite。
+- **FDR 的分組**：擴充資料用 `--fdr-group aggregation`，同一種聚合方式（`point`、`area_mean_grid`、`area_mean`）的序列自成一組、各檢定分別做 BH；分組方式與各組序列數寫在結果檔的 `fdr`，各組摘要在 `summary_by_group`。理由：點位與大範圍區域平均的雜訊量級不同，混成一組時區域平均的小 p 值會放寬點位的門檻。核心快照維持整批一組（預設 `--fdr-group all`），`data/analysis/` 的結果不變（逐位元組相同，有實測）。
+- **用 SQL 查**：重建 SQLite 後的 `trends` 表（見「SQLite 匯出」）核心與擴充都有。
+- 2026-11-15 實跑的趨勢地圖（FDR 校正後顯著的面積比例，分母是有分析的面積；括號內是校正前）：`merra2_t2m` 48.0%（55.8%）、`gldas_tair` 65.1%（68.8%）、`gldas_evap` 46.6%（52.6%）、`gldas_soilmoist` 31.2%（41.9%）、`imerg_precip` 15.8%（25.5%）、`airs_tsurf` 34.3%（42.1%）、`airs_h2ovap` 6.1%（18.7%）。格點斜率的面積加權平均 ÷ 全球平均序列的斜率：1.000、1.008、1.016、1.033、1.033、`airs_tsurf` 兩者都接近 0 且異號（+0.0017 與 −0.0021 K／十年，序列的 95% 信賴區間 ±0.12）、1.009；21 個抽查網格與逐條計算的斜率、p 值相差都不到 1e-15。
+- 2026-11-15 實跑的擴充序列：6,689 條，有分析 6,299 條；不分析 390 條（有效月數不足 176、缺月太多 74、數值不變 140）。自相關修正後的 t 檢定 p < 0.05／FDR 校正後：`point` 924／791（有分析 1,916）、`area_mean_grid` 1,838／1,577（4,369）、`area_mean` 9／9（14）。
+- **逐格點的趨勢地圖**（進 git）：`uv run python -m trend_detective.grid_derive --workers 7`，約 3 分鐘（IMERG 最久）。讀 `data/raw/grid/<id>/<id>.nc`，逐月降到衍生檔的網格，重寫 `data/grid/<id>/` 的全部衍生檔（逐年平均與月氣候值在立方體沒變時逐位元組相同）。`grid_fetch` 抓完資料建立方體時也會走同一個 `write_derived`，兩條路產出相同。在 worktree 裡跑時加 `--raw-dir <主 checkout>/data/raw/grid`。
+- 趨勢地圖的算法在 `src/trend_detective/grid_trends.py` 開頭與 `meta.json` 的 `trend.method`：每個網格的月距平 → 最小平方法斜率（每十年）→ 自相關修正後的 t 檢定（`trends.ols_trend` 的向量化，測試逐格比對）→ 對整張圖有分析的網格做 BH-FDR（Wilks 2016；控制水準就是 `alpha`，沒有採用 Wilks 對強空間相關建議的 2 × alpha）。門檻沿用 `TrendParams`（`--min-valid-months 120`、`--max-missing-fraction 0.2`、`--alpha 0.05`）；立方體沒有 `coverage`，所以沒有低覆蓋月份這一步。
+- **在降解析度後的網格上算**，不是原始解析度：1° 緯度帶（經度 MERRA-2 1.25°、其餘 1°），和同目錄其他圖層同一個網格。IMERG（0.1°）、GLDAS（0.25°）的格內變化被平均掉了。
+- 檔案：`trend_slope_per_decade.i16`（int16，`scale` 是 seed 的 `slope_scale`，不分析的格子是缺值；超出 int16 範圍的夾在邊界，格數記在 `trend.n_slope_cells_clipped_to_int16_range`，目前都是 0）、`trend_significance.u8`（0 缺值或不分析、1 不顯著、2 只在校正前顯著、3 校正後顯著）。每個變數兩檔合計 156–194 KB。`meta.json` 的 `trend` 有方法、參數、期間、各類格子數、顯著的格點比例與面積比例（兩者不同：高緯度的格子小）、斜率的面積加權平均與限制。
+- **抽查**（`grid_derive` 每次都做，印出並寫到 `data/extended/analysis/grid_trends.report.json`）：各變數格點斜率的面積加權平均對照全球平均序列（`<id>__global__area_mean_grid`）的斜率；每個變數挑 3 個網格逐條用 `trends.analyze_points` 算。兩種平均不必相等：序列是先對空間平均再算斜率、每個月用當月有值的格子；格點平均是每格先算斜率、只含有分析的格子。每格都沒有缺月時兩者在數學上相等（AIRS 地表溫度只取沒有缺月的格子時，兩邊都是 −0.02435，差 1e-15，實測）。
+- 讀結果時要注意：
+  - 衛星感測器換代、再分析的同化系統或輸入觀測變更、產品重製都可能造成假趨勢，這裡沒有偵測或修正不連續。
+  - 月距平的月份平均會吸收一小部分線性趨勢：N 個完整年時斜率是真值 × 144(N² − 1) ÷ (144N² − 1)，約低估 1/N²（20 年約 0.25%）。這是 #55 的做法，序列與格點都一樣。
+  - 擴充序列裡有很多輔助變數（AIRS 的 `_ct` 觀測筆數、`_sdev` 標準差、MERRA-2 的 `var_*` 變異數、OMI 的觀測幾何），它們的「趨勢」反映取樣或演算法的變化，不是物理量的變化；同一個產品的變數彼此高度相關，FDR 的獨立性假設不成立。
+  - OMI 的格點區域平均與 Harmony 的算法不同（見「格點區域平均」），同一變數的 `area_mean_grid` 與 `area_mean` 趨勢不要互相替代。
+  - `mk_hamed_rao` 偏寬鬆（見上一節）；看顯著性以 `ols` 為準。
+  - GLDAS 只有陸地（60°S 以北）有值；IMERG 有 2,623 格因數值不變而不分析，都在 72°S 以南，逐年平均有值的都是 0（實測；為什麼是 0 沒有求證）。
+
 ## 前端形態與近看檢視（#60）
 地球上每個圖層「遠看」是一種形態（粒子），從圖層面板的 Close-up 按鈕「近看」是分子結構與過程示意。展示實驗場 `web/lab/`（`/lab/`）可以逐一檢視，網址參數 `?variable=<變數 id>&value=0.6&trend=1&closeup=1` 可指定起始畫面；主畫面支援 `?layers=<id,id>&closeup=<變數 id>`。
 
@@ -158,6 +179,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
 - 重建：`uv run python -m trend_detective.sqlite_export`，只有核心快照時約 2 秒、約 30 MB；含擴充資料與格點區域平均時約 40 秒、約 1.5 GB（2026-11-14：6,817 條序列、統一表 2,275,723 列）。產生 `data/sqlite/trend_detective.sqlite`（不進 git）。每次都從頭重建，冪等。
 - 輸入是 `data/snapshot/`（統一表與對照表）加 `data/raw/`（各來源表），以及 `data/extended/`（擴充資料，有目錄檔才匯入；`--extended-dir` 可改位置）。`observations`、`series`、`variables`、`locations` 都有 `tier` 欄（`core`／`extended`），只看核心就加 `WHERE tier = 'core'`。只有快照、沒有 `data/raw/` 的機器也能建，來源表會是空的。
+- `trends` 表（#68）：每條序列一列的趨勢統計，核心來自 `data/analysis/trends.json`（`--analysis-dir`）、擴充來自 `<extended-dir>/analysis/trends.json`，檔案不在就是空表。欄位：`variable_id`、`location_id`、`aggregation`、`tier`、`status`（`analyzed`／`insufficient`）、`reason_code`、`reason_text`、`first_month`、`last_month`、`n_valid`、`missing_fraction`、`slope_per_decade`、`ci_low_per_decade`、`ci_high_per_decade`、`ols_p`、`ols_q`（BH 校正後）、`ols_significant`、`ols_significant_fdr`、`ols_p_uncorrected`、`lag1_autocorrelation`、`n_effective`、`mk_original_p`／`_q`、`mk_hamed_rao_p`／`_q`、`mk_seasonal_p`／`_q`、`sen_slope_per_decade` 與信賴區間、`alpha`、`fdr_scope`（q 的校正範圍）、`fdr_n_series`。查顯著的序列：`SELECT variable_id, location_id, aggregation, slope_per_decade, ols_q FROM trends WHERE ols_significant_fdr = 1`。先跑趨勢指令再重建，否則表是舊的或空的。2026-11-15：6,817 列。
 - 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`、`src_grid`（格點區域平均的月值與有值面積比例，由序列檔自己填入；立方體不進資料庫）。用途見 `src/trend_detective/sqlite_export.py` 開頭與 `docs/data/sqlite.md`。
 - 新增資料來源時：在 `SOURCE_TABLES` 加一筆、在 `SCHEMA` 加來源表、寫一個 `_insert_<來源>`，並補測試。
 - `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。

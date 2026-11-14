@@ -57,10 +57,11 @@ from trend_detective.grid import (
     read_cube_attrs,
     read_month_file,
     regrid,
-    slope_per_decade,
     write_cube_layers,
     write_frontend,
 )
+from trend_detective.grid_trends import LEGACY_SLOPE_FILE, trend_layers
+from trend_detective.trends import TrendParams
 
 CMR_URL = "https://cmr.earthdata.nasa.gov/search/granules.umm_json"
 SEED_FILE = Path("data/seed/grids.json")
@@ -592,8 +593,17 @@ def build_cube(product: GridProduct, month_dir: Path, cube_path: Path) -> Built:
     )
 
 
-def write_derived(product: GridProduct, built: Built, directory: Path) -> list[Path]:
-    """由降解析度後的月資料產生前端衍生檔：逐年平均、月氣候值、探索性的線性斜率。"""
+def write_derived(
+    product: GridProduct,
+    built: Built,
+    directory: Path,
+    params: TrendParams | None = None,
+) -> list[Path]:
+    """由降解析度後的月資料產生前端衍生檔：逐年平均、月氣候值、趨勢地圖（斜率與顯著性）。
+
+    趨勢地圖（#68）用全部月份的月距平，算法見 `grid_trends.py`；它取代了原本只用逐年平均、
+    沒有檢定的 `exploratory_linear_slope_per_decade.i16`，舊檔在這裡刪掉。
+    """
     if built.coarse is None or built.grid is None:
         raise GridError(f"{product.id} 沒有 frontend 設定，不產生衍生檔")
     coarse, grid = built.coarse, built.grid
@@ -622,20 +632,16 @@ def write_derived(product: GridProduct, built: Built, directory: Path) -> list[P
             offset=product.offset,
         ),
     ]
-    if len(years) >= 2:
-        layer_sets.append(
-            Layers(
-                name="exploratory_linear_slope_per_decade",
-                description=(
-                    f"探索性：逐年平均（{period}）對年份的最小平方法斜率，每十年的變化量。"
-                    "未做顯著性檢定與自相關修正，不是趨勢結論。"
-                ),
-                unit=f"{built.unit} per decade",
-                labels=[period],
-                values=slope_per_decade(years, annual)[None],
-                scale=product.slope_scale,
-            )
-        )
+    trend_sets, trend_meta, _ = trend_layers(
+        built.months,
+        coarse,
+        grid,
+        params or TrendParams(),
+        unit=built.unit,
+        slope_scale=product.slope_scale,
+    )
+    layer_sets += trend_sets
+    (directory / LEGACY_SLOPE_FILE).unlink(missing_ok=True)
     info: dict[str, Any] = {
         "id": product.id,
         "name_zh": product.name_zh,
@@ -652,7 +658,7 @@ def write_derived(product: GridProduct, built: Built, directory: Path) -> list[P
             "last_month": f"{built.months[-1]:%Y-%m}",
             "n_months": len(built.months),
             "complete_years": [years[0], years[-1]],
-            "note": "逐年平均、月氣候值與斜率只用 complete_years 內的年份；"
+            "note": "逐年平均與月氣候值只用 complete_years 內的年份，趨勢地圖用全部月份；"
             "資料由最新月份往回補，first_month 之前尚未抓取或不在本產品的收錄範圍",
         },
         "native_grid": {
@@ -664,6 +670,7 @@ def write_derived(product: GridProduct, built: Built, directory: Path) -> list[P
             "lon_step": float(built.lon[1] - built.lon[0]),
         },
         "regrid": "面積加權平均；目標格內有值的面積不到一半時為缺值",
+        "trend": trend_meta,
     }
     return write_frontend(directory, info, grid, layer_sets)
 

@@ -24,7 +24,6 @@ from trend_detective.grid import (
     read_frontend,
     read_month_file,
     regrid,
-    slope_per_decade,
     write_cube,
     write_frontend,
 )
@@ -226,15 +225,6 @@ def test_monthly_climatology_needs_one_complete_year():
         monthly_climatology([date(2001, 1, 1)], np.zeros((1, 1, 1)))
 
 
-def test_slope_is_the_least_squares_change_per_decade():
-    annual = np.array([[[1.0, 5.0]], [[2.0, 5.0]], [[6.0, 5.0]]], dtype=np.float32)
-
-    # x = -1, 0, 1；y = 1, 2, 6 → 斜率 (−1×1 + 1×6) ÷ 2 = 2.5／年 = 25／十年
-    slope = slope_per_decade([2001, 2002, 2003], annual)
-
-    assert slope[0].tolist() == pytest.approx([25.0, 0.0])
-
-
 def test_frontend_files_are_little_endian_int16_with_scale_offset_and_missing(
     tmp_path: Path,
 ):
@@ -381,3 +371,38 @@ def test_a_variable_with_an_extra_axis_is_not_a_single_layer(tmp_path: Path):
 
     with pytest.raises(GridError, match=r"不是 \(1, lat, lon\)"):
         read_month_file(path, "T")
+
+
+def test_class_layers_are_written_as_uint8_and_read_back_as_codes(tmp_path: Path):
+    grid = Grid(
+        lat_south=0.0, lat_step=1.0, n_lat=1, lon_west=0.0, lon_step=1.0, n_lon=4
+    )
+    classes = {"0": "missing", "1": "no", "2": "raw only", "3": "fdr"}
+    mask = Layers(
+        name="trend_significance",
+        description="類別",
+        unit="class",
+        labels=["2001-01 至 2020-12"],
+        values=np.array([[[0, 1, 2, 3]]], dtype=np.uint8),
+        scale=1.0,
+        dtype="uint8",
+        classes=classes,
+    )
+    number = Layers("x", "", "K", ["a"], np.array([[[1.0, 2.0, NAN, 4.0]]]), scale=0.5)
+
+    written = write_frontend(tmp_path, {"id": "demo"}, grid, [number, mask])
+
+    assert [path.name for path in written] == [
+        "x.i16",
+        "trend_significance.u8",
+        "meta.json",
+    ]
+    assert (tmp_path / "trend_significance.u8").read_bytes() == bytes([0, 1, 2, 3])
+    meta, arrays = read_frontend(tmp_path)
+    assert "dtype" not in meta["layers"][0]
+    assert meta["layers"][1]["dtype"] == "uint8"
+    assert meta["layers"][1]["missing"] == 0
+    assert meta["layers"][1]["classes"] == classes
+    assert meta["layers"][1]["bytes"] == 4
+    assert arrays["trend_significance"][0, 0].tolist() == [0.0, 1.0, 2.0, 3.0]
+    assert math.isnan(arrays["x"][0, 0, 2])

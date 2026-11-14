@@ -17,7 +17,7 @@
    1998,
    2024
   ],
-  "note": "逐年平均、月氣候值與斜率只用 complete_years 內的年份；資料由最新月份往回補，first_month 之前尚未抓取或不在本產品的收錄範圍"
+  "note": "逐年平均與月氣候值只用 complete_years 內的年份，趨勢地圖用全部月份；資料由最新月份往回補，first_month 之前尚未抓取或不在本產品的收錄範圍"
  },
  "native_grid": {
   "n_lat": 1800,
@@ -28,6 +28,67 @@
   "lon_step": 0.0999908447265625
  },
  "regrid": "面積加權平均；目標格內有值的面積不到一半時為缺值",
+ "trend": {
+  "replaces": "exploratory_linear_slope_per_decade.i16",
+  "method": {
+   "grid": "與本目錄其他圖層相同的衍生檔網格：立方體逐月先面積加權降解析度（見 regrid），再對每個網格的月序列計算；不是在原始解析度上算的",
+   "anomaly": "每個月減去該網格同一個月份所有有值年份的平均；不補值",
+   "slope": "月距平對時間的最小平方法斜率 × 10（每十年）",
+   "significance": "斜率的 t 檢定；標準誤與自由度用殘差 lag-1 自相關 r1 修正的有效樣本數 n(1-r1)/(1+r1)（Santer et al. 2000），與 trends.py 的 ols 是同一套算法（向量化）",
+   "multiple_testing": "對整張圖有分析的網格的 p 值做 Benjamini-Hochberg FDR（Wilks 2016, doi:10.1175/BAMS-D-15-00267.1），控制水準 = alpha；Wilks 對空間相關強的場建議可用 2 × alpha，這裡沒有放寬",
+   "not_analyzed": "有值月數少於 min_valid_months、第一個到最後一個有值月份之間缺的比例超過 max_missing_fraction、或數值完全不變的網格"
+  },
+  "parameters": {
+   "min_valid_months": 120,
+   "max_missing_fraction": 0.2,
+   "alpha": 0.05
+  },
+  "period": {
+   "first_month": "1998-01",
+   "last_month": "2025-09",
+   "n_months": 333
+  },
+  "cells": {
+   "n_total": 64800,
+   "n_analyzed": 62177,
+   "n_no_data": 0,
+   "n_too_few_months": 0,
+   "n_too_many_missing": 0,
+   "n_constant": 2623,
+   "analyzed_area_fraction_of_grid": 0.99281953
+  },
+  "significant": {
+   "uncorrected": {
+    "n_cells": 20148,
+    "cell_fraction": 0.32404265,
+    "area_fraction": 0.25544933
+   },
+   "fdr": {
+    "n_cells": 14036,
+    "cell_fraction": 0.22574264,
+    "area_fraction": 0.15832488
+   },
+   "fdr_positive_slope": {
+    "n_cells": 11193,
+    "cell_fraction": 0.18001833,
+    "area_fraction": 0.10374812
+   },
+   "fdr_negative_slope": {
+    "n_cells": 2843,
+    "cell_fraction": 0.045724303,
+    "area_fraction": 0.054576762
+   }
+  },
+  "area_weighted_mean_slope_per_decade": 0.00059952696,
+  "n_slope_cells_clipped_to_int16_range": 0,
+  "limitations": [
+   "衛星感測器換代、再分析的同化系統或輸入觀測變更、產品重製都可能造成假趨勢；這裡沒有偵測或修正不連續",
+   "只有線性趨勢與一種檢定；沒有 Mann-Kendall 與 Sen 斜率",
+   "網格之間有空間相關，面積也不同；顯著格點的比例與面積比例都列出，兩者不同",
+   "顯著不代表變化量大，不顯著也不代表沒有變化（可能只是期間不夠長）",
+   "月距平的月份平均會吸收一小部分線性趨勢：N 個完整年時斜率約被低估 1/N²（20 年約 0.25%）；這是沿用 trends.py 的做法，序列版也一樣"
+  ]
+ },
  "grid": {
   "n_lat": 180,
   "n_lon": 360,
@@ -109,17 +170,38 @@
    "bytes": 1555200
   },
   {
-   "name": "exploratory_linear_slope_per_decade",
-   "file": "exploratory_linear_slope_per_decade.i16",
-   "description": "探索性：逐年平均（1998–2024）對年份的最小平方法斜率，每十年的變化量。未做顯著性檢定與自相關修正，不是趨勢結論。",
+   "name": "trend_slope_per_decade",
+   "file": "trend_slope_per_decade.i16",
+   "description": "月距平（1998-01 至 2025-09）對時間的最小平方法斜率，每十年的變化量；不分析的網格是缺值。顯著性見 trend_significance。",
    "unit": "mm/hr per decade",
    "scale": 1e-05,
    "offset": 0.0,
    "n_layers": 1,
    "labels": [
-    "1998–2024"
+    "1998-01 至 2025-09"
    ],
    "bytes": 129600
+  },
+  {
+   "name": "trend_significance",
+   "file": "trend_significance.u8",
+   "description": "斜率的顯著性類別：自相關修正後的 t 檢定，並對整張圖有分析的網格做 BH-FDR。類別見 classes。",
+   "unit": "class",
+   "scale": 1.0,
+   "offset": 0.0,
+   "n_layers": 1,
+   "labels": [
+    "1998-01 至 2025-09"
+   ],
+   "bytes": 64800,
+   "dtype": "uint8",
+   "missing": 0,
+   "classes": {
+    "0": "缺值：沒有資料，或有效月數不足、缺月太多、數值不變而不分析",
+    "1": "不顯著（校正前 p ≥ alpha）",
+    "2": "只在校正前顯著（p < alpha，但 BH-FDR 校正後 q ≥ alpha）",
+    "3": "校正後仍顯著（BH-FDR 的 q < alpha）"
+   }
   }
  ]
 }

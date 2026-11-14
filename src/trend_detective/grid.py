@@ -6,7 +6,8 @@
   用 `read_cube` 讀回；缺值是 NaN，緯度由南到北、經度由西到東。
 - **前端衍生檔**：`data/grid/<id>/meta.json` 加幾個 little-endian int16 的二進位檔，進 git。
   每個檔是「層 × 緯度 × 經度」的連續陣列（row-major），`值 = 整數 × scale + offset`，
-  缺值是 `MISSING`（-32768）。`read_frontend` 是讀法的參考實作。
+  缺值是 `MISSING`（-32768）。類別圖層（趨勢的顯著性遮罩，#68）是 uint8 的 `.u8` 檔，
+  圖層條目有 `dtype: "uint8"` 與 `classes`，缺值是 0。`read_frontend` 是讀法的參考實作。
 
 這個模組只做數值與檔案格式，不連網；下載在 `grid_fetch.py`。
 """
@@ -66,9 +67,12 @@ class Layers:
     description: str
     unit: str
     labels: list[str]
-    values: Floats
+    values: Floats | NDArray[np.uint8]
     scale: float
     offset: float = 0.0
+    # "int16"（預設，數值圖層）或 "uint8"（類別圖層：值就是類別代碼，0 是缺值）
+    dtype: str = "int16"
+    classes: dict[str, str] | None = None
 
 
 def _variable(dataset: netCDF4.Dataset, path: Path, name: str) -> Any:
@@ -338,21 +342,11 @@ def monthly_climatology(months: list[date], values: Floats) -> tuple[list[int], 
     return years, result.astype(np.float32)
 
 
-def slope_per_decade(years: list[int], annual: Floats) -> Floats:
-    """逐年平均對年份的最小平方法斜率 × 10（每十年的變化量）。
-
-    只是探索用的示範：沒有顯著性檢定、沒有自相關修正，不能當作趨勢結論。
-    """
-    if len(years) < 2:
-        raise GridError("至少要兩個年份才能算斜率")
-    x = np.asarray(years, dtype=np.float64)
-    x = x - x.mean()
-    y = annual.astype(np.float64)
-    slope = np.tensordot(x, y - y.mean(axis=0), axes=1) / (x**2).sum()
-    return (slope * 10.0).astype(np.float32)
-
-
-def _quantize(layers: Layers) -> NDArray[np.int16]:
+def _quantize(layers: Layers) -> NDArray[np.int16] | NDArray[np.uint8]:
+    if layers.dtype == "uint8":
+        return np.asarray(layers.values).astype(np.uint8)
+    if layers.dtype != "int16":
+        raise GridError(f"{layers.name} 的 dtype 不認得：{layers.dtype}")
     scaled = np.round((layers.values.astype(np.float64) - layers.offset) / layers.scale)
     finite = np.isfinite(scaled)
     if finite.any() and (
@@ -380,7 +374,8 @@ def write_frontend(
             raise GridError(
                 f"{layers.name} 的形狀 {layers.values.shape} 應為 {expected}"
             )
-        path = directory / f"{layers.name}.i16"
+        suffix = ".u8" if layers.dtype == "uint8" else ".i16"
+        path = directory / f"{layers.name}{suffix}"
         path.write_bytes(_quantize(layers).tobytes())
         written.append(path)
         entries.append(
@@ -396,6 +391,8 @@ def write_frontend(
                 "bytes": path.stat().st_size,
             }
         )
+        if layers.dtype == "uint8":
+            entries[-1].update(dtype="uint8", missing=0, classes=layers.classes or {})
     meta = {
         **info,
         "grid": {
@@ -425,12 +422,22 @@ def write_frontend(
 
 
 def read_frontend(directory: Path) -> tuple[dict[str, Any], dict[str, Floats]]:
-    """讀回前端衍生檔：回傳 (meta, {名稱: (層, 緯度, 經度) 的 float32，缺值為 NaN})。"""
+    """讀回前端衍生檔：回傳 (meta, {名稱: (層, 緯度, 經度) 的 float32，缺值為 NaN})。
+
+    類別圖層（`dtype: "uint8"`）照類別代碼回傳，0 是缺值，不轉成 NaN。
+    """
     meta = json.loads((directory / META_FILE).read_text(encoding="utf-8"))
     shape = (meta["grid"]["n_lat"], meta["grid"]["n_lon"])
     arrays: dict[str, Floats] = {}
     for entry in meta["layers"]:
-        stored = np.frombuffer((directory / entry["file"]).read_bytes(), dtype="<i2")
+        raw = (directory / entry["file"]).read_bytes()
+        if entry.get("dtype") == "uint8":
+            classes = np.frombuffer(raw, dtype=np.uint8)
+            arrays[entry["name"]] = classes.reshape((entry["n_layers"], *shape)).astype(
+                np.float32
+            )
+            continue
+        stored = np.frombuffer(raw, dtype="<i2")
         stored = stored.reshape((entry["n_layers"], *shape))
         decoded = stored.astype(np.float64) * entry["scale"] + entry["offset"]
         arrays[entry["name"]] = np.where(stored == MISSING, np.nan, decoded).astype(

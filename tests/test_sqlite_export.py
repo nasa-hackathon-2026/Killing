@@ -446,3 +446,162 @@ def test_a_missing_extended_directory_builds_the_core_only(built, tmp_path: Path
         counts["observations"]
         == _query(core_db, "SELECT COUNT(*) FROM observations")[0][0]
     )
+
+
+def _trend_entry(variable_id: str, location_id: str, aggregation: str, p: float):
+    """`trends.json` 裡一條有分析的序列；數字是手寫的，用來確認每一欄放對位置。"""
+    test = {"p": p, "p_fdr": p * 2, "tau": 0.3, "significant": True}
+    return {
+        "variable_id": variable_id,
+        "location_id": location_id,
+        "aggregation": aggregation,
+        "unit": "mm/hr",
+        "status": "analyzed",
+        "reason": None,
+        "data": {
+            "first_month": "2001-01-01",
+            "last_month": "2020-12-01",
+            "n_points": 240,
+            "n_valid": 236,
+            "n_null": 3,
+            "n_low_coverage": 1,
+            "missing_fraction": 0.0125,
+        },
+        "ols": {
+            "slope_per_decade": 0.5,
+            "ci_per_decade": [0.1, 0.9],
+            "p_uncorrected": p / 10,
+            "p": p,
+            "p_fdr": p * 2,
+            "significant": p < 0.05,
+            "significant_fdr": p * 2 < 0.05,
+            "lag1_autocorrelation": 0.4,
+            "n_effective": 101.5,
+        },
+        "mann_kendall": {
+            "original": {**test, "p": 0.011, "p_fdr": 0.012},
+            "hamed_rao": {"p": None, "p_fdr": None, "tau": 0.3},
+            "seasonal": {**test, "p": 0.031, "p_fdr": 0.032, "slope_per_decade": 0.45},
+        },
+        "sen": {"slope_per_decade": 0.48, "ci_per_decade": [0.2, 0.7]},
+    }
+
+
+def _write_trends(directory: Path, entries: list[dict], fdr: dict | None = None):
+    directory.mkdir(parents=True, exist_ok=True)
+    series = {
+        f"{e['variable_id']}__{e['location_id']}__{e['aggregation']}": e
+        for e in entries
+    }
+    content = {"parameters": {"alpha": 0.05}, "series": series}
+    if fdr is not None:
+        content["fdr"] = fdr
+    (directory / "trends.json").write_text(json.dumps(content), encoding="utf-8")
+
+
+def test_trends_table_is_empty_without_result_files(built):
+    snapshot_dir, raw_dir, db_path = built
+
+    counts = build_database(snapshot_dir, raw_dir, db_path, None, snapshot_dir / "none")
+
+    assert counts["trends"] == 0
+
+
+def test_trend_results_become_one_row_per_series_for_both_tiers(
+    built, with_extended, tmp_path: Path
+):
+    snapshot_dir, raw_dir, _ = built
+    extended_dir, db_path = with_extended
+    analysis_dir = tmp_path / "analysis"
+    insufficient = {
+        "variable_id": "power_t2m",
+        "location_id": "taichung",
+        "aggregation": "point",
+        "unit": "C",
+        "status": "insufficient",
+        "reason": {"code": "too_few_months", "text_en": "Only 24 usable months."},
+        "data": {
+            "first_month": "2025-01-01",
+            "last_month": "2026-12-01",
+            "n_points": 24,
+            "n_valid": 24,
+            "n_null": 0,
+            "n_low_coverage": 0,
+            "missing_fraction": 0.0,
+        },
+    }
+    _write_trends(
+        analysis_dir,
+        [
+            _trend_entry("imerg_precip", "taichung", "point", 0.01),
+            insufficient,
+            # 結果檔裡有、序列表裡沒有的鍵（結果比快照舊）：不收
+            _trend_entry("imerg_precip", "nowhere", "point", 0.01),
+        ],
+    )
+    _write_trends(
+        extended_dir / "analysis",
+        [
+            _trend_entry("runoff", "delhi", "point", 0.04),
+            # 擴充結果裡與核心重複的序列以核心為準
+            _trend_entry("imerg_precip", "taichung", "point", 0.9),
+        ],
+        fdr={"group_by": "aggregation", "n_series_by_group": {"point": 2}},
+    )
+
+    counts = build_database(snapshot_dir, raw_dir, db_path, extended_dir, analysis_dir)
+
+    assert counts["trends"] == 3
+    assert _query(
+        db_path,
+        "SELECT tier, unit, status, first_month, last_month, n_points, n_valid, n_null,"
+        " n_low_coverage, missing_fraction, slope_per_decade, ci_low_per_decade,"
+        " ci_high_per_decade, ols_p, ols_q, ols_significant, ols_significant_fdr,"
+        " ols_p_uncorrected, lag1_autocorrelation, n_effective, mk_original_p,"
+        " mk_original_q, mk_original_tau, mk_hamed_rao_p, mk_hamed_rao_q, mk_seasonal_p,"
+        " mk_seasonal_q, mk_seasonal_slope_per_decade, sen_slope_per_decade,"
+        " sen_ci_low_per_decade, sen_ci_high_per_decade, alpha, fdr_scope, fdr_n_series"
+        " FROM trends WHERE variable_id = 'imerg_precip'",
+    ) == [
+        (
+            "core", "mm/hr", "analyzed", "2001-01-01", "2020-12-01", 240, 236, 3,
+            1, 0.0125, 0.5, 0.1,
+            0.9, 0.01, 0.02, 1, 1,
+            0.001, 0.4, 101.5, 0.011,
+            0.012, 0.3, None, None, 0.031,
+            0.032, 0.45, 0.48,
+            0.2, 0.7, 0.05, "all series of the run", 3,
+        )
+    ]  # fmt: skip
+    assert _query(
+        db_path,
+        "SELECT status, reason_code, reason_text, slope_per_decade, ols_p,"
+        " ols_significant_fdr FROM trends WHERE variable_id = 'power_t2m'",
+    ) == [
+        ("insufficient", "too_few_months", "Only 24 usable months.", None, None, None)
+    ]
+    # 0.04 校正前顯著、校正後（q = 0.08）不顯著；FDR 範圍是同一種聚合方式
+    assert _query(
+        db_path,
+        "SELECT tier, ols_significant, ols_significant_fdr, fdr_scope, fdr_n_series"
+        " FROM trends WHERE variable_id = 'runoff'",
+    ) == [("extended", 1, 0, "aggregation = point", 2)]
+
+
+def test_significant_series_can_be_listed_with_names_by_joining_lookups(
+    built, tmp_path: Path
+):
+    snapshot_dir, raw_dir, db_path = built
+    analysis_dir = tmp_path / "analysis"
+    _write_trends(
+        analysis_dir, [_trend_entry("imerg_precip", "taichung", "point", 0.01)]
+    )
+
+    build_database(snapshot_dir, raw_dir, db_path, None, analysis_dir)
+
+    assert _query(
+        db_path,
+        "SELECT v.name_zh, l.name_zh, t.aggregation, t.slope_per_decade FROM trends t"
+        " JOIN variables v ON v.id = t.variable_id JOIN locations l ON l.id = t.location_id"
+        " WHERE t.ols_significant_fdr = 1",
+    ) == [("降水", "臺中", "point", 0.5)]
