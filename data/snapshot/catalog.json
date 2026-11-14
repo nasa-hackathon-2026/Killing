@@ -14,6 +14,8 @@
       "note_zh": "IMERG Final 只到 2025-09；之後的 Late 版算法不同，不可接續（#4 R5）。",
       "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
       "harmony_collection": "C2723754851-GES_DISC",
+      "product": "GPM_3IMERGM.07",
+      "source_long_name": "Merged satellite-gauge precipitation estimate - Final Run (recommended for general use)",
       "unit": "mm/hr",
       "valid_from": "2001-01-01",
       "valid_to": "2025-09-01"
@@ -30,6 +32,9 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Near surface air temperature",
       "unit": "K",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -46,6 +51,9 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Soil moisture content (0 - 10 cm underground)",
       "unit": "kg m-2",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -62,6 +70,9 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Evapotranspiration",
       "unit": "kg m-2 s-1",
       "valid_from": "2001-01-01",
       "valid_to": "2026-07-01"
@@ -82,6 +93,9 @@
       "harmony_skip_regions": [
         "north"
       ],
+      "doi": "10.5067/UBENJB9D3T2H",
+      "product": "AIRS3STM.7.0",
+      "source_long_name": "Air temperature at surface (Daytime/Ascending, AIRS-only)",
       "unit": "K",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -102,6 +116,9 @@
       "harmony_skip_regions": [
         "north"
       ],
+      "doi": "10.5067/UBENJB9D3T2H",
+      "product": "AIRS3STM.7.0",
+      "source_long_name": "Total Column Water Vapor (Daytime/Ascending, AIRS-only)",
       "unit": "kg/m2",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -118,6 +135,9 @@
       "native_temporal_res": "month",
       "is_nasa": true,
       "harmony_collection": "C1276812823-GES_DISC",
+      "doi": "10.5067/5ESKGQTZG7FO",
+      "product": "M2IMNXASM.5.12.4",
+      "source_long_name": "2-meter air temperature",
       "unit": "K",
       "valid_from": "2001-01-01",
       "valid_to": "2026-09-01"
@@ -135,6 +155,9 @@
       "is_nasa": true,
       "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。",
       "harmony_collection": "C1266136111-GES_DISC",
+      "doi": "10.5067/Aura/OMI/DATA3007",
+      "product": "OMNO2d.003",
+      "source_long_name": "NO2 Tropospheric Column (30% Cloud Screened)",
       "unit": "molecules/cm^2",
       "valid_from": "2004-10-01",
       "valid_to": "2026-03-01"
@@ -155,6 +178,9 @@
         "north"
       ],
       "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "doi": "10.5067/Aura/OMI/DATA3001",
+      "product": "OMTO3d.003",
+      "source_long_name": "Ozone Total Column (TOMS-like)",
       "unit": "DU",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -175,6 +201,9 @@
         "north"
       ],
       "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "doi": "10.5067/Aura/OMI/DATA3003",
+      "product": "OMAERUVd.003",
+      "source_long_name": "UV Aerosol Index",
       "unit": "1",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -190,8 +219,9 @@
       "product_version": "GHCNh",
       "native_temporal_res": "hour",
       "is_nasa": false,
-      "note_zh": "驗證層，不是 NASA 資料。只做氣溫：這兩站在 GHCNh 的降水欄位幾乎是空的，測站降水沒有做。當月有觀測的天數不到 20 天時不給月平均。",
-      "citation": "NOAA NCEI Global Historical Climatology Network – hourly (GHCNh)，accessed via AWS Open Data (NODD)，2026-11-14。原始觀測來自中央氣象署，經 WMO 交換；本 repo 只收錄月平均（衍生資料），供教育、非商業用途，不代表 NOAA 背書。",
+      "note_zh": "驗證層，不是 NASA 資料。只做氣溫：這兩站在 GHCNh 的降水欄位幾乎是空的，測站降水沒有做。當月有觀測的天數不到 20 天時不給月平均。 原始觀測來自中央氣象署，經 WMO 交換；本 repo 只收錄月平均（衍生資料），供教育、非商業用途，不代表 NOAA 背書。",
+      "citation": "NOAA NCEI Global Historical Climatology Network – hourly (GHCNh), accessed via AWS Open Data (NODD) on 2026-11-14. Original observations are from Taiwan's Central Weather Administration, exchanged through WMO. Only monthly means (derived data) are included here, for educational, non-commercial use; no endorsement by NOAA is implied.",
+      "product": "GHCNh",
       "unit": "degC",
       "valid_from": "2000-01-01",
       "valid_to": "2026-10-01"
@@ -209,6 +239,7 @@
       "is_nasa": true,
       "note_zh": "交叉驗證用：和 merra2_t2m（Giovanni，單位 K）同源，換算後應該很接近。不要接成同一條線。POWER 的 IMERG 降水參數對台中回傳全是缺值，沒有使用。",
       "citation": "The data was obtained from the National Aeronautics and Space Administration (NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resources (POWER) Project funded through the NASA Earth Science Division. POWER Monthly and Annual API v2.10.0, accessed 2026-11-14.",
+      "product": "MERRA-2 (via NASA POWER)",
       "unit": "C",
       "valid_from": "2001-01-01",
       "valid_to": "2026-09-01"
@@ -1440,7 +1471,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T09:00:58Z",
+    "generated_at": "2026-11-14T09:13:28Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",
