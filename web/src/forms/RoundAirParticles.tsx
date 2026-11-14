@@ -1,11 +1,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, type RefObject } from "react";
-import {
-  InstancedMesh,
-  Object3D,
-  SphereGeometry,
-  type MeshStandardMaterial,
-} from "three";
+import { InstancedMesh, Object3D, type MeshStandardMaterial } from "three";
+import { roundAirGeometry } from "./geometries";
 import { motionSpeed, particleCount } from "./particleField";
 import { seedFromId, shellSamples } from "./shellSamples";
 
@@ -28,7 +24,7 @@ export function RoundAirParticles({
 }: RoundAirParticlesProps) {
   const mesh = useRef<InstancedMesh>(null);
   const material = useRef<MeshStandardMaterial>(null);
-  const geometry = useMemo(() => new SphereGeometry(0.02, 10, 8), []);
+  const geometry = useMemo(() => roundAirGeometry(), []);
   const samples = useMemo(() => shellSamples(seedFromId("round-air")), []);
   const dummy = useRef(new Object3D());
 

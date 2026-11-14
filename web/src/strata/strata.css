@@ -1,0 +1,299 @@
+/* Layer view (web/src/strata). Every class starts with "strata-". */
+.strata {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  color: #e8eef7;
+  background: #0b1220;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+  animation: strata-fade-in 0.5s ease-out both;
+}
+
+.strata-closing {
+  animation: strata-fade-out 0.5s ease-in 1.7s both;
+}
+
+@keyframes strata-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes strata-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strata,
+  .strata-closing {
+    animation: none;
+  }
+}
+
+.strata-canvas {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.strata-overlay {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.strata-label,
+.strata-companion {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  visibility: hidden;
+  transition: opacity 0.2s;
+}
+
+.strata-label {
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: min(270px, 40vw);
+  box-sizing: border-box;
+  padding: 6px 8px;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-left: 4px solid #b7c6da;
+  border-radius: 6px;
+}
+
+.strata-label[aria-pressed="true"] {
+  border-color: #ffe9a8;
+}
+
+.strata-height {
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.strata-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.strata-value b {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.strata-off {
+  color: #8494aa;
+}
+
+.strata-off b {
+  font-weight: 400;
+}
+
+.strata-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.strata-dim {
+  opacity: 0.35;
+}
+
+.strata-companion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 110px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font-size: 11px;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow:
+    0 0 3px #0b1220,
+    0 0 3px #0b1220;
+}
+
+.strata-header {
+  position: absolute;
+  top: 104px;
+  left: 12px;
+  width: min(560px, calc(100% - 320px));
+  padding: 8px 10px;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+}
+
+.strata-header p {
+  margin: 0;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.strata-header .strata-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  color: #e8eef7;
+  font-size: 14px;
+}
+
+.strata-header button,
+.strata-detail button,
+.strata-hint {
+  padding: 6px 10px;
+  color: inherit;
+  font: inherit;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.strata-detail {
+  position: absolute;
+  left: 12px;
+  bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 12px);
+  width: min(340px, calc(100% - 24px));
+  max-height: min(48%, 420px);
+  overflow: auto;
+  padding: 10px 12px;
+  background: rgba(8, 14, 28, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  touch-action: auto;
+}
+
+.strata-detail header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.strata-detail h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.strata-detail header p {
+  margin: 0;
+  color: #b7c6da;
+}
+
+.strata-detail ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.strata-detail-name {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+}
+
+.strata-detail-name b {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.strata-detail-note {
+  margin: 4px 0 0;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.strata-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 12px);
+  z-index: 1;
+  transform: translateX(-50%);
+  color: #e8eef7;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+  background: rgba(8, 14, 28, 0.86);
+}
+
+/* Narrow screens: the layer view keeps the screen for itself. The HUD is
+   hidden (the legend has its own "Back to the globe"), and the layer panel
+   becomes a short sheet above the timeline bar; the panel of an expanded
+   stratum takes its place. Only while the layer view is open. */
+@media (max-width: 700px) {
+  .app:has(.strata) .hud {
+    display: none;
+  }
+
+  .app:has(.strata) aside.layers {
+    top: auto;
+    right: 12px;
+    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
+    left: 12px;
+    width: auto;
+    max-height: 15%;
+  }
+
+  .app:has(.strata-detail) aside.layers {
+    display: none;
+  }
+
+  .strata-header {
+    top: 12px;
+    width: calc(100% - 24px);
+    box-sizing: border-box;
+  }
+
+  .strata-label {
+    left: 8px;
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+
+  .strata-value,
+  .strata-height {
+    font-size: 11px;
+  }
+
+  .strata-off,
+  .strata-height {
+    display: none;
+  }
+
+  .strata-detail {
+    max-height: 36%;
+  }
+}

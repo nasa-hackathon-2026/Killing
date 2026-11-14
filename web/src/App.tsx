@@ -7,6 +7,7 @@ import {
 } from "./analysis/trends";
 import { CloseUpPanel } from "./closeup/CloseUpPanel";
 import { CompanionDock } from "./companions/CompanionDock";
+import { monthlyAnomaly } from "./companions/companionData";
 import { useAnalysisFile } from "./analysis/useAnalysisFile";
 import {
   trendArrowDirection,
@@ -31,6 +32,9 @@ import {
   usePlaceSnapshot,
   type SnapshotState,
 } from "./snapshot/usePlaceSnapshot";
+import { StrataApproach } from "./strata/StrataApproach";
+import { StrataHint, StrataView } from "./strata/StrataView";
+import { useStrataMode } from "./strata/useStrataMode";
 import { TimelineProvider, useTimeline } from "./timeline/TimelineContext";
 import { TimelineDock } from "./timeline/TimelineDock";
 import { useTrendMap } from "./trendmap/useTrendMap";
@@ -43,6 +47,8 @@ import { TrendMapLegend } from "./trendmap/TrendMapLegend";
 import {
   requestedCloseUp,
   requestedLayers,
+  requestedPlace,
+  requestedStrata,
   requestedTrendMap,
 } from "./urlParams";
 
@@ -55,12 +61,15 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
   opacity: 0.75,
 }));
 const initialTrendMap = trendMapVariable(requestedTrendMap())?.id ?? null;
+const askedPlace = requestedPlace();
+const initialLocation =
+  mockLocations.find((item) => item.id === askedPlace)?.id ?? "taichung";
 
 // Loads the snapshot and owns the place; the month, playback and the charted
 // variable live in the timeline context (web/src/timeline/TimelineContext.tsx)
 // so every panel reads the same month.
 export function App() {
-  const [locationId, setLocationId] = useState("taichung");
+  const [locationId, setLocationId] = useState(initialLocation);
   const snapshot = usePlaceSnapshot();
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const { months, defaultMonth } = useMemo(() => {
@@ -100,6 +109,9 @@ function AppView({
   const [forceWebGL, setForceWebGL] = useState(false);
   const [flying, setFlying] = useState(false);
   const [kind, setKind] = useState<RendererKind>("webgl");
+  // Layer view (web/src/strata): one block of state, one block of JSX below.
+  const strata = useStrataMode(requestedStrata());
+  const [nearGround, setNearGround] = useState(false);
   const [controls, setControls] = useState(initialControls);
   const [closeUpId, setCloseUpId] = useState<string | null>(requestedCloseUp);
   const [trendMapId, setTrendMapId] = useState<string | null>(initialTrendMap);
@@ -179,15 +191,66 @@ function AppView({
         onKind={setKind}
         onFlyDone={() => setFlying(false)}
         onSelectLocation={setLocationId}
-      />
+        paused={strata.shown}
+        controlsLocked={strata.phase !== "off"}
+      >
+        {location ? (
+          <StrataApproach
+            phase={strata.phase}
+            lat={location.lat}
+            lon={location.lon}
+            onArrive={strata.onArrive}
+            onReturn={strata.onReturn}
+            onNear={setNearGround}
+          />
+        ) : null}
+      </EarthCanvas>
+      {strata.shown && location ? (
+        <StrataView
+          closing={strata.phase === "closing"}
+          onClosed={strata.onClosed}
+          onExit={strata.exit}
+          place={location}
+          month={activeMonth}
+          controls={controls}
+          readings={readings}
+          intensities={intensities}
+          available={available}
+          anomalyZ={Object.fromEntries(
+            here.map((item) => [
+              item.variableId,
+              activeMonth
+                ? (monthlyAnomaly(item.points, activeMonth)?.z ?? null)
+                : null,
+            ]),
+          )}
+          trends={trends}
+          signals={signals}
+        />
+      ) : null}
+      {strata.phase === "off" && nearGround && location ? (
+        <StrataHint placeName={location.nameEn} onEnter={strata.enter} />
+      ) : null}
       <div className="hud">
         <p className="badge">Renderer: {rendererLabel(kind)}</p>
         <FpsReadout />
         <button type="button" onClick={() => setForceWebGL((value) => !value)}>
           {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
         </button>
-        <button type="button" onClick={() => setFlying(true)} disabled={flying}>
+        <button
+          type="button"
+          onClick={() => setFlying(true)}
+          disabled={flying || strata.phase !== "off"}
+        >
           Fly to Taiwan
+        </button>
+        <button
+          type="button"
+          onClick={strata.phase === "off" ? strata.enter : strata.exit}
+          disabled={strata.phase === "closing" || strata.phase === "return"}
+          aria-pressed={strata.phase !== "off"}
+        >
+          {strata.phase === "off" ? "Layer view" : "Back to the globe"}
         </button>
         <label>
           Global trend map
@@ -245,6 +308,7 @@ function AppView({
         trends={trendsFile}
       />
       <CompanionDock
+        compact={strata.shown}
         visibleIds={controls
           .filter((layer) => layer.visible)
           .map((layer) => layer.id)}

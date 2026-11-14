@@ -37,6 +37,9 @@ export type CompanionDockProps = {
   locationName: string;
   // data/analysis/trends.json once loaded, else null.
   trends: TrendsFile | null;
+  // True while the layer view is open: the same companions already stand on
+  // its platforms, so the panel folds to a row of small figures.
+  compact?: boolean;
 };
 
 export const INTERACTION_NOTE =
@@ -136,14 +139,17 @@ export function CompanionDock({
   locationId,
   locationName,
   trends,
+  compact = false,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
   const [mode] = useState(requestedMode);
-  const [collapsed, setCollapsed] = useState(
+  const [compactOpen, setCompactOpen] = useState(false);
+  const [userCollapsed, setCollapsed] = useState(
     () =>
       mode === "collapsed" ||
       (typeof window !== "undefined" && window.innerWidth < NARROW_WIDTH),
   );
+  const collapsed = compact ? !compactOpen : userCollapsed;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [caveatOpen, setCaveatOpen] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
@@ -366,7 +372,9 @@ export function CompanionDock({
             type="button"
             aria-expanded={!collapsed}
             aria-label={collapsed ? "Expand companions" : "Collapse companions"}
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() =>
+              compact ? setCompactOpen(!compactOpen) : setCollapsed(!collapsed)
+            }
           >
             {collapsed ? "+" : "–"}
           </button>

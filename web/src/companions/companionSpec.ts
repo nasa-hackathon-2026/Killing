@@ -10,12 +10,36 @@ import type { DataKind } from "../analysis/modelVsObs";
 import { formColor } from "../forms/formColor";
 import { formSpec } from "../forms/formMapping";
 import { mockVariables } from "../mock/snapshot";
+import { strata, strataAssignment, type StratumId } from "../strata/strataSpec";
 
 export type CompanionKind =
   "water" | "vapor" | "gas" | "energy" | "plant" | "soil" | "aerosol";
 
-// Where the companion stands when several are shown together.
+// Where the companion stands when several are shown together. It is read
+// from the layer view's table (strata/strataSpec.ts), the single place that
+// says which variable belongs to which stratum.
 export type CompanionLayer = "sky" | "air" | "surface" | "ground";
+
+export const STRATUM_LAYER: Record<StratumId, CompanionLayer> = {
+  stratosphere: "sky",
+  "troposphere-air": "air",
+  "troposphere-water": "air",
+  "near-surface": "air",
+  "land-surface": "surface",
+  "top-soil": "ground",
+};
+
+// Height order of one stratum: the top stratum has the largest number.
+export function stratumRank(variableId: string): number {
+  const id = strataAssignment(variableId)?.stratum;
+  const index = strata.findIndex((item) => item.id === id);
+  return index < 0 ? 0 : strata.length - index;
+}
+
+export function layerOf(variableId: string): CompanionLayer {
+  const id = strataAssignment(variableId)?.stratum;
+  return id ? STRATUM_LAYER[id] : "air";
+}
 
 export type CompanionSpec = {
   // The variable id, e.g. "imerg_precip".
@@ -31,8 +55,9 @@ export type CompanionSpec = {
   // The variable's other existing color, used for accents.
   accentColor: string;
   layer: CompanionLayer;
-  // Larger is higher. Follows the middle of the layer's particle band in
-  // formMapping.ts (tested); equal bands are ordered by hand.
+  // Larger is higher. The stratum of the layer view comes first
+  // (strata/strataSpec.ts); inside one stratum the order follows the middle
+  // of the particle band in formMapping.ts; equal bands are ordered by hand.
   altitudeOrder: number;
   // In situ / satellite retrieval / model, as in data/analysis/cleaning.json
   // (`data_kinds.variables`).
@@ -43,7 +68,7 @@ export type CompanionSpec = {
 
 type Row = Pick<
   CompanionSpec,
-  "id" | "name" | "tag" | "kind" | "variant" | "layer" | "dataKind"
+  "id" | "name" | "tag" | "kind" | "variant" | "dataKind"
 > & { tieBreak?: number };
 
 const ROWS: Row[] = [
@@ -53,7 +78,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "gas",
     variant: "O3",
-    layer: "sky",
     dataKind: "satellite_retrieval",
   },
   {
@@ -62,7 +86,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "gas",
     variant: "NO2",
-    layer: "air",
     dataKind: "satellite_retrieval",
   },
   {
@@ -71,7 +94,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "vapor",
     variant: "column",
-    layer: "air",
     dataKind: "satellite_retrieval",
     // Same band middle as precipitation; vapor is listed above rain.
     tieBreak: 1,
@@ -82,7 +104,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "water",
     variant: null,
-    layer: "air",
     dataKind: "satellite_retrieval",
   },
   {
@@ -91,7 +112,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "aerosol",
     variant: null,
-    layer: "air",
     dataKind: "satellite_retrieval",
   },
   {
@@ -100,7 +120,6 @@ const ROWS: Row[] = [
     tag: "MERRA-2",
     kind: "energy",
     variant: "air",
-    layer: "air",
     dataKind: "model",
   },
   {
@@ -109,7 +128,6 @@ const ROWS: Row[] = [
     tag: "AIRS",
     kind: "energy",
     variant: "air",
-    layer: "air",
     dataKind: "satellite_retrieval",
   },
   {
@@ -118,7 +136,6 @@ const ROWS: Row[] = [
     tag: "GLDAS",
     kind: "energy",
     variant: "air",
-    layer: "air",
     dataKind: "model",
   },
   {
@@ -127,7 +144,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "vapor",
     variant: "rising",
-    layer: "surface",
     dataKind: "model",
   },
   {
@@ -136,7 +152,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "plant",
     variant: null,
-    layer: "surface",
     dataKind: "satellite_retrieval",
   },
   {
@@ -145,7 +160,6 @@ const ROWS: Row[] = [
     tag: "MODIS",
     kind: "energy",
     variant: "land",
-    layer: "surface",
     dataKind: "satellite_retrieval",
   },
   {
@@ -154,7 +168,6 @@ const ROWS: Row[] = [
     tag: null,
     kind: "soil",
     variant: null,
-    layer: "ground",
     dataKind: "model",
   },
 ];
@@ -181,8 +194,9 @@ export const COMPANIONS: CompanionSpec[] = ROWS.map((row) => {
     variant: row.variant,
     baseColor: formColor(colors),
     accentColor: colors.particleColor,
-    layer: row.layer,
-    altitudeOrder: bandAltitude(row.id) + (row.tieBreak ?? 0),
+    layer: layerOf(row.id),
+    altitudeOrder:
+      stratumRank(row.id) * 1000 + bandAltitude(row.id) + (row.tieBreak ?? 0),
     dataKind: row.dataKind,
     variableName: variable?.nameEn ?? row.id,
   };

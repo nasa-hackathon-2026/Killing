@@ -201,15 +201,30 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
   - `Companion.tsx`：`<Companion variableId value anomalyZ trend significant size mood? />`，純呈現的 SVG，不抓資料。`value` 是 0 到 1 的正規化數值（與粒子圖層同一個數，`null` 表示該月沒有資料）；`trend` 是每十年變化量的正負號、`significant` 是 FDR 校正後是否顯著，也可以改傳 `signal`（`trendSignal` 的結果）讓標記與圖層面板完全一致；另有 `warning`、`showLabel`、`animate`、`gesture`（`up`／`down`，Gather 用）。
   - `companionSpec.ts`：`companionFor(variableId)`、`COMPANIONS`、`byAltitude(ids)`（由高到低）、`companionTitle`。每筆有 `id`、`name`、`tag`、`kind`、`variant`、`baseColor`、`layer`（`sky`／`air`／`surface`／`ground`）、`altitudeOrder`、`dataKind`。
   - `companionLine.ts`：`companionLine(input)` 產生那句話；`spokenLine` 只把符號換成念得出來的字。
-- **角色對應表只有一處**：`companionSpec.ts` 的 `ROWS`，一個變數一列。顏色不是新配色，`baseColor` 取自 `formColor`（與粒子同色）；`altitudeOrder` 是 `formMapping.ts` 高度帶的中點（有測試），同高時用 `tieBreak`；`dataKind` 抄自 `data/analysis/cleaning.json` 的 `data_kinds`，那邊改了這裡要跟著改。新增圖層變數時要加一列（測試會檢查 12 個圖層各有一隻）。
+- **角色對應表只有一處**：`companionSpec.ts` 的 `ROWS`，一個變數一列。顏色不是新配色，`baseColor` 取自 `formColor`（與粒子同色）；`layer` 與 `altitudeOrder` 的先後以分層視圖的 `strata/strataSpec.ts` 為準（`STRATUM_LAYER`、`stratumRank`），同一層內再依 `formMapping.ts` 高度帶的中點（有測試），同高時用 `tieBreak`；`dataKind` 抄自 `data/analysis/cleaning.json` 的 `data_kinds`，那邊改了這裡要跟著改。新增圖層變數時要加一列（測試會檢查 12 個圖層各有一隻）。
 - **資料怎麼變成外形**（`companionData.ts`，純函式，有測試）：大小 ← 正規化數值（`BODY_SCALE`）；呼吸速度 ← 該變數在 `formMapping.ts` 的速度對應（含氣溫的平方根律），取對數後落在 `BREATH_LIMITS`；姿態 ← 當月值與「同一個月份在整段紀錄的平均」相比的標準化距平，只分三級（`MOOD_THRESHOLD_Z`，預設 0.5 個標準差；同月份有值的年數少於 `MIN_CLIMATOLOGY_YEARS` 就不算）；頭頂標記 ← `trendSignal`，符號與圖層面板相同；警示標記 ← `trendCaveats.ts`。氣溫角色的身體顏色用趨勢地圖的藍—白—紅色階讀距平（`anomalyTint`）。葉片數、土壤水透鏡數、雨滴數、氣膠顆粒數都隨正規化數值（`detailCount`）。
 - **外形的畫法**在 `companionShape.ts`（一圈控制點的平滑閉合曲線，`bodyOutline` 依形態與姿態變形）與 `Companion.tsx`（各形態的細節）。氣體角色體內的分子用 `chemistry/molecules.ts` 的 `atomPositions` 與 CPK 配色，不另畫一套。
 - **台詞的限制（不可放寬）**：只能是資料事實——變數、地點、月份、數值與單位、與同月份平均的差、每十年變化量與顯著性、已知問題的警語、資料性質。**不寫原因、不下結論、不寫情緒性的判斷**；官方規定點子不能由 AI 產生，詮釋留給隊伍。表情只有姿態三級，不做哭笑臉。
 - **角色必須原創**：不重現任何既有動漫、遊戲、品牌角色的外形、名字、配色或招牌表情；名字用形態本身的英文。全部用程式畫，不加外部圖片、字型、音檔；語音只用瀏覽器的 `speechSynthesis`（`speech.ts`），預設關閉，只在使用者點擊或播放暫停時念。
 - **並存與互動**：面板依 `altitudeOrder` 由上而下排，5 隻以上改兩欄（`ONE_COLUMN_MAX`，為了不蓋到下方的時間軸列）。相鄰兩隻的互動規則是資料（`interactions.ts` 的 `INTERACTION_RULES`：滴水、上升的小珠、氣溫角色的暖光），只是示意，不代表因果，面板底部有註明；兩欄時不顯示互動。
 - **Gather**：`gather.ts` 的 `gatherLayout` 把 12 隻排成借用拉斐爾〈雅典學院〉構圖意象的畫面（中央一隻 `sky`／`air` 指上、一隻 `surface`／`ground` 手掌向下，優先選已開啟的圖層；其餘依高度站兩側台階），背景只有幾條拱門與台階線，畫面上註明出處。不貼原畫。
+- **分層視圖開著時**（`compact`）面板自動收成一排小頭像（同一批角色已站在各層上），仍可按 + 展開。
 - **目前月份**：`useCurrentMonth.ts` 是唯一的轉接點，讀時間軸的 `useTimeline()`（`month`、`playing`），所以 `<CompanionDock />` 要放在 `TimelineProvider` 裡面。播放中只更新外形，不念語音；暫停時才念選取角色的那句話。
 - 已知限制：手機寬度時面板預設收合、停在時間軸列上方的左側，會蓋到 Layers 面板的一角；文字泡泡開在面板左邊，同時開著全球趨勢地圖與時間序列圖時會蓋到圖的右緣（按 × 關閉）；語音的聲線與是否可用取決於瀏覽器；角色的動畫在「減少動態效果」時全部停用。
+
+## 前端的分層視圖（#101）
+主畫面 HUD 的「Layer view」（或拉近到 `NEAR_HINT_DISTANCE` 以內出現的提示鈕「Enter layer view at <地點>」，或網址 `?strata=1&at=<地點 id>`，可和 `?layers=` 並用）：地球場景的鏡頭先飛到目前選定的地點上空，再換成分層視圖自己的 canvas（比照近看檢視，預設的 WebGL renderer；地球的 canvas 在底下 `frameloop="never"` 暫停），鏡頭由正上方傾斜成斜俯視、六個半透明平台上下拉開。離開時倒著播，地球鏡頭回到進入前的位置。程式全部在 `web/src/strata/`，樣式在 `strata.css`（類別一律 `strata-` 開頭）；`App.tsx`、`EarthCanvas.tsx` 各只有一段（`useStrataMode`、`paused`／`controlsLocked`／`children`）。只呈現數值、趨勢與方法說明，不寫解讀，不畫國界。
+
+- **層與變數的對應只有一處**：`strataSpec.ts`。`strata` 是由上到下的六層（名稱、高度文字、顏色），`strataAssignments` 一個變數一列：屬於哪一層（`stratum`）、跨層流到哪一層（`flowsTo`：降水往下到地表、蒸散往上到近地面）、是不是整個氣柱的總量（`columnTotal`）。測試檢查每個圖層變數恰好屬於一層、跨層的方向和 `formMapping.ts` 的 `fall`／`rise` 一致。**高度文字只寫有把握的常識範圍，沒把握就填 `null`（不顯示數字）**；圖例三句（`STRATA_NOTES`：高度不照比例、柱總量畫在氣體最多的那層、流動方向是示意）有測試。
+- **幾何、鏡頭、粒子位置都是純函式**：`strataLayout.ts`（`layoutStrata(spread)`、`particleRange`：變數的粒子可以待的垂直範圍、`companionSpot`）、`strataCamera.ts`（`entryPose`／`entrySpread` 進場路徑、`fitDistance`、`viewInsets`／`insetView` 讓出 HUD 與窄螢幕的面板、`approachPosition` 地球場景裡沿大圓弧飛、俯角與縮放的上下限）、`strataMotion.ts`（`slabParticleState`：和 `forms/motions.ts` 同一組運動方式，改成限制在平台上方的薄盒裡）、`surfaceCrop.ts`（地表層貼圖的裁切：台灣細部地表涵蓋得到就用它，否則 Blue Marble）。平台大小、層距、俯角範圍等常數都在這幾個檔的開頭。
+- **粒子沿用既有形態與預算**：`StrataParticles.tsx` 用 `forms/geometries.ts` 的形狀（`dropletGeometry`、`roundAirGeometry` 為此從元件搬到那裡）、`formColor`、`encodeForm` 與 `layerParticleCap`（依圖層面板開著的層數平分 `TOTAL_PARTICLE_BUDGET`），只畫面板裡開著的變數；地球 canvas 暫停時不畫，所以總數不會超過預算（有測試）。形狀放大 `PARTICLE_SCALE` 倍。
+- **標籤與角色是疊在 canvas 上的 HTML**（`StrataView.tsx`）：`StrataScene` 每一幀投影定位；左欄的層標籤跟著該層的高度，但不會壓到圖例或彼此重疊。點平台、標籤或角色會展開該層（鏡頭靠近、其他層變淡），側邊的數值、趨勢、顯著性與警語直接用圖層面板的 `readings`、`trends`、`signals`、`trendCaveat`，不重算。
+- **兩個轉接檔**：
+  - `useCurrentMonth.ts`：已接上時間軸，回傳 `useTimeline().month`（沒有月份時退回 `AppView` 傳下來的月份），所以時間軸播放時分層視圖跟著更新。只能在 `TimelineProvider` 裡用。
+  - `companionSlot.tsx`：`CompanionSlot` 直接畫資料夥伴（`web/src/companions/` 的 `<Companion />`，不帶腳下標籤）；`StrataView` 的 `anomalyZ` prop（`App.tsx` 用 `monthlyAnomaly` 算）決定姿態，該月沒有資料時 `value` 傳 `null`。角色站在哪一層以 `strataSpec.ts` 為準，`companionSpec.ts` 的 `layer` 與 `altitudeOrder` 也從這張表讀。
+- **進出的狀態機**：`useStrataMode.ts` 的 `nextPhase`（`off → approach → on → closing → return → off`，有測試）；地球場景裡的飛行是 `StrataApproach.tsx`（放在 `EarthCanvas` 的 `children`）。「減少動態效果」時鏡頭與層直接到位、粒子靜止。
+- **和時間軸並存**：時間軸列（`z-index: 1`）疊在分層視圖上、照常可用；`viewInsets` 在下方留出時間軸列的高度（常數 `TIMELINE_RESERVE`，要和 `index.css` 的 `--timeline-bottom`＋`--timeline-height` 對得上），展開單層的面板用這兩個 CSS 變數排在時間軸列上方。時間序列圖（寬螢幕在左側）開著時會蓋住圖例與左欄標籤，關掉就看得到。
+- 已知限制：高度與層距是示意；兩個對流層平台其實是同一層空氣，為了看得清楚分成兩片；跨層粒子只表示方向；地表貼圖的經緯度範圍是粗略裁切（沒有做 cos 緯度修正）；窄螢幕（≤ 700 px）在分層視圖開著時會隱藏 HUD 與標籤的高度文字、把圖層面板縮成時間軸列上方的一小片；觸控只有單指拖曳，沒有雙指縮放；切換 Force WebGL 會重建地球 canvas，分層視圖開著時切換的話離開後鏡頭不會回到原位。
 
 ## 前端的全球趨勢地圖（#72）
 主畫面上方的「Global trend map」選單（預設 Off；選項名稱是 `trendMapConfig.ts` 的 `label`，與 `meta.json` 的 `name_en` 相同、帶產品簡稱）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。

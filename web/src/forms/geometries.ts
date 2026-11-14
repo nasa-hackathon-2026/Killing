@@ -67,3 +67,25 @@ export function leafGeometry(): BufferGeometry {
   geometry.computeVertexNormals();
   return geometry;
 }
+
+// A teardrop (+y is the pointed end). Used by WaterDroplets and by the layer
+// view.
+export function dropletGeometry(): BufferGeometry {
+  const geometry = new SphereGeometry(0.018, 10, 12);
+  const position = geometry.attributes.position;
+  for (let index = 0; index < position.count; index += 1) {
+    const y = position.getY(index);
+    const along = (y + 0.018) / 0.036;
+    const pinch = 1 - Math.pow(Math.max(0, along - 0.42) / 0.58, 1.35);
+    position.setX(index, position.getX(index) * (0.28 + 0.72 * pinch));
+    position.setZ(index, position.getZ(index) * (0.28 + 0.72 * pinch));
+    if (along > 0.42) position.setY(index, y + (along - 0.42) * 0.028);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+// The round air particle of RoundAirParticles and of the layer view.
+export function roundAirGeometry(): BufferGeometry {
+  return new SphereGeometry(0.02, 10, 8);
+}

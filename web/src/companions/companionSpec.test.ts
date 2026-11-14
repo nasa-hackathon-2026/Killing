@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { layerRegistry } from "../layers/registry";
+import { strataAssignments } from "../strata/strataSpec";
 import {
   bandAltitude,
   byAltitude,
   COMPANIONS,
   companionFor,
   companionTitle,
+  STRATUM_LAYER,
+  stratumRank,
 } from "./companionSpec";
 
 describe("companion table", () => {
@@ -25,10 +28,16 @@ describe("companion table", () => {
     expect(companionFor("gldas_soilmoist")?.baseColor).toBe("#2f6fad");
   });
 
-  it("orders companions as their particle bands are ordered", () => {
+  it("orders companions by stratum, then by particle band", () => {
     for (const a of COMPANIONS) {
       for (const b of COMPANIONS) {
-        if (bandAltitude(a.id) > bandAltitude(b.id)) {
+        if (stratumRank(a.id) > stratumRank(b.id)) {
+          expect(a.altitudeOrder).toBeGreaterThan(b.altitudeOrder);
+        }
+        if (
+          stratumRank(a.id) === stratumRank(b.id) &&
+          bandAltitude(a.id) > bandAltitude(b.id)
+        ) {
           expect(a.altitudeOrder).toBeGreaterThan(b.altitudeOrder);
         }
       }
@@ -43,10 +52,17 @@ describe("companion table", () => {
     const sorted = byAltitude(COMPANIONS.map((item) => item.id));
     expect(sorted[0]?.id).toBe("omi_o3");
     expect(sorted.at(-1)?.id).toBe("gldas_soilmoist");
-    const ranks = sorted
-      .filter((item) => item.id !== "gldas_evap")
-      .map((item) => rank[item.layer]);
+    const ranks = sorted.map((item) => rank[item.layer]);
     expect(ranks).toEqual([...ranks].sort((x, y) => y - x));
+  });
+
+  it("stands every companion on the stratum the layer view gives it", () => {
+    for (const row of strataAssignments) {
+      expect(companionFor(row.variableId)?.layer).toBe(
+        STRATUM_LAYER[row.stratum],
+      );
+    }
+    expect(strataAssignments).toHaveLength(COMPANIONS.length);
   });
 
   it("returns undefined for an unknown variable", () => {

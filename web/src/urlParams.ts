@@ -3,6 +3,7 @@
 // ?trendmap=gldas_tair (the global trend map of one variable). The timeline
 // reads ?month=2015-07 (the month shown), ?play=1 (start playing) and
 // ?chart=gldas_tair (the variable in the time series chart).
+// ?strata=1&at=taipei opens the layer view at a place (`at` is optional).
 function param(name: string): string | null {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get(name);
@@ -32,4 +33,12 @@ export function requestedPlay(): boolean {
 
 export function requestedChart(): string | null {
   return param("chart");
+}
+
+export function requestedStrata(): boolean {
+  return param("strata") === "1";
+}
+
+export function requestedPlace(): string | null {
+  return param("at");
 }

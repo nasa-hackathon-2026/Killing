@@ -1,6 +1,6 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useState } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
 import { layerRegistry, type LayerDefinition } from "../layers/registry";
 import { mockLocations, type MockLocation } from "../mock/snapshot";
@@ -35,6 +35,12 @@ type EarthCanvasProps = {
   onKind: (kind: RendererKind) => void;
   onFlyDone: () => void;
   onSelectLocation: (id: string) => void;
+  // Layer view (web/src/strata): stop drawing while it covers the globe,
+  // keep the orbit controls off while its camera flight runs, and let it
+  // put its camera flight inside this canvas.
+  paused?: boolean;
+  controlsLocked?: boolean;
+  children?: ReactNode;
 };
 
 function Scene({
@@ -49,7 +55,11 @@ function Scene({
   locationId,
   onFlyDone,
   onSelectLocation,
+  controlsLocked,
+  children,
 }: {
+  controlsLocked?: boolean;
+  children?: ReactNode;
   flying: boolean;
   layers: SceneLayer[];
   intensities: Record<string, number>;
@@ -102,10 +112,11 @@ function Scene({
           onFlyDone();
         }}
       />
+      {children}
       <OrbitControls
-        key={controlEpoch}
+        key={controlsLocked ? "locked" : controlEpoch}
         enablePan={false}
-        enabled={!flying}
+        enabled={!flying && !controlsLocked}
         minDistance={1.18}
         maxDistance={6}
       />
@@ -156,12 +167,16 @@ export function EarthCanvas({
   onKind,
   onFlyDone,
   onSelectLocation,
+  paused,
+  controlsLocked,
+  children,
 }: EarthCanvasProps) {
   return (
     <Canvas
       key={forceWebGL ? "webgl" : "auto"}
       camera={{ position: [0, 0, 3.2], fov: 45 }}
       dpr={[1, 2]}
+      frameloop={paused ? "never" : "always"}
       gl={createSceneRenderer(forceWebGL, onKind)}
     >
       <Scene
@@ -176,7 +191,10 @@ export function EarthCanvas({
         locationId={locationId}
         onFlyDone={onFlyDone}
         onSelectLocation={onSelectLocation}
-      />
+        controlsLocked={controlsLocked}
+      >
+        {children}
+      </Scene>
     </Canvas>
   );
 }
