@@ -68,6 +68,8 @@ LST（8 日合成）從 2001 年起一次送會超過 AppEEARS 的檔案數上�
 
 快照之外，同一批資料也可以整理成一個 SQLite 檔，方便用 SQL 查、並從統一表追回每個來源的原始資料。公開 demo 不讀它。
 
+**直接下載**：建好的檔案放在 [GitHub Releases](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases)（最新一版是 [`data-2026-11-14`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-14)，約 38 MB，含四張來源表）。不想下載、或想用最新的快照自己建，就跑下面的指令。
+
 ```bash
 uv run python -m trend_detective.sqlite_export
 ```
