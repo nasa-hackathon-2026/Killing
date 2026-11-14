@@ -21,7 +21,10 @@
       "flag_months": true,
       "summary_en": "Step of about +0.4 K in the global land mean against MERRA-2 (GLDAS minus MERRA-2, 6 months before and after: +0.43 K); the month matches the NCEP GSI/GFS upgrade of 2011-05-09.",
       "source_doc": "docs/data/gldas-tair-check.md",
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2011-05-01"
+      ]
     },
     {
       "id": "gldas_tair_step_2017_07",
@@ -32,7 +35,10 @@
       "flag_months": true,
       "summary_en": "Step of about +0.6 K in the global land mean against MERRA-2 (+0.62 K); the month matches the NEMS GFS upgrade of 2017-07-19.",
       "source_doc": "docs/data/gldas-tair-check.md",
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2017-07-01"
+      ]
     },
     {
       "id": "gldas_tair_step_2019_06",
@@ -43,7 +49,10 @@
       "flag_months": true,
       "summary_en": "Step of about -0.6 K in the global land mean against MERRA-2 (-0.66 K); the month matches the FV3-based GFS v15.1 of 2019-06-12.",
       "source_doc": "docs/data/gldas-tair-check.md",
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2019-06-01"
+      ]
     },
     {
       "id": "gldas_evap_step_2024_07_2025_06",
@@ -54,7 +63,11 @@
       "flag_months": true,
       "summary_en": "From 2024-07 to 2025-06 GLDAS evapotranspiration is higher than FLDAS (about +0.08 to +0.20 mm/day through 2025-05, +0.04 in 2025-06), in the same months in which the GLDAS shortwave forcing is 15 to 32 W m-2 higher than FLDAS.",
       "source_doc": "docs/data/gldas-water-check.md",
-      "issue_ref": "#79"
+      "issue_ref": "#79",
+      "break_months": [
+        "2024-07-01",
+        "2025-06-01"
+      ]
     },
     {
       "id": "gldas_soilmoist_vs_fldas_sign",

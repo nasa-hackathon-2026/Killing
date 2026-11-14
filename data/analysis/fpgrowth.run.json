@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T21:18:04Z",
+  "generated_at": "2026-11-14T21:26:48Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -14,6 +14,7 @@
     }
   },
   "parameters": {
+    "segment_known_steps": false,
     "fill_gaps": true,
     "max_linear_gap_months": 2,
     "max_fill_fraction": 0.2,

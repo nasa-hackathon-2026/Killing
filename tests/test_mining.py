@@ -28,6 +28,7 @@ from trend_detective.mining import (
     run_decision_tree,
     run_fpgrowth,
     same_month_transactions,
+    segments,
     select_variables,
     significant_rules,
     state_table,
@@ -900,3 +901,107 @@ def test_both_result_files_compare_the_filled_and_unfilled_runs():
         fold["accuracy"]["test"] for fold in tree["folds"]
     ]
     assert len(digest["unfilled"]["folds"]) == len(tree["folds"])
+
+
+def step_series(n: int = 120, step_at: int = 60, size: float = 5.0) -> np.ndarray:
+    """沒有趨勢、在 `step_at` 往上跳 `size` 的序列，加一點固定的起伏。"""
+    values = np.sin(np.arange(n) / 3.0) * 0.1
+    values[step_at:] += size
+    return values
+
+
+def test_segments_cut_at_break_months_and_merge_tiny_pieces():
+    index = 1000 + np.arange(100)
+    everything = np.ones(100, dtype=bool)
+    assert segments(index, everything, (1040, 1070)) == [(0, 40), (40, 70), (70, 100)]
+    # 序列之外的跳變月份不切；只剩 2 個月的尾段併入前一段
+    assert segments(index, everything, (900, 1098, 5000)) == [(0, 100)]
+    # 可估計月份不足的段（例如整段在測試期）併入前一段
+    train = np.arange(100) < 60
+    assert segments(index, train, (1040, 1070)) == [(0, 40), (40, 100)]
+
+
+def test_segmented_detrending_removes_a_step_that_one_line_cannot():
+    index = 2000 * 12 + np.arange(120)
+    values = step_series()
+
+    one_line = detrend(index, values)
+    cut = detrend(index, values, (int(index[60]),))
+    # 一條直線去不掉階梯：跳變前後的殘差平均差很多；分段後兩段的平均都是 0
+    assert abs(one_line[60:].mean() - one_line[:60].mean()) > 1.0
+    assert cut[:60].mean() == pytest.approx(0.0, abs=1e-9)
+    assert cut[60:].mean() == pytest.approx(0.0, abs=1e-9)
+
+
+def test_short_segment_only_has_its_mean_removed():
+    index = 2000 * 12 + np.arange(120)
+    values = step_series(step_at=110)
+    values[110:] += np.arange(10) * 1.0  # 短段裡的斜率要留著
+
+    cut = detrend(index, values, (int(index[110]),))
+    assert cut[110:].mean() == pytest.approx(0.0, abs=1e-9)
+    assert cut[119] - cut[110] == pytest.approx(values[119] - values[110])
+
+
+def test_fold_segments_are_estimated_from_training_months_only():
+    values = step_series()
+    first = 2000 * 12
+    breaks = (first + 60, first + 100)
+    base = fold_residuals(values, first, 90, breaks)
+    changed = values.copy()
+    changed[90:] += 50.0  # 改測試期，訓練期的估計不能變
+    again = fold_residuals(changed, first, 90, breaks)
+    assert again[:90] == pytest.approx(base[:90])
+    # 落在測試期的跳變月份（位置 100）沒有另外切段：測試期照前一段的估計
+    assert again[90:] == pytest.approx(base[90:] + 50.0)
+
+
+def segmented_inputs() -> tuple[dict, dict]:
+    data = tree_data()
+    for location in ("r1", "r2"):
+        key = f"x__{location}__area_mean"
+        values = np.array(data["series"][key]["values"])
+        values[100:] += 4.0
+        data["series"][key]["values"] = values.tolist()
+    trends = {
+        "known_issues": {"x_step": {"break_months": ["2013-05-01"]}},
+        "series": {
+            f"x__{location}__area_mean": {
+                "status": "analyzed",
+                "known_issues": ["x_step"],
+            }
+            for location in ("r1", "r2")
+        },
+    }
+    return data, trends
+
+
+def test_only_series_with_known_step_months_are_segmented():
+    data, trends = segmented_inputs()
+    on = replace(TREE_PARAMS, segment_known_steps=True)
+
+    table = build_table(data, trends, "region", on)
+    assert sorted(table.breaks) == [("r1", "x"), ("r2", "x")]
+    assert table.breaks[("r1", "x")] == (2013 * 12 + 4,)
+    assert describe_table(table)["segmentation"]["n_series_segmented"] == 2
+    assert build_table(data, trends, "region", TREE_PARAMS).breaks == {}
+
+
+def test_result_files_compare_segmented_and_unsegmented_runs():
+    data, trends = segmented_inputs()
+    rules, tree = run(data, trends, TREE_PARAMS, {"x": "X", "noise": "Noise", "y": "Y"})
+
+    assert rules["parameters"]["segment_known_steps"] is False
+    comparison = rules["segmentation_sensitivity"]
+    assert (comparison["primary"], comparison["compared_with"]) == (
+        "unsegmented",
+        "segmented",
+    )
+    region = comparison["tables"]["region"]
+    assert [item["variable_id"] for item in region["segmented_series"]] == ["x", "x"]
+    assert set(region["same_month"]["n_rules"]) == {"unsegmented", "segmented"}
+    digest = tree["segmentation_sensitivity"]
+    assert [fold["test_accuracy"] for fold in digest["unsegmented"]["folds"]] == [
+        fold["accuracy"]["test"] for fold in tree["folds"]
+    ]
+    assert len(digest["segmented"]["folds"]) == len(tree["folds"])

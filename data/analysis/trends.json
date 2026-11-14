@@ -94,7 +94,10 @@
       "period_start": "2011-05-01",
       "period_end": "2011-05-01",
       "flag_months": true,
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2011-05-01"
+      ]
     },
     "gldas_tair_step_2017_07": {
       "kind": "discontinuity",
@@ -104,7 +107,10 @@
       "period_start": "2017-07-01",
       "period_end": "2017-07-01",
       "flag_months": true,
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2017-07-01"
+      ]
     },
     "gldas_tair_step_2019_06": {
       "kind": "discontinuity",
@@ -114,7 +120,10 @@
       "period_start": "2019-06-01",
       "period_end": "2019-06-01",
       "flag_months": true,
-      "issue_ref": "#74"
+      "issue_ref": "#74",
+      "break_months": [
+        "2019-06-01"
+      ]
     },
     "gldas_evap_step_2024_07_2025_06": {
       "kind": "discontinuity",
@@ -124,7 +133,11 @@
       "period_start": "2024-07-01",
       "period_end": "2025-06-01",
       "flag_months": true,
-      "issue_ref": "#79"
+      "issue_ref": "#79",
+      "break_months": [
+        "2024-07-01",
+        "2025-06-01"
+      ]
     },
     "gldas_soilmoist_vs_fldas_sign": {
       "kind": "product_disagreement",

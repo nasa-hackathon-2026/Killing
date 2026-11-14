@@ -15,6 +15,7 @@
     }
   },
   "parameters": {
+    "segment_known_steps": false,
     "fill_gaps": true,
     "max_linear_gap_months": 2,
     "max_fill_fraction": 0.2,
@@ -196,6 +197,10 @@
         "n_filled_linear": 21,
         "n_filled_climatology": 33,
         "n_series_with_filled_months": 12
+      },
+      "segmentation": {
+        "n_series_segmented": 0,
+        "series": []
       },
       "excluded_variables": [
         {
@@ -6395,6 +6400,10 @@
         "n_filled_linear": 16,
         "n_filled_climatology": 12,
         "n_series_with_filled_months": 9
+      },
+      "segmentation": {
+        "n_series_segmented": 0,
+        "series": []
       },
       "excluded_variables": [
         {
@@ -13376,6 +13385,568 @@
               "rank_unfilled": 1,
               "lift_filled": 1.9623312,
               "lift_unfilled": 1.9623312
+            }
+          ]
+        }
+      }
+    }
+  },
+  "segmentation_sensitivity": {
+    "note": "The results in this file are the unsegmented run. The segmented run uses the same parameters with segment_known_steps switched: series with verified step months (known_issues with break_months) are cut at those months and each segment has its own linear trend removed (segments with at least 36 usable months) or its own mean (shorter segments); segments with fewer than 3 usable months join the previous one. In the decision tree each fold estimates the segments from its training months only, so a step month inside the test months is not cut in that fold. The step months were verified on the global land mean, not on the Taiwan series used here.",
+    "primary": "unsegmented",
+    "compared_with": "segmented",
+    "tables": {
+      "point": {
+        "segmented_series": [
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "hualien",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "hualien",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "kaohsiung",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "kaohsiung",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "taichung",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "taichung",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "taipei",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "taipei",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "yushan",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "yushan",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          }
+        ],
+        "variables": {
+          "unsegmented": [
+            "airs_h2ovap",
+            "airs_tsurf",
+            "gldas_evap",
+            "gldas_soilmoist",
+            "gldas_tair",
+            "imerg_precip",
+            "merra2_t2m",
+            "modis_lst",
+            "modis_ndvi",
+            "omi_aerosol",
+            "omi_no2",
+            "omi_o3"
+          ],
+          "segmented": [
+            "airs_h2ovap",
+            "airs_tsurf",
+            "gldas_evap",
+            "gldas_soilmoist",
+            "gldas_tair",
+            "imerg_precip",
+            "merra2_t2m",
+            "modis_lst",
+            "modis_ndvi",
+            "omi_aerosol",
+            "omi_no2",
+            "omi_o3"
+          ]
+        },
+        "same_month": {
+          "n_transactions": {
+            "unsegmented": 1260,
+            "segmented": 1260
+          },
+          "n_candidate_rules": {
+            "unsegmented": 367,
+            "segmented": 372
+          },
+          "n_rules": {
+            "unsegmented": 367,
+            "segmented": 372
+          },
+          "n_persistence_rules": {
+            "unsegmented": 0,
+            "segmented": 0
+          },
+          "n_listed_rules_in_both": 186,
+          "n_listed_rules_only_unsegmented": 14,
+          "n_listed_rules_only_segmented": 14,
+          "top_rules_compared": 10,
+          "top_rules_same_set": false,
+          "top_rules_same_order": false,
+          "top_rules": [
+            {
+              "antecedents": [
+                "airs_tsurf=low",
+                "gldas_tair=low"
+              ],
+              "consequent": "merra2_t2m=low",
+              "rank_unsegmented": 1,
+              "rank_segmented": 3,
+              "lift_unsegmented": 2.5180723,
+              "lift_segmented": 2.498008
+            },
+            {
+              "antecedents": [
+                "gldas_tair=low",
+                "omi_o3=high"
+              ],
+              "consequent": "merra2_t2m=low",
+              "rank_unsegmented": 2,
+              "rank_segmented": 7,
+              "lift_unsegmented": 2.5,
+              "lift_segmented": 2.4293478
+            },
+            {
+              "antecedents": [
+                "airs_tsurf=high",
+                "gldas_tair=high"
+              ],
+              "consequent": "merra2_t2m=high",
+              "rank_unsegmented": 3,
+              "rank_segmented": 1,
+              "lift_unsegmented": 2.4942529,
+              "lift_segmented": 2.5813953
+            },
+            {
+              "antecedents": [
+                "merra2_t2m=high",
+                "omi_o3=low"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 4,
+              "rank_segmented": 4,
+              "lift_unsegmented": 2.4745763,
+              "lift_segmented": 2.4745763
+            },
+            {
+              "antecedents": [
+                "airs_h2ovap=low",
+                "gldas_tair=low"
+              ],
+              "consequent": "merra2_t2m=low",
+              "rank_unsegmented": 5,
+              "rank_segmented": 5,
+              "lift_unsegmented": 2.4364641,
+              "lift_segmented": 2.4624277
+            },
+            {
+              "antecedents": [
+                "imerg_precip=high",
+                "merra2_t2m=low"
+              ],
+              "consequent": "gldas_soilmoist=high",
+              "rank_unsegmented": 6,
+              "rank_segmented": 9,
+              "lift_unsegmented": 2.4201681,
+              "lift_segmented": 2.4201681
+            },
+            {
+              "antecedents": [
+                "gldas_evap=high",
+                "imerg_precip=high"
+              ],
+              "consequent": "gldas_soilmoist=high",
+              "rank_unsegmented": 7,
+              "rank_segmented": 21,
+              "lift_unsegmented": 2.4188482,
+              "lift_segmented": 2.3457447
+            },
+            {
+              "antecedents": [
+                "gldas_tair=low",
+                "imerg_precip=normal"
+              ],
+              "consequent": "merra2_t2m=low",
+              "rank_unsegmented": 8,
+              "rank_segmented": 2,
+              "lift_unsegmented": 2.4146341,
+              "lift_segmented": 2.54
+            },
+            {
+              "antecedents": [
+                "gldas_soilmoist=high",
+                "omi_aerosol=high"
+              ],
+              "consequent": "imerg_precip=high",
+              "rank_unsegmented": 9,
+              "rank_segmented": 11,
+              "lift_unsegmented": 2.4047619,
+              "lift_segmented": 2.4047619
+            },
+            {
+              "antecedents": [
+                "merra2_t2m=high",
+                "omi_o3=low"
+              ],
+              "consequent": "gldas_tair=high",
+              "rank_unsegmented": 10,
+              "rank_segmented": 24,
+              "lift_unsegmented": 2.3898305,
+              "lift_segmented": 2.3389831
+            }
+          ]
+        },
+        "lagged_one_month": {
+          "n_transactions": {
+            "unsegmented": 1255,
+            "segmented": 1255
+          },
+          "n_candidate_rules": {
+            "unsegmented": 0,
+            "segmented": 0
+          },
+          "n_rules": {
+            "unsegmented": 0,
+            "segmented": 0
+          },
+          "n_persistence_rules": {
+            "unsegmented": 25,
+            "segmented": 22
+          },
+          "n_listed_rules_in_both": 0,
+          "n_listed_rules_only_unsegmented": 0,
+          "n_listed_rules_only_segmented": 0,
+          "top_rules_compared": 0,
+          "top_rules_same_set": true,
+          "top_rules_same_order": true,
+          "top_rules": []
+        }
+      },
+      "region": {
+        "segmented_series": [
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "central",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "central",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "east",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "east",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "north",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "north",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_evap",
+            "location_id": "south",
+            "break_months": [
+              "2024-07-01",
+              "2025-06-01"
+            ]
+          },
+          {
+            "variable_id": "gldas_tair",
+            "location_id": "south",
+            "break_months": [
+              "2011-05-01",
+              "2017-07-01",
+              "2019-06-01"
+            ]
+          }
+        ],
+        "variables": {
+          "unsegmented": [
+            "airs_h2ovap",
+            "airs_tsurf",
+            "gldas_evap",
+            "gldas_soilmoist",
+            "gldas_tair",
+            "imerg_precip",
+            "modis_lst",
+            "modis_ndvi",
+            "modis_ndvi_pc",
+            "omi_aerosol",
+            "omi_no2",
+            "omi_o3"
+          ],
+          "segmented": [
+            "airs_h2ovap",
+            "airs_tsurf",
+            "gldas_evap",
+            "gldas_soilmoist",
+            "gldas_tair",
+            "imerg_precip",
+            "modis_lst",
+            "modis_ndvi",
+            "modis_ndvi_pc",
+            "omi_aerosol",
+            "omi_no2",
+            "omi_o3"
+          ]
+        },
+        "same_month": {
+          "n_transactions": {
+            "unsegmented": 1008,
+            "segmented": 1008
+          },
+          "n_candidate_rules": {
+            "unsegmented": 259,
+            "segmented": 244
+          },
+          "n_rules": {
+            "unsegmented": 259,
+            "segmented": 244
+          },
+          "n_persistence_rules": {
+            "unsegmented": 0,
+            "segmented": 0
+          },
+          "n_listed_rules_in_both": 181,
+          "n_listed_rules_only_unsegmented": 19,
+          "n_listed_rules_only_segmented": 19,
+          "top_rules_compared": 10,
+          "top_rules_same_set": false,
+          "top_rules_same_order": false,
+          "top_rules": [
+            {
+              "antecedents": [
+                "gldas_tair=high",
+                "omi_o3=low"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 1,
+              "rank_segmented": 1,
+              "lift_unsegmented": 3.2413793,
+              "lift_segmented": 3.2
+            },
+            {
+              "antecedents": [
+                "airs_h2ovap=high",
+                "modis_lst=high"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 2,
+              "rank_segmented": 2,
+              "lift_unsegmented": 3.1397849,
+              "lift_segmented": 3.1397849
+            },
+            {
+              "antecedents": [
+                "gldas_tair=high",
+                "omi_aerosol=high"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 3,
+              "rank_segmented": 6,
+              "lift_unsegmented": 3.0869565,
+              "lift_segmented": 2.9662921
+            },
+            {
+              "antecedents": [
+                "airs_h2ovap=high",
+                "gldas_tair=high"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 4,
+              "rank_segmented": 5,
+              "lift_unsegmented": 3.079646,
+              "lift_segmented": 3.0252101
+            },
+            {
+              "antecedents": [
+                "airs_h2ovap=low",
+                "modis_lst=low"
+              ],
+              "consequent": "airs_tsurf=low",
+              "rank_unsegmented": 5,
+              "rank_segmented": 3,
+              "lift_unsegmented": 3.0588235,
+              "lift_segmented": 3.0588235
+            },
+            {
+              "antecedents": [
+                "modis_lst=high",
+                "omi_o3=low"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 6,
+              "rank_segmented": 4,
+              "lift_unsegmented": 3.042735,
+              "lift_segmented": 3.042735
+            },
+            {
+              "antecedents": [
+                "gldas_tair=low",
+                "omi_aerosol=low"
+              ],
+              "consequent": "airs_tsurf=low",
+              "rank_unsegmented": 7,
+              "rank_segmented": 9,
+              "lift_unsegmented": 2.9866667,
+              "lift_segmented": 2.8
+            },
+            {
+              "antecedents": [
+                "airs_h2ovap=normal",
+                "gldas_tair=low"
+              ],
+              "consequent": "airs_tsurf=low",
+              "rank_unsegmented": 8,
+              "rank_segmented": 16,
+              "lift_unsegmented": 2.8705882,
+              "lift_segmented": 2.55
+            },
+            {
+              "antecedents": [
+                "gldas_tair=high",
+                "omi_aerosol=low"
+              ],
+              "consequent": "airs_tsurf=high",
+              "rank_unsegmented": 9,
+              "rank_segmented": 7,
+              "lift_unsegmented": 2.8641975,
+              "lift_segmented": 2.9367089
+            },
+            {
+              "antecedents": [
+                "gldas_tair=low",
+                "omi_o3=high"
+              ],
+              "consequent": "airs_tsurf=low",
+              "rank_unsegmented": 10,
+              "rank_segmented": 11,
+              "lift_unsegmented": 2.8173913,
+              "lift_segmented": 2.6666667
+            }
+          ]
+        },
+        "lagged_one_month": {
+          "n_transactions": {
+            "unsegmented": 1004,
+            "segmented": 1004
+          },
+          "n_candidate_rules": {
+            "unsegmented": 1,
+            "segmented": 1
+          },
+          "n_rules": {
+            "unsegmented": 1,
+            "segmented": 1
+          },
+          "n_persistence_rules": {
+            "unsegmented": 55,
+            "segmented": 51
+          },
+          "n_listed_rules_in_both": 1,
+          "n_listed_rules_only_unsegmented": 0,
+          "n_listed_rules_only_segmented": 0,
+          "top_rules_compared": 1,
+          "top_rules_same_set": true,
+          "top_rules_same_order": true,
+          "top_rules": [
+            {
+              "antecedents": [
+                "prev:airs_h2ovap=high",
+                "prev:gldas_evap=high"
+              ],
+              "consequent": "modis_ndvi=high",
+              "rank_unsegmented": 1,
+              "rank_segmented": 1,
+              "lift_unsegmented": 1.9623312,
+              "lift_segmented": 1.9515446
             }
           ]
         }

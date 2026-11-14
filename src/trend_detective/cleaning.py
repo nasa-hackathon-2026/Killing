@@ -91,6 +91,8 @@ class KnownIssue:
     period_end: str | None = None
     flag_months: bool = False
     issue_ref: str | None = None
+    # 已查證的跳變月份（新的一段從這個月開始）；資料探勘的分段距平用（#85）
+    break_months: tuple[str, ...] | None = None
 
     def matches(self, variable_id: str, aggregation: str | None = None) -> bool:
         if self.aggregation is not None and aggregation != self.aggregation:
@@ -105,7 +107,17 @@ class KnownIssue:
 def load_seed(path: Path = CLEANING_SEED) -> tuple[CleaningRules, list[KnownIssue]]:
     content = json.loads(path.read_text(encoding="utf-8"))
     rules = CleaningRules(**content["rules"])
-    issues = [KnownIssue(**item) for item in content["known_issues"]]
+    issues = [
+        KnownIssue(
+            **{
+                **item,
+                "break_months": tuple(item["break_months"])
+                if item.get("break_months")
+                else None,
+            }
+        )
+        for item in content["known_issues"]
+    ]
     return rules, issues
 
 

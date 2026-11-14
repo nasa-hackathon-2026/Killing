@@ -15,6 +15,7 @@
     }
   },
   "parameters": {
+    "segment_known_steps": false,
     "fill_gaps": true,
     "max_linear_gap_months": 2,
     "max_fill_fraction": 0.2,
@@ -1240,6 +1241,163 @@
         "n_folds_above_all": 0,
         "above_all_in_every_fold": false,
         "mean_test_accuracy": 0.38330984,
+        "mean_train_majority_accuracy": 0.27231619,
+        "mean_test_majority_accuracy": 0.4274724,
+        "mean_persistence_accuracy": 0.53964059
+      }
+    }
+  },
+  "segmentation_sensitivity": {
+    "note": "The results in this file are the unsegmented run. The segmented run uses the same parameters with segment_known_steps switched: series with verified step months (known_issues with break_months) are cut at those months and each segment has its own linear trend removed (segments with at least 36 usable months) or its own mean (shorter segments); segments with fewer than 3 usable months join the previous one. In the decision tree each fold estimates the segments from its training months only, so a step month inside the test months is not cut in that fold. The step months were verified on the global land mean, not on the Taiwan series used here.",
+    "primary": "unsegmented",
+    "compared_with": "segmented",
+    "unsegmented": {
+      "features": [
+        "airs_h2ovap",
+        "airs_tsurf",
+        "gldas_evap",
+        "gldas_soilmoist",
+        "gldas_tair",
+        "imerg_precip",
+        "modis_lst",
+        "omi_aerosol",
+        "omi_no2",
+        "omi_o3",
+        "prev:airs_h2ovap",
+        "prev:airs_tsurf",
+        "prev:gldas_evap",
+        "prev:gldas_soilmoist",
+        "prev:gldas_tair",
+        "prev:imerg_precip",
+        "prev:modis_lst",
+        "prev:omi_aerosol",
+        "prev:omi_no2",
+        "prev:omi_o3"
+      ],
+      "excluded_variables": [
+        "merra2_t2m",
+        "modis_lst_pc"
+      ],
+      "n_complete_rows": 753,
+      "folds": [
+        {
+          "fold": 1,
+          "test_first_month": "2014-11-01",
+          "test_last_month": "2018-06-01",
+          "n_train": 360,
+          "n_test": 132,
+          "test_accuracy": 0.46212121,
+          "train_majority_accuracy": 0.27272727,
+          "test_majority_accuracy": 0.45454545,
+          "persistence_accuracy": 0.46969697
+        },
+        {
+          "fold": 2,
+          "test_first_month": "2018-07-01",
+          "test_last_month": "2022-02-01",
+          "n_train": 492,
+          "n_test": 132,
+          "test_accuracy": 0.45454545,
+          "train_majority_accuracy": 0.26515152,
+          "test_majority_accuracy": 0.40151515,
+          "persistence_accuracy": 0.58333333
+        },
+        {
+          "fold": 3,
+          "test_first_month": "2022-03-01",
+          "test_last_month": "2025-09-01",
+          "n_train": 624,
+          "n_test": 129,
+          "test_accuracy": 0.31007752,
+          "train_majority_accuracy": 0.27906977,
+          "test_majority_accuracy": 0.42635659,
+          "persistence_accuracy": 0.56589147
+        }
+      ],
+      "summary": {
+        "n_folds": 3,
+        "n_folds_above_train_majority": 3,
+        "n_folds_above_test_majority": 2,
+        "n_folds_above_persistence": 0,
+        "n_folds_above_all": 0,
+        "above_all_in_every_fold": false,
+        "mean_test_accuracy": 0.40891473,
+        "mean_train_majority_accuracy": 0.27231619,
+        "mean_test_majority_accuracy": 0.4274724,
+        "mean_persistence_accuracy": 0.53964059
+      }
+    },
+    "segmented": {
+      "features": [
+        "airs_h2ovap",
+        "airs_tsurf",
+        "gldas_evap",
+        "gldas_soilmoist",
+        "gldas_tair",
+        "imerg_precip",
+        "modis_lst",
+        "omi_aerosol",
+        "omi_no2",
+        "omi_o3",
+        "prev:airs_h2ovap",
+        "prev:airs_tsurf",
+        "prev:gldas_evap",
+        "prev:gldas_soilmoist",
+        "prev:gldas_tair",
+        "prev:imerg_precip",
+        "prev:modis_lst",
+        "prev:omi_aerosol",
+        "prev:omi_no2",
+        "prev:omi_o3"
+      ],
+      "excluded_variables": [
+        "merra2_t2m",
+        "modis_lst_pc"
+      ],
+      "n_complete_rows": 753,
+      "folds": [
+        {
+          "fold": 1,
+          "test_first_month": "2014-11-01",
+          "test_last_month": "2018-06-01",
+          "n_train": 360,
+          "n_test": 132,
+          "test_accuracy": 0.46212121,
+          "train_majority_accuracy": 0.27272727,
+          "test_majority_accuracy": 0.45454545,
+          "persistence_accuracy": 0.46969697
+        },
+        {
+          "fold": 2,
+          "test_first_month": "2018-07-01",
+          "test_last_month": "2022-02-01",
+          "n_train": 492,
+          "n_test": 132,
+          "test_accuracy": 0.45454545,
+          "train_majority_accuracy": 0.26515152,
+          "test_majority_accuracy": 0.40151515,
+          "persistence_accuracy": 0.58333333
+        },
+        {
+          "fold": 3,
+          "test_first_month": "2022-03-01",
+          "test_last_month": "2025-09-01",
+          "n_train": 624,
+          "n_test": 129,
+          "test_accuracy": 0.31007752,
+          "train_majority_accuracy": 0.27906977,
+          "test_majority_accuracy": 0.42635659,
+          "persistence_accuracy": 0.56589147
+        }
+      ],
+      "summary": {
+        "n_folds": 3,
+        "n_folds_above_train_majority": 3,
+        "n_folds_above_test_majority": 2,
+        "n_folds_above_persistence": 0,
+        "n_folds_above_all": 0,
+        "above_all_in_every_fold": false,
+        "mean_test_accuracy": 0.40891473,
         "mean_train_majority_accuracy": 0.27231619,
         "mean_test_majority_accuracy": 0.4274724,
         "mean_persistence_accuracy": 0.53964059
