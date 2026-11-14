@@ -27,6 +27,9 @@ import {
   valueAt,
 } from "./snapshot/reading";
 import { usePlaceSnapshot } from "./snapshot/usePlaceSnapshot";
+import { StrataApproach } from "./strata/StrataApproach";
+import { StrataHint, StrataView } from "./strata/StrataView";
+import { useStrataMode } from "./strata/useStrataMode";
 import { useTrendMap } from "./trendmap/useTrendMap";
 import {
   DEFAULT_OVERLAY_OPACITY,
@@ -37,6 +40,8 @@ import { TrendMapLegend } from "./trendmap/TrendMapLegend";
 import {
   requestedCloseUp,
   requestedLayers,
+  requestedPlace,
+  requestedStrata,
   requestedTrendMap,
 } from "./urlParams";
 
@@ -49,12 +54,18 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
   opacity: 0.75,
 }));
 const initialTrendMap = trendMapVariable(requestedTrendMap())?.id ?? null;
+const askedPlace = requestedPlace();
+const initialLocation =
+  mockLocations.find((item) => item.id === askedPlace)?.id ?? "taichung";
 
 export function App() {
   const [forceWebGL, setForceWebGL] = useState(false);
   const [flying, setFlying] = useState(false);
   const [kind, setKind] = useState<RendererKind>("webgl");
-  const [locationId, setLocationId] = useState("taichung");
+  const [locationId, setLocationId] = useState(initialLocation);
+  // Layer view (web/src/strata): one block of state, one block of JSX below.
+  const strata = useStrataMode(requestedStrata());
+  const [nearGround, setNearGround] = useState(false);
   const [controls, setControls] = useState(initialControls);
   const [month, setMonth] = useState<string | null>(null);
   const [closeUpId, setCloseUpId] = useState<string | null>(requestedCloseUp);
@@ -141,15 +152,58 @@ export function App() {
         onKind={setKind}
         onFlyDone={() => setFlying(false)}
         onSelectLocation={setLocationId}
-      />
+        paused={strata.shown}
+        controlsLocked={strata.phase !== "off"}
+      >
+        {location ? (
+          <StrataApproach
+            phase={strata.phase}
+            lat={location.lat}
+            lon={location.lon}
+            onArrive={strata.onArrive}
+            onReturn={strata.onReturn}
+            onNear={setNearGround}
+          />
+        ) : null}
+      </EarthCanvas>
+      {strata.shown && location ? (
+        <StrataView
+          closing={strata.phase === "closing"}
+          onClosed={strata.onClosed}
+          onExit={strata.exit}
+          place={location}
+          month={activeMonth}
+          controls={controls}
+          readings={readings}
+          intensities={intensities}
+          available={available}
+          trends={trends}
+          signals={signals}
+        />
+      ) : null}
+      {strata.phase === "off" && nearGround && location ? (
+        <StrataHint placeName={location.nameEn} onEnter={strata.enter} />
+      ) : null}
       <div className="hud">
         <p className="badge">Renderer: {rendererLabel(kind)}</p>
         <FpsReadout />
         <button type="button" onClick={() => setForceWebGL((value) => !value)}>
           {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
         </button>
-        <button type="button" onClick={() => setFlying(true)} disabled={flying}>
+        <button
+          type="button"
+          onClick={() => setFlying(true)}
+          disabled={flying || strata.phase !== "off"}
+        >
           Fly to Taiwan
+        </button>
+        <button
+          type="button"
+          onClick={strata.phase === "off" ? strata.enter : strata.exit}
+          disabled={strata.phase === "closing" || strata.phase === "return"}
+          aria-pressed={strata.phase !== "off"}
+        >
+          {strata.phase === "off" ? "Layer view" : "Back to the globe"}
         </button>
         <label>
           Global trend map
