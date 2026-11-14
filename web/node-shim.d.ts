@@ -2,13 +2,16 @@ declare module "node:fs" {
   export function cpSync(
     source: string,
     destination: string,
-    options: { recursive: boolean },
+    options: { recursive: boolean; filter?: (source: string) => boolean },
   ): void;
   export function createReadStream(path: string): {
     pipe(destination: unknown): unknown;
   };
   export function existsSync(path: string): boolean;
-  export function statSync(path: string): { isFile(): boolean };
+  export function statSync(path: string): {
+    isFile(): boolean;
+    isDirectory(): boolean;
+  };
 }
 
 declare module "node:path" {

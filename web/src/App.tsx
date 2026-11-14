@@ -27,7 +27,18 @@ import {
   valueAt,
 } from "./snapshot/reading";
 import { usePlaceSnapshot } from "./snapshot/usePlaceSnapshot";
-import { requestedCloseUp, requestedLayers } from "./urlParams";
+import { useTrendMap } from "./trendmap/useTrendMap";
+import {
+  DEFAULT_OVERLAY_OPACITY,
+  TREND_MAP_VARIABLES,
+  trendMapVariable,
+} from "./trendmap/trendMapConfig";
+import { TrendMapLegend } from "./trendmap/TrendMapLegend";
+import {
+  requestedCloseUp,
+  requestedLayers,
+  requestedTrendMap,
+} from "./urlParams";
 
 const askedLayers = requestedLayers();
 const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
@@ -37,6 +48,7 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
     : initialLayerVisibility(layer.id),
   opacity: 0.75,
 }));
+const initialTrendMap = trendMapVariable(requestedTrendMap())?.id ?? null;
 
 export function App() {
   const [forceWebGL, setForceWebGL] = useState(false);
@@ -46,6 +58,11 @@ export function App() {
   const [controls, setControls] = useState(initialControls);
   const [month, setMonth] = useState<string | null>(null);
   const [closeUpId, setCloseUpId] = useState<string | null>(requestedCloseUp);
+  const [trendMapId, setTrendMapId] = useState<string | null>(initialTrendMap);
+  const [trendMapOpacity, setTrendMapOpacity] = useState(
+    DEFAULT_OVERLAY_OPACITY,
+  );
+  const trendMap = useTrendMap(trendMapId);
   const snapshot = usePlaceSnapshot();
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const location =
@@ -117,6 +134,8 @@ export function App() {
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
+        trendMap={trendMap.status === "ready" ? trendMap.map : null}
+        trendMapOpacity={trendMapOpacity}
         places={data?.places ?? []}
         locationId={locationId}
         onKind={setKind}
@@ -132,6 +151,21 @@ export function App() {
         <button type="button" onClick={() => setFlying(true)} disabled={flying}>
           Fly to Taiwan
         </button>
+        <label>
+          Global trend map
+          <select
+            value={trendMapId ?? ""}
+            onChange={(event) => setTrendMapId(event.target.value || null)}
+          >
+            <option value="">Off</option>
+            {TREND_MAP_VARIABLES.map((variable) => (
+              <option key={variable.id} value={variable.id}>
+                {layerRegistry.find((layer) => layer.id === variable.id)
+                  ?.nameEn ?? variable.id}
+              </option>
+            ))}
+          </select>
+        </label>
         <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
         <a href={`${import.meta.env.BASE_URL}mining/`}>Data mining</a>
       </div>
@@ -160,6 +194,11 @@ export function App() {
           )
         }
         onCloseUp={setCloseUpId}
+      />
+      <TrendMapLegend
+        state={trendMap}
+        opacity={trendMapOpacity}
+        onOpacity={setTrendMapOpacity}
       />
       {closeUpLayer ? (
         <CloseUpPanel

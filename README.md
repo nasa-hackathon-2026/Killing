@@ -8,7 +8,7 @@ A web globe that shows NASA Earth-observation time series for Taiwan as layers o
 
 > TODO(team): add team name, a one-paragraph project statement in your own words, and the link to the demo (slides or 30-second video).
 
-What it does not do yet, in short: the site only shows data for five points in Taiwan, the direction particles move in is illustrative (there is no wind data), and the data-mining page is exploratory. Details are under [Limitations](#limitations).
+What it does not do yet, in short: apart from the global trend maps, the site only shows data for five points in Taiwan, the direction particles move in is illustrative (there is no wind data), and the data-mining page is exploratory. Details are under [Limitations](#limitations).
 
 繁體中文摘要在[文末](#繁體中文摘要)。
 
@@ -20,6 +20,7 @@ What it does not do yet, in short: the site only shows data for five points in T
 | Particle forms | Each layer has its own particle shape and motion (water drops, jittering "thermal" spheres, water and ozone molecules, aerosol grains, leaves, ...). The count, size and speed of the particles follow the value for the selected place and month, scaled between that series' own minimum and maximum. |
 | Place and month | Five markers in Taiwan (Taichung, Taipei, Kaohsiung, Hualien, Yushan) choose the place; a month slider chooses the month. A month with no data draws no particles and says "No data". |
 | Trend per layer | The layer panel shows the linear change per decade of the monthly anomalies, its 95% confidence interval, and whether it is significant after autocorrelation and false-discovery-rate correction. ▲ ▼ mark significant rising or falling trends, ◇ marks "not significant". Arrows above a layer on the globe appear only for significant trends. |
+| Global trend map | A selector at the top (off by default; `?trendmap=<id>` in the URL) lays the per-cell trend of one of seven variables over the globe: change per decade on a diverging colour scale (precipitation, both air temperatures from GLDAS and MERRA-2, AIRS surface air temperature, evapotranspiration, soil moisture, total water vapor). Cells significant after false-discovery-rate correction are in full colour, the other analysed cells are faded, cells with no data are left clear. The legend gives the unit, the colour range, the period and the method. |
 | Close-up | Each layer has a "Close-up" button that opens a schematic view of the substance or process behind the variable (for example NO2 photolysis and ozone formation), with bond lengths and angles taken from NIST CCCBDB and the sources listed in the panel. |
 | [Data mining](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/mining/) | Exploratory association rules (FP-growth) and a decision tree on detrended monthly anomalies, with the baselines the tree is compared against. |
 | [Form lab](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/lab/) | Every particle form and close-up on its own, with a 0 to 1 value slider, for trying out how a value looks. |
@@ -33,7 +34,7 @@ Screenshots were taken from a local build on 2026-11-14 in a headless browser, s
 ## Limitations
 
 - **Taiwan points only on screen.** The site reads the point series of five places in Taiwan. Regional means for Taiwan and station series are in the data and in `data/analysis/trends.json`, but are not shown on the globe.
-- **Global data is collected but not shown.** Global monthly grids and world-wide series exist in the data layer (see [NASA data](#nasa-data-and-resources)); none of it is connected to the site yet.
+- **Only the trend maps are global on screen.** The globe can show the per-cell trend maps of seven variables (about 1° cells, so detail inside a cell is averaged out; the colour range is a percentile of each map, so colours are not comparable between variables; no step-change detection). The rest of the global data (the monthly grids themselves, the world-wide point and area-mean series and their trends) exists in the data layer (see [NASA data](#nasa-data-and-resources)) but is not connected to the site.
 - **Flow direction is illustrative.** The project has no wind data. Particles move in a fixed pattern per layer, and the page says so. Particle forms have no land mask, so leaves and soil water also appear over the sea.
 - **Close-up views are schematic** and not to scale. Molecular geometry has a source for each number; the textbook references and size figures (cloud droplets, raindrops, aerosol particles) have not been checked page by page.
 - **Trends are linear only**, on monthly anomalies. Step changes from sensor or product-version changes are not detected or corrected. "Not significant" does not mean "no change"; the record may be too short or too variable.
@@ -167,7 +168,7 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 |---|---|
 | `data/snapshot/` | Core snapshot: `catalog.json` and one JSON file per series. Read by the site. |
 | `data/analysis/` | Trend and data-mining results with their run records (`*.run.json`). Read by the site. |
-| `data/grid/` | Reduced global grid files for seven variables (not yet used by the site). |
+| `data/grid/` | Reduced global grid files for seven variables. The site reads the trend maps (`meta.json`, `trend_slope_per_decade.i16`, `trend_significance.u8`); the annual means and monthly climatologies are not used by the site yet. |
 | `data/seed/` | Lists of variables, locations and grid products that drive the fetch scripts. |
 | `data/raw/`, `data/extended/`, `data/sqlite/` | Raw downloads, extended series, SQLite export. Not in git. |
 | `src/trend_detective/` | Python data layer: one module per source, plus `snapshot`, `trends`, `mining`, `grid*`, `sqlite_export`. |
@@ -231,6 +232,6 @@ What is not AI-generated:
 
 這是 NASA Space Apps Challenge 2026 台中場「Be An Earth System Trend Detective!」的作品。網站用 three.js 地球呈現 12 個 NASA 地球觀測變數在台灣 5 個點位的月資料：每個變數一層粒子，數量、大小、速度跟著數值變；圖層面板列出每個變數每十年的變化量、95% 信賴區間與顯著性（月距平的線性趨勢，t 檢定經自相關修正並做 FDR 校正）。另有探索性的資料探勘頁面與展示實驗場。
 
-目前的限制：畫面只有台灣 5 個點位；流動方向是示意（沒有風向資料）；全球資料已收集但還沒接到畫面；探勘是探索性的，決策樹在走動驗證的 3 折中沒有任何一折高於全部基準。
+目前的限制：畫面只有台灣 5 個點位；流動方向是示意（沒有風向資料）；全球資料只有 7 個變數的趨勢地圖接到畫面（地球上方的 Global trend map 選單），其餘全球格點與世界各地的序列還沒接上；探勘是探索性的，決策樹在走動驗證的 3 折中沒有任何一折高於全部基準。
 
 資料來源、方法、重現步驟與 AI（SI）使用揭露的草稿見上方各節；標有 `TODO(team)` 的地方需要隊伍確認或補充。開發用的 agent 設定說明在 [docs/agents/README.md](docs/agents/README.md)。

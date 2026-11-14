@@ -103,7 +103,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 逐月原始檔（不進 git）：單一變數在 `data/raw/grid/<id>/months/`；批次在 `data/raw/grid/_batch/<產品>/<變數清單雜湊>/`（旁邊的 `variables.json` 記這一批有哪些變數）。立方體建好後它們只是中間產物，可以刪掉省空間，但刪掉之後重跑會整批重抓。
 - 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN、緯度由南到北，一個月一個 chunk。用 `trend_detective.grid.read_cube` 讀（0.1° 的 IMERG、FLDAS 一個變數解開約 9–12 GB，要逐月讀就直接用 netCDF4）。只含「從最新月份往回連續不中斷」的月份，起訖月在檔案屬性 `first_month`、`last_month`。
 - 前端衍生檔（進 git，只有 seed 裡有 `frontend` 的變數）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`，以及趨勢地圖 `trend_slope_per_decade.i16`、`trend_significance.u8`（見「世界級趨勢」）。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768（`.u8` 是 uint8 的類別代碼，圖層條目有 `dtype: "uint8"`，缺值 0）；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。一律降成 1° 緯度帶、面積加權（經度：MERRA-2 1.25°，其餘 1°）。讀法的參考實作是 `trend_detective.grid.read_frontend`。目前有 7 個：`merra2_t2m`、`gldas_soilmoist`、`gldas_tair`、`gldas_evap`、`imerg_precip`、`airs_tsurf`、`airs_h2ovap`。
-- 原本的 `exploratory_linear_slope_per_decade.i16`（逐年平均的斜率，沒有檢定）已由趨勢地圖取代（#68）；`grid_fetch` 與 `grid_derive` 重產時都會刪掉舊檔。前端目前沒有讀 `data/grid/`（2026-11-15 `grep` 確認）。
+- 原本的 `exploratory_linear_slope_per_decade.i16`（逐年平均的斜率，沒有檢定）已由趨勢地圖取代（#68）；`grid_fetch` 與 `grid_derive` 重產時都會刪掉舊檔。前端只讀其中的趨勢地圖（見「前端的全球趨勢地圖」）。
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 - 各產品檔案結構的坑（2026-11-14 實測，程式已處理）：IMERG 的變數在 `/Grid` 群組、軸是 `lon × lat`；AIRS 是 HDF-EOS2，變數在 `/ascending/Data_Fields` 等四個群組、沒有時間軸、緯度由北到南，而且 **OPeNDAP 給的 `YDim`／`XDim` 是格子的北緣與西緣，不是中心**（和檔案自己的 `Latitude`／`Longitude` 差半格），seed 用 `cell_reference: north_west_corner` 標記，建立方體時換算成中心；FLDAS 的座標叫 `X`、`Y`。
 - 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 的月平均沒有另外做品質或雲量篩選，照 L3 檔案裡的值直接平均。
@@ -123,7 +123,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 已知限制：區域是經緯度方框，沒有陸地遮罩；各產品的缺值範圍不同（GLDAS、FLDAS 不含 60°S 以南與海面，IMERG 的全球 `coverage` 約 0.999），跨產品比絕對值會誤導。MERRA-2 的格點中心落在兩極，cos(±90°) = 0，極點那一列不計。趨勢與顯著性不在這裡算。
 
 ## 如何重產分析結果（#55）
-由核心快照算出的統計結果在 `data/analysis/`，會進 git；前端在開發與建置時讀它（`web/snapshot-static.ts` 把它和 `data/snapshot/` 一起提供並複製進 `dist`）。不連網、不需要 token。
+由核心快照算出的統計結果在 `data/analysis/`，會進 git；前端在開發與建置時讀它（`web/snapshot-static.ts` 把它和 `data/snapshot/`、`data/grid/` 的趨勢地圖一起提供並複製進 `dist`）。不連網、不需要 token。
 
 - **趨勢統計**：`uv run python -m trend_detective.trends`，約 3 秒。寫出 `trends.json`（每條序列的結果，鍵是 `<變數>__<地點>__<聚合方式>`）、`anomalies.json`（月距平）與 `trends.run.json`（執行紀錄）。快照更新後要重跑；資料沒變時重跑，只有執行紀錄的 `generated_at` 會變。
 - 方法寫在 `src/trend_detective/trends.py` 開頭與 `trends.json` 的 `methods`：月距平、最小平方法斜率（標準誤用殘差的 lag-1 自相關修正有效樣本數）、Mann-Kendall（原始、Hamed-Rao、Seasonal）、Sen 斜率、各檢定分別做 BH-FDR。
@@ -173,6 +173,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **粒子顏色**：`web/src/forms/formColor.ts` 的 `formColor` 從變數既有的兩個顏色裡挑：`particleColor` 偏白（HSL 亮度 > 0.8）就改用 `glassColor`，否則照舊。沒有另一套配色；新增變數時 `glassColor` 要和其他層分得出來（有測試檢查 12 層的粒子顏色互不相同）。
 - **近看的文字標籤**：`web/src/closeup/labels.ts` 的 `labelingPainter` 包住 `Painter`，script 不用改：每畫一個分子就記一個化學式標籤、光子記 `hν`，同一種最多 `MAX_LABELS_PER_KIND` 個、全部最多 `MAX_CLOSEUP_LABELS` 個。標籤是疊在 canvas 上的 HTML（`CloseUpPanel` 的 `.closeup-labels`），每一幀由 `CloseUpScene` 投影定位，「減少動態效果」時照樣顯示。沒有分子的檢視（土壤水）沒有標籤。
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
+
+## 前端的全球趨勢地圖（#72）
+主畫面上方的「Global trend map」選單（預設 Off）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。
+
+- **要調的東西都在 `web/src/trendmap/trendMapConfig.ts`**：提供哪些變數與各用哪個色階（`TREND_MAP_VARIABLES`、`PALETTES`：氣溫用藍—白—紅、水相關用棕—白—青綠，都是 ColorBrewer 的色盲友善色階）、色階範圍取絕對斜率的哪個分位數（`RANGE_QUANTILE`，0.98；對稱的 ±L，L 取兩位有效數字，格子等權、沒有面積加權，超出的用端點色）、顯著與不顯著格子的不透明度（`SIGNIFICANT_ALPHA`、`NOT_SIGNIFICANT_ALPHA`）、疊加層的預設不透明度與球殼半徑、顯示用的單位換算（`display`，目前只有 `gldas_evap` 換成 mm/day；K 的差值一律標 °C）。
+- **顯著性的畫法**：FDR 校正後顯著（類別 3）全彩；不顯著（1）與只在校正前顯著（2）同樣淡化；缺值或不分析（0）完全透明。圖例有說明。
+- **讀檔與上色是純函式**（`trendGrid.ts`，有測試）：`trendGridSpec` 從 `meta.json` 讀網格與兩個趨勢圖層，排列方式或編碼和預期不同就丟錯而不猜；`decodeSlopes`／`decodeSignificance`、`symmetricLimit`、`paintTrendMap`。`loadTrendMap.ts` 抓三個檔，`useTrendMap.ts` 是 hook。
+- **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
+- **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES`（`meta.json`、`trend_slope_per_decade.i16`、`trend_significance.u8`），7 個變數共約 1.3 MB；逐年平均與月氣候值（共約 30 MB）不進 `dist`，開發伺服器也不提供。之後前端要讀其他圖層，就把檔名加進這個清單。
+- 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，要看海岸線就把圖例的 Opacity 調低；沒有點選格子看數值的功能。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

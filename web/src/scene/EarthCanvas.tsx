@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
 import { layerRegistry, type LayerDefinition } from "../layers/registry";
 import { mockLocations, type MockLocation } from "../mock/snapshot";
+import type { TrendMap } from "../trendmap/loadTrendMap";
+import { TrendMapOverlay } from "../trendmap/TrendMapOverlay";
 import { createSceneRenderer } from "./createSceneRenderer";
 import { Earth } from "./Earth";
 import { TaiwanDetail } from "./TaiwanDetail";
@@ -25,6 +27,9 @@ type EarthCanvasProps = {
   // Layers whose current month has a value; the others draw no particles.
   available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
+  // Global trend map drawn over the surface; null = off.
+  trendMap?: TrendMap | null;
+  trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
   onKind: (kind: RendererKind) => void;
@@ -38,6 +43,8 @@ function Scene({
   intensities,
   available,
   trendDirections,
+  trendMap,
+  trendMapOpacity,
   places,
   locationId,
   onFlyDone,
@@ -49,6 +56,9 @@ function Scene({
   // Layers whose current month has a value; the others draw no particles.
   available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
+  // Global trend map drawn over the surface; null = off.
+  trendMap?: TrendMap | null;
+  trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
   onFlyDone: () => void;
@@ -66,6 +76,9 @@ function Scene({
         <Earth />
         <TaiwanDetail />
       </Suspense>
+      {trendMap ? (
+        <TrendMapOverlay map={trendMap} opacity={trendMapOpacity ?? 1} />
+      ) : null}
       <Markers
         locations={places.length > 0 ? places : mockLocations}
         selectedId={locationId}
@@ -136,6 +149,8 @@ export function EarthCanvas({
   intensities,
   available,
   trendDirections,
+  trendMap,
+  trendMapOpacity,
   places,
   locationId,
   onKind,
@@ -155,6 +170,8 @@ export function EarthCanvas({
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
+        trendMap={trendMap}
+        trendMapOpacity={trendMapOpacity}
         places={places}
         locationId={locationId}
         onFlyDone={onFlyDone}
