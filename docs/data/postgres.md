@@ -78,6 +78,41 @@ analysis  runs（每次執行：時間、git commit、參數 JSONB、影響列�
 
 面積的算法：格子與區域的 `area_km2` 用球面經緯方框的解析式（R = 6371.0088 km），不是 `ST_Area(geography)`——geography 把多邊形的邊當大圓，而經緯方框的南北邊是緯線，兩者對大範圍的方框不相等。同一個網格上它正比於 cos(緯度)，所以和 `grid_regions.py` 的權重一致。
 
+## 資料的性質：`meta.variables.data_kind`
+
+每個變數分成三類，給之後前端把「模式推算」與「觀測」分兩組對照用：
+
+| `data_kind` | 意思 | 這批資料裡的產品 |
+|---|---|---|
+| `in_situ` | 現場儀器實測 | NOAA GHCNh 測站氣溫 |
+| `satellite_retrieval` | 衛星反演（含與雨量站合併的產品） | MODIS、AIRS、OMI、GPM IMERG |
+| `model` | 模式或再分析推算 | GLDAS、FLDAS、MERRA-2、NASA POWER（提供的是 MERRA-2 的場） |
+| `unknown` | 規則判斷不了 | 目前沒有 |
+
+- 規則是資料：`data/seed/data_kinds.json`，依序比對變數 id 與產品名稱，先符合的為準；依據寫在 `data_kind_note`（產品名稱）。新產品加一條規則，重跑 `load`。
+- `gldas_tair`（以及 GLDAS 其他名稱以 `_f_inst`／`_f_tavg` 結尾的變數）歸 `model`，但它是模式的**強迫輸入**（NOAA GDAS 分析場等），不是陸面模式算出來的量，也不是測站觀測；note 有註明。
+- IMERG Final 是衛星與雨量站合併的估計，歸 `satellite_retrieval`，note 有註明。
+- 分類只看產品，不代表品質高低；`satellite_retrieval` 與 `in_situ` 合起來是「觀測」。
+- 匯出：`data/analysis/cleaning.json` 的 `data_kinds`（核心每個變數的 `data_kind`、依據、是否輔助變數，以及各類的變數數與序列數）；擴充的在 `data/extended/analysis/cleaning.json`。`data/snapshot/` 沒有動。
+- 2026-11-15：核心 16 個變數是 `in_situ` 1、`satellite_retrieval` 10、`model` 5；全部 356 個變數沒有 `unknown`。
+
+```sql
+SELECT v.data_kind, count(DISTINCT v.id) AS n_variables, count(*) AS n_series
+FROM meta.series s JOIN meta.variables v ON v.id = s.variable_id GROUP BY 1;
+```
+
+## 如何加入新來源
+
+統一表不必改：`obs.observations` 只有 `series_id`、月份、值、`n_samples`、`coverage`，來源的名稱是 `meta.sources` 的一列，來源專屬的欄位全部在 JSONB。加入更多測站、NASA GISTEMP、SMAP、BigQuery 的公開資料集這類新來源時：
+
+1. 把資料轉成和快照相同的月序列檔（`source_api` 用新來源的名稱；查詢參數放 `request`，形狀不限），列進 `data/snapshot/` 或 `data/extended/` 的目錄檔。這一步之後，`load` 就會把它載進 `meta.series` 與 `obs.observations`，`clean` 會照同一套規則清洗。
+2. `meta.sources` 加一列：在 `src/trend_detective/pg.py` 的 `SOURCE_DESCRIPTIONS` 加名稱與說明（`meta.series.source_api` 有外鍵指到它，沒加會在載入時被擋下來）。
+3. 要保留原始粒度（日值、逐筆觀測、每個合成期）就加一張 `raw.<來源>`：在 `db/migrations/003_raw.sql` 的陣列加名稱（欄位固定是 `variable_id`、`location_id`、`obs_key`、`value`、`payload`），並寫載入。目前七個來源重用 SQLite 匯出的解析（`sqlite_export.py` 的 `SOURCE_TABLES` 加一筆與 `_insert_<來源>`，`pg.py` 的 `RAW_COLUMNS` 指出哪一欄是時間鍵、哪一欄是主要數值，其餘欄位自動進 `payload`）；不想經過 SQLite 的來源可以直接 `COPY` 進自己的 `raw` 表。
+4. 新變數在 `data/seed/data_kinds.json` 補規則（否則是 `unknown`）；新地點有座標或 bbox 就會自動進 `geo.locations`／`geo.regions`。
+5. 有已知問題就加進 `data/seed/cleaning.json`。
+
+不需要動的：`obs.observations`、`clean.*`、`geo.*`、`analysis.*` 的結構。還沒有實際加過新來源；上面是依目前的 schema 與載入程式寫的。日以下粒度的大量資料（例如 SMAP 逐日全球格點）不適合整批塞進 `raw.*`，應先在本機算成區域或點位的月序列，和現在的格點立方體一樣。
+
 ## 清洗
 
 規則是資料：門檻與已知問題在 `data/seed/cleaning.json`，載入成 `meta.cleaning_rules`、`meta.known_issues`；算法在 `src/trend_detective/cleaning.py` 開頭。
@@ -105,6 +140,8 @@ analysis  runs（每次執行：時間、git commit、參數 JSONB、影響列�
 | `product_disagreement` | `gldas_soilmoist` 的趨勢與 FLDAS 正負相反（−0.43 對 +0.16 kg m⁻²／十年） | 否（整條序列的註記） | `docs/data/gldas-water-check.md` |
 | `missing_composites` | Planetary Computer 的 MODIS LST 缺合成期：2022-10 整月、2025-07-04 至 2025-11-17（`modis_lst_pc`，以及同樣從那裡讀的 `modis_lst` 點位序列） | 否（那些月份本來就是 `missing`） | `AGENTS.md` |
 | `auxiliary` | 輔助變數：AIRS 的 `_ct`（觀測筆數）、`_sdev`（標準差）、MERRA-2 的 `var_*`（變異數）、OMI 的太陽與觀測天頂角 | 否；`meta.variables.is_auxiliary`、`clean.series_summary.auxiliary` | `AGENTS.md` |
+
+`break_months`（#85）是已查證的跳變月份，只有兩筆 `discontinuity` 有：`gldas_tair` 的 2011-05、2017-07、2019-06 與 `gldas_evap` 的 2024-07、2025-06。資料探勘的「分段距平」敏感度比較用它切段（見 `AGENTS.md`「如何重產分析結果」）；清洗與趨勢統計不用它。
 
 數字都取自出處文件，沒有新的查證。階梯的月份只標那一個月，不代表之後的月份沒有受影響：階梯之後整段序列的水準都變了，旗標只是讓人查得到「這條序列在這裡有已知的跳變」。新查出的問題加在 seed，重跑 `load`、`clean`。
 
@@ -227,7 +264,7 @@ SQLite（`docs/data/sqlite.md`）仍是放在 GitHub Release 的發佈格式：�
 
 | 表 | 列數 | | 表 | 列數 |
 |---|---|---|---|---|
-| `meta.variables` | 356 | | `raw.giovanni` | 4,199,849 |
+| `meta.variables` | 356（`data_kind`：見上） | | `raw.giovanni` | 4,199,849 |
 | `meta.locations` | 33 | | `raw.grid` | 1,591,824 |
 | `meta.series` | 6,822（核心 133、擴充 6,689） | | `raw.harmony` | 125,168 |
 | `meta.known_issues` | 13 | | `raw.noaa_ghcnh` | 19,337 |

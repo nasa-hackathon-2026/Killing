@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.trends",
-  "generated_at": "2026-11-14T21:26:41Z",
+  "generated_at": "2026-11-14T21:30:47Z",
   "input": {
     "snapshot": "data/snapshot",
     "snapshot_generated_at": "2026-11-14T13:02:25Z"

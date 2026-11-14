@@ -73,6 +73,17 @@ export type TableComparison = {
   lagged_one_month: RuleComparison;
 };
 
+// The same run with and without cutting series at verified step months
+export type SegmentationComparison = {
+  segmented_series: {
+    variable_id: string;
+    location_id: string;
+    break_months: string[];
+  }[];
+  same_month: RuleComparison;
+  lagged_one_month: RuleComparison;
+};
+
 export type TreeDigest = {
   n_complete_rows: number;
   folds: {
@@ -109,6 +120,12 @@ export type FpGrowthFile = FileHeader & {
     primary: string;
     compared_with: string;
     tables: Record<string, TableComparison>;
+  };
+  segmentation_sensitivity?: {
+    note: string;
+    primary: string;
+    compared_with: string;
+    tables: Record<string, SegmentationComparison>;
   };
 };
 
@@ -173,6 +190,12 @@ export type DecisionTreeFile = FileHeader & {
     compared_with: string;
     filled?: TreeDigest;
     unfilled?: TreeDigest;
+  };
+  segmentation_sensitivity?: {
+    primary: string;
+    compared_with: string;
+    segmented?: TreeDigest;
+    unsegmented?: TreeDigest;
   };
 };
 
@@ -292,9 +315,19 @@ export type RuleComparisonRow = {
   comparison: RuleComparison;
 };
 
-// One row per table and timing of the filled-against-unfilled comparison.
-export function ruleComparisonRows(file: FpGrowthFile): RuleComparisonRow[] {
-  const tables = file.gap_filling_sensitivity?.tables ?? {};
+// One row per table and timing of a sensitivity comparison (gap filling by
+// default, or the segmented-against-unsegmented one).
+export function ruleComparisonRows(
+  file: FpGrowthFile,
+  which: "gap_filling" | "segmentation" = "gap_filling",
+): RuleComparisonRow[] {
+  const tables: Record<
+    string,
+    { same_month: RuleComparison; lagged_one_month: RuleComparison }
+  > =
+    (which === "gap_filling"
+      ? file.gap_filling_sensitivity?.tables
+      : file.segmentation_sensitivity?.tables) ?? {};
   return Object.entries(tables).flatMap(([table, item]) => [
     { table, timing: "same month", comparison: item.same_month },
     {

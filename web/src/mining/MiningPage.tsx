@@ -514,6 +514,94 @@ function GapFillingSection({ data }: { data: MiningResults }) {
   );
 }
 
+// Numbers only: how the results change when series with verified step months
+// are cut at those months before detrending.
+function SegmentationSection({ data }: { data: MiningResults }) {
+  const rules = data.rules.segmentation_sensitivity;
+  const tree = data.tree.segmentation_sensitivity;
+  if (!rules || !tree) return null;
+  const runs = [rules.primary, rules.compared_with];
+  const names = data.rules.variable_names;
+  const stepped = [
+    ...new Set(
+      Object.values(rules.tables).flatMap((table) =>
+        table.segmented_series.map(
+          (item) =>
+            `${names[item.variable_id] ?? item.variable_id} (${item.break_months
+              .map((month) => month.slice(0, 7))
+              .join(", ")})`,
+        ),
+      ),
+    ),
+  ];
+  const primary = tree.unsegmented;
+  const other = tree.segmented;
+
+  return (
+    <section>
+      <h2>Known step months: segmented and unsegmented runs compared</h2>
+      <p className="note">
+        {rules.note} Series cut in the segmented run:{" "}
+        {stepped.length ? stepped.join("; ") : "none"}.
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>Timing</th>
+              {runs.map((run) => (
+                <th key={run} className="number">
+                  Rules, {run}
+                </th>
+              ))}
+              <th className="number">Listed rules in both</th>
+              <th>Top rules</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ruleComparisonRows(data.rules, "segmentation").map((row) => (
+              <tr key={`${row.table} ${row.timing}`}>
+                <td>{row.table}</td>
+                <td>{row.timing}</td>
+                {runs.map((run) => (
+                  <td key={run} className="number">
+                    {row.comparison.n_rules[run] ?? "–"}
+                  </td>
+                ))}
+                <td className="number">
+                  {row.comparison.n_listed_rules_in_both}
+                </td>
+                <td>
+                  {formatTopRules(row.comparison)}
+                  {row.comparison.top_rules_compared
+                    ? ` (top ${row.comparison.top_rules_compared})`
+                    : ""}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {primary && other ? (
+        <p className="note">
+          Decision tree test accuracy by fold: unsegmented{" "}
+          {primary.folds
+            .map((fold) => formatShare(fold.test_accuracy))
+            .join(", ")}
+          ; segmented{" "}
+          {other.folds
+            .map((fold) => formatShare(fold.test_accuracy))
+            .join(", ")}
+          . Folds above all three baselines: {primary.summary.n_folds_above_all}{" "}
+          of {primary.folds.length} unsegmented,{" "}
+          {other.summary.n_folds_above_all} of {other.folds.length} segmented.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 export function MiningPage() {
   const state = useAnalysisFile(loadMining);
 
@@ -546,6 +634,7 @@ export function MiningPage() {
           <RulesSection file={state.data.rules} />
           <TreeSection file={state.data.tree} />
           <GapFillingSection data={state.data} />
+          <SegmentationSection data={state.data} />
         </>
       ) : null}
     </main>

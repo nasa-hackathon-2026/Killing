@@ -25,7 +25,11 @@ CREATE TABLE IF NOT EXISTS meta.variables (
     -- 由 meta.known_issues 裡 kind = 'auxiliary' 的規則算出（計數、標準差、變異數、觀測幾何）
     is_auxiliary boolean NOT NULL DEFAULT false,
     -- 其餘各來源不同的欄位（harmony_collection、valid_range、appeears_qa、point_source…）
-    attributes jsonb NOT NULL DEFAULT '{}'
+    attributes jsonb NOT NULL DEFAULT '{}',
+    -- 資料的性質（規則在 data/seed/data_kinds.json）：現場實測、衛星反演、模式或再分析推算
+    data_kind text NOT NULL DEFAULT 'unknown' CHECK (data_kind IN
+        ('in_situ', 'satellite_retrieval', 'model', 'unknown')),
+    data_kind_note text
 );
 CREATE INDEX IF NOT EXISTS variables_attributes_gin ON meta.variables USING gin (attributes);
 CREATE INDEX IF NOT EXISTS variables_name_trgm ON meta.variables
@@ -83,6 +87,7 @@ CREATE TABLE IF NOT EXISTS meta.known_issues (
     summary_en text NOT NULL,
     source_doc text NOT NULL,
     issue_ref text,
+    break_months date[],       -- 已查證的跳變月份（新的一段從這個月開始）；探勘的分段距平用（#85）
     CHECK (variable_id IS NOT NULL OR variable_pattern IS NOT NULL)
 );
 

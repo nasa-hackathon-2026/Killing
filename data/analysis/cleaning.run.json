@@ -1,9 +1,9 @@
 {
   "command": "uv run python -m trend_detective.pg clean && uv run python -m trend_detective.pg export",
-  "generated_at": "2026-11-14T21:07:42Z",
+  "generated_at": "2026-11-14T21:30:44Z",
   "database": {
     "run_id": 2,
-    "git_commit": "b1009a2ad9c7270546371a718b8b08407dc058ef",
+    "git_commit": "b2c673d980d595afc14c4219ed8808f7e0c8c366",
     "server": "17.11 (Ubuntu 17.11-1.pgdg22.04+2)",
     "extensions": {
       "pg_trgm": "1.6",

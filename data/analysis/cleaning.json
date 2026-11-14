@@ -44,6 +44,7 @@
       "period_end": null,
       "flag_months": false,
       "issue_ref": "#68",
+      "break_months": null,
       "n_series": 884
     },
     {
@@ -58,6 +59,7 @@
       "period_end": null,
       "flag_months": false,
       "issue_ref": "#68",
+      "break_months": null,
       "n_series": 832
     },
     {
@@ -72,6 +74,7 @@
       "period_end": null,
       "flag_months": false,
       "issue_ref": "#68",
+      "break_months": null,
       "n_series": 336
     },
     {
@@ -86,6 +89,7 @@
       "period_end": null,
       "flag_months": false,
       "issue_ref": "#68",
+      "break_months": null,
       "n_series": 26
     },
     {
@@ -100,6 +104,10 @@
       "period_end": "2025-06-01",
       "flag_months": true,
       "issue_ref": "#79",
+      "break_months": [
+        "2024-07-01",
+        "2025-06-01"
+      ],
       "n_series": 36
     },
     {
@@ -114,6 +122,7 @@
       "period_end": null,
       "flag_months": false,
       "issue_ref": "#79, #81",
+      "break_months": null,
       "n_series": 37
     },
     {
@@ -128,6 +137,9 @@
       "period_end": "2011-05-01",
       "flag_months": true,
       "issue_ref": "#74",
+      "break_months": [
+        "2011-05-01"
+      ],
       "n_series": 38
     },
     {
@@ -142,6 +154,9 @@
       "period_end": "2017-07-01",
       "flag_months": true,
       "issue_ref": "#74",
+      "break_months": [
+        "2017-07-01"
+      ],
       "n_series": 38
     },
     {
@@ -156,6 +171,9 @@
       "period_end": "2019-06-01",
       "flag_months": true,
       "issue_ref": "#74",
+      "break_months": [
+        "2019-06-01"
+      ],
       "n_series": 38
     },
     {
@@ -170,6 +188,7 @@
       "period_end": "2022-10-01",
       "flag_months": false,
       "issue_ref": "#4",
+      "break_months": null,
       "n_series": 5
     },
     {
@@ -184,6 +203,7 @@
       "period_end": "2025-11-01",
       "flag_months": false,
       "issue_ref": "#4",
+      "break_months": null,
       "n_series": 5
     },
     {
@@ -198,6 +218,7 @@
       "period_end": "2022-10-01",
       "flag_months": false,
       "issue_ref": "#4, #51",
+      "break_months": null,
       "n_series": 5
     },
     {
@@ -212,6 +233,7 @@
       "period_end": "2025-11-01",
       "flag_months": false,
       "issue_ref": "#4, #51",
+      "break_months": null,
       "n_series": 5
     }
   ],
@@ -407,6 +429,105 @@
         "n_series_auxiliary": 0,
         "n_series_with_known_issues": 36,
         "n_series_with_filled_months": 225
+      }
+    }
+  },
+  "data_kinds": {
+    "note": "in_situ: measured on site; satellite_retrieval: retrieved from satellite measurements; model: computed by a model or reanalysis. Rules and their basis are in data/seed/data_kinds.json.",
+    "counts": {
+      "in_situ": {
+        "n_variables": 1,
+        "n_series": 2
+      },
+      "model": {
+        "n_variables": 5,
+        "n_series": 45
+      },
+      "satellite_retrieval": {
+        "n_variables": 10,
+        "n_series": 86
+      }
+    },
+    "variables": {
+      "airs_h2ovap": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "AIRS Level 3 retrievals (AIRS3STM).",
+        "auxiliary": false
+      },
+      "airs_tsurf": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "AIRS Level 3 retrievals (AIRS3STM).",
+        "auxiliary": false
+      },
+      "gldas_evap": {
+        "data_kind": "model",
+        "note_en": "GLDAS Noah land-surface model (GLDAS_NOAH025_M.2.1).",
+        "auxiliary": false
+      },
+      "gldas_soilmoist": {
+        "data_kind": "model",
+        "note_en": "GLDAS Noah land-surface model (GLDAS_NOAH025_M.2.1).",
+        "auxiliary": false
+      },
+      "gldas_tair": {
+        "data_kind": "model",
+        "note_en": "GLDAS_NOAH025_M.2.1 Tair_f_inst: a forcing input of the GLDAS model run, taken from the NOAA GDAS atmospheric analysis; not an output of the land-surface model and not a station measurement (docs/data/gldas-tair-check.md).",
+        "auxiliary": false
+      },
+      "imerg_precip": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "GPM IMERG Final: merged satellite-gauge precipitation estimate.",
+        "auxiliary": false
+      },
+      "merra2_t2m": {
+        "data_kind": "model",
+        "note_en": "MERRA-2 atmospheric reanalysis.",
+        "auxiliary": false
+      },
+      "modis_lst": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Terra MODIS land products.",
+        "auxiliary": false
+      },
+      "modis_lst_pc": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Terra MODIS land products.",
+        "auxiliary": false
+      },
+      "modis_ndvi": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Terra MODIS land products.",
+        "auxiliary": false
+      },
+      "modis_ndvi_pc": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Terra MODIS land products.",
+        "auxiliary": false
+      },
+      "omi_aerosol": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Aura OMI Level 3 retrievals.",
+        "auxiliary": false
+      },
+      "omi_no2": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Aura OMI Level 3 retrievals.",
+        "auxiliary": false
+      },
+      "omi_o3": {
+        "data_kind": "satellite_retrieval",
+        "note_en": "Aura OMI Level 3 retrievals.",
+        "auxiliary": false
+      },
+      "power_t2m": {
+        "data_kind": "model",
+        "note_en": "NASA POWER, which serves MERRA-2 reanalysis fields.",
+        "auxiliary": false
+      },
+      "station_temp": {
+        "data_kind": "in_situ",
+        "note_en": "NOAA GHCNh station observations.",
+        "auxiliary": false
       }
     }
   },

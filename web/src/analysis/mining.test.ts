@@ -313,6 +313,28 @@ describe("gap filling comparison", () => {
     expect(rows[0]?.comparison.n_rules.filled).toBe(12);
   });
 
+  it("lists the segmentation comparison when asked", () => {
+    const file = {
+      segmentation_sensitivity: {
+        note: "",
+        primary: "unsegmented",
+        compared_with: "segmented",
+        tables: {
+          point: {
+            segmented_series: [],
+            same_month: comparison,
+            lagged_one_month: comparison,
+          },
+        },
+      },
+    } as unknown as FpGrowthFile;
+
+    expect(ruleComparisonRows(file)).toEqual([]);
+    expect(
+      ruleComparisonRows(file, "segmentation").map((row) => row.table),
+    ).toEqual(["point", "point"]);
+  });
+
   it("is empty for a file written before the comparison existed", () => {
     expect(ruleComparisonRows({} as FpGrowthFile)).toEqual([]);
   });

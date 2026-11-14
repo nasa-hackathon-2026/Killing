@@ -320,6 +320,7 @@ def _load_lookups(
     issues: list[cleaning.KnownIssue],
     rules: cleaning.CleaningRules,
     rule_notes: dict[str, str],
+    kind_rules: list[dict[str, str]],
 ) -> None:
     for source, description in SOURCE_DESCRIPTIONS.items():
         conn.execute(
@@ -333,7 +334,8 @@ def _load_lookups(
         )
     for issue in issues:
         conn.execute(
-            "INSERT INTO meta.known_issues VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            "INSERT INTO meta.known_issues VALUES"
+            " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (
                 issue.id,
                 issue.kind,
@@ -346,6 +348,7 @@ def _load_lookups(
                 issue.summary_en,
                 issue.source_doc,
                 issue.issue_ref,
+                list(issue.break_months) if issue.break_months else None,
             ),
         )
     for v in variables:
@@ -356,13 +359,14 @@ def _load_lookups(
         }
         conn.execute(
             "INSERT INTO meta.variables VALUES"
-            " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (
                 *(v.get(column) for column in VARIABLE_COLUMNS),
                 v["tier"],
                 bool(v.get("needs_translation")),
                 cleaning.is_auxiliary(v["id"], issues),
                 Jsonb(attributes),
+                *cleaning.data_kind_for(v, kind_rules),
             ),
         )
     for loc in locations:
@@ -595,6 +599,11 @@ def load(
     timings: dict[str, float] = {}
     rules, issues = cleaning.load_seed(seed_file)
     rule_notes = _load(seed_file).get("rule_notes", {})
+    # 資料性質的規則放在清洗 seed 的旁邊；沒有那個檔就全部是 unknown
+    kinds_file = seed_file.parent / cleaning.DATA_KIND_SEED.name
+    kind_rules = (
+        cleaning.load_data_kind_rules(kinds_file) if kinds_file.exists() else []
+    )
     variables, locations, files = read_inputs(snapshot_dir, extended_dir)
     with connect(env_file) as conn:
         clock = time.monotonic()
@@ -603,7 +612,7 @@ def load(
         timings["migrate"] = time.monotonic() - clock
 
         clock = time.monotonic()
-        _load_lookups(conn, variables, locations, issues, rules, rule_notes)
+        _load_lookups(conn, variables, locations, issues, rules, rule_notes, kind_rules)
         timings["lookups"] = time.monotonic() - clock
 
         clock = time.monotonic()
@@ -696,10 +705,13 @@ def read_known_issues(conn: psycopg.Connection[Any]) -> list[cleaning.KnownIssue
             summary_en=row[8],
             source_doc=row[9],
             issue_ref=row[10],
+            break_months=tuple(month.isoformat() for month in row[11])
+            if row[11]
+            else None,
         )
         for row in conn.execute(
             "SELECT id, kind, variable_id, variable_pattern, aggregation, period_start,"
-            " period_end, flag_months, summary_en, source_doc, issue_ref"
+            " period_end, flag_months, summary_en, source_doc, issue_ref, break_months"
             " FROM meta.known_issues ORDER BY id"
         )
     ]
@@ -875,6 +887,37 @@ def _totals(conn: psycopg.Connection[Any], where: str = "TRUE") -> dict[str, Any
     }
 
 
+def data_kinds(conn: psycopg.Connection[Any], tier: str) -> dict[str, Any]:
+    """每個變數屬於哪一類資料（`meta.variables.data_kind`），以及各類的變數數與序列數。"""
+    variables = {
+        row[0]: {"data_kind": row[1], "note_en": row[2], "auxiliary": row[3]}
+        for row in conn.execute(
+            "SELECT id, data_kind, data_kind_note, is_auxiliary FROM meta.variables"
+            " WHERE id IN (SELECT variable_id FROM meta.series WHERE tier = %s)"
+            " ORDER BY id",
+            (tier,),
+        )
+    }
+    counts = {
+        row[0]: {"n_variables": row[1], "n_series": row[2]}
+        for row in conn.execute(
+            "SELECT v.data_kind, count(DISTINCT v.id), count(*) FROM meta.series s"
+            " JOIN meta.variables v ON v.id = s.variable_id WHERE s.tier = %s"
+            " GROUP BY 1 ORDER BY 1",
+            (tier,),
+        )
+    }
+    return {
+        "note": (
+            "in_situ: measured on site; satellite_retrieval: retrieved from "
+            "satellite measurements; model: computed by a model or reanalysis. "
+            "Rules and their basis are in data/seed/data_kinds.json."
+        ),
+        "counts": counts,
+        "variables": variables,
+    }
+
+
 def cleaning_summary(conn: psycopg.Connection[Any], tier: str) -> dict[str, Any]:
     """清洗摘要：規則、已知問題、全庫與各分組的彙總，以及 `tier` 這一層每條序列的摘要。"""
     rules = {
@@ -924,6 +967,7 @@ def cleaning_summary(conn: psycopg.Connection[Any], tier: str) -> dict[str, Any]
                     for t, a in groups
                 },
             },
+            "data_kinds": data_kinds(conn, tier),
             "series_tier": tier,
             "series": series,
         }

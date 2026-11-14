@@ -1,0 +1,67 @@
+{
+  "kinds": {
+    "in_situ": "Measured on site by an instrument (for example a weather station).",
+    "satellite_retrieval": "Retrieved from satellite measurements (including products that merge satellites with gauges).",
+    "model": "Computed by a model or reanalysis (land-surface model, atmospheric reanalysis, or fields derived from one).",
+    "unknown": "Not classified."
+  },
+  "note": "Rules are tried in order; the first match wins. A rule matches on variable_id (exact), variable_pattern (regular expression on the variable id) and/or product_pattern (regular expression on the product); every key present in the rule must match.",
+  "rules": [
+    {
+      "variable_id": "gldas_tair",
+      "data_kind": "model",
+      "note": "GLDAS_NOAH025_M.2.1 Tair_f_inst: a forcing input of the GLDAS model run, taken from the NOAA GDAS atmospheric analysis; not an output of the land-surface model and not a station measurement (docs/data/gldas-tair-check.md)."
+    },
+    {
+      "variable_pattern": "^gldas.*_f_(inst|tavg)$",
+      "product_pattern": "^GLDAS",
+      "data_kind": "model",
+      "note": "GLDAS Noah forcing field (variable name ends in _f_): a meteorological input of the model run (NOAA GDAS analysis, GPCP precipitation, AGRMET radiation per the GLDAS-2 README), not an output of the land-surface model."
+    },
+    {
+      "product_pattern": "^GLDAS",
+      "data_kind": "model",
+      "note": "GLDAS Noah land-surface model (GLDAS_NOAH025_M.2.1)."
+    },
+    {
+      "product_pattern": "^FLDAS",
+      "data_kind": "model",
+      "note": "FLDAS Noah land-surface model (FLDAS_NOAH01_C_GL_M.001)."
+    },
+    {
+      "product_pattern": "^M2[A-Z0-9]+\\.",
+      "data_kind": "model",
+      "note": "MERRA-2 atmospheric reanalysis."
+    },
+    {
+      "product_pattern": "MERRA-2",
+      "data_kind": "model",
+      "note": "NASA POWER, which serves MERRA-2 reanalysis fields."
+    },
+    {
+      "product_pattern": "^GPM_3IMERG",
+      "data_kind": "satellite_retrieval",
+      "note": "GPM IMERG Final: merged satellite-gauge precipitation estimate."
+    },
+    {
+      "product_pattern": "^AIRS",
+      "data_kind": "satellite_retrieval",
+      "note": "AIRS Level 3 retrievals (AIRS3STM)."
+    },
+    {
+      "product_pattern": "^OM[A-Z0-9]+[de]\\.",
+      "data_kind": "satellite_retrieval",
+      "note": "Aura OMI Level 3 retrievals."
+    },
+    {
+      "product_pattern": "^MOD\\d",
+      "data_kind": "satellite_retrieval",
+      "note": "Terra MODIS land products."
+    },
+    {
+      "product_pattern": "^GHCNh",
+      "data_kind": "in_situ",
+      "note": "NOAA GHCNh station observations."
+    }
+  ]
+}

@@ -554,6 +554,7 @@ CREATE TABLE meta.known_issues (
     summary_en text NOT NULL,
     source_doc text NOT NULL,
     issue_ref text,
+    break_months date[],
     CONSTRAINT known_issues_check CHECK (((variable_id IS NOT NULL) OR (variable_pattern IS NOT NULL))),
     CONSTRAINT known_issues_kind_check CHECK ((kind = ANY (ARRAY['discontinuity'::text, 'product_disagreement'::text, 'missing_composites'::text, 'auxiliary'::text])))
 );
@@ -636,6 +637,9 @@ CREATE TABLE meta.variables (
     needs_translation boolean DEFAULT false NOT NULL,
     is_auxiliary boolean DEFAULT false NOT NULL,
     attributes jsonb DEFAULT '{}'::jsonb NOT NULL,
+    data_kind text DEFAULT 'unknown'::text NOT NULL,
+    data_kind_note text,
+    CONSTRAINT variables_data_kind_check CHECK ((data_kind = ANY (ARRAY['in_situ'::text, 'satellite_retrieval'::text, 'model'::text, 'unknown'::text]))),
     CONSTRAINT variables_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
 );
 
@@ -649,7 +653,7 @@ CREATE VIEW obs.yearly_mean AS
     year,
     mean_value,
     n_months
-   FROM _timescaledb_internal._materialized_hypertable_2;
+   FROM _timescaledb_internal._materialized_hypertable_6;
 
 
 --

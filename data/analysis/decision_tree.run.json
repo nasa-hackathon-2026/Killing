@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T21:26:48Z",
+  "generated_at": "2026-11-14T21:31:03Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",

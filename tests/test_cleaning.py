@@ -1,5 +1,7 @@
 """清洗的純函式：骨架、旗標、距平、補值、摘要。不連資料庫。"""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -195,6 +197,34 @@ def test_empty_series_and_seed_file() -> None:
     ids = {issue.id for issue in issues}
     assert {"gldas_tair_step_2011_05", "gldas_evap_step_2024_07_2025_06"} <= ids
     # 每筆已知問題都要有出處文件，而且文件存在
-    from pathlib import Path
-
     assert all(Path(issue.source_doc).exists() for issue in issues)
+
+
+def test_data_kind_rules_cover_every_core_variable_and_follow_the_product() -> None:
+    import json
+
+    rules = cleaning.load_data_kind_rules()
+    catalog = json.loads(Path("data/snapshot/catalog.json").read_text(encoding="utf-8"))
+    kinds = {v["id"]: cleaning.data_kind_for(v, rules) for v in catalog["variables"]}
+    assert all(kind in cleaning.DATA_KINDS for kind, _ in kinds.values())
+    assert "unknown" not in {kind for kind, _ in kinds.values()}
+    assert kinds["station_temp"][0] == "in_situ"
+    assert {kinds[name][0] for name in ("modis_lst", "airs_tsurf", "omi_no2")} == {
+        "satellite_retrieval"
+    }
+    assert {kinds[name][0] for name in ("gldas_evap", "merra2_t2m", "power_t2m")} == {
+        "model"
+    }
+    # GLDAS 的氣溫是模式的強迫輸入，依據要寫明
+    kind, note = kinds["gldas_tair"]
+    assert kind == "model" and note is not None and "GDAS" in note
+    # 規則裡每個鍵都要符合；都不符合就是 unknown
+    assert cleaning.data_kind_for({"id": "x", "product": "SMAP_L3"}, rules) == (
+        "unknown",
+        None,
+    )
+    forcing = {
+        "id": "gldas_noah025_m_2_1_wind_f_inst",
+        "product": "GLDAS_NOAH025_M.2.1",
+    }
+    assert "forcing" in (cleaning.data_kind_for(forcing, rules)[1] or "")
