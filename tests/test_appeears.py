@@ -15,6 +15,7 @@ from trend_detective.appeears import (
     build_area_task,
     build_area_tasks,
     download_small_files,
+    save_product_info,
     save_submission,
 )
 from trend_detective.regions import DEFAULT_REGIONS, regions_feature_collection
@@ -218,3 +219,32 @@ def test_download_never_overwrites_the_local_submission_record(tmp_path: Path):
 
     assert download_small_files(_client(handler), "abc-123", tmp_path) == []
     assert (tmp_path / "submission.json").read_text() == "local record"
+
+
+def test_product_info_for_the_requested_layers_is_kept_next_to_the_raw_files(
+    tmp_path: Path,
+):
+    def handler(request: httpx.Request) -> httpx.Response:
+        product = request.url.path.rsplit("/", 1)[-1]
+        layers = {
+            "_1_km_monthly_NDVI": {"ScaleFactor": 0.0001, "Units": "", "ValidMax": 1.0},
+            "_1_km_monthly_pixel_reliability": {"Units": "Rank"},
+            "_1_km_monthly_EVI": {"ScaleFactor": 0.0001},
+            "LST_Day_1km": {"ScaleFactor": 0.02, "Units": "Kelvin"},
+            "QC_Day": {"Units": "Bit Field"},
+        }
+        assert product in {"MOD13A3.061", "MOD11A2.061"}
+        return httpx.Response(200, json=layers)
+
+    saved = save_product_info(_client(handler), tmp_path)
+
+    assert [p.relative_to(tmp_path).as_posix() for p in saved] == [
+        "modis_ndvi/product.json",
+        "modis_lst/product.json",
+    ]
+    info = json.loads((tmp_path / "modis_lst" / "product.json").read_text())
+    assert info["product"] == "MOD11A2.061"
+    assert info["layers"] == {
+        "LST_Day_1km": {"ScaleFactor": 0.02, "Units": "Kelvin"},
+        "QC_Day": {"Units": "Bit Field"},
+    }

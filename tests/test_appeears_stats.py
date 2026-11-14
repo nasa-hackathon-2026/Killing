@@ -8,6 +8,7 @@ import pytest
 from trend_detective.appeears_stats import (
     StatRow,
     composites_to_monthly_points,
+    parse_qa_counts,
     parse_statistics_csv,
     region_ids_by_aid,
 )
@@ -89,3 +90,25 @@ def test_composites_without_valid_pixels_do_not_count_as_samples():
     assert composites_to_monthly_points(rows) == [
         {"month": "2001-03-01", "value": 295.0, "n_samples": 1, "coverage": 0.5}
     ]
+
+
+QA = FIXTURE / "MOD13A3-061-1-km-monthly-pixel-reliability-Statistics-QA.csv"
+
+
+def test_qa_counts_add_up_the_pixels_in_the_good_categories():
+    counts = parse_qa_counts(QA.read_text(encoding="utf-8"), ["0", "1"])
+
+    # 2001-01 taiwan：好 35855 + 尚可 10389；雲 578 不算
+    assert counts[("aid0001", date(2001, 1, 1))] == 35855 + 10389
+    assert len(counts) == 6
+
+
+def test_coverage_uses_the_qa_filtered_pixel_count_when_there_is_one():
+    rows = [
+        StatRow("N", "aid0001", date(2001, 1, 1), 100, 0.6, None, None, None, None, 60),
+        StatRow(
+            "N", "aid0001", date(2001, 2, 1), 100, 0.7, None, None, None, None, 100
+        ),
+    ]
+
+    assert [p["coverage"] for p in composites_to_monthly_points(rows)] == [0.6, 1.0]

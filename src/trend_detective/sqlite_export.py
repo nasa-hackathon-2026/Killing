@@ -375,10 +375,9 @@ def _insert_appeears(
     variables = {v["id"]: v for v in catalog["variables"]}
     wanted = {(s["variable_id"], s["location_id"]) for s in _of(all_series, "appeears")}
     for variable_id in sorted({key[0] for key in wanted}):
-        try:
-            rows_by_region, _ = appeears_rows(raw / variable_id, variables[variable_id])
-        except (OSError, ValueError):
-            continue
+        if not any((raw / variable_id).glob("*/submission.json")):
+            continue  # 這台機器沒有 AppEEARS 的原始檔：來源表留空
+        rows_by_region, _ = appeears_rows(raw / variable_id, variables[variable_id])
         for location_id, rows in sorted(rows_by_region.items()):
             if (variable_id, location_id) not in wanted:
                 continue

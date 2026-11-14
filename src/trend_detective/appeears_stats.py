@@ -25,6 +25,8 @@ class StatRow:
     minimum: float | None
     maximum: float | None
     median: float | None
+    # 通過 QA 的像元數（來自 *-Statistics-QA.csv）；沒有 QA 檔就是 None
+    good_count: int | None = None
 
 
 def _number(raw: str | None) -> float | None:
@@ -60,6 +62,22 @@ def parse_statistics_csv(text: str) -> list[StatRow]:
     return rows
 
 
+def parse_qa_counts(text: str, good_values: list[str]) -> dict[tuple[str, date], int]:
+    """讀 `*-Statistics-QA.csv`：每列是區域 × 合成期，各 QA 類別一欄像元數。
+
+    回傳 (aid, 起始日) → 屬於 `good_values` 類別的像元數總和。
+    """
+    reader = csv.DictReader(text.splitlines())
+    missing = {"aid", "Date"} - set(reader.fieldnames or [])
+    if missing:
+        raise ValueError(f"QA 統計 CSV 缺少欄位：{sorted(missing)}")
+    counts: dict[tuple[str, date], int] = {}
+    for record in reader:
+        good = sum(int(_number(record.get(value)) or 0) for value in good_values)
+        counts[(record["aid"], date.fromisoformat(record["Date"][:10]))] = good
+    return counts
+
+
 def region_ids_by_aid(request_json: str) -> dict[str, str]:
     """由 bundle 裡的請求 JSON 得到 aid → 區域 id（feature 的 `properties.id`）。"""
     features = json.loads(request_json)["params"]["geo"]["features"]
@@ -73,7 +91,7 @@ def composites_to_monthly_points(rows: list[StatRow]) -> list[dict[str, Any]]:
     """同一區域、同一 layer 的合成期 → 月序列的點。
 
     合成期依起始日歸月後取平均（月合成每月一筆，8 日合成每月 3–4 筆）。
-    `n_samples` 是當月有值的合成期數；`coverage` 是當月各合成期「有值像元數 ÷ 這個區域
+    `n_samples` 是當月有值的合成期數；`coverage` 是當月各合成期「可用像元數（有 QA 資料時是通過 QA 的像元數，否則是有值像元數）÷ 這個區域
     出現過的最大像元數」的平均，沒有值的合成期算 0。不剔除低覆蓋的月份。
     """
     full = max((row.count for row in rows), default=0)
@@ -87,7 +105,9 @@ def composites_to_monthly_points(rows: list[StatRow]) -> list[dict[str, Any]]:
             row.mean for row in composites if row.mean is not None and row.count > 0
         ]
         covered = [
-            row.count / full if row.mean is not None and full else 0.0
+            (row.count if row.good_count is None else row.good_count) / full
+            if row.mean is not None and full
+            else 0.0
             for row in composites
         ]
         points.append(

@@ -1004,3 +1004,109 @@ def test_a_value_outside_the_plausible_range_fails_the_variable(tmp_path: Path):
     )
 
     assert "合理範圍" in result.failures[("modis_ndvi", "taiwan")]
+
+
+def test_coverage_counts_only_pixels_that_pass_qa_when_the_variable_names_a_qa_file(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114")
+    with_qa = {
+        **NDVI,
+        "appeears_qa": {
+            "file_suffix": "pixel-reliability-Statistics-QA.csv",
+            "good_values": ["0", "1"],
+        },
+    }
+
+    build_snapshot(
+        None, tmp_path / "snap", [with_qa], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    series = json.loads(
+        (
+            tmp_path / "snap" / "series" / "modis_ndvi__taiwan__area_mean.json"
+        ).read_text()
+    )
+    # 2001-01 taiwan：好 35855 + 尚可 10389，分母是最大像元數 47037
+    assert series["points"][0]["coverage"] == (35855 + 10389) / 47037
+
+
+def test_no_region_is_written_when_a_later_region_fails_the_range_check(tmp_path: Path):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114")
+    # taiwan 的值都在 0.76 以下，east 有超過的
+    narrow = {**NDVI, "valid_range": [-1, 0.76]}
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [narrow], [TAIWAN, EAST], appeears_dir=raw, **RUN
+    )
+
+    assert set(result.failures) == {("modis_ndvi", "taiwan"), ("modis_ndvi", "east")}
+    assert result.succeeded == []
+    assert not (tmp_path / "snap" / "series").exists()
+
+
+def _split_task(
+    root: Path, task_id: str, task_name: str, months: tuple[str, ...]
+) -> None:
+    _appeears_task(root, task_id, task_name)
+    stats = root / "modis_ndvi" / task_id / "MOD13A3-061-Statistics.csv"
+    lines = stats.read_text(encoding="utf-8").splitlines()
+    kept = [lines[0]] + [line for line in lines[1:] if line.split(",")[3][:7] in months]
+    stats.write_text("\n".join(kept) + "\n", encoding="utf-8")
+
+
+def test_parts_of_one_variable_are_joined_into_one_series_in_date_order(tmp_path: Path):
+    raw = tmp_path / "raw" / "appeears"
+    _split_task(
+        raw, "task-2", "trend-detective-modis_ndvi-20261114-p2of2", ("2026-10",)
+    )
+    _split_task(
+        raw,
+        "task-1",
+        "trend-detective-modis_ndvi-20261114-p1of2",
+        ("2001-01", "2001-02"),
+    )
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [NDVI], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    assert result.failures == {}
+    series = json.loads(
+        (
+            tmp_path / "snap" / "series" / "modis_ndvi__taiwan__area_mean.json"
+        ).read_text()
+    )
+    assert [p["month"] for p in series["points"]] == [
+        "2001-01-01",
+        "2001-02-01",
+        "2026-10-01",
+    ]
+    assert [t["task_name"][-5:] for t in series["request"]["tasks"]] == [
+        "p1of2",
+        "p2of2",
+    ]
+
+
+def test_parts_whose_date_ranges_overlap_are_rejected(tmp_path: Path):
+    raw = tmp_path / "raw" / "appeears"
+    _split_task(
+        raw,
+        "task-1",
+        "trend-detective-modis_ndvi-20261114-p1of2",
+        ("2001-01", "2001-02"),
+    )
+    _split_task(
+        raw,
+        "task-2",
+        "trend-detective-modis_ndvi-20261114-p2of2",
+        ("2001-02", "2026-10"),
+    )
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [NDVI], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    assert "重複的日期" in result.failures[("modis_ndvi", "taiwan")]

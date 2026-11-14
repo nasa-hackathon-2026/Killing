@@ -9,10 +9,11 @@
 
 import argparse
 import json
+import re
 import sys
 import time
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -468,6 +469,7 @@ def _appeears_series(
                 appeears_dir / variable["id"], variable
             )
             low, high = variable["valid_range"]
+            ready: list[Series] = []
             for region in regions:
                 rows = rows_by_region.get(region["id"], [])
                 if not rows:
@@ -481,25 +483,29 @@ def _appeears_series(
                     raise ValueError(
                         f"{region['id']} 有 {len(bad)} 個值超出合理範圍 [{low}, {high}]，例如 {bad[0]}"
                     )
-                series = Series(
-                    variable_id=variable["id"],
-                    location_id=region["id"],
-                    aggregation="area_mean",
-                    unit=variable["unit"],
-                    source_api="appeears",
-                    request={
-                        "product": variable["product"],
-                        "layer": variable["source_variable_id"],
-                        "bbox": region["bbox"],
-                        "tasks": tasks,
-                    },
-                    retrieved_at=now,
-                    product_version=variable["product_version"],
-                    grid=None,
-                    points=appeears_stats.composites_to_monthly_points(rows),
+                ready.append(
+                    Series(
+                        variable_id=variable["id"],
+                        location_id=region["id"],
+                        aggregation="area_mean",
+                        unit=variable["unit"],
+                        source_api="appeears",
+                        request={
+                            "product": variable["product"],
+                            "layer": variable["source_variable_id"],
+                            "bbox": region["bbox"],
+                            "tasks": tasks,
+                        },
+                        retrieved_at=now,
+                        product_version=variable["product_version"],
+                        grid=None,
+                        points=appeears_stats.composites_to_monthly_points(rows),
+                    )
                 )
+            # 全部區域都驗證通過才寫，免得同一變數的區域新舊批次混雜
+            for series in ready:
                 result.written.append(write_series(snapshot_dir, series))
-                result.succeeded.append((variable["id"], region["id"]))
+                result.succeeded.append((series.variable_id, series.location_id))
         except Exception as err:  # noqa: BLE001 單一變數失敗不中斷整批
             for key in keys:
                 if key not in result.succeeded:
@@ -514,8 +520,10 @@ def appeears_rows(
     for path in sorted(variable_dir.glob("*/submission.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
         name = record["request"]["task_name"]
-        base, _, part = name.partition("-p")
-        total = int(part.split("of")[1]) if "of" in part else 1
+        # 分段的 task 名稱結尾是 -p<i>of<n>；用結尾錨定，免得變數 id 裡的 -p 被誤認
+        match = re.fullmatch(r"(.+?)(?:-p(\d+)of(\d+))?", name)
+        assert match is not None
+        base, total = match.group(1), int(match.group(3) or 1)
         submissions.append((base, name, total, record["task_id"], path.parent))
     if not submissions:
         raise ValueError(f"{variable_dir} 沒有送件紀錄；先跑 appeears submit")
@@ -535,15 +543,35 @@ def appeears_rows(
         regions = appeears_stats.region_ids_by_aid(
             requests[0].read_text(encoding="utf-8")
         )
+        good: dict[tuple[str, date], int] = {}
+        qa = variable.get("appeears_qa")
+        if qa:
+            for qa_path in task_dir.glob(f"*{qa['file_suffix']}"):
+                good.update(
+                    appeears_stats.parse_qa_counts(
+                        qa_path.read_text(encoding="utf-8"), qa["good_values"]
+                    )
+                )
         for stat_path in stats:
             for row in appeears_stats.parse_statistics_csv(
                 stat_path.read_text(encoding="utf-8")
             ):
-                if row.dataset == variable["source_variable_id"] and row.aid in regions:
-                    rows_by_region.setdefault(regions[row.aid], []).append(row)
+                if (
+                    row.dataset != variable["source_variable_id"]
+                    or row.aid not in regions
+                ):
+                    continue
+                if (row.aid, row.day) in good:
+                    row = replace(row, good_count=good[(row.aid, row.day)])
+                rows_by_region.setdefault(regions[row.aid], []).append(row)
         tasks.append({"task_name": name, "task_id": task_id})
-    for rows in rows_by_region.values():
+    for region_id, rows in rows_by_region.items():
         rows.sort(key=lambda row: row.day)
+        days = [row.day for row in rows]
+        if len(days) != len(set(days)):
+            raise ValueError(
+                f"{region_id} 在不同分段裡有重複的日期，分段的日期範圍重疊了"
+            )
     return rows_by_region, sorted(tasks, key=lambda task: task["task_name"])
 
 

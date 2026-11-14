@@ -140,6 +140,10 @@ class AppeearsClient:
     def status(self, task_id: str) -> str:
         return self._request("GET", f"task/{task_id}").json()["status"]
 
+    def product_layers(self, product: str) -> dict[str, Any]:
+        """產品各 layer 的 scale factor、單位、有效範圍等資訊（公開端點）。"""
+        return self._request("GET", f"product/{product}").json()
+
     def bundle_files(self, task_id: str) -> list[dict[str, Any]]:
         return self._request("GET", f"bundle/{task_id}").json()["files"]
 
@@ -180,6 +184,27 @@ def download_small_files(
         target = dest / name
         target.write_bytes(client.file_content(task_id, entry["file_id"]))
         saved.append(target)
+    return saved
+
+
+def save_product_info(client: AppeearsClient, raw_dir: Path) -> list[Path]:
+    """把送件用到的 layer 的產品資訊存成 `<變數 id>/product.json`。
+
+    這是「統計值已套用 scale factor、單位是什麼」的依據：ValidMin、ValidMax 是套用後的範圍。
+    """
+    saved = []
+    for task in MODIS_TASKS.values():
+        layers = client.product_layers(task.product)
+        path = raw_dir / task.variable_id / "product.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        info = {
+            "product": task.product,
+            "layers": {name: layers[name] for name in task.layers},
+        }
+        path.write_text(
+            json.dumps(info, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        saved.append(path)
     return saved
 
 
@@ -226,6 +251,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{task['task_name']}\t{task_id}\t{now}\t{path}")
         return 0
 
+    if args.command == "download":
+        for path in save_product_info(client, args.raw_dir):
+            print(f"已存 {path}")
     for record in _submissions(args.raw_dir):
         task_id = record["task_id"]
         status = client.status(task_id)

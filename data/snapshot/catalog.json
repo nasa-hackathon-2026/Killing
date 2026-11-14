@@ -262,7 +262,14 @@
         1
       ],
       "doi": "10.5067/MODIS/MOD13A3.061",
-      "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均，含海面與雲的影響。coverage 是有值像元數 ÷ 這個區域出現過的最大像元數。",
+      "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均（AppEEARS 的統計值，已套用 scale factor，未經 QA 過濾，含被雲影響的像元）。coverage 是 pixel reliability 為 0（好）或 1（尚可）的像元數 ÷ 這個區域出現過的最大像元數，多雲的月份會偏低。",
+      "appeears_qa": {
+        "file_suffix": "pixel-reliability-Statistics-QA.csv",
+        "good_values": [
+          "0",
+          "1"
+        ]
+      },
       "valid_from": "2001-01-01",
       "valid_to": "2026-10-01"
     },
@@ -280,8 +287,8 @@
       "is_nasa": true,
       "unit": null,
       "valid_range": [
-        250,
-        340
+        270,
+        330
       ],
       "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。",
       "valid_from": null,
@@ -1559,7 +1566,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T11:32:51Z",
+    "generated_at": "2026-11-14T11:38:48Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",
