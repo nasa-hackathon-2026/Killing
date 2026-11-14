@@ -125,6 +125,17 @@ body,
   text-align: right;
 }
 
+.trend {
+  margin: 0;
+  color: #d5e4f5;
+  font-size: 12px;
+}
+
+.trend span {
+  display: block;
+  color: #b7c6da;
+}
+
 .layers input[type="range"] {
   width: 100%;
 }

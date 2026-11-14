@@ -98,6 +98,15 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 
+## 如何重產分析結果（#55）
+由核心快照算出的統計結果在 `data/analysis/`，會進 git；前端在開發與建置時讀它（`web/snapshot-static.ts` 把它和 `data/snapshot/` 一起提供並複製進 `dist`）。不連網、不需要 token。
+
+- **趨勢統計**：`uv run python -m trend_detective.trends`，約 3 秒。寫出 `trends.json`（每條序列的結果，鍵是 `<變數>__<地點>__<聚合方式>`）、`anomalies.json`（月距平）與 `trends.run.json`（執行紀錄）。快照更新後要重跑；資料沒變時重跑，只有執行紀錄的 `generated_at` 會變。
+- 方法寫在 `src/trend_detective/trends.py` 開頭與 `trends.json` 的 `methods`：月距平、最小平方法斜率（標準誤用殘差的 lag-1 自相關修正有效樣本數）、Mann-Kendall（原始、Hamed-Rao、Seasonal）、Sen 斜率、各檢定分別做 BH-FDR。
+- 參數都是指令的選項，預設值寫進結果檔的 `parameters`：`--min-coverage 0.25`（低於就排除該月）、`--min-valid-months 120`、`--max-missing-fraction 0.2`（超過就標記 `status = "insufficient"` 並附原因）、`--alpha 0.05`、`--hamed-rao-lags`（預設全部 lag）。
+- 讀結果時要注意：網頁的顯著性用的是 `ols`（自相關修正後的 t 檢定）；合成 AR(1) 序列（phi = 0.7、240 個月、300 次）實測誤判率是未修正 38%、修正後 6%，而 Hamed-Rao（全部 lag）仍有 18%，所以 `mk_hamed_rao` 偏寬鬆。Hamed-Rao 的修正變異數算成負值時該檢定的 `p` 是 null。Sen 斜率的信賴區間沒有自相關修正。FDR 的範圍是同一次執行的全部序列，彼此高度相關（同一變數的鄰近地點、同源產品）。
+- `coverage` 在各來源的定義不同（見上一節），單一門檻只是簡化。
+
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
 

@@ -1,4 +1,11 @@
 import { useState } from "react";
+import {
+  loadTrends,
+  summarizeTrend,
+  trendKey,
+  type TrendSummary,
+} from "./analysis/trends";
+import { useAnalysisFile } from "./analysis/useAnalysisFile";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations } from "./mock/snapshot";
@@ -58,6 +65,17 @@ export function App() {
     }
   }
   const snapshotDay = data?.generatedAt.slice(0, 10);
+  const trendsFile = useAnalysisFile(loadTrends);
+  let trends: Record<string, TrendSummary | null> | undefined;
+  if (trendsFile.status === "ready") {
+    trends = {};
+    for (const layer of layerRegistry) {
+      trends[layer.id] = summarizeTrend(
+        trendsFile.data.series[trendKey(layer.id, locationId, "point")],
+        trendsFile.data.parameters.alpha,
+      );
+    }
+  }
 
   return (
     <div className="app">
@@ -87,6 +105,7 @@ export function App() {
         layers={layerRegistry}
         controls={controls}
         readings={readings}
+        trends={trends}
         locationName={location?.nameEn ?? locationId}
         months={months}
         month={activeMonth}

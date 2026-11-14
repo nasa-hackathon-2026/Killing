@@ -1,3 +1,4 @@
+import type { TrendSummary } from "../analysis/trends";
 import type { LayerDefinition } from "./registry";
 
 export type LayerControl = {
@@ -10,6 +11,7 @@ type LayerPanelProps = {
   layers: LayerDefinition[];
   controls: LayerControl[];
   readings: Record<string, string>;
+  trends?: Record<string, TrendSummary | null>;
   locationName: string;
   months: string[];
   month: string | null;
@@ -22,6 +24,7 @@ export function LayerPanel({
   layers,
   controls,
   readings,
+  trends,
   locationName,
   months,
   month,
@@ -57,10 +60,18 @@ export function LayerPanel({
         Density follows this place&apos;s own record. Kelvin is shown as °C.
         Each slider sets opacity.
       </p>
+      {trends ? (
+        <p className="layers-note">
+          Trend: linear change of monthly anomalies over each record. Not
+          significant does not mean no change; the record may be too short or
+          too variable to tell.
+        </p>
+      ) : null}
       <ul>
         {layers.map((layer) => {
           const control = controls.find((item) => item.id === layer.id);
           if (!control) return null;
+          const trend = trends?.[layer.id];
           return (
             <li key={layer.id}>
               <label>
@@ -72,6 +83,15 @@ export function LayerPanel({
                 <span>{layer.nameEn}</span>
                 <span className="reading">{readings[layer.id]}</span>
               </label>
+              {trend ? (
+                <p className="trend">
+                  {trend.headline}
+                  <span>
+                    {trend.significance}
+                    {trend.period ? ` · ${trend.period}` : ""}
+                  </span>
+                </p>
+              ) : null}
               <input
                 type="range"
                 min={0.15}

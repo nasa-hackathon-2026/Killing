@@ -6,18 +6,23 @@ import type { Plugin } from "vite";
 const cwd =
   (globalThis as { process?: { cwd?: () => string } }).process?.cwd?.() ??
   dirname(fileURLToPath((import.meta as { url: string }).url));
-const snapshotDir = resolve(cwd, "../data/snapshot");
-const prefix = "/earth-system-trend-detective/data/snapshot/";
+// Static data folders served in dev and copied into dist: the snapshot and
+// the analysis results derived from it (trend statistics, mining).
+const mounts = ["snapshot", "analysis"].map((name) => ({
+  name,
+  dir: resolve(cwd, `../data/${name}`),
+  prefix: `/earth-system-trend-detective/data/${name}/`,
+}));
 
 function fileFor(url: string): string | null {
   const pathname = decodeURIComponent(url.split("?")[0] ?? "");
-  if (!pathname.startsWith(prefix)) return null;
-  const relative = pathname.slice(prefix.length);
-  const file = resolve(snapshotDir, relative);
-  if (file !== snapshotDir && !file.startsWith(`${snapshotDir}${sep}`)) {
-    return null;
+  for (const { dir, prefix } of mounts) {
+    if (!pathname.startsWith(prefix)) continue;
+    const file = resolve(dir, pathname.slice(prefix.length));
+    if (file !== dir && !file.startsWith(`${dir}${sep}`)) return null;
+    return file;
   }
-  return file;
+  return null;
 }
 
 export function snapshotStatic(): Plugin {
@@ -31,7 +36,7 @@ export function snapshotStatic(): Plugin {
         if (!file) return next();
         if (!existsSync(file) || !statSync(file).isFile()) {
           response.statusCode = 404;
-          response.end("missing snapshot file");
+          response.end("missing data file");
           return;
         }
         response.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -39,9 +44,10 @@ export function snapshotStatic(): Plugin {
       });
     },
     closeBundle() {
-      cpSync(snapshotDir, resolve(cwd, "dist/data/snapshot"), {
-        recursive: true,
-      });
+      for (const { name, dir } of mounts) {
+        if (!existsSync(dir)) continue;
+        cpSync(dir, resolve(cwd, `dist/data/${name}`), { recursive: true });
+      }
     },
   };
 }

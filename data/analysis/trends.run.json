@@ -1,0 +1,55 @@
+{
+  "command": "uv run python -m trend_detective.trends",
+  "generated_at": "2026-11-14T14:11:22Z",
+  "input": {
+    "snapshot": "data/snapshot",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z"
+  },
+  "parameters": {
+    "min_coverage": 0.25,
+    "min_valid_months": 120,
+    "max_missing_fraction": 0.2,
+    "alpha": 0.05,
+    "hamed_rao_lags": null
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "pymannkendall": "1.4.3"
+  },
+  "outputs": [
+    "trends.json",
+    "anomalies.json"
+  ],
+  "summary": {
+    "n_series": 128,
+    "n_analyzed": 125,
+    "n_insufficient": 3,
+    "insufficient_by_reason": {
+      "too_many_missing": 3
+    },
+    "significant_by_test": {
+      "ols": {
+        "n_tested": 125,
+        "significant": 81,
+        "significant_fdr": 74
+      },
+      "mk_original": {
+        "n_tested": 125,
+        "significant": 87,
+        "significant_fdr": 86
+      },
+      "mk_hamed_rao": {
+        "n_tested": 124,
+        "significant": 69,
+        "significant_fdr": 65
+      },
+      "mk_seasonal": {
+        "n_tested": 125,
+        "significant": 88,
+        "significant_fdr": 86
+      }
+    },
+    "n_ols_uncorrected_significant": 97
+  }
+}
