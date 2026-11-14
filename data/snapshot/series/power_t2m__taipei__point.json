@@ -11,9 +11,13 @@
     "latitude": 25.03,
     "start": 2001,
     "format": "JSON",
-    "end_policy": "run_date"
+    "end_policy": "run_date",
+    "api_version": "v2.10.0",
+    "sources": [
+      "MERRA2"
+    ]
   },
-  "retrieved_at": "2026-11-14T08:21:34Z",
+  "retrieved_at": "2026-11-14T08:24:30Z",
   "product_version": "MERRA-2",
   "grid": null,
   "points": [
@@ -1870,18 +1874,6 @@
       "value": 25.72,
       "n_samples": 1,
       "coverage": 1
-    },
-    {
-      "month": "2026-10-01",
-      "value": null,
-      "n_samples": 0,
-      "coverage": 0
-    },
-    {
-      "month": "2026-11-01",
-      "value": null,
-      "n_samples": 0,
-      "coverage": 0
     }
   ]
 }

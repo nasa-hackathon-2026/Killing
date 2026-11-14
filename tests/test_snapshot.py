@@ -487,12 +487,50 @@ def test_power_series_is_written_for_points_only_under_its_own_variable_id(
     assert series["unit"] == "C"
     assert series["source_api"] == "nasa_power"
     assert "end" not in series["request"]
-    assert len(series["points"]) == 23
-    assert series["points"][-1] == {
-        "month": "2026-11-01",
-        "value": None,
-        "n_samples": 0,
-        "coverage": 0,
-    }
+    assert len(series["points"]) == 21
     catalog = json.loads((tmp_path / "catalog.json").read_text())
     assert catalog["snapshot"]["latest_month"] == {"power_t2m": "2026-09-01"}
+
+
+def test_a_failing_power_request_is_reported_and_keeps_the_previous_file(
+    tmp_path: Path,
+):
+    ok = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200, text=POWER_FIXTURE.read_text(encoding="utf-8")
+            )
+        )
+    )
+    build_snapshot(None, tmp_path, [POWER_T2M], [TAICHUNG], power_http=ok, **RUN)
+
+    for bad in (httpx.Response(500, text="boom"), httpx.Response(200, text="<html>")):
+        failing = httpx.Client(transport=httpx.MockTransport(lambda request, r=bad: r))
+        result = build_snapshot(
+            None, tmp_path, [POWER_T2M], [TAICHUNG], power_http=failing, **RUN
+        )
+        assert list(result.failures) == [("power_t2m", "taichung")]
+
+    series = json.loads(
+        (tmp_path / "series" / "power_t2m__taichung__point.json").read_text()
+    )
+    assert len(series["points"]) == 21
+
+
+def test_power_series_ends_at_the_last_month_that_has_a_value(tmp_path: Path):
+    http = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200, text=POWER_FIXTURE.read_text(encoding="utf-8")
+            )
+        )
+    )
+
+    build_snapshot(None, tmp_path, [POWER_T2M], [TAICHUNG], power_http=http, **RUN)
+
+    series = json.loads(
+        (tmp_path / "series" / "power_t2m__taichung__point.json").read_text()
+    )
+    assert series["points"][-1]["month"] == "2026-09-01"
+    assert series["request"]["api_version"] == "v2.10.0"
+    assert series["request"]["sources"] == ["MERRA2"]

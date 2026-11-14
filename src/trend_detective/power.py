@@ -59,19 +59,31 @@ def parse_monthly(payload: dict[str, Any], parameter: str) -> PowerSeries:
         values: dict[str, float] = payload["properties"]["parameter"][parameter]
     except (KeyError, TypeError) as err:
         raise PowerError(f"回應裡沒有參數 {parameter}") from err
-    header = payload.get("header", {})
-    fill = header.get("fill_value", -999.0)
+    header = payload.get("header") or {}
+    fill = float(header.get("fill_value", -999.0))
     rows: list[tuple[date, float | None]] = []
     for key in sorted(values):
+        if len(key) != 6 or not key.isdigit():
+            raise PowerError(f"參數 {parameter} 出現不是 YYYYMM 的鍵：{key!r}")
         year, month = int(key[:4]), int(key[4:6])
-        if not 1 <= month <= 12:
+        if month == 13:  # 年平均
             continue
-        value = values[key]
-        rows.append((date(year, month, 1), None if value == fill else float(value)))
+        if not 1 <= month <= 12:
+            raise PowerError(f"參數 {parameter} 出現不合理的月份：{key!r}")
+        raw = values[key]
+        try:
+            value = None if raw is None else float(raw)
+        except (TypeError, ValueError) as err:
+            raise PowerError(
+                f"參數 {parameter} 在 {key} 的值無法解讀：{raw!r}"
+            ) from err
+        rows.append((date(year, month, 1), None if value == fill else value))
+    if not any(value is not None for _, value in rows):
+        raise PowerError(f"參數 {parameter} 沒有任何有值的月份")
     return PowerSeries(
-        unit=payload.get("parameters", {}).get(parameter, {}).get("units", ""),
+        unit=((payload.get("parameters") or {}).get(parameter) or {}).get("units", ""),
         sources=list(header.get("sources", [])),
         api_version=header.get("api", {}).get("version", ""),
-        coordinates=list(payload.get("geometry", {}).get("coordinates", [])),
+        coordinates=list((payload.get("geometry") or {}).get("coordinates", [])),
         rows=rows,
     )

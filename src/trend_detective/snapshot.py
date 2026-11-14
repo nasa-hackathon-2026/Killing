@@ -217,6 +217,12 @@ def _power_series(
     # 結束年是執行當年，每年不同；理由同 Giovanni 的 end_policy
     request = {key: value for key, value in params.items() if key != "end"}
     request["end_policy"] = "run_date"
+    request["api_version"] = parsed.api_version
+    request["sources"] = parsed.sources
+    # POWER 會把還沒發布的月份回成缺值；結尾連續的缺值月不算資料，去掉
+    rows = list(parsed.rows)
+    while rows and rows[-1][1] is None:
+        rows.pop()
     return Series(
         variable_id=variable["id"],
         location_id=location["id"],
@@ -227,7 +233,7 @@ def _power_series(
         retrieved_at=now,
         product_version=variable["product_version"],
         grid=None,
-        points=monthly_points(parsed.rows),
+        points=monthly_points(rows),
     )
 
 

@@ -36,3 +36,29 @@ def test_parse_turns_the_fill_value_into_none_and_reads_unit_and_source():
 def test_parse_reports_a_response_without_the_parameter_as_power_error():
     with pytest.raises(PowerError, match="T2M"):
         parse_monthly({"properties": {"parameter": {}}}, "T2M")
+
+
+def _payload(values: dict) -> dict:
+    return {
+        "header": {"fill_value": -999.0},
+        "properties": {"parameter": {"T2M": values}},
+    }
+
+
+def test_parse_treats_null_and_string_fill_values_as_missing():
+    parsed = parse_monthly(
+        _payload({"202501": None, "202502": "-999", "202503": 20.5}), "T2M"
+    )
+
+    assert [value for _, value in parsed.rows] == [None, None, 20.5]
+
+
+@pytest.mark.parametrize("key", ["ANN", "2025-01", "20251"])
+def test_parse_rejects_a_key_that_is_not_year_and_month(key: str):
+    with pytest.raises(PowerError, match=key):
+        parse_monthly(_payload({key: 20.0}), "T2M")
+
+
+def test_parse_rejects_a_response_without_any_value():
+    with pytest.raises(PowerError, match="沒有任何有值"):
+        parse_monthly(_payload({"202501": -999.0, "202513": -999.0}), "T2M")
