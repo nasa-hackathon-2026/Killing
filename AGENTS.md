@@ -161,7 +161,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 表：`observations`（統一表）、`series`、`variables`、`locations`、`src_giovanni`、`src_harmony`、`src_nasa_power`、`src_noaa_ghcnh`、`src_appeears`、`src_planetary_computer`、`src_grid`（格點區域平均的月值與有值面積比例，由序列檔自己填入；立方體不進資料庫）。用途見 `src/trend_detective/sqlite_export.py` 開頭與 README。
 - 新增資料來源時：在 `SOURCE_TABLES` 加一筆、在 `SCHEMA` 加來源表、寫一個 `_insert_<來源>`，並補測試。
 - `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。
-- 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 README 的連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。
+- 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。Release 只放核心資料的版本（完整版約 1.5 GB，太大）：`uv run python -m trend_detective.sqlite_export --extended-dir <一個空目錄> --db data/sqlite/trend_detective_core.sqlite`。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 README 的連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。
 
 ## Agent skills
 
