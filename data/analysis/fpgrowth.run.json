@@ -1,0 +1,51 @@
+{
+  "command": "uv run python -m trend_detective.mining",
+  "generated_at": "2026-11-14T14:15:38Z",
+  "exploratory": true,
+  "input": {
+    "anomalies": "data/analysis/anomalies.json",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z",
+    "trend_parameters": {
+      "min_coverage": 0.25,
+      "min_valid_months": 120,
+      "max_missing_fraction": 0.2,
+      "alpha": 0.05,
+      "hamed_rao_lags": null
+    }
+  },
+  "parameters": {
+    "low_quantile": 0.33333333,
+    "high_quantile": 0.66666667,
+    "exclude_variables": [
+      "power_t2m",
+      "modis_ndvi_pc"
+    ],
+    "min_support": 0.1,
+    "min_confidence": 0.6,
+    "min_lift": 1.2,
+    "max_itemset_size": 3,
+    "max_rules": 200,
+    "max_itemsets": 200
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "mlxtend": "0.25.0",
+    "scikit-learn": "1.9.1"
+  },
+  "outputs": [
+    "fpgrowth.json"
+  ],
+  "summary": {
+    "point": {
+      "n_transactions": 1260,
+      "n_rules_same_month": 62,
+      "n_rules_lagged_one_month": 11
+    },
+    "region": {
+      "n_transactions": 1260,
+      "n_rules_same_month": 85,
+      "n_rules_lagged_one_month": 27
+    }
+  }
+}

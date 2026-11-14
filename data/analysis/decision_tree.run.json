@@ -1,0 +1,57 @@
+{
+  "command": "uv run python -m trend_detective.mining",
+  "generated_at": "2026-11-14T14:15:38Z",
+  "exploratory": true,
+  "input": {
+    "anomalies": "data/analysis/anomalies.json",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z",
+    "trend_parameters": {
+      "min_coverage": 0.25,
+      "min_valid_months": 120,
+      "max_missing_fraction": 0.2,
+      "alpha": 0.05,
+      "hamed_rao_lags": null
+    }
+  },
+  "parameters": {
+    "low_quantile": 0.33333333,
+    "high_quantile": 0.66666667,
+    "exclude_variables": [
+      "power_t2m",
+      "modis_ndvi_pc"
+    ],
+    "tree_table": "region",
+    "tree_target": "modis_ndvi",
+    "tree_max_depth": 3,
+    "tree_min_samples_leaf": 20,
+    "tree_train_fraction": 0.8,
+    "tree_random_state": 0
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "mlxtend": "0.25.0",
+    "scikit-learn": "1.9.1"
+  },
+  "outputs": [
+    "decision_tree.json"
+  ],
+  "summary": {
+    "n_train": 789,
+    "n_test": 200,
+    "accuracy": {
+      "train": 0.54499366,
+      "test": 0.425
+    },
+    "baseline_majority_class": {
+      "predicted_class": "low",
+      "tie": true,
+      "train_accuracy": 0.33333333,
+      "test_accuracy": 0.125,
+      "best_constant_on_test": {
+        "predicted_class": "high",
+        "test_accuracy": 0.635
+      }
+    }
+  }
+}

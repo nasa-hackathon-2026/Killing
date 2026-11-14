@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: "index.html",
         lab: "lab/index.html",
+        mining: "mining/index.html",
       },
     },
   },

@@ -106,6 +106,10 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 參數都是指令的選項，預設值寫進結果檔的 `parameters`：`--min-coverage 0.25`（低於就排除該月）、`--min-valid-months 120`、`--max-missing-fraction 0.2`（超過就標記 `status = "insufficient"` 並附原因）、`--alpha 0.05`、`--hamed-rao-lags`（預設全部 lag）。
 - 讀結果時要注意：網頁的顯著性用的是 `ols`（自相關修正後的 t 檢定）；合成 AR(1) 序列（phi = 0.7、240 個月、300 次）實測誤判率是未修正 38%、修正後 6%，而 Hamed-Rao（全部 lag）仍有 18%，所以 `mk_hamed_rao` 偏寬鬆。Hamed-Rao 的修正變異數算成負值時該檢定的 `p` 是 null。Sen 斜率的信賴區間沒有自相關修正。FDR 的範圍是同一次執行的全部序列，彼此高度相關（同一變數的鄰近地點、同源產品）。
 - `coverage` 在各來源的定義不同（見上一節），單一門檻只是簡化。
+- **資料探勘（探索性）**：`uv run python -m trend_detective.mining`，約 3 秒，要先跑過趨勢統計（讀 `anomalies.json` 與 `trends.json`）。寫出 `fpgrowth.json`、`decision_tree.json` 與各自的執行紀錄（`*.run.json`），結果檔都標 `exploratory: true`。網頁在 `web/mining/`（`/mining/`）。
+- 探勘的做法寫在 `src/trend_detective/mining.py` 開頭：「地點 × 月份」寬表（點位、區域各一張，期間是表內序列共同有資料的起訖月）；距平依各序列自己的分位數分成 low／normal／high；FP-growth 取單一後項的規則（同月份與延遲一個月兩種）；決策樹按月份切訓練與測試，目標的門檻只用訓練期間算。
+- 探勘的預設參數只是起點，由隊伍決定：`--low-quantile`／`--high-quantile`（三分位）、`--exclude-variable`（預設排除 `power_t2m`、`modis_ndvi_pc` 兩個近乎重複的變數）、`--min-support 0.1`、`--min-confidence 0.6`、`--min-lift 1.2`、`--max-itemset-size 3`、`--tree-table region`、`--tree-target modis_ndvi`、`--tree-max-depth 3`、`--tree-min-samples-leaf 20`、`--tree-train-fraction 0.8`。
+- 讀探勘結果時要注意：距平沒有去趨勢，有趨勢的變數「high」會集中在後期，所以測試期間的類別分布和訓練期間不同（結果檔的 `baseline_majority_class.best_constant_on_test` 是事後才知道的對照）；`taiwan` 的 bbox 包含其他區域，列與列不獨立；`north` 缺 AIRS 與 OMI 臭氧、氣膠，決策樹只用特徵齊全的列所以沒有 `north`；延遲規則多半是同一個變數的持續性（`same_variable: true`）。規則與樹都沒有顯著性檢定，不是因果。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

@@ -100,6 +100,7 @@ export function App() {
           Fly to Taiwan
         </button>
         <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
+        <a href={`${import.meta.env.BASE_URL}mining/`}>Data mining</a>
       </div>
       <LayerPanel
         layers={layerRegistry}

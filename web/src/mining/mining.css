@@ -1,0 +1,127 @@
+/* The mining page scrolls like a document; colors follow index.css. */
+html:has(.mining),
+body:has(.mining),
+#root:has(.mining) {
+  height: auto;
+}
+
+body:has(.mining) {
+  background: #0b1220;
+}
+
+.mining {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px;
+  color: #e8eef7;
+  font:
+    14px/1.45 system-ui,
+    sans-serif;
+}
+
+.mining a {
+  color: inherit;
+}
+
+.mining h1,
+.mining h2,
+.mining h3 {
+  margin: 24px 0 8px;
+  font-weight: 600;
+}
+
+.mining h1 {
+  margin-top: 8px;
+  font-size: 22px;
+}
+
+.mining h2 {
+  font-size: 18px;
+}
+
+.mining h3 {
+  font-size: 14px;
+}
+
+.mining p {
+  margin: 0 0 8px;
+}
+
+.mining .note,
+.mining dt {
+  color: #b7c6da;
+}
+
+.mining .tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 400;
+  vertical-align: middle;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+}
+
+.mining .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.mining select,
+.mining th button {
+  padding: 4px 8px;
+  color: inherit;
+  font: inherit;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mining .scroll {
+  overflow-x: auto;
+}
+
+.mining table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mining th,
+.mining td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mining td.number,
+.mining th.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mining dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 16px;
+  margin: 0 0 8px;
+}
+
+.mining dd {
+  margin: 0;
+}
+
+.mining pre {
+  overflow-x: auto;
+  margin: 0 0 8px;
+  padding: 12px;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font-size: 13px;
+}

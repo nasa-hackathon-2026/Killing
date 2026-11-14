@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "exploratory": true,
+  "note": "Exploratory data mining on monthly anomalies. It has no significance test, does not replace the trend statistics, and does not show cause and effect.",
+  "input": {
+    "anomalies": "data/analysis/anomalies.json",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z",
+    "trend_parameters": {
+      "min_coverage": 0.25,
+      "min_valid_months": 120,
+      "max_missing_fraction": 0.2,
+      "alpha": 0.05,
+      "hamed_rao_lags": null
+    }
+  },
+  "parameters": {
+    "low_quantile": 0.33333333,
+    "high_quantile": 0.66666667,
+    "exclude_variables": [
+      "power_t2m",
+      "modis_ndvi_pc"
+    ],
+    "tree_table": "region",
+    "tree_target": "modis_ndvi",
+    "tree_max_depth": 3,
+    "tree_min_samples_leaf": 20,
+    "tree_train_fraction": 0.8,
+    "tree_random_state": 0
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "mlxtend": "0.25.0",
+    "scikit-learn": "1.9.1"
+  },
+  "table": "region",
+  "target": "modis_ndvi",
+  "target_classes": [
+    "low",
+    "normal",
+    "high"
+  ],
+  "features": [
+    "airs_h2ovap",
+    "airs_tsurf",
+    "gldas_evap",
+    "gldas_soilmoist",
+    "gldas_tair",
+    "imerg_precip",
+    "merra2_t2m",
+    "modis_lst_pc",
+    "omi_aerosol",
+    "omi_no2",
+    "omi_o3"
+  ],
+  "rows_by_location": {
+    "central": {
+      "n_rows": 252,
+      "n_complete_rows": 247,
+      "missing_variables": []
+    },
+    "east": {
+      "n_rows": 252,
+      "n_complete_rows": 246,
+      "missing_variables": []
+    },
+    "north": {
+      "n_rows": 252,
+      "n_complete_rows": 0,
+      "missing_variables": [
+        "airs_h2ovap",
+        "airs_tsurf",
+        "omi_aerosol",
+        "omi_o3"
+      ]
+    },
+    "south": {
+      "n_rows": 252,
+      "n_complete_rows": 248,
+      "missing_variables": []
+    },
+    "taiwan": {
+      "n_rows": 252,
+      "n_complete_rows": 248,
+      "missing_variables": []
+    }
+  },
+  "dropped_series": [],
+  "split": {
+    "method": "by month: earlier months train, later months test",
+    "train_first_month": "2004-10-01",
+    "train_last_month": "2021-03-01",
+    "test_first_month": "2021-04-01",
+    "test_last_month": "2025-06-01",
+    "n_train_months": 198,
+    "n_test_months": 50,
+    "n_train": 789,
+    "n_test": 200
+  },
+  "target_thresholds": {
+    "central": {
+      "low": -0.0048894051,
+      "high": 0.005591109
+    },
+    "east": {
+      "low": -0.0047114538,
+      "high": 0.0061408077
+    },
+    "south": {
+      "low": -0.0091651893,
+      "high": 0.0034712128
+    },
+    "taiwan": {
+      "low": -0.0073768718,
+      "high": 0.0045288885
+    }
+  },
+  "class_counts": {
+    "train": {
+      "low": 263,
+      "normal": 263,
+      "high": 263
+    },
+    "test": {
+      "low": 25,
+      "normal": 48,
+      "high": 127
+    }
+  },
+  "accuracy": {
+    "train": 0.54499366,
+    "test": 0.425
+  },
+  "baseline_majority_class": {
+    "predicted_class": "low",
+    "tie": true,
+    "train_accuracy": 0.33333333,
+    "test_accuracy": 0.125,
+    "best_constant_on_test": {
+      "predicted_class": "high",
+      "test_accuracy": 0.635
+    }
+  },
+  "confusion_matrix_test": {
+    "low": {
+      "low": 2,
+      "normal": 19,
+      "high": 4
+    },
+    "normal": {
+      "low": 0,
+      "normal": 33,
+      "high": 15
+    },
+    "high": {
+      "low": 0,
+      "normal": 77,
+      "high": 50
+    }
+  },
+  "feature_importances": [
+    {
+      "feature": "omi_no2",
+      "importance": 0.36124085
+    },
+    {
+      "feature": "gldas_evap",
+      "importance": 0.26306572
+    },
+    {
+      "feature": "merra2_t2m",
+      "importance": 0.18022711
+    },
+    {
+      "feature": "airs_h2ovap",
+      "importance": 0.070596189
+    },
+    {
+      "feature": "omi_aerosol",
+      "importance": 0.068350283
+    },
+    {
+      "feature": "gldas_tair",
+      "importance": 0.05651985
+    },
+    {
+      "feature": "airs_tsurf",
+      "importance": 0.0
+    },
+    {
+      "feature": "gldas_soilmoist",
+      "importance": 0.0
+    },
+    {
+      "feature": "imerg_precip",
+      "importance": 0.0
+    },
+    {
+      "feature": "modis_lst_pc",
+      "importance": 0.0
+    },
+    {
+      "feature": "omi_o3",
+      "importance": 0.0
+    }
+  ],
+  "tree": {
+    "n_samples": 789,
+    "class_counts": {
+      "high": 263,
+      "low": 263,
+      "normal": 263
+    },
+    "predicted_class": "high",
+    "feature": "omi_no2",
+    "threshold": 285981640000000.0,
+    "left": {
+      "n_samples": 512,
+      "class_counts": {
+        "high": 212,
+        "low": 111,
+        "normal": 189
+      },
+      "predicted_class": "high",
+      "feature": "merra2_t2m",
+      "threshold": 0.089860622,
+      "left": {
+        "n_samples": 269,
+        "class_counts": {
+          "high": 75,
+          "low": 77,
+          "normal": 117
+        },
+        "predicted_class": "normal",
+        "feature": "omi_aerosol",
+        "threshold": -0.21412238,
+        "left": {
+          "n_samples": 91,
+          "class_counts": {
+            "high": 11,
+            "low": 38,
+            "normal": 42
+          },
+          "predicted_class": "normal"
+        },
+        "right": {
+          "n_samples": 178,
+          "class_counts": {
+            "high": 64,
+            "low": 39,
+            "normal": 75
+          },
+          "predicted_class": "normal"
+        }
+      },
+      "right": {
+        "n_samples": 243,
+        "class_counts": {
+          "high": 137,
+          "low": 34,
+          "normal": 72
+        },
+        "predicted_class": "high",
+        "feature": "gldas_evap",
+        "threshold": 6.7404338e-07,
+        "left": {
+          "n_samples": 99,
+          "class_counts": {
+            "high": 37,
+            "low": 24,
+            "normal": 38
+          },
+          "predicted_class": "normal"
+        },
+        "right": {
+          "n_samples": 144,
+          "class_counts": {
+            "high": 100,
+            "low": 10,
+            "normal": 34
+          },
+          "predicted_class": "high"
+        }
+      }
+    },
+    "right": {
+      "n_samples": 277,
+      "class_counts": {
+        "high": 51,
+        "low": 152,
+        "normal": 74
+      },
+      "predicted_class": "low",
+      "feature": "gldas_evap",
+      "threshold": 4.6973034e-07,
+      "left": {
+        "n_samples": 164,
+        "class_counts": {
+          "high": 11,
+          "low": 113,
+          "normal": 40
+        },
+        "predicted_class": "low",
+        "feature": "gldas_tair",
+        "threshold": 0.34174693,
+        "left": {
+          "n_samples": 143,
+          "class_counts": {
+            "high": 10,
+            "low": 105,
+            "normal": 28
+          },
+          "predicted_class": "low"
+        },
+        "right": {
+          "n_samples": 21,
+          "class_counts": {
+            "high": 1,
+            "low": 8,
+            "normal": 12
+          },
+          "predicted_class": "normal"
+        }
+      },
+      "right": {
+        "n_samples": 113,
+        "class_counts": {
+          "high": 40,
+          "low": 39,
+          "normal": 34
+        },
+        "predicted_class": "high",
+        "feature": "airs_h2ovap",
+        "threshold": 0.21766325,
+        "left": {
+          "n_samples": 56,
+          "class_counts": {
+            "high": 11,
+            "low": 29,
+            "normal": 16
+          },
+          "predicted_class": "low"
+        },
+        "right": {
+          "n_samples": 57,
+          "class_counts": {
+            "high": 29,
+            "low": 10,
+            "normal": 18
+          },
+          "predicted_class": "high"
+        }
+      }
+    }
+  },
+  "tree_text": "if omi_no2 <= 2.86e+14:\n  if merra2_t2m <= 0.08986:\n    if omi_aerosol <= -0.2141:\n      -> normal (n = 91: high 11, low 38, normal 42)\n    else:\n      -> normal (n = 178: high 64, low 39, normal 75)\n  else:\n    if gldas_evap <= 6.74e-07:\n      -> normal (n = 99: high 37, low 24, normal 38)\n    else:\n      -> high (n = 144: high 100, low 10, normal 34)\nelse:\n  if gldas_evap <= 4.697e-07:\n    if gldas_tair <= 0.3417:\n      -> low (n = 143: high 10, low 105, normal 28)\n    else:\n      -> normal (n = 21: high 1, low 8, normal 12)\n  else:\n    if airs_h2ovap <= 0.2177:\n      -> low (n = 56: high 11, low 29, normal 16)\n    else:\n      -> high (n = 57: high 29, low 10, normal 18)\n"
+}
