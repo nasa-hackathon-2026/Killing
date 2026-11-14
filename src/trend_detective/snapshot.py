@@ -316,6 +316,8 @@ def _area_series_batch(
         for variable in variables
         if variable["source"] == "giovanni" and variable.get("harmony_collection")
         for region in regions
+        # 區域裡沒有這個產品的格點中心：job 一定失敗，不送也不算失敗
+        if region["id"] not in variable.get("harmony_skip_regions", [])
     ]
     run_date = today.isoformat()
     waiting: list[tuple[dict[str, Any], dict[str, Any], str]] = []
@@ -338,16 +340,20 @@ def _area_series_batch(
             to_submit.append((variable, region))
 
     out_of_quota = False
+    strikes: dict[str, int] = {}
     while waiting or to_submit:
+        # 每次補送前查一次 quota；查不到就當作還有額度，交給送出本身報錯
+        if to_submit and len(waiting) < HARMONY_BATCH and not out_of_quota:
+            try:
+                out_of_quota = client.quota() >= 0.95
+            except HarmonyError:
+                pass
         while to_submit and len(waiting) < HARMONY_BATCH:
             variable, region = to_submit.pop(0)
             key = (variable["id"], region["id"])
             name = f"{key[0]}__{key[1]}"
             try:
                 if out_of_quota:
-                    raise HarmonyError("quota 已達上限，未送出")
-                if client.quota() >= 0.95:
-                    out_of_quota = True
                     raise HarmonyError("quota 已達上限，未送出")
                 job_id = client.submit(
                     variable["harmony_collection"],
@@ -375,23 +381,35 @@ def _area_series_batch(
                 name = f"{key[0]}__{key[1]}"
                 try:
                     status, link, message = client.job(job_id)
-                    if status not in FINISHED:
+                    text = None
+                    if status == "successful" and link is not None:
+                        text = client.download(link)
+                except Exception as err:  # noqa: BLE001
+                    # 輪詢或下載的暫時性錯誤：先當作還在跑，連續 3 次才放棄
+                    strikes[job_id] = strikes.get(job_id, 0) + 1
+                    if strikes[job_id] < 3:
                         still.append((variable, region, job_id))
-                        continue
+                    else:
+                        result.failures[key] = f"{type(err).__name__}: {err}"
+                    continue
+                strikes.pop(job_id, None)
+                if status not in FINISHED:
+                    still.append((variable, region, job_id))
+                    continue
+                if text is None:
                     state[name]["status"] = status
                     save_state()
-                    if status != "successful" or link is None:
-                        raise HarmonyError(
-                            f"job {job_id} 結束狀態是 {status}：{message[:300]}"
-                        )
-                    text = client.download(link)
-                except Exception as err:  # noqa: BLE001
-                    result.failures[key] = f"{type(err).__name__}: {err}"
+                    result.failures[key] = (
+                        f"HarmonyError: job {job_id} 結束狀態是 {status}：{message[:300]}"
+                    )
                     continue
                 if raw_dir is not None:
                     (raw_dir / "harmony" / f"{name}.csv").write_text(
                         text, encoding="utf-8"
                     )
+                # 結果存好之後才記成 successful，下載失敗時下次會接著用同一個 job
+                state[name]["status"] = status
+                save_state()
                 finish(variable, region, text)
             waiting = still
             # 有空位就先補送下一批，不必等整批結束

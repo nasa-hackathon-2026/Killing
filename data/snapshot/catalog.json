@@ -77,8 +77,11 @@
       "product_version": "7.0",
       "native_temporal_res": "month",
       "is_nasa": true,
-      "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。",
+      "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
       "harmony_collection": "C1701805662-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
       "unit": "K",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -94,8 +97,11 @@
       "product_version": "7.0",
       "native_temporal_res": "month",
       "is_nasa": true,
-      "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。",
+      "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
       "harmony_collection": "C1701805662-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
       "unit": "kg/m2",
       "valid_from": "2002-09-01",
       "valid_to": "2026-10-01"
@@ -145,6 +151,10 @@
       "native_temporal_res": "day",
       "is_nasa": true,
       "harmony_collection": "C1266136070-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
       "unit": "DU",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -161,6 +171,10 @@
       "native_temporal_res": "day",
       "is_nasa": true,
       "harmony_collection": "C1266136096-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
       "unit": "1",
       "valid_from": "2004-10-01",
       "valid_to": "2026-11-01"
@@ -1426,7 +1440,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T08:39:37Z",
+    "generated_at": "2026-11-14T09:00:58Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",

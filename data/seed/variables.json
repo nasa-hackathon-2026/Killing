@@ -64,8 +64,11 @@
     "product_version": "7.0",
     "native_temporal_res": "month",
     "is_nasa": true,
-    "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。",
-    "harmony_collection": "C1701805662-GES_DISC"
+    "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+    "harmony_collection": "C1701805662-GES_DISC",
+    "harmony_skip_regions": [
+      "north"
+    ]
   },
   {
     "id": "airs_h2ovap",
@@ -78,8 +81,11 @@
     "product_version": "7.0",
     "native_temporal_res": "month",
     "is_nasa": true,
-    "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。",
-    "harmony_collection": "C1701805662-GES_DISC"
+    "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+    "harmony_collection": "C1701805662-GES_DISC",
+    "harmony_skip_regions": [
+      "north"
+    ]
   },
   {
     "id": "merra2_t2m",
@@ -119,7 +125,11 @@
     "product_version": "003",
     "native_temporal_res": "day",
     "is_nasa": true,
-    "harmony_collection": "C1266136070-GES_DISC"
+    "harmony_collection": "C1266136070-GES_DISC",
+    "harmony_skip_regions": [
+      "north"
+    ],
+    "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。"
   },
   {
     "id": "omi_aerosol",
@@ -132,7 +142,11 @@
     "product_version": "003",
     "native_temporal_res": "day",
     "is_nasa": true,
-    "harmony_collection": "C1266136096-GES_DISC"
+    "harmony_collection": "C1266136096-GES_DISC",
+    "harmony_skip_regions": [
+      "north"
+    ],
+    "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。"
   },
   {
     "id": "station_temp",
