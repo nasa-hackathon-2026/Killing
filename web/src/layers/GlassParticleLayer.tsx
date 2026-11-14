@@ -8,18 +8,30 @@ import {
   type MeshStandardMaterial,
   type PointsMaterial,
 } from "three";
+import { formColor } from "../forms/formColor";
+import { formSpec } from "../forms/formMapping";
+import {
+  layerParticleCap,
+  MAX_FORM_PARTICLES,
+  particleCount,
+  sharedShellOpacity,
+} from "../forms/particleField";
 import { motionScale } from "../forms/reducedMotion";
 import { formRegistry } from "../forms/registry";
 import { TrendArrows } from "../forms/TrendArrows";
 import type { LayerDefinition } from "./registry";
 
-const MAX_PARTICLES = 480;
+const MAX_PARTICLES = MAX_FORM_PARTICLES;
 
 type GlassParticleLayerProps = {
   layer: LayerDefinition;
   visible: boolean;
   opacity: number;
   intensity: number;
+  // False when the month has no data for this layer: no particles at all.
+  hasData?: boolean;
+  // How many layers are open; the particle budget is split between them.
+  openLayers?: number;
   // +1, -1 or 0; see trendArrowDirection in forms/encoding.ts.
   trendDirection?: number;
 };
@@ -76,6 +88,8 @@ export function GlassParticleLayer({
   visible,
   opacity,
   intensity,
+  hasData = true,
+  openLayers = 1,
   trendDirection = 0,
 }: GlassParticleLayerProps) {
   const glass = useRef<MeshStandardMaterial>(null);
@@ -85,6 +99,11 @@ export function GlassParticleLayer({
   const time = useRef(0);
   const form = formRegistry.find((item) => item.id === layer.formId);
   const FormParticles = form?.Component;
+  const cap = layerParticleCap(
+    formSpec(layer.id)?.encoding.maxCount ?? MAX_FORM_PARTICLES,
+    openLayers,
+  );
+  const color = formColor(layer);
   const shell = useMemo(
     () => shellGeometry(layer.shellRadius, seedFromId(layer.id)),
     [layer.id, layer.shellRadius],
@@ -104,15 +123,14 @@ export function GlassParticleLayer({
     shown.current += (target - shown.current) * (1 - Math.exp(-5 * delta));
     time.current += delta * motionScale();
     const amount = shown.current;
-    if (glass.current) glass.current.opacity = amount * 0.38;
+    if (glass.current)
+      glass.current.opacity = sharedShellOpacity(amount * 0.38, openLayers);
     if (form) return;
     if (pointMaterial.current) pointMaterial.current.opacity = amount;
     const position = geometry.getAttribute("position");
     if (!(position instanceof BufferAttribute)) return;
     const array = position.array as Float32Array;
-    const count = Math.round(
-      Math.min(1, Math.max(0, intensity)) * MAX_PARTICLES * amount,
-    );
+    const count = Math.round(particleCount(intensity, cap, hasData) * amount);
     geometry.setDrawRange(0, count);
     const fall = layer.motion === "fall";
     for (let index = 0; index < count; index += 1) {
@@ -161,14 +179,16 @@ export function GlassParticleLayer({
           value={intensity}
           timeRef={time}
           opacityRef={shown}
-          color={layer.particleColor}
+          color={color}
           variableId={layer.id}
+          maxCount={cap}
+          hasData={hasData}
         />
       ) : (
         <points ref={points} geometry={geometry}>
           <pointsMaterial
             ref={pointMaterial}
-            color={layer.particleColor}
+            color={color}
             size={layer.motion === "fall" ? 0.018 : 0.014}
             transparent
             opacity={0}

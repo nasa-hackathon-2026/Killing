@@ -1,7 +1,7 @@
 // How a value and a trend become what a form draws. Pure functions; the
 // per-variable numbers they read live in formMapping.ts.
 import type { TrendEntry } from "../analysis/trends";
-import { clampUnit, MAX_FORM_PARTICLES } from "./particleField";
+import { clampUnit, MAX_FORM_PARTICLES, particleCount } from "./particleField";
 
 export type SpeedLaw = "linear" | "sqrt";
 
@@ -27,17 +27,33 @@ function lerp(range: [number, number], amount: number): number {
   return range[0] + (range[1] - range[0]) * amount;
 }
 
-// `value` is the normalized reading: 0 is the series' own minimum (or a
-// missing month, which draws nothing), 1 its own maximum.
-export function encodeForm(value: number, spec: EncodingSpec): FormEncoding {
+export type EncodingOptions = {
+  // The layer's share of the whole-globe budget (see layerParticleCap).
+  cap?: number;
+  // False for a month without data: nothing is drawn.
+  hasData?: boolean;
+};
+
+// `value` is the normalized reading: 0 is the series' own minimum, 1 its own
+// maximum. A month with data keeps a small floor of particles so the minimum
+// does not look like a missing month.
+export function encodeForm(
+  value: number,
+  spec: EncodingSpec,
+  options: EncodingOptions = {},
+): FormEncoding {
   const amount = clampUnit(value);
-  const cap = Math.min(MAX_FORM_PARTICLES, Math.max(0, spec.maxCount));
+  const cap = Math.min(
+    MAX_FORM_PARTICLES,
+    Math.max(0, spec.maxCount),
+    Math.max(0, options.cap ?? MAX_FORM_PARTICLES),
+  );
   const speed =
     spec.speedLaw === "sqrt"
       ? Math.sqrt(lerp([spec.speed[0] ** 2, spec.speed[1] ** 2], amount))
       : lerp(spec.speed, amount);
   return {
-    count: Math.round(amount * cap),
+    count: particleCount(value, cap, options.hasData ?? true),
     size: lerp(spec.size, amount),
     speed,
   };

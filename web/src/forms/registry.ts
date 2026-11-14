@@ -19,6 +19,11 @@ export type SubstanceFormProps = {
   // Which variable's row of formMapping.ts to use. Forms shared by several
   // variables need it; the two original forms ignore it.
   variableId?: string;
+  // The most particles this layer may draw (its share of the whole-globe
+  // budget). Defaults to the form's own maximum.
+  maxCount?: number;
+  // False for a month without data: the form draws nothing.
+  hasData?: boolean;
 };
 
 export type FormDefinition = {

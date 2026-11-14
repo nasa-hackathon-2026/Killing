@@ -211,7 +211,8 @@ export function formSpec(variableId: string): VariableFormSpec | undefined {
   return formMapping.find((row) => row.variableId === variableId);
 }
 
-// Upper bound on instances if every layer is switched on at full value.
+// Sum of every row's own maximum. What is actually drawn with several layers
+// open is lower: see TOTAL_PARTICLE_BUDGET in particleField.ts.
 export const TOTAL_PARTICLE_CAP = formMapping.reduce(
   (sum, row) => sum + row.encoding.maxCount,
   0,

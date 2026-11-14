@@ -1,9 +1,11 @@
 import { Canvas } from "@react-three/fiber";
+import { useRef } from "react";
 import { elements, molecules, rmsSpeed } from "../chemistry/molecules";
 import { formSpec } from "../forms/formMapping";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { closeUp, SCHEMATIC_NOTE, type SceneKind } from "./closeUps";
 import { CloseUpScene } from "./CloseUpScene";
+import { MAX_CLOSEUP_LABELS } from "./labels";
 import { ATOM_RADIUS_FRACTION, PHOTON_COLOR } from "./scripts";
 
 // How far back the camera sits for each kind of scene (scene units).
@@ -40,6 +42,7 @@ export function CloseUpPanel({
   trendLabel,
   onClose,
 }: CloseUpPanelProps) {
+  const labelLayer = useRef<HTMLDivElement>(null);
   const spec = formSpec(variableId);
   const view = spec ? closeUp(spec.closeUpId) : undefined;
   if (!view) return null;
@@ -70,8 +73,18 @@ export function CloseUpPanel({
           dpr={[1, 1.5]}
           gl={{ antialias: true, powerPreference: "low-power" }}
         >
-          <CloseUpScene id={view.id} value={value} kelvin={kelvin} />
+          <CloseUpScene
+            id={view.id}
+            value={value}
+            kelvin={kelvin}
+            labelLayer={labelLayer}
+          />
         </Canvas>
+        <div className="closeup-labels" ref={labelLayer} aria-hidden="true">
+          {Array.from({ length: MAX_CLOSEUP_LABELS }, (_, index) => (
+            <span key={index} hidden />
+          ))}
+        </div>
         <p className="closeup-tag">
           {view.scene === "aerosol"
             ? "Molecules and the particle edge share one scale; atoms drawn smaller."

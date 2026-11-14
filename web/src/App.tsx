@@ -61,6 +61,7 @@ export function App() {
         months.at(-1) ??
         null);
   const intensities: Record<string, number> = {};
+  const available: Record<string, boolean> = {};
   const readings: Record<string, string> = {};
   const kelvins: Record<string, number | null> = {};
   for (const layer of layerRegistry) {
@@ -80,6 +81,7 @@ export function App() {
         series.unit,
       );
       intensities[layer.id] = intensityAt(series.points, activeMonth);
+      available[layer.id] = valueAt(series.points, activeMonth) !== null;
       kelvins[layer.id] =
         series.unit === "K" ? valueAt(series.points, activeMonth) : null;
     }
@@ -113,6 +115,7 @@ export function App() {
         flying={flying}
         layers={controls}
         intensities={intensities}
+        available={available}
         trendDirections={trendDirections}
         places={data?.places ?? []}
         locationId={locationId}

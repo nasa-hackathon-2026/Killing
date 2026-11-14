@@ -2,6 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useState, type RefObject } from "react";
 import { CloseUpPanel } from "../closeup/CloseUpPanel";
 import { closeUp } from "../closeup/closeUps";
+import { formColor } from "../forms/formColor";
 import {
   encodeForm,
   trendMark,
@@ -74,7 +75,7 @@ function Stage({
         value={value}
         timeRef={time}
         opacityRef={opacity}
-        color={variable?.particleColor ?? "#ffffff"}
+        color={variable ? formColor(variable) : "#ffffff"}
         variableId={variableId}
       />
       {trendDirection !== 0 ? (

@@ -14,6 +14,8 @@ type RoundAirParticlesProps = {
   timeRef: RefObject<number>;
   opacityRef: RefObject<number>;
   color: string;
+  maxCount?: number;
+  hasData?: boolean;
 };
 
 export function RoundAirParticles({
@@ -21,6 +23,8 @@ export function RoundAirParticles({
   timeRef,
   opacityRef,
   color,
+  maxCount,
+  hasData,
 }: RoundAirParticlesProps) {
   const mesh = useRef<InstancedMesh>(null);
   const material = useRef<MeshStandardMaterial>(null);
@@ -32,7 +36,7 @@ export function RoundAirParticles({
     const points = mesh.current;
     if (!points) return;
     const shown = opacityRef.current ?? 0;
-    const count = shown < 0.02 ? 0 : particleCount(value);
+    const count = shown < 0.02 ? 0 : particleCount(value, maxCount, hasData);
     const speed = motionSpeed(value);
     const time = timeRef.current ?? 0;
     const spin = time * speed * 0.35;

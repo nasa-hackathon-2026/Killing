@@ -34,6 +34,8 @@ export function SubstanceField({
   opacityRef,
   color,
   variableId,
+  maxCount,
+  hasData,
   style,
   defaultVariableId,
 }: SubstanceFieldProps) {
@@ -59,7 +61,10 @@ export function SubstanceField({
     const points = mesh.current;
     if (!points || !spec) return;
     const shown = opacityRef.current ?? 0;
-    const encoding = encodeForm(value, spec.encoding);
+    const encoding = encodeForm(value, spec.encoding, {
+      cap: maxCount,
+      hasData,
+    });
     const count = shown < 0.02 ? 0 : Math.min(capacity, encoding.count);
     const time = (timeRef.current ?? 0) * encoding.speed;
     const { dummy, outward, up, state } = scratch.current;

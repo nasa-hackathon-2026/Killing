@@ -15,6 +15,8 @@ type WaterDropletsProps = {
   timeRef: RefObject<number>;
   opacityRef: RefObject<number>;
   color: string;
+  maxCount?: number;
+  hasData?: boolean;
 };
 
 function dropletGeometry() {
@@ -37,6 +39,8 @@ export function WaterDroplets({
   timeRef,
   opacityRef,
   color,
+  maxCount,
+  hasData,
 }: WaterDropletsProps) {
   const mesh = useRef<InstancedMesh>(null);
   const material = useRef<MeshStandardMaterial>(null);
@@ -52,7 +56,7 @@ export function WaterDroplets({
     const points = mesh.current;
     if (!points) return;
     const shown = opacityRef.current ?? 0;
-    const count = shown < 0.02 ? 0 : particleCount(value);
+    const count = shown < 0.02 ? 0 : particleCount(value, maxCount, hasData);
     const speed = motionSpeed(value);
     const time = timeRef.current ?? 0;
     const { dummy, inward, up } = scratch.current;

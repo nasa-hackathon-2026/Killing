@@ -32,8 +32,21 @@ function analyzed(
 }
 
 describe("encodeForm", () => {
+  it("draws nothing without data and a floor at the series minimum", () => {
+    expect(encodeForm(0, spec, { hasData: false }).count).toBe(0);
+    expect(encodeForm(0.9, spec, { hasData: false }).count).toBe(0);
+    expect(encodeForm(0, spec).count).toBeGreaterThan(0);
+  });
+
+  it("stays inside the cap it is given", () => {
+    expect(encodeForm(1, spec, { cap: 120 }).count).toBe(120);
+    expect(encodeForm(0.5, spec, { cap: 120 }).count).toBe(60);
+    expect(encodeForm(0, spec, { cap: 120 }).count).toBe(10);
+    expect(encodeForm(1, spec, { cap: 9999 }).count).toBe(300);
+  });
+
   it("maps the value to count, size and speed", () => {
-    expect(encodeForm(0, spec)).toEqual({ count: 0, size: 0.5, speed: 1 });
+    expect(encodeForm(0, spec)).toEqual({ count: 24, size: 0.5, speed: 1 });
     expect(encodeForm(0.5, spec)).toEqual({ count: 150, size: 1, speed: 2 });
     expect(encodeForm(1, spec)).toEqual({ count: 300, size: 1.5, speed: 3 });
   });

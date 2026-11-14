@@ -22,6 +22,8 @@ type EarthCanvasProps = {
   flying: boolean;
   layers: SceneLayer[];
   intensities: Record<string, number>;
+  // Layers whose current month has a value; the others draw no particles.
+  available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
   places: MockLocation[];
   locationId: string;
@@ -34,6 +36,7 @@ function Scene({
   flying,
   layers,
   intensities,
+  available,
   trendDirections,
   places,
   locationId,
@@ -43,6 +46,8 @@ function Scene({
   flying: boolean;
   layers: SceneLayer[];
   intensities: Record<string, number>;
+  // Layers whose current month has a value; the others draw no particles.
+  available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
   places: MockLocation[];
   locationId: string;
@@ -50,6 +55,7 @@ function Scene({
   onSelectLocation: (id: string) => void;
 }) {
   const [controlEpoch, setControlEpoch] = useState(0);
+  const openLayers = layers.filter((layer) => layer.visible).length;
 
   return (
     <>
@@ -71,6 +77,8 @@ function Scene({
           layer={layer}
           control={layers.find((item) => item.id === layer.id)}
           intensity={intensities[layer.id] ?? 0}
+          hasData={available[layer.id] ?? false}
+          openLayers={openLayers}
           trendDirection={trendDirections?.[layer.id] ?? 0}
         />
       ))}
@@ -96,11 +104,15 @@ function LayerView({
   layer,
   control,
   intensity,
+  hasData,
+  openLayers,
   trendDirection,
 }: {
   layer: LayerDefinition;
   control: SceneLayer | undefined;
   intensity: number;
+  hasData: boolean;
+  openLayers: number;
   trendDirection: number;
 }) {
   if (!control) return null;
@@ -110,6 +122,8 @@ function LayerView({
       visible={control.visible}
       opacity={control.opacity}
       intensity={intensity}
+      hasData={hasData}
+      openLayers={openLayers}
       trendDirection={trendDirection}
     />
   );
@@ -120,6 +134,7 @@ export function EarthCanvas({
   flying,
   layers,
   intensities,
+  available,
   trendDirections,
   places,
   locationId,
@@ -138,6 +153,7 @@ export function EarthCanvas({
         flying={flying}
         layers={layers}
         intensities={intensities}
+        available={available}
         trendDirections={trendDirections}
         places={places}
         locationId={locationId}

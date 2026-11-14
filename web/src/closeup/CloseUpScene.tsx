@@ -1,11 +1,13 @@
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import {
   Color,
   IcosahedronGeometry,
   InstancedMesh,
   Object3D,
   SphereGeometry,
+  Vector3,
+  type Camera,
 } from "three";
 import {
   atomPositions,
@@ -14,6 +16,7 @@ import {
 } from "../chemistry/molecules";
 import { motionScale } from "../forms/reducedMotion";
 import { closeUp, type CloseUpId } from "./closeUps";
+import { labelingPainter, type CloseUpLabel } from "./labels";
 import {
   ANGSTROM,
   ATOM_RADIUS_FRACTION,
@@ -30,6 +33,9 @@ type CloseUpSceneProps = {
   id: CloseUpId;
   value: number;
   kelvin: number | null;
+  // The element whose child spans are the label pool (see CloseUpPanel).
+  // Labels are plain HTML over the canvas, placed every frame.
+  labelLayer?: RefObject<HTMLDivElement | null>;
 };
 
 type Atom = { x: number; y: number; radius: number; color: Color };
@@ -59,13 +65,43 @@ function atomTable(): Record<MoleculeId, Atom[]> {
   return table;
 }
 
+// Moves the pooled label spans of `layer` onto the labelled things.
+function placeLabels(
+  layer: HTMLElement,
+  labels: CloseUpLabel[],
+  camera: Camera,
+  size: { width: number; height: number },
+  point: Vector3,
+) {
+  const spans = layer.children;
+  for (let index = 0; index < spans.length; index += 1) {
+    const span = spans[index] as HTMLElement;
+    const label = labels[index];
+    if (!label) {
+      span.hidden = true;
+      continue;
+    }
+    point.set(label.x, label.y, label.z).project(camera);
+    const left = (point.x * 0.5 + 0.5) * size.width;
+    const top = (0.5 - point.y * 0.5) * size.height;
+    if (span.textContent !== label.text) span.textContent = label.text;
+    span.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px) translate(-50%, -100%)`;
+    span.hidden = false;
+  }
+}
+
 // 100 nm across at the scale of the molecules: 1000 angstrom.
 const AEROSOL_RADIUS = 500 * ANGSTROM;
 
 // Draws one close-up: its script paints molecules, photons, grains and water
 // into three instanced meshes, so a view costs three draw calls plus its
 // backdrop.
-export function CloseUpScene({ id, value, kelvin }: CloseUpSceneProps) {
+export function CloseUpScene({
+  id,
+  value,
+  kelvin,
+  labelLayer,
+}: CloseUpSceneProps) {
   const atoms = useRef<InstancedMesh>(null);
   const solids = useRef<InstancedMesh>(null);
   const blobs = useRef<InstancedMesh>(null);
@@ -73,7 +109,12 @@ export function CloseUpScene({ id, value, kelvin }: CloseUpSceneProps) {
   const sphere = useMemo(() => new SphereGeometry(1, 16, 12), []);
   const rough = useMemo(() => new IcosahedronGeometry(1, 1), []);
   const table = useMemo(() => atomTable(), []);
-  const scratch = useRef({ dummy: new Object3D(), color: new Color() });
+  const scratch = useRef({
+    dummy: new Object3D(),
+    color: new Color(),
+    point: new Vector3(),
+    labels: [] as CloseUpLabel[],
+  });
   const scene = closeUp(id)?.scene ?? "reaction";
   const backdrop = backdropFor[scene];
   useEffect(
@@ -84,13 +125,14 @@ export function CloseUpScene({ id, value, kelvin }: CloseUpSceneProps) {
     [sphere, rough],
   );
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const atomMesh = atoms.current;
     const solidMesh = solids.current;
     const blobMesh = blobs.current;
     if (!atomMesh || !solidMesh || !blobMesh) return;
     time.current += Math.min(delta, 0.1) * motionScale();
-    const { dummy, color } = scratch.current;
+    const { dummy, color, point, labels } = scratch.current;
+    labels.length = 0;
     let atomCount = 0;
     let solidCount = 0;
     let blobCount = 0;
@@ -132,7 +174,14 @@ export function CloseUpScene({ id, value, kelvin }: CloseUpSceneProps) {
         blobCount += 1;
       },
     };
-    scripts[id]({ time: time.current, value, kelvin }, painter);
+    scripts[id](
+      { time: time.current, value, kelvin },
+      labelingPainter(painter, labels),
+    );
+    // Labels do not depend on the clock advancing, so they are also placed
+    // when the system asks for reduced motion.
+    const layer = labelLayer?.current;
+    if (layer) placeLabels(layer, labels, state.camera, state.size, point);
     atomMesh.count = atomCount;
     solidMesh.count = solidCount;
     blobMesh.count = blobCount;
