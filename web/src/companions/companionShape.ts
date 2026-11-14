@@ -10,6 +10,8 @@ export type Point = [number, number];
 // Drawing box of one companion (SVG user units).
 export const VIEW_WIDTH = 120;
 export const VIEW_HEIGHT = 150;
+// Height of the drawing when the label under the feet is left out.
+export const VIEW_HEIGHT_BARE = 124;
 export const CENTER_X = 60;
 // Where a standing companion touches the ground.
 export const GROUND_Y = 112;

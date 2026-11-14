@@ -6,6 +6,7 @@ import {
   type TrendSummary,
 } from "./analysis/trends";
 import { CloseUpPanel } from "./closeup/CloseUpPanel";
+import { CompanionDock } from "./companions/CompanionDock";
 import { useAnalysisFile } from "./analysis/useAnalysisFile";
 import {
   trendArrowDirection,
@@ -242,6 +243,15 @@ function AppView({
           .map((layer) => layer.id)}
         locationName={location?.nameEn ?? locationId}
         trends={trendsFile}
+      />
+      <CompanionDock
+        visibleIds={controls
+          .filter((layer) => layer.visible)
+          .map((layer) => layer.id)}
+        series={here}
+        locationId={locationId}
+        locationName={location?.nameEn ?? locationId}
+        trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
       <TrendMapLegend
         state={trendMap}

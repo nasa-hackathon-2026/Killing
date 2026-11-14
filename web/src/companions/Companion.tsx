@@ -24,6 +24,7 @@ import {
   mixHex,
   scatter,
   VIEW_HEIGHT,
+  VIEW_HEIGHT_BARE,
   VIEW_WIDTH,
   type BodyBox,
 } from "./companionShape";
@@ -51,7 +52,8 @@ export type CompanionProps = {
   // The full trend signal; when given it replaces `trend` + `significant`
   // and the mark is exactly the layer panel's.
   signal?: TrendSignal;
-  // Width in CSS pixels; the height is 1.25 times this.
+  // Width in CSS pixels. The height is 1.25 times this with the label and
+  // about 1.03 times without it.
   size?: number;
   // Posture override; by default it follows `anomalyZ`.
   mood?: CompanionMood;
@@ -189,7 +191,7 @@ function Behind({ spec, box, amount }: PartProps) {
 
 function Molecule({ id, x, y }: { id: MoleculeId; x: number; y: number }) {
   const atoms = atomPositions(id);
-  const scale = 8.5;
+  const scale = 10;
   const center = atoms[0];
   if (!center) return null;
   return (
@@ -212,7 +214,7 @@ function Molecule({ id, x, y }: { id: MoleculeId; x: number; y: number }) {
             key={index}
             cx={atom.x * scale}
             cy={-atom.y * scale}
-            r={elements[atom.element].vdwRadius * 3.1}
+            r={elements[atom.element].vdwRadius * 3.6}
             fill={elements[atom.element].cpkColor}
             stroke="rgba(8, 14, 28, 0.55)"
             strokeWidth={0.8}
@@ -351,13 +353,16 @@ function Front({ spec, box, amount, seed }: PartProps) {
       return (
         <g fill={spec.baseColor} fillOpacity={0.9}>
           {Array.from({ length: drops }, (_, index) => (
-            <path
+            <g
               key={index}
-              className="companion-drip"
-              style={{ animationDelay: `${index * -0.45}s` }}
               transform={`translate(${CENTER_X + (index - (drops - 1) / 2) * 20} ${box.bottom + 3})`}
-              d="M0 0C2.4 3.4 3 4.8 3 6.2A3 3 0 0 1 -3 6.2C-3 4.8 -2.4 3.4 0 0Z"
-            />
+            >
+              <path
+                className="companion-drip"
+                style={{ animationDelay: `${index * -0.45}s` }}
+                d="M0 0C2.4 3.4 3 4.8 3 6.2A3 3 0 0 1 -3 6.2C-3 4.8 -2.4 3.4 0 0Z"
+              />
+            </g>
           ))}
         </g>
       );
@@ -550,7 +555,8 @@ export function Companion({
   } else if (spec.kind === "vapor") {
     fillOpacity = 0.55;
   } else if (spec.kind === "gas") {
-    fillOpacity = 0.32;
+    fill = mixHex(spec.baseColor, "#ffffff", 0.35);
+    fillOpacity = 0.5;
     stroke = spec.baseColor;
   } else if (spec.kind === "soil") {
     fill = SOIL_BROWN;
@@ -565,6 +571,7 @@ export function Companion({
   const eyeGap = 10.5;
   const grounded = !floats(spec);
   const label = [spec.tag, DATA_KIND_SHORT[kind]].filter(Boolean).join(" · ");
+  const viewHeight = showLabel ? VIEW_HEIGHT : VIEW_HEIGHT_BARE;
   const style = {
     "--companion-period": `${drive.period.toFixed(2)}s`,
   } as CSSProperties;
@@ -581,9 +588,9 @@ export function Companion({
       ]
         .filter(Boolean)
         .join(" ")}
-      viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+      viewBox={`0 0 ${VIEW_WIDTH} ${viewHeight}`}
       width={size}
-      height={(size * VIEW_HEIGHT) / VIEW_WIDTH}
+      height={(size * viewHeight) / VIEW_WIDTH}
       role="img"
       aria-label={title}
       data-companion={spec.id}
