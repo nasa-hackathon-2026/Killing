@@ -1,0 +1,146 @@
+/* Data companions (src/companions). Every class starts with "companion-". */
+.companion {
+  display: block;
+  overflow: visible;
+  flex: none;
+}
+
+.companion-label {
+  font:
+    600 10px/1 system-ui,
+    sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.companion-moving .companion-breathe,
+.companion-moving .companion-float,
+.companion-moving .companion-pulse,
+.companion-moving .companion-sway,
+.companion-moving .companion-turn,
+.companion-moving .companion-rise,
+.companion-moving .companion-drip {
+  transform-box: fill-box;
+  animation-duration: var(--companion-period, 2.4s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.companion-moving .companion-breathe {
+  transform-origin: 50% 100%;
+  animation-name: companion-breathe;
+}
+
+.companion-moving .companion-float {
+  animation-name: companion-float;
+}
+
+.companion-moving .companion-pulse {
+  animation-name: companion-pulse;
+}
+
+.companion-moving .companion-sway {
+  transform-origin: 50% 100%;
+  animation-name: companion-sway;
+}
+
+.companion-moving .companion-turn {
+  transform-origin: 50% 50%;
+  animation-name: companion-turn;
+  animation-duration: calc(var(--companion-period, 2.4s) * 6);
+  animation-timing-function: linear;
+}
+
+.companion-moving .companion-rise {
+  animation-name: companion-rise;
+  animation-duration: calc(var(--companion-period, 2.4s) * 1.4);
+}
+
+.companion-moving .companion-drip {
+  animation-name: companion-drip;
+  animation-timing-function: ease-in;
+}
+
+@keyframes companion-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.04, 0.94);
+  }
+}
+
+@keyframes companion-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes companion-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes companion-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+@keyframes companion-turn {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-rise {
+  0% {
+    transform: translateY(3px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-9px);
+    opacity: 0;
+  }
+}
+
+@keyframes companion-drip {
+  0% {
+    transform: translateY(-3px);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(9px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion *,
+  .companion-dock * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
