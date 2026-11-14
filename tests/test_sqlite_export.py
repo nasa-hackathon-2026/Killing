@@ -8,6 +8,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+from trend_detective.extended import fetch_points, write_extended_catalog
 from trend_detective.giovanni import GiovanniClient
 from trend_detective.harmony import HarmonyClient
 from trend_detective.snapshot import build_snapshot
@@ -335,3 +336,113 @@ def test_planetary_computer_series_trace_back_to_per_composite_statistics(
         ("2020-01-09", 0, None, 400, "h29v06", "B.h29"),
     ]
     assert series_without_source_rows(db_path) == []
+
+
+@pytest.fixture
+def with_extended(built, tmp_path: Path) -> tuple[Path, Path]:
+    """核心快照之外，再放一份擴充資料：一個新變數 × 一個新地點，外加核心變數 × 新地點。"""
+    snapshot_dir, raw_dir, _ = built
+    extended_dir = tmp_path / "extended"
+    runoff = {
+        "id": "runoff",
+        "name_zh": "Surface runoff",
+        "name_en": "Surface runoff",
+        "needs_translation": True,
+        "source": "giovanni",
+        "source_variable_id": "GLDAS_NOAH025_M_2_1_Qs_acc",
+        "product": "GLDAS_NOAH025_M.2.1",
+        "product_version": "2.1",
+        "native_temporal_res": "month",
+        "is_nasa": True,
+        "unit": "kg m-2",
+    }
+    delhi = {
+        "id": "delhi",
+        "kind": "point",
+        "name_zh": "德里",
+        "lat": 28.61,
+        "lon": 77.21,
+    }
+
+    def giovanni(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/quota":
+            return httpx.Response(200, json={"quota": 0.0})
+        return httpx.Response(200, text=_text("giovanni_imerg_taichung_2020.csv"))
+
+    result = fetch_points(
+        _client(giovanni, GiovanniClient, "https://giovanni.test/"),
+        [(runoff, delhi), (VARIABLES[0], delhi)],
+        extended_dir,
+        raw_dir=raw_dir,
+        **RUN,
+    )
+    assert result.failures == {}
+    write_extended_catalog(
+        extended_dir, [VARIABLES[0], runoff], [delhi], now=RUN["now"]
+    )
+    db_path = tmp_path / "db" / "with_extended.sqlite"
+    build_database(snapshot_dir, raw_dir, db_path, extended_dir)
+    return extended_dir, db_path
+
+
+def test_extended_series_join_the_unified_table_marked_apart_from_the_core(
+    built, with_extended
+):
+    _snapshot_dir, _, core_db = built
+    extended_dir, db_path = with_extended
+    core_rows = _query(core_db, "SELECT COUNT(*) FROM observations")[0][0]
+    extended_points = sum(
+        len(json.loads(f.read_text())["points"])
+        for f in (extended_dir / "series").glob("*.json")
+    )
+
+    assert extended_points > 0
+    assert _query(
+        db_path, "SELECT tier, COUNT(*) FROM observations GROUP BY tier ORDER BY tier"
+    ) == [("core", core_rows), ("extended", extended_points)]
+    assert _query(
+        db_path,
+        "SELECT variable_id, location_id, tier FROM series WHERE location_id = 'delhi' ORDER BY 1",
+    ) == [("imerg_precip", "delhi", "extended"), ("runoff", "delhi", "extended")]
+    assert _query(core_db, "SELECT DISTINCT tier FROM observations") == [("core",)]
+
+
+def test_a_core_variable_used_by_extended_series_stays_a_core_variable(with_extended):
+    _, db_path = with_extended
+
+    assert _query(
+        db_path,
+        "SELECT id, tier, needs_translation FROM variables WHERE id IN ('imerg_precip', 'runoff') ORDER BY 1",
+    ) == [("imerg_precip", "core", 0), ("runoff", "extended", 1)]
+    assert _query(db_path, "SELECT tier FROM locations WHERE id = 'delhi'") == [
+        ("extended",)
+    ]
+    assert _query(db_path, "SELECT tier FROM locations WHERE id = 'taichung'") == [
+        ("core",)
+    ]
+
+
+def test_extended_series_have_their_raw_rows_in_the_source_table(with_extended):
+    _, db_path = with_extended
+
+    raw = _query(
+        db_path,
+        "SELECT COUNT(*) FROM src_giovanni WHERE variable_id = 'runoff' AND location_id = 'delhi'",
+    )[0][0]
+    unified = _query(
+        db_path,
+        "SELECT COUNT(*) FROM observations WHERE variable_id = 'runoff' AND location_id = 'delhi'",
+    )[0][0]
+    assert raw == unified > 0
+
+
+def test_a_missing_extended_directory_builds_the_core_only(built, tmp_path: Path):
+    snapshot_dir, raw_dir, core_db = built
+    db_path = tmp_path / "db" / "no_extended.sqlite"
+
+    counts = build_database(snapshot_dir, raw_dir, db_path, tmp_path / "nowhere")
+
+    assert (
+        counts["observations"]
+        == _query(core_db, "SELECT COUNT(*) FROM observations")[0][0]
+    )

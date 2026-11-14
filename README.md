@@ -98,6 +98,29 @@ uv run python -m trend_detective.sqlite_export
 | `src_appeears` | AppEEARS（MODIS）一個合成期的區域統計量：平均、標準差、像元數… | 追溯 `modis_ndvi`、`modis_lst` |
 | `src_planetary_computer` | Planetary Computer（MODIS）一個合成期的區域統計量，以及用到的 tile 與 item id | 追溯 `modis_lst_pc`、`modis_ndvi_pc` |
 
+### 核心與擴充
+
+`observations`、`series`、`variables`、`locations` 都有 `tier` 欄：
+
+| `tier` | 內容 | 來源目錄 |
+|---|---|---|
+| `core` | 14 個核心變數 × 台灣的點位、區域與測站，學生版頁面用的資料 | `data/snapshot/`（進 git） |
+| `extended` | Giovanni 全球月資料產品的其餘變數（GLDAS、AIRS、MERRA-2、FLDAS、IMERG 的月資料，加 OMI 日資料），以及所有 Giovanni 變數在全球平均、世界區域、世界城市的序列 | `data/extended/`（不進 git，量大；用 `uv run python -m trend_detective.extended` 重新抓取） |
+
+擴充變數的 `name_zh` 目前是來源的英文名、`category` 是「待分類」（`variables.needs_translation = 1`），中文說明還沒寫。全球與世界區域是經緯度方框的平均，含海面；陸面模式的變數只有陸地格點有值。例如看全球平均的地表氣溫與台灣的對照：
+
+```sql
+SELECT month, location_id, ROUND(value, 2) AS kelvin
+FROM observations
+WHERE variable_id = 'merra2_t2m' AND location_id IN ('global', 'taiwan')
+  AND aggregation = 'area_mean' AND month >= '2025-01-01'
+ORDER BY month, location_id;
+```
+
+只 clone repo 的機器沒有 `data/extended/`，建出來的檔就只有 `tier = 'core'`。
+
+### 追回來源
+
 來源表都有 `variable_id`、`location_id`，可以對回 `observations`。例如確認台中 2020-07 的臭氧月值是哪幾天平均出來的：
 
 ```sql

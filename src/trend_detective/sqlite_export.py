@@ -14,6 +14,10 @@
     src_appeears     AppEEARS（MODIS）每個合成期的區域統計量：平均、標準差、像元數…
     src_planetary_computer   Planetary Computer（MODIS）每個合成期的區域統計量，本機算出
 
+`observations`、`series`、`variables`、`locations` 都有 `tier` 欄：`core` 是進 git 的核心快照
+（`data/snapshot/`），`extended` 是擴充資料（`data/extended/`，#46；這台機器沒有就只有核心）。
+只看核心：`WHERE tier = 'core'`。
+
 來源表都有 (variable_id, location_id)，可以對回 observations 與 series。
 公開 demo 只讀靜態 JSON，不讀這個檔；它是給隊員與評審用 SQL 查的。
 """
@@ -26,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from trend_detective import ghcnh, planetary_computer
+from trend_detective.extended import EXTENDED_DIR
 from trend_detective.giovanni import parse_timeseries_csv
 from trend_detective.harmony import parse_area_csv
 from trend_detective.snapshot import (
@@ -50,11 +55,13 @@ CREATE TABLE variables (
     id TEXT PRIMARY KEY, name_zh TEXT, name_en TEXT, definition_zh TEXT, category TEXT,
     unit TEXT, source TEXT, source_variable_id TEXT, product_version TEXT,
     native_temporal_res TEXT, valid_from TEXT, valid_to TEXT, is_nasa INTEGER,
-    note_zh TEXT, citation TEXT, doi TEXT
+    note_zh TEXT, citation TEXT, doi TEXT,
+    tier TEXT NOT NULL, product TEXT, needs_translation INTEGER NOT NULL
 );
 CREATE TABLE locations (
     id TEXT PRIMARY KEY, kind TEXT, name_zh TEXT, name_en TEXT, lat REAL, lon REAL,
-    bbox_w REAL, bbox_s REAL, bbox_e REAL, bbox_n REAL, geojson TEXT, ghcnh_id TEXT
+    bbox_w REAL, bbox_s REAL, bbox_e REAL, bbox_n REAL, geojson TEXT, ghcnh_id TEXT,
+    tier TEXT NOT NULL
 );
 CREATE TABLE series (
     variable_id TEXT NOT NULL REFERENCES variables(id),
@@ -62,12 +69,13 @@ CREATE TABLE series (
     aggregation TEXT NOT NULL, source_api TEXT, source_table TEXT, unit TEXT,
     product_version TEXT, retrieved_at TEXT, request_json TEXT,
     grid_lat REAL, grid_lon REAL, n_points INTEGER, first_month TEXT, last_month TEXT,
+    tier TEXT NOT NULL,
     PRIMARY KEY (variable_id, location_id, aggregation)
 );
 CREATE TABLE observations (
     variable_id TEXT NOT NULL, location_id TEXT NOT NULL, aggregation TEXT NOT NULL,
     month TEXT NOT NULL, value REAL, n_samples INTEGER, coverage REAL,
-    unit TEXT, source_api TEXT,
+    unit TEXT, source_api TEXT, tier TEXT NOT NULL,
     PRIMARY KEY (variable_id, location_id, aggregation, month),
     FOREIGN KEY (variable_id, location_id, aggregation)
         REFERENCES series(variable_id, location_id, aggregation)
@@ -105,6 +113,7 @@ CREATE TABLE src_planetary_computer (
     PRIMARY KEY (variable_id, location_id, date)
 );
 CREATE INDEX observations_by_month ON observations(month);
+CREATE INDEX observations_by_tier ON observations(tier);
 """
 
 
@@ -112,8 +121,16 @@ def _load(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def build_database(snapshot_dir: Path, raw_dir: Path, db_path: Path) -> dict[str, int]:
+def build_database(
+    snapshot_dir: Path,
+    raw_dir: Path,
+    db_path: Path,
+    extended_dir: Path | None = None,
+) -> dict[str, int]:
     """從快照與原始回應重建整個 SQLite 檔，回傳各表的列數。
+
+    `extended_dir` 有目錄檔時，擴充資料（#46）一併匯入同一組表，`tier` 欄記成 `extended`；
+    核心快照已有的變數與地點以核心為準。
 
     每次都從頭建到暫存檔再換上去，所以重建是冪等的，中斷也不會留下半個資料庫。
     某來源的原始檔不在（例如別台機器只有快照）時，該來源表留空，統一表不受影響。
@@ -125,11 +142,26 @@ def build_database(snapshot_dir: Path, raw_dir: Path, db_path: Path) -> dict[str
     db = sqlite3.connect(partial)
     try:
         db.executescript(SCHEMA)
-        _insert_lookups(db, catalog)
+        _insert_lookups(db, catalog, "core")
         all_series = [
             _load(snapshot_dir / entry["file"]) for entry in catalog["series"]
         ]
-        _insert_series(db, all_series)
+        _insert_series(db, all_series, "core")
+        if extended_dir is not None and (extended_dir / "catalog.json").exists():
+            extended = _load(extended_dir / "catalog.json")
+            _insert_lookups(db, extended, "extended")
+            core_keys = {
+                (s["variable_id"], s["location_id"], s["aggregation"])
+                for s in all_series
+            }
+            extra = [
+                _load(extended_dir / entry["file"])
+                for entry in extended["series"]
+                if (entry["variable_id"], entry["location_id"], entry["aggregation"])
+                not in core_keys
+            ]
+            _insert_series(db, extra, "extended")
+            all_series += extra
         _insert_giovanni(db, all_series, raw_dir / "giovanni")
         _insert_harmony(db, all_series, raw_dir / "harmony")
         _insert_power(db, all_series, raw_dir / "power")
@@ -182,10 +214,11 @@ def series_without_source_rows(db_path: Path) -> list[tuple[str, str, str]]:
     return missing
 
 
-def _insert_lookups(db: sqlite3.Connection, catalog: dict[str, Any]) -> None:
+def _insert_lookups(db: sqlite3.Connection, catalog: dict[str, Any], tier: str) -> None:
+    """已經在表裡的變數與地點不覆蓋（先匯入核心，所以兩邊都有時以核心為準）。"""
     for v in catalog["variables"]:
         db.execute(
-            "INSERT INTO variables VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT OR IGNORE INTO variables VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 v["id"],
                 v.get("name_zh"),
@@ -203,12 +236,15 @@ def _insert_lookups(db: sqlite3.Connection, catalog: dict[str, Any]) -> None:
                 v.get("note_zh"),
                 v.get("citation"),
                 v.get("doi"),
+                tier,
+                v.get("product"),
+                int(bool(v.get("needs_translation"))),
             ),
         )
     for loc in catalog["locations"]:
         bbox = loc.get("bbox") or [None] * 4
         db.execute(
-            "INSERT INTO locations VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT OR IGNORE INTO locations VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 loc["id"],
                 loc.get("kind"),
@@ -221,17 +257,20 @@ def _insert_lookups(db: sqlite3.Connection, catalog: dict[str, Any]) -> None:
                 if "geojson" in loc
                 else None,
                 loc.get("ghcnh_id"),
+                tier,
             ),
         )
 
 
-def _insert_series(db: sqlite3.Connection, all_series: list[dict[str, Any]]) -> None:
+def _insert_series(
+    db: sqlite3.Connection, all_series: list[dict[str, Any]], tier: str
+) -> None:
     for s in all_series:
         key = (s["variable_id"], s["location_id"], s["aggregation"])
         months = [p["month"] for p in s["points"]]
         grid = s.get("grid") or {}
         db.execute(
-            "INSERT INTO series VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO series VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (
                 *key,
                 s["source_api"],
@@ -245,10 +284,11 @@ def _insert_series(db: sqlite3.Connection, all_series: list[dict[str, Any]]) -> 
                 len(months),
                 min(months) if months else None,
                 max(months) if months else None,
+                tier,
             ),
         )
         db.executemany(
-            "INSERT INTO observations VALUES (?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO observations VALUES (?,?,?,?,?,?,?,?,?,?)",
             [
                 (
                     *key,
@@ -258,6 +298,7 @@ def _insert_series(db: sqlite3.Connection, all_series: list[dict[str, Any]]) -> 
                     p["coverage"],
                     s["unit"],
                     s["source_api"],
+                    tier,
                 )
                 for p in s["points"]
             ],
@@ -455,11 +496,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--snapshot-dir", type=Path, default=SNAPSHOT_DIR)
     parser.add_argument("--raw-dir", type=Path, default=RAW_DIR)
     parser.add_argument("--db", type=Path, default=DB_PATH)
+    parser.add_argument(
+        "--extended-dir",
+        type=Path,
+        default=EXTENDED_DIR,
+        help="擴充資料的目錄（#46）；沒有目錄檔就只匯入核心",
+    )
     args = parser.parse_args(argv)
-    counts = build_database(args.snapshot_dir, args.raw_dir, args.db)
+    counts = build_database(args.snapshot_dir, args.raw_dir, args.db, args.extended_dir)
     print(args.db)
     for table, count in counts.items():
         print(f"  {table:<16} {count:>8}")
+    db = sqlite3.connect(args.db)
+    for tier, n_series, n_rows in db.execute(
+        "SELECT s.tier, COUNT(DISTINCT s.variable_id || s.location_id || s.aggregation),"
+        " COUNT(o.month) FROM series s LEFT JOIN observations o USING"
+        " (variable_id, location_id, aggregation) GROUP BY s.tier"
+    ):
+        print(f"  tier = {tier}：{n_series} 條序列，{n_rows} 列 observations")
+    db.close()
     missing = series_without_source_rows(args.db)
     if missing:
         print(
