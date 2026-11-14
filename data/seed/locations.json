@@ -67,5 +67,230 @@
     "lat": 25.04,
     "lon": 121.51,
     "ghcnh_id": "CHM00058968"
+  },
+  {
+    "id": "taiwan",
+    "kind": "region",
+    "name_zh": "臺灣",
+    "name_en": "Taiwan",
+    "bbox": [
+      120.0,
+      21.8,
+      122.1,
+      25.4
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "taiwan"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              120.0,
+              21.8
+            ],
+            [
+              122.1,
+              21.8
+            ],
+            [
+              122.1,
+              25.4
+            ],
+            [
+              120.0,
+              25.4
+            ],
+            [
+              120.0,
+              21.8
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "north",
+    "kind": "region",
+    "name_zh": "北部",
+    "name_en": "Northern Taiwan",
+    "bbox": [
+      121.0,
+      24.6,
+      122.1,
+      25.4
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "north"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              121.0,
+              24.6
+            ],
+            [
+              122.1,
+              24.6
+            ],
+            [
+              122.1,
+              25.4
+            ],
+            [
+              121.0,
+              25.4
+            ],
+            [
+              121.0,
+              24.6
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "central",
+    "kind": "region",
+    "name_zh": "中部",
+    "name_en": "Central Taiwan",
+    "bbox": [
+      120.2,
+      23.5,
+      121.3,
+      24.6
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "central"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              120.2,
+              23.5
+            ],
+            [
+              121.3,
+              23.5
+            ],
+            [
+              121.3,
+              24.6
+            ],
+            [
+              120.2,
+              24.6
+            ],
+            [
+              120.2,
+              23.5
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "south",
+    "kind": "region",
+    "name_zh": "南部",
+    "name_en": "Southern Taiwan",
+    "bbox": [
+      120.0,
+      21.8,
+      121.0,
+      23.5
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "south"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              120.0,
+              21.8
+            ],
+            [
+              121.0,
+              21.8
+            ],
+            [
+              121.0,
+              23.5
+            ],
+            [
+              120.0,
+              23.5
+            ],
+            [
+              120.0,
+              21.8
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  {
+    "id": "east",
+    "kind": "region",
+    "name_zh": "東部",
+    "name_en": "Eastern Taiwan",
+    "bbox": [
+      121.0,
+      22.3,
+      121.8,
+      24.6
+    ],
+    "geojson": {
+      "type": "Feature",
+      "properties": {
+        "id": "east"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              121.0,
+              22.3
+            ],
+            [
+              121.8,
+              22.3
+            ],
+            [
+              121.8,
+              24.6
+            ],
+            [
+              121.0,
+              24.6
+            ],
+            [
+              121.0,
+              22.3
+            ]
+          ]
+        ]
+      }
+    }
   }
 ]

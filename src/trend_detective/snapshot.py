@@ -10,6 +10,8 @@
 import argparse
 import json
 import sys
+import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -25,6 +27,12 @@ from trend_detective.giovanni import (
     GiovanniSeries,
     QuotaExceeded,
     parse_timeseries_csv,
+)
+from trend_detective.harmony import (
+    FINISHED,
+    HarmonyClient,
+    HarmonyError,
+    parse_area_csv,
 )
 from trend_detective.series import (
     Series,
@@ -44,7 +52,11 @@ STATION_START_YEAR = 2000
 STATION_UTC_OFFSET_HOURS = 8
 # 靠海點位被遮罩時，最多往內陸移幾格
 MAX_INLAND_STEPS = 2
-SOURCES = ("giovanni", "noaa_ghcnh", "nasa_power")
+SOURCES = ("giovanni", "harmony", "noaa_ghcnh", "nasa_power")
+# 區域平均一次同時跑幾個 Harmony job，以及每個 job 最多等多久
+HARMONY_BATCH = 6
+HARMONY_POLL_SECONDS = 10
+HARMONY_MAX_WAIT_SECONDS = 1800
 
 Key = tuple[str, str]
 
@@ -125,6 +137,8 @@ def build_snapshot(
     raw_dir: Path | None = None,
     station_http: httpx.Client | None = None,
     power_http: httpx.Client | None = None,
+    harmony_client: HarmonyClient | None = None,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> SnapshotResult:
     """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
@@ -134,7 +148,10 @@ def build_snapshot(
     """
     result = SnapshotResult()
     out_of_quota = False
-    points = [loc for loc in locations if "ghcnh_id" not in loc]
+    points = [
+        loc for loc in locations if loc.get("kind") == "point" and "ghcnh_id" not in loc
+    ]
+    regions = [loc for loc in locations if loc.get("kind") == "region"]
     stations = [loc for loc in locations if "ghcnh_id" in loc]
     for variable in variables:
         source = variable["source"]
@@ -176,6 +193,18 @@ def build_snapshot(
                 result.succeeded.append(key)
                 if "requested_location" in series.request:
                     result.shifted[key] = series.request["location"]
+    if harmony_client is not None:
+        _area_series_batch(
+            harmony_client,
+            snapshot_dir,
+            variables,
+            regions,
+            today,
+            now,
+            raw_dir,
+            result,
+            sleep,
+        )
     variable_ids = {variable["id"] for variable in variables}
     location_ids = {location["id"] for location in locations}
     all_series = [
@@ -190,6 +219,179 @@ def build_snapshot(
         )
     )
     return result
+
+
+def _area_series_batch(
+    client: HarmonyClient,
+    snapshot_dir: Path,
+    variables: list[dict[str, Any]],
+    regions: list[dict[str, Any]],
+    today: date,
+    now: str,
+    raw_dir: Path | None,
+    result: SnapshotResult,
+    sleep: Callable[[float], None],
+) -> None:
+    """有 `harmony_collection` 的變數 × 每個區域，各送一個 Harmony job 取區域平均。
+
+    job 是非同步的：分批送出、輪詢、下載。有 `raw_dir` 時把 job id 與結果 CSV 記在
+    `raw_dir/harmony/`，中斷後同一天重跑會接著等原本的 job，已完成的直接讀 CSV 不重送。
+    """
+    units = {
+        s.variable_id: s.unit
+        for s in _series_on_disk(snapshot_dir)
+        if s.aggregation == "point"
+    }
+    state_path = raw_dir / "harmony" / "jobs.json" if raw_dir else None
+    state: dict[str, dict[str, str]] = {}
+    if state_path is not None and state_path.exists():
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except ValueError:
+            state = {}
+
+    def save_state() -> None:
+        if state_path is not None:
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            state_path.write_text(
+                json.dumps(state, indent=2, sort_keys=True), encoding="utf-8"
+            )
+
+    def finish(variable: dict[str, Any], region: dict[str, Any], text: str) -> None:
+        key = (variable["id"], region["id"])
+        try:
+            parsed = parse_area_csv(text)
+            if not any(value is not None for _, value in parsed.rows):
+                raise HarmonyError("區域平均整條都是缺值")
+            if variable["id"] not in units:
+                raise HarmonyError(
+                    "還沒有這個變數的點位序列，無法得知單位；請先抓 giovanni 來源"
+                )
+            to_points = (
+                daily_to_monthly_points
+                if variable["native_temporal_res"] == "day"
+                else monthly_points
+            )
+            series = Series(
+                variable_id=variable["id"],
+                location_id=region["id"],
+                aggregation="area_mean",
+                unit=units[variable["id"]],
+                source_api="harmony",
+                request={
+                    "collection": variable["harmony_collection"],
+                    "variable": variable["source_variable_id"],
+                    "bbox": region["bbox"],
+                    "average": "area",
+                    "format": "text/csv",
+                    "start": f"{START_DATE:%Y-%m-%d}",
+                    "end_policy": "run_date",
+                },
+                retrieved_at=now,
+                product_version=variable["product_version"],
+                grid=None,
+                points=to_points(parsed.rows),
+            )
+            result.written.append(write_series(snapshot_dir, series))
+        except Exception as err:  # noqa: BLE001 單一序列不論何種失敗都不中斷整批
+            result.failures[key] = f"{type(err).__name__}: {err}"
+        else:
+            result.succeeded.append(key)
+
+    todo = [
+        (variable, region)
+        for variable in variables
+        if variable["source"] == "giovanni" and variable.get("harmony_collection")
+        for region in regions
+    ]
+    run_date = today.isoformat()
+    waiting: list[tuple[dict[str, Any], dict[str, Any], str]] = []
+    to_submit = []
+    for variable, region in todo:
+        name = f"{variable['id']}__{region['id']}"
+        record = state.get(name, {})
+        cached = raw_dir / "harmony" / f"{name}.csv" if raw_dir else None
+        if record.get("end") != run_date:
+            to_submit.append((variable, region))
+        elif (
+            record.get("status") == "successful"
+            and cached is not None
+            and cached.exists()
+        ):
+            finish(variable, region, cached.read_text(encoding="utf-8"))
+        elif record.get("status") not in FINISHED and record.get("job_id"):
+            waiting.append((variable, region, record["job_id"]))
+        else:
+            to_submit.append((variable, region))
+
+    out_of_quota = False
+    while waiting or to_submit:
+        while to_submit and len(waiting) < HARMONY_BATCH:
+            variable, region = to_submit.pop(0)
+            key = (variable["id"], region["id"])
+            name = f"{key[0]}__{key[1]}"
+            try:
+                if out_of_quota:
+                    raise HarmonyError("quota 已達上限，未送出")
+                if client.quota() >= 0.95:
+                    out_of_quota = True
+                    raise HarmonyError("quota 已達上限，未送出")
+                job_id = client.submit(
+                    variable["harmony_collection"],
+                    variable["source_variable_id"],
+                    bbox=region["bbox"],
+                    start=START_DATE,
+                    end=today,
+                )
+            except Exception as err:  # noqa: BLE001
+                result.failures[key] = f"{type(err).__name__}: {err}"
+                continue
+            state[name] = {
+                "job_id": job_id,
+                "end": run_date,
+                "status": "running",
+                "submitted_at": now,
+            }
+            save_state()
+            waiting.append((variable, region, job_id))
+        waited = 0.0
+        while waiting:
+            still: list[tuple[dict[str, Any], dict[str, Any], str]] = []
+            for variable, region, job_id in waiting:
+                key = (variable["id"], region["id"])
+                name = f"{key[0]}__{key[1]}"
+                try:
+                    status, link = client.job(job_id)
+                    if status not in FINISHED:
+                        still.append((variable, region, job_id))
+                        continue
+                    state[name]["status"] = status
+                    save_state()
+                    if status != "successful" or link is None:
+                        raise HarmonyError(f"job {job_id} 結束狀態是 {status}")
+                    text = client.download(link)
+                except Exception as err:  # noqa: BLE001
+                    result.failures[key] = f"{type(err).__name__}: {err}"
+                    continue
+                if raw_dir is not None:
+                    (raw_dir / "harmony" / f"{name}.csv").write_text(
+                        text, encoding="utf-8"
+                    )
+                finish(variable, region, text)
+            waiting = still
+            # 有空位就先補送下一批，不必等整批結束
+            if to_submit and len(waiting) < HARMONY_BATCH:
+                break
+            if waiting:
+                if waited >= HARMONY_MAX_WAIT_SECONDS:
+                    for variable, region, job_id in waiting:
+                        result.failures[(variable["id"], region["id"])] = (
+                            f"job {job_id} 等了 {HARMONY_MAX_WAIT_SECONDS} 秒仍未完成；同一天重跑會接著等"
+                        )
+                    waiting = []
+                    break
+                sleep(HARMONY_POLL_SECONDS)
+                waited += HARMONY_POLL_SECONDS
 
 
 def _power_series(
@@ -373,6 +575,15 @@ def main(argv: list[str] | None = None) -> int:
         giovanni_client = GiovanniClient(token)
     station_http = httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None
     power_http = httpx.Client(timeout=120) if "nasa_power" in sources else None
+    harmony_client = None
+    if "harmony" in sources:
+        harmony_client = HarmonyClient(
+            read_secret(
+                "EARTHDATA_TOKEN",
+                args.env_file,
+                how_to_get="到 Earthdata Login 的 Generate Token 頁產生 token",
+            )
+        )
     variables, locations = load_seed(args.seed_dir)
     now = datetime.now(UTC)
     result = build_snapshot(
@@ -385,6 +596,7 @@ def main(argv: list[str] | None = None) -> int:
         raw_dir=args.raw_dir,
         station_http=station_http,
         power_http=power_http,
+        harmony_client=harmony_client,
     )
     print(f"成功 {len(result.succeeded)} 條，失敗 {len(result.failures)} 條")
     for (variable_id, location_id), used in result.shifted.items():

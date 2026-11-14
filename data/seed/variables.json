@@ -11,7 +11,8 @@
     "native_temporal_res": "month",
     "is_nasa": true,
     "note_zh": "IMERG Final 只到 2025-09；之後的 Late 版算法不同，不可接續（#4 R5）。",
-    "doi": "10.5067/GPM/IMERG/3B-MONTH/07"
+    "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
+    "harmony_collection": "C2723754851-GES_DISC"
   },
   {
     "id": "gldas_tair",
@@ -23,7 +24,8 @@
     "source_variable_id": "GLDAS_NOAH025_M_2_1_Tair_f_inst",
     "product_version": "2.1",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1342986036-GES_DISC"
   },
   {
     "id": "gldas_soilmoist",
@@ -35,7 +37,8 @@
     "source_variable_id": "GLDAS_NOAH025_M_2_1_SoilMoi0_10cm_inst",
     "product_version": "2.1",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1342986036-GES_DISC"
   },
   {
     "id": "gldas_evap",
@@ -47,7 +50,8 @@
     "source_variable_id": "GLDAS_NOAH025_M_2_1_Evap_tavg",
     "product_version": "2.1",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1342986036-GES_DISC"
   },
   {
     "id": "airs_tsurf",
@@ -60,7 +64,8 @@
     "product_version": "7.0",
     "native_temporal_res": "month",
     "is_nasa": true,
-    "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。"
+    "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。",
+    "harmony_collection": "C1701805662-GES_DISC"
   },
   {
     "id": "airs_h2ovap",
@@ -73,7 +78,8 @@
     "product_version": "7.0",
     "native_temporal_res": "month",
     "is_nasa": true,
-    "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。"
+    "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。",
+    "harmony_collection": "C1701805662-GES_DISC"
   },
   {
     "id": "merra2_t2m",
@@ -85,7 +91,8 @@
     "source_variable_id": "M2IMNXASM_5_12_4_T2M",
     "product_version": "5.12.4",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1276812823-GES_DISC"
   },
   {
     "id": "omi_no2",
@@ -98,7 +105,8 @@
     "product_version": "003",
     "native_temporal_res": "day",
     "is_nasa": true,
-    "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。"
+    "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。",
+    "harmony_collection": "C1266136111-GES_DISC"
   },
   {
     "id": "omi_o3",
@@ -110,7 +118,8 @@
     "source_variable_id": "OMTO3d_003_ColumnAmountO3",
     "product_version": "003",
     "native_temporal_res": "day",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1266136070-GES_DISC"
   },
   {
     "id": "omi_aerosol",
@@ -122,7 +131,8 @@
     "source_variable_id": "OMAERUVd_003_UVAerosolIndex",
     "product_version": "003",
     "native_temporal_res": "day",
-    "is_nasa": true
+    "is_nasa": true,
+    "harmony_collection": "C1266136096-GES_DISC"
   },
   {
     "id": "station_temp",
