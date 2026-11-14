@@ -156,7 +156,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 讀結果時要注意：
   - 衛星感測器換代、再分析的同化系統或輸入觀測變更、產品重製都可能造成假趨勢，這裡沒有偵測或修正不連續。
   - **`gldas_tair` 的趨勢含階梯式不連續（#74 實測）**：和 MERRA-2 在同一批陸地格點相比，全球陸地平均在 2011-05、2017-07、2019-06 各跳約 +0.4、+0.6、−0.6 K，月份與 NCEP 變更紀錄的 GDAS／GFS 升級相符。資料沒有修正，前端在趨勢地圖圖例與圖層面板顯示警語（文字在 `web/src/analysis/trendCaveats.ts`，以變數 id 為鍵，之後別的變數查出問題就加在那裡）。數字、做法與出處見 `docs/data/gldas-tair-check.md`。
-  - **`gldas_evap` 在 2024-07 至 2025-06 有階梯，`gldas_soilmoist` 的趨勢與 FLDAS 正負相反（#79 實測）**：對照 FLDAS（同屬 Noah、強迫是 MERRA-2 與 CHIRPS），兩者在 2011-05、2017-07、2019-06 都沒有清楚的階梯。蒸散在 2024-07 至 2025-05 比 FLDAS 高約 0.1–0.2 mm/day，同期 GLDAS 的短波強迫比 FLDAS 高 15–32 W m⁻²，已加警語。土壤水 2001–2026 的全球陸地趨勢 GLDAS −0.43、FLDAS +0.16 kg m⁻²／十年，查不出階梯所以沒有警語，這個乾化趨勢不要當成已確認。見 `docs/data/gldas-water-check.md`。
+  - **`gldas_evap` 在 2024-07 至 2025-06 有階梯，`gldas_soilmoist` 的趨勢與 FLDAS 正負相反（#79 實測）**：對照 FLDAS（同屬 Noah、強迫是 MERRA-2 與 CHIRPS），兩者在 2011-05、2017-07、2019-06 都沒有清楚的階梯。蒸散在 2024-07 至 2025-05 比 FLDAS 高約 0.1–0.2 mm/day，同期 GLDAS 的短波強迫比 FLDAS 高 15–32 W m⁻²，已加警語。土壤水 2001–2026 的全球陸地趨勢 GLDAS −0.43、FLDAS +0.16 kg m⁻²／十年，兩條序列相關 0.08，查不出階梯；警語（#81）寫的是「兩個模式產品的趨勢正負相反、只有一個對照所以分不出哪個接近真實」，不是 GLDAS 有錯，這個乾化趨勢不要當成已確認。警語分成一句摘要（`summary`，一律顯示）與展開才看到的 `details`、`sources`，由 `web/src/analysis/TrendCaveatNote.tsx` 畫在圖例與圖層面板。見 `docs/data/gldas-water-check.md`。
   - 月距平的月份平均會吸收一小部分線性趨勢：N 個完整年時斜率是真值 × 144(N² − 1) ÷ (144N² − 1)，約低估 1/N²（20 年約 0.25%）。這是 #55 的做法，序列與格點都一樣。
   - 擴充序列裡有很多輔助變數（AIRS 的 `_ct` 觀測筆數、`_sdev` 標準差、MERRA-2 的 `var_*` 變異數、OMI 的觀測幾何），它們的「趨勢」反映取樣或演算法的變化，不是物理量的變化；同一個產品的變數彼此高度相關，FDR 的獨立性假設不成立。
   - OMI 的格點區域平均與 Harmony 的算法不同（見「格點區域平均」），同一變數的 `area_mean_grid` 與 `area_mean` 趨勢不要互相替代。
@@ -179,12 +179,13 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 ## 前端的全球趨勢地圖（#72）
 主畫面上方的「Global trend map」選單（預設 Off；選項名稱是 `trendMapConfig.ts` 的 `label`，與 `meta.json` 的 `name_en` 相同、帶產品簡稱）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。
 
-- **要調的東西都在 `web/src/trendmap/trendMapConfig.ts`**：提供哪些變數與各用哪個色階（`TREND_MAP_VARIABLES`、`PALETTES`：氣溫用藍—白—紅、水相關用棕—白—青綠，都是 ColorBrewer 的色盲友善色階）、色階範圍取絕對斜率的哪個分位數（`RANGE_QUANTILE`，0.98；對稱的 ±L，L 取兩位有效數字，格子等權、沒有面積加權，超出的用端點色）、顯著與不顯著格子的不透明度（`SIGNIFICANT_ALPHA`、`NOT_SIGNIFICANT_ALPHA`）、疊加層的預設不透明度與球殼半徑、顯示用的單位換算（`display`，目前只有 `gldas_evap` 換成 mm/day；K 的差值一律標 °C）。
+- **要調的東西都在 `web/src/trendmap/trendMapConfig.ts`**：提供哪些變數與各用哪個色階（`TREND_MAP_VARIABLES`、`PALETTES`：氣溫用藍—白—紅、水相關用棕—白—青綠，都是 ColorBrewer 的色盲友善色階）、色階範圍取絕對斜率的哪個分位數（`RANGE_QUANTILE`，0.98；對稱的 ±L，L 取兩位有效數字，格子等權、沒有面積加權，超出的用端點色）、顯著與不顯著格子的不透明度（`SIGNIFICANT_ALPHA`、`NOT_SIGNIFICANT_ALPHA`）、斜率近零時顏色淡到多少（`ZERO_CHANGE_STRENGTH`）、疊加層的預設不透明度與球殼半徑、顯示用的單位換算（`display`，目前只有 `gldas_evap` 換成 mm/day；K 的差值一律標 °C）。
 - **顯著性的畫法**：FDR 校正後顯著（類別 3）全彩；不顯著（1）與只在校正前顯著（2）同樣淡化；缺值或不分析（0）完全透明。圖例有說明。
+- **顏色強度隨變化量（#81）**：每格的不透明度再乘上 `changeStrength`（`trendGrid.ts`，純函式）：斜率 0 時是 `ZERO_CHANGE_STRENGTH`（0.4），到 ±L 以上是 1，中間線性；顏色本身不變。顯著與不顯著乘同一個係數，所以同樣的斜率下顯著格子永遠是不顯著的 1 ÷ `NOT_SIGNIFICANT_ALPHA` 倍。原因是色階中間近白，而 `WebGPURenderer` 在線性光下混色（#81 實測：全白格子在不透明度 0.4 疊在深色海面上約 185／255，以 sRGB 數值混色會是約 120），淺色格子會蓋住陸地。係數大於 0，有分析但沒變化的格子仍然有畫，和缺值不同；代價是不顯著又近零的格子很淡。圖例有一句說明。
 - **讀檔與上色是純函式**（`trendGrid.ts`，有測試）：`trendGridSpec` 從 `meta.json` 讀網格與兩個趨勢圖層，排列方式或編碼和預期不同就丟錯而不猜；`decodeSlopes`／`decodeSignificance`、`symmetricLimit`、`paintTrendMap`。`loadTrendMap.ts` 抓三個檔，`useTrendMap.ts` 是 hook。
 - **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
 - **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES`（`meta.json`、`trend_slope_per_decade.i16`、`trend_significance.u8`），7 個變數共約 1.3 MB；逐年平均與月氣候值（共約 30 MB）不進 `dist`，開發伺服器也不提供。之後前端要讀其他圖層，就把檔名加進這個清單。
-- 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77；AIRS、IMERG 看得出海岸線，MERRA-2 校正後顯著的淺色格子仍會蓋住陸地），要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
+- 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77），顏色強度再隨變化量調淡（#81，見上）；之後 MERRA-2、AIRS 看得出海岸線與陸地，MERRA-2 顯著升溫的區域仍有一層淡紅，要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

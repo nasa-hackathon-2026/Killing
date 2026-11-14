@@ -4,6 +4,7 @@ import { latLonToVector3 } from "../geo/latLon";
 import { loadTrendMap } from "./loadTrendMap";
 import {
   cellIndex,
+  changeStrength,
   decodeSignificance,
   decodeSlopes,
   divergingColor,
@@ -20,6 +21,7 @@ import {
   NOT_SIGNIFICANT_ALPHA,
   PALETTES,
   TREND_MAP_VARIABLES,
+  ZERO_CHANGE_STRENGTH,
 } from "./trendMapConfig";
 
 // Same shape as data/grid/<id>/meta.json, on a 2 × 3 grid.
@@ -168,6 +170,17 @@ describe("colour", () => {
     expect(NOT_SIGNIFICANT_ALPHA).toBeLessThan(0.5);
   });
 
+  it("weakens colour toward zero change without hiding analysed cells", () => {
+    expect(changeStrength(0, 2)).toBe(ZERO_CHANGE_STRENGTH);
+    expect(changeStrength(2, 2)).toBe(1);
+    expect(changeStrength(-2, 2)).toBe(1);
+    expect(changeStrength(5, 2)).toBe(1);
+    expect(changeStrength(1, 2)).toBeCloseTo((1 + ZERO_CHANGE_STRENGTH) / 2);
+    expect(changeStrength(-1, 2)).toBe(changeStrength(1, 2));
+    expect(ZERO_CHANGE_STRENGTH).toBeGreaterThan(0);
+    expect(ZERO_CHANGE_STRENGTH).toBeLessThan(1);
+  });
+
   it("paints one RGBA pixel per cell in file order", () => {
     const slopes = new Float32Array([2, -2, Number.NaN, 0]);
     const pixels = paintTrendMap(
@@ -182,7 +195,38 @@ describe("colour", () => {
       Math.round(NOT_SIGNIFICANT_ALPHA * 255),
     ]);
     expect([...pixels.slice(8, 12)]).toEqual([0, 0, 0, 0]);
-    expect(pixels[15]).toBe(Math.round(NOT_SIGNIFICANT_ALPHA * 255));
+    expect([...pixels.slice(12, 15)]).toEqual([...palette[3]]);
+    expect(pixels[15]).toBe(
+      Math.round(NOT_SIGNIFICANT_ALPHA * ZERO_CHANGE_STRENGTH * 255),
+    );
+  });
+
+  it("keeps a significant cell more opaque than a not significant one with the same trend", () => {
+    const slopes = new Float32Array([0, 0, 0, 1, 1, 2, 2]);
+    const pixels = paintTrendMap(
+      slopes,
+      new Uint8Array([3, 1, 0, 3, 2, 3, 1]),
+      2,
+      palette,
+    );
+    const alpha = (cell: number) => pixels[cell * 4 + 3] ?? 0;
+    // Zero change: drawn, weaker than a full-range cell, and not transparent
+    // like the cell with no data.
+    expect(alpha(0)).toBe(Math.round(ZERO_CHANGE_STRENGTH * 255));
+    expect(alpha(1)).toBeGreaterThan(0);
+    expect(alpha(2)).toBe(0);
+    for (const [significant, faded] of [
+      [0, 1],
+      [3, 4],
+      [5, 6],
+    ] as const) {
+      expect(alpha(faded) / alpha(significant)).toBeCloseTo(
+        NOT_SIGNIFICANT_ALPHA,
+        1,
+      );
+    }
+    expect(alpha(0)).toBeLessThan(alpha(3));
+    expect(alpha(3)).toBeLessThan(alpha(5));
   });
 });
 

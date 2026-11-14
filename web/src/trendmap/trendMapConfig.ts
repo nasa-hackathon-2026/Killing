@@ -102,6 +102,18 @@ export const RANGE_QUANTILE = 0.98;
 export const SIGNIFICANT_ALPHA = 1;
 export const NOT_SIGNIFICANT_ALPHA = 0.28;
 
+// Colour strength by size of the trend: a cell's opacity is multiplied by a
+// factor that runs from this value at zero change to 1 at ±L and beyond. The
+// middle of both ramps is near-white, and the renderer blends in linear light
+// (measured in #81: a white cell at opacity 0.4 over dark ocean came out at
+// about 185 of 255, where blending the sRGB values would give about 120), so
+// without this the pale cells of variables that have a value everywhere hide
+// the land. Applied equally to significant and not significant cells, so a
+// significant cell is always 1 / NOT_SIGNIFICANT_ALPHA times as opaque as a
+// not significant cell with the same trend. Above 0 so that an analysed cell
+// with no change is still drawn, unlike a cell with no data.
+export const ZERO_CHANGE_STRENGTH = 0.4;
+
 // Overlay opacity: the starting value and the range of the slider. At 0.4
 // the coastlines of the surface image still show through variables that have
 // a value in every cell (IMERG, AIRS, MERRA-2) and the colours stay readable.

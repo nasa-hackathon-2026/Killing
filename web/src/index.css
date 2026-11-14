@@ -149,9 +149,27 @@ body,
   font-size: 12px;
 }
 
-.trend-caveat span {
-  display: block;
+.trendmap .trend-caveat {
+  margin: 0 0 8px;
+}
+
+.trend-caveat p,
+.trendmap .trend-caveat p {
+  margin: 0;
+}
+
+.trend-caveat summary {
   margin-top: 2px;
+  color: #d5e4f5;
+  cursor: pointer;
+}
+
+.trend-caveat details p,
+.trendmap .trend-caveat details p {
+  margin-top: 4px;
+}
+
+.trend-caveat .trend-caveat-sources {
   color: #b7c6da;
 }
 
@@ -217,6 +235,28 @@ body,
     13px/1.45 system-ui,
     sans-serif;
   touch-action: auto;
+}
+
+/* The panel stops above the credit (main page) or the lab note, which sit in
+   the bottom-left corner under it: bottom margin 12px + their height (three
+   lines of the credit at full width, up to five when it wraps on a narrow
+   screen; the lab note is taller) + an 8px gap. */
+.closeup:has(~ .credit) {
+  max-height: calc(100% - 64px - 72px);
+}
+
+.closeup:has(~ .lab-note) {
+  max-height: calc(100% - 64px - 124px);
+}
+
+@media (max-width: 460px) {
+  .closeup:has(~ .credit) {
+    max-height: calc(100% - 64px - 106px);
+  }
+
+  .closeup:has(~ .lab-note) {
+    max-height: calc(100% - 64px - 160px);
+  }
 }
 
 .closeup header {

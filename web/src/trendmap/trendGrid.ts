@@ -8,6 +8,7 @@ import {
   NOT_SIGNIFICANT_ALPHA,
   RANGE_QUANTILE,
   SIGNIFICANT_ALPHA,
+  ZERO_CHANGE_STRENGTH,
   type Rgb,
 } from "./trendMapConfig";
 
@@ -231,7 +232,17 @@ export function significanceAlpha(category: number): number {
   return 0;
 }
 
+// Factor (ZERO_CHANGE_STRENGTH to 1) on a cell's opacity by the size of its
+// trend: weakest at zero change, where the ramp is near-white, and full at
+// ±limit and beyond. The colour itself is not changed.
+export function changeStrength(slope: number, limit: number): number {
+  const share = Math.min(1, Math.abs(slope) / limit);
+  return ZERO_CHANGE_STRENGTH + (1 - ZERO_CHANGE_STRENGTH) * share;
+}
+
 // RGBA bytes, one pixel per cell in file order (first row = southernmost).
+// Colour is the slope on the ramp; opacity is the significance class times
+// the strength of the change.
 export function paintTrendMap(
   slopes: Float32Array,
   significance: Uint8Array,
@@ -247,7 +258,9 @@ export function paintTrendMap(
     pixels[index * 4] = red;
     pixels[index * 4 + 1] = green;
     pixels[index * 4 + 2] = blue;
-    pixels[index * 4 + 3] = Math.round(alpha * 255);
+    pixels[index * 4 + 3] = Math.round(
+      alpha * changeStrength(slope, limit) * 255,
+    );
   }
   return pixels;
 }

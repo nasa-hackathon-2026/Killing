@@ -1,3 +1,4 @@
+import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
 import { trendMark, type TrendSignal } from "../forms/encoding";
@@ -115,11 +116,7 @@ export function LayerPanel({
                   </span>
                 </p>
               ) : null}
-              {caveat ? (
-                <p className="trend-caveat" role="note">
-                  {caveat.text} <span>Sources: {caveat.sources}</span>
-                </p>
-              ) : null}
+              {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
               {onCloseUp ? (
                 <button
                   type="button"

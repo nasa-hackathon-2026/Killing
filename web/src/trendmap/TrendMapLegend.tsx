@@ -1,3 +1,4 @@
+import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import { formatSlope, slopeUnitLabel } from "./trendGrid";
 import {
@@ -60,11 +61,7 @@ export function TrendMapLegend({
       <p className="trendmap-note">
         Change per decade, {unit} per decade · {meta.product}
       </p>
-      {caveat ? (
-        <p className="trend-caveat" role="note">
-          {caveat.text} <span>Sources: {caveat.sources}</span>
-        </p>
-      ) : null}
+      {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
       <div
         className="trendmap-ramp"
         style={{ background: gradient }}
@@ -94,6 +91,10 @@ export function TrendMapLegend({
           No colour: no data, or not analysed
         </li>
       </ul>
+      <p className="trendmap-note">
+        Colour strength also fades toward zero change (same colours, more
+        see-through), so the surface shows through small trends.
+      </p>
       <label className="trendmap-opacity">
         Opacity
         <input
