@@ -1,6 +1,7 @@
 // Known, checked problems with the trend of a variable. Shown next to the
 // trend wherever it appears (trend map legend, layer panel). Facts and
-// sources only; the check itself is written up in docs/data/gldas-tair-check.md.
+// sources only; the checks are written up in docs/data/gldas-tair-check.md and
+// docs/data/gldas-water-check.md.
 
 export type TrendCaveat = {
   // One or two sentences shown to the reader.
@@ -19,6 +20,18 @@ export const TREND_CAVEATS: Record<string, TrendCaveat> = {
       "At Taichung it also steps by 1 K or more against the station record.",
     sources:
       "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3, §1.6; NCEP EMC GFS/GDAS change log; project check #74.",
+  },
+  gldas_evap: {
+    text:
+      "Caution: this series contains a step that an independent product does not show. " +
+      "From July 2024 to May 2025 the GLDAS-2.1 downward shortwave forcing runs 15–32 W m⁻² above that of FLDAS " +
+      "(same Noah model family, MERRA-2 forcing) over the same land cells, and GLDAS global land evapotranspiration " +
+      "runs about 0.1–0.2 mm/day (1–2 × 10⁻⁶ kg m⁻² s⁻¹) above FLDAS; both differences are gone by July 2025. " +
+      "The GLDAS-2 README records that the cloud analysis behind its radiation input was decommissioned in summer 2024 " +
+      "and that radiation switched to GALWEM on 9 June 2025. " +
+      "Over 2001–2026 the GLDAS global land trend is +0.058 mm/day per decade against +0.012 for FLDAS.",
+    sources:
+      "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3; FLDAS README (GES DISC, rev. 2022-07-12) §1.1; project check #79.",
   },
 };
 
