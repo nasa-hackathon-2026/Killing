@@ -36,3 +36,21 @@ cd <名稱> && scripts/sync-labels.sh
 
 ## 相關
 - Skills：[mattpocock/skills](https://github.com/mattpocock/skills)，Claude Code 用 plugin 安裝
+
+## 原始資料
+
+原始下載檔不進 git（`.gitignore` 排除 `data/raw/`），只在跑資料的那台機器上；進 git 的是之後轉出的統一格式序列檔。
+
+| 來源 | 位置 | 內容 |
+|---|---|---|
+| AppEEARS（MODIS NDVI、LST） | `data/raw/appeears/<變數 id>/<task_id>/` | `submission.json`（task_id、送出時間、請求參數，不含憑證）、bundle 裡的統計 CSV 與請求 JSON；影像檔（`.nc`）不下載 |
+
+AppEEARS 是非同步 task，送出後可能排隊數小時以上：
+
+```bash
+uv run python -m trend_detective.appeears submit    # 送出兩個 task 並記錄 task_id
+uv run python -m trend_detective.appeears status    # 查狀態
+uv run python -m trend_detective.appeears download  # 完成後取回統計 CSV
+```
+
+需要本機 `.env` 裡的 `APPEEARS_TOKEN`：用 Earthdata Login 帳密呼叫 AppEEARS 的 `POST /login` 取得，約 48 小時到期。AppEEARS 不接受 EDL 的 `EARTHDATA_TOKEN`（2026-11-14 實測回 403）。

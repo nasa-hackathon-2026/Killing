@@ -34,6 +34,13 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 重要進展持續記到 Basic Memory。做決策、收工、踩雷時，先讀 `docs/agents/memory.md`。
 - 寫給 agent 讀的文件（AGENTS.md、skill、被指到的 doc）用 `writing-for-agents`。寫給人看的文件（README、成果說明）先講用途與限制，分支用表格，解釋為什麼而不抄流程，規範見 [Matt 的 docs 頁面規範](https://github.com/mattpocock/skills/blob/main/.agents/writing-docs.md)。
 
+## 驗證指令
+- 安裝：`uv sync --locked`
+- 格式：`uv run ruff format --check .`
+- 靜態檢查：`uv run ruff check . && uv run pyright`
+- 測試（全部）：`uv run pytest`
+- 測試（單檔）：`uv run pytest path/to/test_x.py`
+
 ## Agent skills
 
 `setup-matt-pocock-skills` 的設定已預先完成，不需要重跑；重跑會在 `CLAUDE.md` 產生重複的區塊。
