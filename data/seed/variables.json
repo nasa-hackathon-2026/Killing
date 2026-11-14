@@ -53,13 +53,14 @@
     "id": "airs_tsurf",
     "name_zh": "地表氣溫（AIRS）",
     "name_en": "Surface air temperature (AIRS)",
-    "definition_zh": "衛星上的紅外線儀器量到的近地面空氣溫度，單位是絕對溫度 K。",
+    "definition_zh": "衛星上的紅外線儀器量到的近地面空氣溫度，單位是絕對溫度 K；這裡是白天約下午一點半衛星經過時的值。",
     "category": "能量",
     "source": "giovanni",
     "source_variable_id": "AIRS3STM_7_0_SurfAirTemp_A",
     "product_version": "7.0",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。"
   },
   {
     "id": "airs_h2ovap",
@@ -71,7 +72,8 @@
     "source_variable_id": "AIRS3STM_7_0_TotH2OVap_A",
     "product_version": "7.0",
     "native_temporal_res": "month",
-    "is_nasa": true
+    "is_nasa": true,
+    "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。"
   },
   {
     "id": "merra2_t2m",
@@ -114,7 +116,7 @@
     "id": "omi_aerosol",
     "name_zh": "UV 氣膠指數",
     "name_en": "UV aerosol index (OMI)",
-    "definition_zh": "空氣中會吸收紫外線的懸浮微粒（沙塵、煙）有多少的指標；數字越大代表這類微粒越多，沒有單位。",
+    "definition_zh": "空氣中會吸收紫外線的懸浮微粒（沙塵、煙）有多少的指標；數字越大通常代表這類微粒越多或飄得越高，沒有單位。",
     "category": "懸浮微粒",
     "source": "giovanni",
     "source_variable_id": "OMAERUVd_003_UVAerosolIndex",

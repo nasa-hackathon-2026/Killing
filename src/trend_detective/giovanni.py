@@ -119,7 +119,13 @@ class GiovanniClient:
 
     def quota(self) -> float:
         """本月已用的 quota 比例（0–1）。"""
-        return float(self._get("quota").json()["quota"])
+        response = self._get("quota")
+        try:
+            return float(response.json()["quota"])
+        except (KeyError, TypeError, ValueError) as err:
+            raise GiovanniError(
+                f"無法解讀 /quota 的回應：{response.text[:200]!r}"
+            ) from err
 
     def fetch_timeseries(
         self, variable: str, *, lat: float, lon: float, start: date, end: date

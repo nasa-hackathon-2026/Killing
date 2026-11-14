@@ -146,3 +146,11 @@ def test_parse_matches_the_fill_value_despite_float32_rounding():
 def test_parse_reports_malformed_content_as_giovanni_error(text: str):
     with pytest.raises(GiovanniError):
         parse_timeseries_csv(text)
+
+
+def test_quota_response_without_a_usable_number_is_a_giovanni_error():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>gateway</html>")
+
+    with pytest.raises(GiovanniError):
+        _client(handler).quota()

@@ -232,10 +232,9 @@ def test_rerunning_on_a_later_day_changes_no_file_and_no_file_holds_the_token(
 def test_seed_lists_ten_giovanni_variables_and_five_points_with_student_facing_text():
     variables, locations = load_seed(SEED_DIR)
 
-    assert len(variables) == 10
-    assert len({v["id"] for v in variables}) == 10
+    assert len([v for v in variables if v["source"] == "giovanni"]) == 10
+    assert len({v["id"] for v in variables}) == len(variables)
     for variable in variables:
-        assert variable["source"] == "giovanni"
         assert (
             variable["name_zh"] and variable["definition_zh"] and variable["category"]
         )
@@ -247,3 +246,86 @@ def test_seed_lists_ten_giovanni_variables_and_five_points_with_student_facing_t
         "hualien",
         "yushan",
     ]
+
+
+def test_an_unexpected_error_in_one_series_is_recorded_and_the_batch_continues(
+    tmp_path: Path,
+):
+    def respond(request: httpx.Request) -> httpx.Response:
+        if request.url.params["data"] == "DUP":
+            # 月資料同月兩列：轉換階段才會出錯
+            return httpx.Response(
+                200, text=_csv("2020-01-01 00:00,1", "2020-01-15 00:00,2")
+            )
+        return httpx.Response(200, text=FIXTURE.read_text(encoding="utf-8"))
+
+    dup = {**PRECIP, "id": "dup", "source_variable_id": "DUP"}
+    result = build_snapshot(
+        _client(respond), tmp_path, [dup, PRECIP], [TAICHUNG], **RUN
+    )
+
+    assert result.succeeded == [("imerg_precip", "taichung")]
+    assert "2020-01" in result.failures[("dup", "taichung")]
+    assert (tmp_path / "catalog.json").exists()
+
+
+def test_an_unreadable_previous_file_does_not_crash_a_failed_refetch(tmp_path: Path):
+    old = tmp_path / "series" / "imerg_precip__taichung__point.json"
+    old.parent.mkdir(parents=True)
+    old.write_text('{"variable_id": "imerg_precip"}', encoding="utf-8")
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    result = build_snapshot(_client(respond), tmp_path, [PRECIP], [TAICHUNG], **RUN)
+
+    assert "500" in result.failures[("imerg_precip", "taichung")]
+    assert json.loads((tmp_path / "catalog.json").read_text())["series"] == []
+
+
+def test_batch_stops_requesting_data_once_quota_is_nearly_used_up(tmp_path: Path):
+    data_requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/quota":
+            used = 0.0 if not data_requests else 0.96
+            return httpx.Response(200, json={"status": 200, "quota": used})
+        data_requests.append(request.url.params["data"])
+        return httpx.Response(200, text=FIXTURE.read_text(encoding="utf-8"))
+
+    http = httpx.Client(
+        transport=httpx.MockTransport(handler), base_url="https://giovanni.test/"
+    )
+    result = build_snapshot(
+        GiovanniClient(token=SECRET, http=http),
+        tmp_path,
+        [PRECIP, NO2, {**NO2, "id": "third"}],
+        [TAICHUNG],
+        **RUN,
+    )
+
+    assert data_requests == ["GPM_3IMERGM_07_precipitation"]
+    assert result.succeeded == [("imerg_precip", "taichung")]
+    assert set(result.failures) == {("omi_no2", "taichung"), ("third", "taichung")}
+
+
+def test_an_empty_table_is_reported_as_no_data_without_inland_retries(tmp_path: Path):
+    asked = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        asked.append(request.url.params["location"])
+        return httpx.Response(200, text=_csv())
+
+    result = build_snapshot(_client(respond), tmp_path, [PRECIP], [HUALIEN], **RUN)
+
+    assert len(asked) == 1
+    assert "沒有資料列" in result.failures[("imerg_precip", "hualien")]
+
+
+def test_only_giovanni_variables_are_fetched_from_giovanni(tmp_path: Path):
+    modis = {**PRECIP, "id": "modis_ndvi", "source": "appeears"}
+
+    result = build_snapshot(_client(), tmp_path, [modis, PRECIP], [TAICHUNG], **RUN)
+
+    assert result.succeeded == [("imerg_precip", "taichung")]
+    assert result.failures == {}

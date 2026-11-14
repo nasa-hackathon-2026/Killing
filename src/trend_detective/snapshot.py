@@ -15,8 +15,6 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-import httpx
-
 from trend_detective.env import read_secret
 from trend_detective.giovanni import (
     GiovanniClient,
@@ -72,7 +70,7 @@ def _fetch_unmasked(
     """
     lat, lon = float(location["lat"]), float(location["lon"])
     direction = location.get("inland_direction")
-    for _ in range(MAX_INLAND_STEPS + 1):
+    for attempt in range(MAX_INLAND_STEPS + 1):
         text, _request = client.fetch_timeseries(
             variable["source_variable_id"],
             lat=lat,
@@ -81,9 +79,16 @@ def _fetch_unmasked(
             end=today,
         )
         parsed = parse_timeseries_csv(text)
+        if not parsed.rows:
+            raise GiovanniError(f"回應沒有資料列，座標 [{lat},{lon}]")
         if any(value is not None for _, value in parsed.rows):
             return text, parsed, [lat, lon]
-        if not direction or not parsed.lat_resolution or not parsed.lon_resolution:
+        if (
+            direction is None
+            or parsed.lat_resolution is None
+            or parsed.lon_resolution is None
+            or attempt == MAX_INLAND_STEPS
+        ):
             break
         lat = round(lat + direction[0] * parsed.lat_resolution, 6)
         lon = round(lon + direction[1] * parsed.lon_resolution, 6)
@@ -93,10 +98,12 @@ def _fetch_unmasked(
 def _existing_series(
     snapshot_dir: Path, variable_id: str, location_id: str
 ) -> Series | None:
+    """讀先前寫出的序列檔；不存在、損毀或欄位與現行格式不合都當作沒有。"""
     path = snapshot_dir / "series" / f"{variable_id}__{location_id}__point.json"
-    if not path.exists():
+    try:
+        return Series(**json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, ValueError, TypeError):
         return None
-    return Series(**json.loads(path.read_text(encoding="utf-8")))
 
 
 def build_snapshot(
@@ -118,54 +125,25 @@ def build_snapshot(
     all_series: list[Series] = []
     out_of_quota = False
     for variable in variables:
+        if variable["source"] != "giovanni":
+            continue
         for location in locations:
             key = (variable["id"], location["id"])
             try:
                 if out_of_quota:
                     raise QuotaExceeded("quota 已達上限，未抓取")
-                text, parsed, used = _fetch_unmasked(client, variable, location, today)
+                series = _one_series(client, variable, location, today, now, raw_dir)
+                result.written.append(write_series(snapshot_dir, series))
             except QuotaExceeded as err:
                 out_of_quota = True
                 result.failures[key] = str(err)
-            except (GiovanniError, httpx.HTTPError) as err:
-                result.failures[key] = str(err)
+            except Exception as err:  # noqa: BLE001 單一序列不論何種失敗都不中斷整批
+                result.failures[key] = f"{type(err).__name__}: {err}"
             else:
-                requested = [float(location["lat"]), float(location["lon"])]
-                # 實際送出的結束日是執行當天，每天不同；記成 end_policy 而不是日期，
-                # 重跑才不會產生無意義的 diff。實際涵蓋範圍看 points 的起訖月。
-                request: dict[str, Any] = {
-                    "data": variable["source_variable_id"],
-                    "location": used,
-                    "start": f"{START_DATE:%Y-%m-%d}",
-                    "end_policy": "run_date",
-                }
-                if used != requested:
-                    request["requested_location"] = requested
-                    result.shifted[key] = used
-                to_points = (
-                    daily_to_monthly_points
-                    if variable["native_temporal_res"] == "day"
-                    else monthly_points
-                )
-                series = Series(
-                    variable_id=variable["id"],
-                    location_id=location["id"],
-                    aggregation="point",
-                    unit=parsed.unit,
-                    source_api="giovanni",
-                    request=request,
-                    retrieved_at=now,
-                    product_version=variable["product_version"],
-                    grid={"lat": parsed.grid_lat, "lon": parsed.grid_lon},
-                    points=to_points(parsed.rows),
-                )
-                if raw_dir is not None:
-                    raw_path = raw_dir / "giovanni" / f"{key[0]}__{key[1]}.csv"
-                    raw_path.parent.mkdir(parents=True, exist_ok=True)
-                    raw_path.write_text(text, encoding="utf-8")
-                result.written.append(write_series(snapshot_dir, series))
                 result.succeeded.append(key)
                 all_series.append(series)
+                if "requested_location" in series.request:
+                    result.shifted[key] = series.request["location"]
                 continue
             previous = _existing_series(snapshot_dir, *key)
             if previous is not None:
@@ -179,13 +157,60 @@ def build_snapshot(
     return result
 
 
+def _one_series(
+    client: GiovanniClient,
+    variable: dict[str, Any],
+    location: dict[str, Any],
+    today: date,
+    now: str,
+    raw_dir: Path | None,
+) -> Series:
+    """抓一條點位序列、存原始回應、轉成統一格式。"""
+    text, parsed, used = _fetch_unmasked(client, variable, location, today)
+    if raw_dir is not None:
+        raw_path = raw_dir / "giovanni" / f"{variable['id']}__{location['id']}.csv"
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_text(text, encoding="utf-8")
+    requested = [float(location["lat"]), float(location["lon"])]
+    # 實際送出的結束日是執行當天，每天不同；記成 end_policy 而不是日期，
+    # 重跑才不會產生無意義的 diff。實際涵蓋範圍看 points 的起訖月。
+    request: dict[str, Any] = {
+        "data": variable["source_variable_id"],
+        "location": used,
+        "start": f"{START_DATE:%Y-%m-%d}",
+        "end_policy": "run_date",
+    }
+    if used != requested:
+        request["requested_location"] = requested
+    to_points = (
+        daily_to_monthly_points
+        if variable["native_temporal_res"] == "day"
+        else monthly_points
+    )
+    return Series(
+        variable_id=variable["id"],
+        location_id=location["id"],
+        aggregation="point",
+        unit=parsed.unit,
+        source_api="giovanni",
+        request=request,
+        retrieved_at=now,
+        product_version=variable["product_version"],
+        grid={"lat": parsed.grid_lat, "lon": parsed.grid_lon},
+        points=to_points(parsed.rows),
+    )
+
+
 def _describe(variable: dict[str, Any], all_series: list[Series]) -> dict[str, Any]:
     """目錄檔的變數條目：seed 的說明，加上從資料得到的單位與有效期間。"""
     own = [s for s in all_series if s.variable_id == variable["id"]]
     months = [p["month"] for s in own for p in s.points if p["value"] is not None]
+    units = sorted({s.unit for s in own})
+    if len(units) > 1:
+        raise ValueError(f"{variable['id']} 各序列的單位不一致：{units}")
     return {
         **variable,
-        "unit": own[0].unit if own else None,
+        "unit": units[0] if units else None,
         "valid_from": min(months) if months else None,
         "valid_to": max(months) if months else None,
     }
