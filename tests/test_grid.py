@@ -315,3 +315,69 @@ def test_frontend_refuses_layers_whose_shape_differs_from_the_grid(tmp_path: Pat
 
     with pytest.raises(GridError, match="形狀"):
         write_frontend(tmp_path, {}, grid, [layers])
+
+
+def test_month_files_with_groups_and_other_axis_orders_come_out_south_to_north(
+    tmp_path: Path,
+):
+    # IMERG 的排法：群組裡 (time, lon, lat)；緯度刻意由北到南（AIRS 的排法）
+    path = tmp_path / "200101.nc4"
+    with netCDF4.Dataset(path, "w") as dataset:
+        group = dataset.createGroup("Grid")
+        group.createDimension("time", 1)
+        group.createDimension("lon", 3)
+        group.createDimension("lat", 2)
+        group.createVariable("lat", "f4", ("lat",))[:] = [20.0, 10.0]
+        group.createVariable("lon", "f4", ("lon",))[:] = [100.0, 110.0, 120.0]
+        var = group.createVariable(
+            "rain", "f4", ("time", "lon", "lat"), fill_value=-9999.9
+        )
+        var.Units = "mm/hr"
+        var.set_auto_mask(False)
+        # [lon][lat]：lon=100 → (lat20: 1, lat10: 2)、lon=110 → (3, 4)、lon=120 → (缺, 6)
+        var[:] = np.array([[[1.0, 2.0], [3.0, 4.0], [-9999.9, 6.0]]], dtype=np.float32)
+
+    lat, lon, values, unit = read_month_file(
+        path, "/Grid/rain", lat="/Grid/lat", lon="/Grid/lon"
+    )
+
+    assert lat.tolist() == [10.0, 20.0]
+    assert lon.tolist() == [100.0, 110.0, 120.0]
+    assert unit == "mm/hr"
+    assert values[0].tolist() == [2.0, 4.0, 6.0]
+    assert values[1, :2].tolist() == [1.0, 3.0] and math.isnan(values[1, 2])
+
+
+def test_month_files_without_a_time_axis_or_unit_are_read_too(tmp_path: Path):
+    path = tmp_path / "200101.nc4"
+    with netCDF4.Dataset(path, "w") as dataset:
+        dataset.createDimension("YDim", 2)
+        dataset.createDimension("XDim", 2)
+        dataset.createVariable("YDim", "f8", ("YDim",))[:] = [-0.5, 0.5]
+        dataset.createVariable("XDim", "f8", ("XDim",))[:] = [0.5, 1.5]
+        dataset.createVariable("T", "f4", ("YDim", "XDim"))[:] = [
+            [1.0, 2.0],
+            [3.0, 4.0],
+        ]
+
+    lat, _, values, unit = read_month_file(path, "/T", lat="/YDim", lon="/XDim")
+
+    assert lat.tolist() == [-0.5, 0.5]
+    assert values.tolist() == [[1.0, 2.0], [3.0, 4.0]]
+    assert unit == ""
+
+
+def test_a_variable_with_an_extra_axis_is_not_a_single_layer(tmp_path: Path):
+    path = tmp_path / "200101.nc4"
+    with netCDF4.Dataset(path, "w") as dataset:
+        dataset.createDimension("level", 3)
+        dataset.createDimension("lat", 2)
+        dataset.createDimension("lon", 2)
+        dataset.createVariable("lat", "f8", ("lat",))[:] = [10.0, 20.0]
+        dataset.createVariable("lon", "f8", ("lon",))[:] = [100.0, 110.0]
+        dataset.createVariable("T", "f4", ("level", "lat", "lon"))[:] = np.zeros(
+            (3, 2, 2)
+        )
+
+    with pytest.raises(GridError, match=r"不是 \(1, lat, lon\)"):
+        read_month_file(path, "T")

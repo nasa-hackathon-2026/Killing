@@ -9,17 +9,21 @@ import netCDF4
 import numpy as np
 import pytest
 
-from trend_detective.grid import GridError, read_frontend
+from trend_detective.grid import GridError, read_cube, read_frontend
 from trend_detective.grid_fetch import (
     GridFetchError,
     GridProduct,
     build_cube,
+    constraint,
     contiguous_months,
     download_month,
     fetch_months,
     list_granules,
     load_products,
     month_path,
+    plan_batches,
+    run,
+    select_products,
     write_derived,
 )
 
@@ -165,7 +169,9 @@ def test_download_asks_for_one_variable_and_sends_the_bearer_token(tmp_path: Pat
 
     dest = tmp_path / "months" / "200101.nc4"
     with httpx.Client(transport=httpx.MockTransport(handler)) as http:
-        size = download_month(http, SECRET, OPENDAP + "a.nc4", "T2M", dest)
+        size = download_month(
+            http, SECRET, OPENDAP + "a.nc4", "/T2M;/lat;/lon;/time", dest
+        )
 
     assert size == len(NC_BYTES)
     assert dest.read_bytes() == NC_BYTES
@@ -279,10 +285,12 @@ def test_cube_and_frontend_files_are_built_from_the_downloaded_months(tmp_path: 
             write_month(month_dir, date(year, month, 1), value)
     write_month(month_dir, date(2003, 1, 1), 99.0)
 
-    cube = build_cube(PRODUCT, month_dir)
-    written = write_derived(PRODUCT, cube, tmp_path / "out")
+    built = build_cube(PRODUCT, month_dir, tmp_path / "raw" / "demo.nc")
+    written = write_derived(PRODUCT, built, tmp_path / "out")
 
+    cube = read_cube(tmp_path / "raw" / "demo.nc")
     assert cube.values.shape == (25, 2, 4)
+    assert cube.unit == "K"
     assert np.isnan(cube.values[0, 0, 0]) and cube.values[0, 1, 0] == 10.0
     assert cube.attrs["first_month"] == "2001-01"
     assert cube.attrs["last_month"] == "2003-01"
@@ -325,4 +333,343 @@ def test_cube_refuses_months_on_a_different_grid(tmp_path: Path):
         )
 
     with pytest.raises(GridError, match="網格"):
-        build_cube(PRODUCT, tmp_path)
+        build_cube(PRODUCT, tmp_path, tmp_path / "cube" / "demo.nc")
+
+    assert not (tmp_path / "cube" / "demo.nc").exists()
+    assert not (tmp_path / "cube" / "demo.part").exists()
+
+
+def test_403_is_retried_a_few_times_because_it_is_sometimes_transient(tmp_path: Path):
+    replies = [
+        httpx.Response(403, text="<html>Earthdata Login</html>"),
+        httpx.Response(403, text="<html>Earthdata Login</html>"),
+        httpx.Response(200, content=NC_BYTES),
+    ]
+    waits: list[float] = []
+    reasons: list[str] = []
+    dest = tmp_path / "200101.nc4"
+
+    with httpx.Client(
+        transport=httpx.MockTransport(lambda request: replies.pop(0))
+    ) as http:
+        download_month(
+            http,
+            SECRET,
+            OPENDAP + "a.nc4",
+            "/T",
+            dest,
+            sleep=waits.append,
+            on_retry=reasons.append,
+        )
+
+    assert dest.read_bytes() == NC_BYTES
+    assert waits == [2.0, 4.0]
+    assert reasons == ["HTTP 403", "HTTP 403"]
+
+
+def test_a_403_that_does_not_go_away_fails_after_three_retries(tmp_path: Path):
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(403, text=f"denied {SECRET}")
+
+    with (
+        httpx.Client(transport=httpx.MockTransport(handler)) as http,
+        pytest.raises(GridFetchError) as raised,
+    ):
+        download_month(
+            http,
+            SECRET,
+            OPENDAP + "a.nc4",
+            "/T",
+            tmp_path / "x.nc4",
+            attempts=10,
+            sleep=lambda seconds: None,
+        )
+
+    assert len(requests) == 4
+    assert "403" in str(raised.value) and SECRET not in str(raised.value)
+    assert list(tmp_path.iterdir()) == []
+
+
+def extended(ident: str, variable: str, collection: str = "C1-X") -> dict:
+    """由清單產生器寫出的那種 seed 條目：有座標路徑、沒有 frontend。"""
+    return {
+        "id": ident,
+        "name_zh": ident,
+        "name_en": ident,
+        "needs_translation": True,
+        "long_name": "",
+        "unit": "kg m-2",
+        "product": f"DEMO{collection[1]}.1",
+        "product_version": "1",
+        "collection": collection,
+        "variable": variable,
+        "lat": "/G/lat",
+        "lon": "/G/lon",
+        "doi": "10.1234/DEMO",
+        "citation": "Demo citation",
+        "start": "2001-01",
+    }
+
+
+def load_extended(tmp_path: Path, *entries: dict) -> list[GridProduct]:
+    seed = tmp_path / "grids.extended.json"
+    seed.write_text(json.dumps(list(entries)), encoding="utf-8")
+    return load_products(seed)
+
+
+def test_generated_seed_entries_keep_only_the_cube_and_name_their_coordinates(
+    tmp_path: Path,
+):
+    (product,) = load_extended(tmp_path, extended("demo_a", "/G/Data/A"))
+
+    assert not product.derive
+    assert product.needs_translation
+    assert (product.path, product.name) == ("/G/Data/A", "A")
+    assert constraint([product]) == "/G/Data/A;/G/lat;/G/lon"
+
+
+def test_products_are_selected_by_id_with_wildcards(tmp_path: Path):
+    products = load_extended(
+        tmp_path,
+        extended("gldas_a", "/A"),
+        extended("gldas_b", "/B"),
+        extended("airs_c", "/C"),
+    )
+
+    chosen = select_products(products, ["gldas_*", "airs_c"], ["*_b"])
+
+    assert [product.id for product in chosen] == ["gldas_a", "airs_c"]
+    assert select_products(products, None) == products
+
+
+def test_one_request_carries_several_variables_and_their_coordinates_once(
+    tmp_path: Path,
+):
+    products = load_extended(
+        tmp_path,
+        extended("a", "/G/A"),
+        extended("b", "/G/B"),
+        extended("c", "/G/C"),
+        extended("z", "/G/Z", collection="C2-X"),
+    )
+
+    batches = plan_batches(products, tmp_path, batch_size=2)
+
+    assert [[p.id for p in batch.products] for batch in batches] == [
+        ["a", "b"],
+        ["c"],
+        ["z"],
+    ]
+    assert constraint(batches[0].products) == "/G/A;/G/B;/G/lat;/G/lon"
+    # 變數清單不同就是不同的目錄，才不會把缺變數的舊檔當成已下載
+    assert len({batch.month_dir for batch in batches}) == 3
+    assert all(tmp_path / "_batch" in batch.month_dir.parents for batch in batches)
+
+
+def test_a_batch_is_split_before_the_request_url_gets_too_long(tmp_path: Path):
+    products = load_extended(
+        tmp_path, *[extended(f"v{i}", "/G/" + "x" * 500 + str(i)) for i in range(12)]
+    )
+
+    batches = plan_batches(products, tmp_path, batch_size=100)
+
+    assert sum(len(batch.products) for batch in batches) == 12
+    assert len(batches) > 1
+    assert all(len(constraint(batch.products)) <= 3000 for batch in batches)
+
+
+def test_without_batching_each_variable_keeps_its_own_month_directory(tmp_path: Path):
+    products = load_extended(tmp_path, extended("a", "/G/A"), extended("b", "/G/B"))
+
+    batches = plan_batches(products, tmp_path)
+
+    assert [batch.month_dir for batch in batches] == [
+        tmp_path / "a" / "months",
+        tmp_path / "b" / "months",
+    ]
+
+
+def month_bytes(tmp_path: Path, variables: dict[str, float]) -> bytes:
+    """一個月的多變數 NetCDF：群組 G 裡 2 × 4 的網格，每個變數整張同一個值。"""
+    path = tmp_path / "reply.nc4"
+    with netCDF4.Dataset(path, "w") as dataset:
+        group = dataset.createGroup("G")
+        group.createDimension("lat", 2)
+        group.createDimension("lon", 4)
+        group.createVariable("lat", "f8", ("lat",))[:] = [-45.0, 45.0]
+        group.createVariable("lon", "f8", ("lon",))[:] = [-135.0, -45.0, 45.0, 135.0]
+        for name, value in variables.items():
+            group.createVariable(name, "f4", ("lat", "lon"))[:] = np.full((2, 4), value)
+    return path.read_bytes()
+
+
+class FakeEarthdata:
+    """CMR 加 OPeNDAP：C1-X 有 A、B 兩個變數，C2-X 有 Z；`broken` 裡的 collection 一律 404。"""
+
+    def __init__(self, tmp_path: Path, months: list[str], broken: set[str]):
+        self.tmp_path = tmp_path
+        self.months = months
+        self.broken = broken
+        self.downloads: list[str] = []
+        # 回應先做好：HDF5 不是 thread-safe，不能在下載執行緒裡現做
+        self.replies = {
+            "/G/A;/G/B;/G/lat;/G/lon": month_bytes(tmp_path, {"A": 1.0, "B": 2.0}),
+            "/G/Z;/G/lat;/G/lon": month_bytes(tmp_path, {"Z": 26.0}),
+        }
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.url.host == "cmr.earthdata.nasa.gov":
+            collection = request.url.params["collection_concept_id"]
+            return httpx.Response(
+                200,
+                json={
+                    "items": [
+                        {
+                            "umm": {
+                                "TemporalExtent": {
+                                    "RangeDateTime": {
+                                        "BeginningDateTime": f"{m}-01T00:00:00.000Z"
+                                    }
+                                },
+                                "RelatedUrls": [
+                                    {
+                                        "Subtype": "OPENDAP DATA",
+                                        "URL": f"https://opendap.example/{collection}/{m}",
+                                    }
+                                ],
+                            }
+                        }
+                        for m in self.months
+                    ]
+                },
+            )
+        _, collection, month = request.url.path.split("/")
+        if collection in self.broken:
+            return httpx.Response(404, text="no such granule")
+        self.downloads.append(f"{collection}/{month}")
+        return httpx.Response(200, content=self.replies[request.url.params["dap4.ce"]])
+
+
+def run_fake(tmp_path: Path, server: FakeEarthdata, lines: list[str]) -> bool:
+    products = load_extended(
+        tmp_path,
+        extended("demo_a", "/G/A"),
+        extended("demo_b", "/G/B"),
+        extended("other_z", "/G/Z", collection="C2-X"),
+    )
+    with httpx.Client(transport=httpx.MockTransport(server)) as http:
+        return run(
+            products,
+            http=http,
+            token=SECRET,
+            raw_dir=tmp_path / "raw",
+            out_dir=tmp_path / "out",
+            batch_size=10,
+            parallel=2,
+            sleep=lambda seconds: None,
+            report=lines.append,
+        )
+
+
+def test_a_batch_run_builds_one_cube_per_variable_from_shared_downloads(
+    tmp_path: Path,
+):
+    server = FakeEarthdata(tmp_path, ["2001-01", "2001-02"], broken=set())
+    lines: list[str] = []
+
+    assert run_fake(tmp_path, server, lines)
+
+    # A 與 B 同一個請求：兩個 collection × 兩個月 = 4 次下載
+    assert (
+        sorted(server.downloads)
+        == [
+            "C1-X.dap.nc4/2001-01",
+            "C1-X.dap.nc4/2001-02",
+            "C2-X.dap.nc4/2001-01",
+            "C2-X.dap.nc4/2001-02",
+        ]
+        or len(server.downloads) == 4
+    )
+    for ident, value in (("demo_a", 1.0), ("demo_b", 2.0), ("other_z", 26.0)):
+        cube = read_cube(tmp_path / "raw" / ident / f"{ident}.nc")
+        assert cube.months == [date(2001, 1, 1), date(2001, 2, 1)]
+        assert cube.values.shape == (2, 2, 4)
+        assert (cube.values == value).all()
+        assert cube.unit == "kg m-2"
+    assert not (tmp_path / "out").exists()
+    assert SECRET not in "\n".join(lines)
+
+
+def test_rerunning_a_batch_downloads_only_what_is_new_and_extends_the_cubes(
+    tmp_path: Path,
+):
+    first = FakeEarthdata(tmp_path, ["2001-01", "2001-02"], broken=set())
+    run_fake(tmp_path, first, [])
+    untouched = FakeEarthdata(tmp_path, ["2001-01", "2001-02"], broken=set())
+    lines: list[str] = []
+
+    assert run_fake(tmp_path, untouched, lines)
+
+    assert untouched.downloads == []
+    assert sum("未重建" in line for line in lines) == 3
+
+    grown = FakeEarthdata(tmp_path, ["2001-01", "2001-02", "2001-03"], broken=set())
+    assert run_fake(tmp_path, grown, [])
+
+    assert len(grown.downloads) == 2
+    cube = read_cube(tmp_path / "raw" / "demo_b" / "demo_b.nc")
+    assert cube.months[-1] == date(2001, 3, 1) and len(cube.months) == 3
+
+
+def test_a_failing_batch_does_not_stop_the_other_batches(tmp_path: Path):
+    server = FakeEarthdata(tmp_path, ["2001-01", "2001-02"], broken={"C1-X"})
+    lines: list[str] = []
+
+    assert not run_fake(tmp_path, server, lines)
+
+    assert read_cube(tmp_path / "raw" / "other_z" / "other_z.nc").values.shape == (
+        2,
+        2,
+        4,
+    )
+    assert not (tmp_path / "raw" / "demo_a" / "demo_a.nc").exists()
+    report = "\n".join(lines)
+    assert "404" in report and "demo_a：立方體失敗" in report
+    assert SECRET not in report
+
+
+def test_corner_referenced_coordinates_become_cell_centres_in_the_cube(tmp_path: Path):
+    # AIRS 經 OPeNDAP 的座標是格子的北緣、西緣，緯度由北到南；1° 的格子中心在 .5
+    month_dir = tmp_path / "months"
+    month_dir.mkdir()
+    with netCDF4.Dataset(month_path(month_dir, date(2001, 1, 1)), "w") as dataset:
+        dataset.createDimension("YDim", 3)
+        dataset.createDimension("XDim", 2)
+        dataset.createVariable("YDim", "f8", ("YDim",))[:] = [26.0, 25.0, 24.0]
+        dataset.createVariable("XDim", "f8", ("XDim",))[:] = [121.0, 122.0]
+        dataset.createVariable("T", "f4", ("YDim", "XDim"))[:] = [
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+        ]
+    (product,) = load_extended(
+        tmp_path,
+        {
+            **extended("demo_t", "/T"),
+            "lat": "/YDim",
+            "lon": "/XDim",
+            "cell_reference": "north_west_corner",
+        },
+    )
+
+    build_cube(product, month_dir, tmp_path / "demo_t.nc")
+
+    cube = read_cube(tmp_path / "demo_t.nc")
+    assert cube.lat.tolist() == [23.5, 24.5, 25.5]
+    assert cube.lon.tolist() == [121.5, 122.5]
+    # 北緣 26 的那一列（值 1、2）是中心 25.5 的格子
+    assert cube.values[0, 2].tolist() == [1.0, 2.0]
+    assert cube.unit == "kg m-2"
