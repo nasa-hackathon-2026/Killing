@@ -1,5 +1,5 @@
 {
-  "note": "Category tree for meta.variables.category_path (PostgreSQL ltree). Core variables are assigned by hand in `core`. Every other variable is matched against `rules` in order; the first rule whose keys all match wins: variable_pattern (regular expression on the variable id), name_pattern (case-insensitive, on the English name), product_pattern (on the product), unit_pattern (on the unit). No match gives `unclassified`. Labels may only contain letters, digits and underscores.",
+  "note": "Category tree for meta.variables.category_path (PostgreSQL ltree). Core variables, and the variables of the observation sources declared in data/seed/sources/ (#97), are assigned by hand in `core`. Every other variable is matched against `rules` in order; the first rule whose keys all match wins: variable_pattern (regular expression on the variable id), name_pattern (case-insensitive, on the English name), product_pattern (on the product), unit_pattern (on the unit). No match gives `unclassified`. Labels may only contain letters, digits and underscores.",
   "unclassified": "unclassified",
   "core": {
     "airs_h2ovap": "atmosphere.water.vapor",
@@ -17,7 +17,12 @@
     "omi_no2": "atmosphere.gas.no2",
     "omi_o3": "atmosphere.gas.o3",
     "power_t2m": "atmosphere.temperature.near_surface",
-    "station_temp": "atmosphere.temperature.near_surface"
+    "station_temp": "atmosphere.temperature.near_surface",
+    "gistemp_anom": "atmosphere.temperature.near_surface",
+    "gistemp_land_anom": "atmosphere.temperature.near_surface",
+    "ghcnm_tavg": "atmosphere.temperature.near_surface",
+    "ghcnm_tavg_unadj": "atmosphere.temperature.near_surface",
+    "smap_sm_l3": "land.water.soil_moisture"
   },
   "rules": [
     {

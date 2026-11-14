@@ -62,6 +62,26 @@
       "product_pattern": "^GHCNh",
       "data_kind": "in_situ",
       "note": "NOAA GHCNh station observations."
+    },
+    {
+      "variable_pattern": "^gistemp_",
+      "data_kind": "in_situ",
+      "note": "NASA GISTEMP v4: a gridded analysis of station (NOAA GHCN v4, homogenized) and ship/buoy (NOAA ERSST v5) observations with spatial interpolation (smoothing radius 1200 km, or 250 km for the land-only product, which uses stations only); in situ observations, but not a single-point measurement (docs/data/sources/gistemp.md)."
+    },
+    {
+      "variable_id": "ghcnm_tavg",
+      "data_kind": "in_situ",
+      "note": "NOAA GHCNm v4 QCF: station monthly mean temperature, quality-controlled and pairwise-homogenized (PHA-adjusted) by NOAA, so not the raw reported value (docs/data/sources/ghcnm.md)."
+    },
+    {
+      "variable_id": "ghcnm_tavg_unadj",
+      "data_kind": "in_situ",
+      "note": "NOAA GHCNm v4 QCU: station monthly mean temperature as reported, quality control only, no homogenization adjustment (docs/data/sources/ghcnm.md)."
+    },
+    {
+      "variable_id": "smap_sm_l3",
+      "data_kind": "satellite_retrieval",
+      "note": "SMAP L-band radiometer brightness temperatures inverted to soil moisture (SPL3SMP V009, Dual Channel Algorithm); a satellite retrieval, not a model output (docs/data/sources/smap.md)."
     }
   ]
 }

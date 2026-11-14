@@ -1,0 +1,40 @@
+{
+  "command": "uv run python -m trend_detective.model_obs",
+  "generated_at": "2026-11-14T22:43:33Z",
+  "schema_version": 1,
+  "input": {
+    "rules": "data/seed/model_obs_pairs.json",
+    "database": "clean.observations.value_clean (pg load, pg clean)",
+    "grid_cubes": [
+      "gldas_tair",
+      "merra2_t2m"
+    ]
+  },
+  "parameters": {
+    "window_start": "2001-01-01",
+    "window_end": "2025-12-01",
+    "min_common_months": 120,
+    "alpha": 0.05,
+    "step_half_window_months": 6,
+    "step_min_months_per_side": 4
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1"
+  },
+  "outputs": [
+    "model_vs_obs.json"
+  ],
+  "summary": {
+    "n_pairs": 97,
+    "n_analyzed": 97,
+    "n_insufficient": 0,
+    "n_pairs_by_group": {
+      "taiwan_station": 13,
+      "taiwan_gistemp": 15,
+      "world_city": 68,
+      "global": 1
+    },
+    "n_skipped": 1
+  }
+}

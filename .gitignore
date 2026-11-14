@@ -25,5 +25,8 @@ data/sqlite/
 # 擴充資料（#46）：量大，不進 git；由 trend_detective.extended 重新抓取
 data/extended/
 
+# 觀測來源的月序列（#87–#90）：不進 git；宣告在 data/seed/sources/，由各來源的模組重新抓取
+data/observed/
+
 # PostgreSQL 的資料 dump（由 trend_detective.pg export 產生，量大，不進 git）
 data/pg-dump/

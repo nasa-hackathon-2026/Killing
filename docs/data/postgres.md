@@ -127,7 +127,36 @@ FROM meta.series s JOIN meta.variables v ON v.id = s.variable_id GROUP BY 1;
 4. 新變數在 `data/seed/data_kinds.json` 補規則（否則是 `unknown`）；新地點有座標或 bbox 就會自動進 `geo.locations`／`geo.regions`。
 5. 有已知問題就加進 `data/seed/cleaning.json`。
 
-不需要動的：`obs.observations`、`clean.*`、`geo.*`、`analysis.*` 的結構。還沒有實際加過新來源；上面是依目前的 schema 與載入程式寫的。日以下粒度的大量資料（例如 SMAP 逐日全球格點）不適合整批塞進 `raw.*`，應先在本機算成區域或點位的月序列，和現在的格點立方體一樣。
+不需要動的：`obs.observations`、`clean.*`、`geo.*`、`analysis.*` 的結構。#97 照這個做法加了四個觀測來源，實際的做法見下一節（和上面的差別：序列放在自己的目錄 `data/observed/`、宣告放在 `data/seed/sources/`，不列進快照或擴充的目錄檔）。日以下粒度的大量資料（例如 SMAP 逐日全球格點）不適合整批塞進 `raw.*`，應先在本機算成區域或點位的月序列，和現在的格點立方體一樣。
+
+## 觀測來源：`tier = 'observed'`（#97）
+
+GISTEMP、GHCNm、台灣 GHCNh 測站、SMAP 四個來源是第三層 `tier = 'observed'`，和核心（`core`）、擴充（`extended`）並列。和模式推算對照的結果見 [model-vs-obs.md](./model-vs-obs.md)。
+
+| 放哪裡 | 內容 |
+|---|---|
+| `data/seed/sources/<來源>.json`（進 git） | 來源宣告：變數定義、新地點、`source_api`、引用。**變數不抄進 `variables.json`**——`snapshot.py` 會把那裡的變數當核心來源重抓 |
+| `data/observed/<來源>/`（不進 git） | 月序列，格式與快照相同（`catalog.json` 加 `series/*.json`）；各來源的模組產生，資料庫只讀 |
+| `src/trend_detective/observed.py` | 合併宣告與各來源目錄檔（`read_observed`、`merged_catalog`）；`meta.sources` 的說明；觀測序列的趨勢 |
+
+```bash
+uv run python -m trend_detective.pg load --observed-dir data/observed   # 預設就是這個目錄；宣告讀清洗 seed 旁的 sources/
+uv run python -m trend_detective.pg clean
+uv run python -m trend_detective.observed        # 觀測序列的趨勢 → data/extended/analysis/observed/trends.json（不進 git）
+uv run python -m trend_detective.pg analysis     # 連同上面那個檔一起載入 analysis.trends
+uv run python -m trend_detective.pg derive
+uv run python -m trend_detective.model_obs       # analysis.model_obs_pairs 與 data/analysis/model_vs_obs.json
+```
+
+- **既有序列的 `series_id` 不變**：序列依 tier、鍵排序編號，`observed` 排在 `core`、`extended` 之後。核心或擴充已有的變數、地點、序列不被觀測來源覆蓋（`station_temp` 仍是核心變數；台灣 4 個新測站的序列是 `tier = 'observed'`）。
+- **來源**：`meta.sources` 多 `gistemp`、`noaa_ghcnm`、`smap`（`raw_table` 是 NULL：沒有 `raw.*` 表，原始粒度的檔案在 `data/raw/<來源>/`）；台灣測站沿用 `noaa_ghcnh`，但 4 個新測站的逐日值沒有載進 `raw.noaa_ghcnh`（那張表只收核心與擴充）。GHCNm 的 `source_api` 是序列檔裡的 `noaa_ghcnm`，不是目錄名 `ghcnm`。
+- **地點**：GISTEMP 的 `northern_hemisphere`、`southern_hemisphere` 有 bbox，和 `global` 一樣進 `geo.regions`（bbox 只是標示範圍，值是官方的半球平均）；台灣 4 個測站是點，進 `geo.locations`，`region`、`elevation_m`、`ghcnh_id` 在 `meta.locations.attributes`，`location_group = 'taiwan'`。
+- **SMAP 沒有序列**：只登記來源與變數 `smap_sm_l3`，另有一筆已知問題（見下）。
+- **趨勢**：方法與核心相同（`trends.py`），67 條整批做一次 BH-FDR，各序列用自己全部的月份——GISTEMP 是 1880 年起、GHCNm 最早 1821 年起的長期趨勢，不能和核心序列 2001 年起的趨勢並列；要比同一段期間，看 [model-vs-obs.md](./model-vs-obs.md)。離群門檻沒有先去趨勢，這些長序列被標 `outlier_suspect` 的月份共 13 個（只標記）。
+- **清洗摘要**：`data/extended/analysis/observed/cleaning.json`（不進 git）；`data/analysis/cleaning.json` 的「全庫」與各 tier 彙總包含觀測來源。
+- **已知問題可以限定地點**：`meta.known_issues.location_pattern`（正規表示式，比對地點 id；`cleaning.KnownIssue.location_pattern`）。呼叫端沒給地點時，限定地點的問題不算符合。種類多了 `sampling_change`、`no_data`。
+
+2026-11-15 實測：`observed` 67 條序列、99,172 列觀測（`gistemp_anom` 22、`gistemp_land_anom` 19、`ghcnm_tavg` 11、`ghcnm_tavg_unadj` 11、`station_temp` 4）；5 個新變數都有 `data_kind`（4 個 `in_situ`、`smap_sm_l3` 是 `satellite_retrieval`）與分類；67 條有分析的 65 條（`ghcnm_*` 的紐約兩條缺月超過 20%：1821 年起的早期紀錄）。
 
 ## 清洗
 
@@ -156,6 +185,12 @@ FROM meta.series s JOIN meta.variables v ON v.id = s.variable_id GROUP BY 1;
 | `product_disagreement` | `gldas_soilmoist` 的趨勢與 FLDAS 正負相反（−0.43 對 +0.16 kg m⁻²／十年） | 否（整條序列的註記） | `docs/data/gldas-water-check.md` |
 | `missing_composites` | Planetary Computer 的 MODIS LST 缺合成期：2022-10 整月、2025-07-04 至 2025-11-17（`modis_lst_pc`，以及同樣從那裡讀的 `modis_lst` 點位序列） | 否（那些月份本來就是 `missing`） | `AGENTS.md` |
 | `auxiliary` | 輔助變數：AIRS 的 `_ct`（觀測筆數）、`_sdev`（標準差）、MERRA-2 的 `var_*`（變異數）、OMI 的太陽與觀測天頂角 | 否；`meta.variables.is_auxiliary`、`clean.series_summary.auxiliary` | `AGENTS.md` |
+
+| `auxiliary` | #97 補上：AIRS 的 `airs_totalcounts_*`（6 個變數）、IMERG 的品質欄位（`precipitationqualityindex`、`randomerror`、`gaugerelativeweighting`，3 個變數）。之前它們的分類已在 `auxiliary` 底下但 `is_auxiliary = false` | 否 | 本文件「ltree」一節 |
+| `sampling_change` | 高雄國際機場測站（`stn_twi0000rckh`）每日觀測筆數的中位數由約 24 變成 44；2001–2025 的趨勢用全部觀測 0.465、只取 3 小時一筆 0.334 °C／十年 | 否（只適用這一站） | `docs/data/sources/ghcnh_taiwan.md` |
+| `no_data` | `gistemp_land_anom` 在高雄、花蓮、玉山那一格 2013-12 之後沒有值 | 否（只適用這 3 條序列） | `docs/data/sources/gistemp.md` |
+| `no_data` | GHCNm 的台灣測站紀錄都在 2013-12 以前結束，所以台灣沒有 GHCNm 序列 | 否（沒有序列適用，只是一列紀錄） | `docs/data/sources/ghcnm.md` |
+| `no_data` | SMAP（SPL3SMP V009）在建議品質過濾下，台灣 10 個地點、4,160 天都是 0 筆有效反演（141 個月裡 0 個有效月），沒有序列 | 否（沒有序列適用） | `docs/data/sources/smap.md` |
 
 `break_months`（#85）是已查證的跳變月份，只有兩筆 `discontinuity` 有：`gldas_tair` 的 2011-05、2017-07、2019-06 與 `gldas_evap` 的 2024-07、2025-06。資料探勘的「分段距平」敏感度比較用它切段（見 `AGENTS.md`「如何重產分析結果」）；清洗與趨勢統計不用它。
 
@@ -318,7 +353,7 @@ Cloud SQL：清單有 `postgis_raster`，不必改。
 - `meta.variables.category_path`（ltree）與 `category_basis`（`manual`、`rule:<第幾條>`、`unclassified`），GiST 索引；`meta.category_tree`（每個節點底下的變數數與序列數）、`meta.series_in_category(路徑)`。
 - 規則是資料：`data/seed/variable_taxonomy.json`。核心 16 個變數逐一寫在 `core`；其餘依序比對 `rules`（`variable_pattern` 比變數 id、`name_pattern` 比英文名、`product_pattern` 比產品、`unit_pattern` 比單位，規則裡有的鍵都要符合，先符合的為準），都不符合就是 `unclassified`。算法在 `src/trend_detective/taxonomy.py`（純函式）。輔助量（計數、標準差、變異數、觀測幾何、品質欄位）的規則排在最前面，因為它們的名稱裡也有物理量的關鍵字。
 - 2026-11-15：356 個變數全部有分類，人工 16、規則 340、`unclassified` 0。第一層：`atmosphere` 128、`land` 61、`auxiliary` 167。46 條規則裡有 4 條目前沒有變數用到（留給之後的變數：MERRA-2 用單位判變異數、用英文名判臭氧、以及最後兩條用單位 K、Pa 判的後備規則）。
-- 和 `is_auxiliary`（來自 `cleaning.json` 的已知問題）的關係：`is_auxiliary` 的 158 個變數全部在 `auxiliary` 底下；另有 9 個在 `auxiliary` 底下但 `is_auxiliary = false`（AIRS 的 `totalcounts` 6 個、IMERG 的品質指標、隨機誤差與雨量站權重 3 個）。分類樹沒有改 `is_auxiliary`；要不要把這 9 個也標成輔助變數由隊伍決定（改 `cleaning.json`）。
+- 和 `is_auxiliary`（來自 `cleaning.json` 的已知問題）的關係：`is_auxiliary` 的 158 個變數全部在 `auxiliary` 底下；另有 9 個在 `auxiliary` 底下但 `is_auxiliary = false`（AIRS 的 `totalcounts` 6 個、IMERG 的品質指標、隨機誤差與雨量站權重 3 個）。分類樹沒有改 `is_auxiliary`；要不要把這 9 個也標成輔助變數由隊伍決定（改 `cleaning.json`）。 **#97 更新：這 9 個已在 `data/seed/cleaning.json` 標成輔助變數（`auxiliary_airs_totalcounts`、`auxiliary_imerg_quality`），現在 `is_auxiliary` 是 167 個變數、全部在 `auxiliary` 底下，沒有例外；受影響的是 154 條擴充序列，只有 `auxiliary` 與 `known_issues` 兩個欄位變了。**
 - 匯出：`data/analysis/cleaning.json` 多了 `taxonomy`（核心每個變數的路徑與依據、各第二層節點的變數數）；擴充的在 `data/extended/analysis/cleaning.json`。既有欄位沒有改名或刪除。
 
 ```sql
@@ -362,6 +397,7 @@ Cloud SQL：清單有 `ltree`，不必改。
 ### pgvector：變化型態相似的序列
 
 - `analysis.series_embeddings`：每條序列一個 248 維向量，HNSW 索引（`vector_cosine_ops`）。向量是 **2005-01 至 2025-08 共 248 個月**的距平（`anomaly_filled`，缺月是補值政策的結果），再標準化成平均 0、標準差 1，所以 cosine 相似度就是這段期間距平的 Pearson 相關係數。由 `analysis.refresh_series_embeddings()` 在 SQL 裡建（`pg derive` 會呼叫）。
+- **長序列的向量要小心讀（#97）**：`anomaly_filled` 的月氣候值取自整條序列的全部年份。多數序列從 2001 年前後開始，氣候值的期間和向量的期間差不多；觀測來源的序列長得多（GISTEMP 從 1880 年、GHCNm 最早 1821 年），同樣的距平在 2005–2025 這段期間內每個日曆月會留下不同的偏移（暖化在各月份不一樣大），等於向量裡多了一小段季節循環。向量的算法對所有序列相同、沒有為觀測來源另寫一套；實測 62 條有向量的觀測序列，現行向量與「先在這 248 個月內把每個日曆月各自置中」的向量，相關係數是 0.930 至 0.997（中位數 0.979）。試過把置中套用到全部序列：既有 6,429 個向量會跟著變（與原向量的 cosine 中位數 0.996，865 條低於 0.99，另有 2 條置中後沒有變化而失去向量），本節的範例結果也要重跑，所以這一輪沒有改，留給隊伍決定。觀測序列有向量的是 62 條（67 條裡 `ghcnm_*` 紐約 2 條不符合探勘條件，`gistemp_land_anom` 的高雄、花蓮、玉山 3 條只到 2013-12）；全部向量 6,491 個。
 - 期間沒有照原先建議的 2001-01 至 2025-12（300 個月）：那樣符合探勘條件的 6,569 條序列只剩 2,789 條、118 個變數有向量，AIRS（2002-09 起）、OMI（2004-10 起）、IMERG（只到 2025-09）全部不在；2005-01 至 2025-08 則 6,569 條、356 個變數全部涵蓋（實測）。要改期間，改 `011_vector.sql` 的日期與維度。
 - 不建向量的序列：不符合探勘條件（補值比例超過 20% 或沒有可用月份，253 條），或距平沒有變化（標準差 0，140 條）。共 6,429 條有向量。
 - `analysis.similar_series(series_id, k, filters)`：`filters` 是 JSONB，鍵都可省略——`different_variable`、`different_location`、`exclude_same_quantity`（排除探勘的 `same_quantity_groups`，讀 `analysis.same_quantity_groups`，那是最近一次探勘參數的 view）、`exclude_same_category`（排除 ltree 分類相同的變數）、`exclude_auxiliary` 設 `true` 才生效；`tier`、`aggregation` 只留一種；`category` 只留某個 ltree 子樹。
@@ -700,6 +736,42 @@ SQLite（`docs/data/sqlite.md`）仍是放在 GitHub Release 的發佈格式：�
 不含選用的月 raster 是 170 秒。資料庫 2,728 MB（其中月 raster 340 MB），資料 dump 445 MB。之後 `pg check` 另跑 116 秒。重建前後，既有的表（下表）列數全部相同；`analysis.runs` 由 6 列變 8 列（多了 `derive` 與 `rasters_monthly` 兩筆執行紀錄）。
 
 #91 新增的表與列數：`geo.trend_rasters` 7、`geo.annual_mean_rasters` 175、`geo.monthly_rasters` 2,167、`geo.h3_trends` 211,572、`meta.search_documents` 387、`analysis.series_embeddings` 6,429、`analysis.variable_graph` 59、`analysis.variable_graph_nodes` 13、`analysis.mining_wide_point` 1,260、`analysis.mining_wide_region` 1,008；`meta.variables.category_path` 356 個都有值；foreign table `raw.file_planetary_computer` 讀到 17,440 列；`cron.job` 1 筆。
+
+### 加入觀測來源之後（#97，2026-11-15）
+
+從空 volume 再重建一次（`down -v` → `up --wait` → `load --observed-dir` → `clean` → 三層的 `trends` → `analysis` → `derive` → `model_obs` → `rasters-monthly` → `export`）共 425 秒；不含月 raster 是 173 秒（上面 #91 的 170 秒沒有含重跑趨勢與 `model_obs`）。
+
+| 步驟 | 秒 |
+|---|---|
+| 啟動容器 | 7 |
+| `load` | 90（序列與統一表 11、各來源表 60、其餘同前） |
+| `clean` | 26 |
+| `trends`：核心／擴充／觀測 | 3／10／12 |
+| `analysis`、`derive` | 2、6 |
+| `model_obs` | 17 |
+| `rasters-monthly`（選用） | 206 |
+| `export` | 46 |
+
+資料庫 2,762 MB，資料 dump 447 MB；`pg check` 另跑 135 秒。列數有變的表（其餘與下表相同）：
+
+| 表 | 之前 | 之後 |
+|---|---|---|
+| `meta.series`／`clean.series_summary`／`analysis.trends` | 6,822 | 6,889（多 `observed` 67） |
+| `obs.observations` | 2,277,278 | 2,376,450 |
+| `clean.observations` | 2,277,368 | 2,379,422 |
+| `clean.monthly_climatology` | 80,445 | 81,249 |
+| `obs.yearly_mean` | 193,957 | 202,307 |
+| `meta.variables`／`meta.locations`／`meta.sources`／`meta.known_issues` | 356／33／7／13 | 361／39／10／19 |
+| `geo.locations`／`geo.regions` | 19／14 | 23／16 |
+| `meta.search_documents` | 387 | 402 |
+| `analysis.series_embeddings` | 6,429 | 6,491 |
+| `analysis.model_obs_pairs` | — | 97 |
+
+既有 6,822 條序列重建前後的比對（逐條比 `clean.observations` 全部欄位的雜湊、`clean.series_summary` 與 `analysis.trends` 的整列）：`series_id` 全部相同；`clean.observations` 0 條有差；`clean.series_summary` 與 `analysis.trends` 各有 154 條有差，全部是新標成輔助變數的 9 個變數（`airs_totalcounts_*` 6 個 × 13 個地點 = 78 條，IMERG 品質欄位 31 + 31 + 14 = 76 條），而且只有 `auxiliary`（false → true）與 `known_issues`（多一個 id）兩個欄位不同；斜率、p 值、q 值、旗標月數都沒變。擴充的 `summary_excluding_auxiliary` 因此由 4,611 條變 4,457 條。既有 6,429 個序列向量逐值相同。核心的 `data/analysis/trends.json`、`anomalies.json` 重跑後逐位元組相同；`fpgrowth.json`、`decision_tree.json` 的輸入沒有變，沒有重跑。
+
+清洗彙總多出來的部分全部來自觀測序列（67 條）：骨架 102,054 個月、`ok` 98,968、`missing` 3,073（GHCNm 的缺月 2,882、`gistemp_land_anom` 178、測站 13）、`outlier_suspect` 13、補值 3,069；最長缺口 276 個月（GHCNm）；符合探勘條件 65 條。
+
+### #91 當時的列數
 
 | 表 | 列數 | | 表 | 列數 |
 |---|---|---|---|---|

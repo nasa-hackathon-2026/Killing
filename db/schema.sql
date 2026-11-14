@@ -1056,7 +1056,7 @@ CREATE TABLE meta.series (
     first_month date,
     last_month date,
     request jsonb DEFAULT '{}'::jsonb NOT NULL,
-    CONSTRAINT series_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
+    CONSTRAINT series_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text, 'observed'::text])))
 );
 
 
@@ -1080,6 +1080,51 @@ CREATE VIEW analysis.mining_wide_source AS
      JOIN clean.observations o USING (series_id))
      LEFT JOIN analysis.trends t USING (series_id))
   WHERE ((s.tier = 'core'::text) AND (s.aggregation = ANY (ARRAY['point'::text, 'area_mean'::text])) AND q.mining_eligible AND (COALESCE(t.status, 'analyzed'::text) = 'analyzed'::text) AND ((o.month >= q.first_usable_month) AND (o.month <= q.last_usable_month)));
+
+
+--
+-- Name: model_obs_pairs; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.model_obs_pairs (
+    pair_id text NOT NULL,
+    run_id bigint NOT NULL,
+    pair_group text NOT NULL,
+    quantity text NOT NULL,
+    location_id text NOT NULL,
+    model_variable_id text NOT NULL,
+    model_source text NOT NULL,
+    model_series_id integer,
+    model_detail jsonb DEFAULT '{}'::jsonb NOT NULL,
+    obs_variable_id text NOT NULL,
+    obs_series_id integer NOT NULL,
+    window_start date NOT NULL,
+    window_end date NOT NULL,
+    status text NOT NULL,
+    n_common_months integer NOT NULL,
+    first_common_month date,
+    last_common_month date,
+    correlation double precision,
+    diff_mean double precision,
+    diff_sd double precision,
+    diff_rmse double precision,
+    model_slope_per_decade double precision,
+    model_ci_low double precision,
+    model_ci_high double precision,
+    obs_slope_per_decade double precision,
+    obs_ci_low double precision,
+    obs_ci_high double precision,
+    slope_difference double precision,
+    diff_slope_per_decade double precision,
+    diff_ci_low double precision,
+    diff_ci_high double precision,
+    diff_slope_p double precision,
+    diff_slope_significant boolean,
+    largest_step double precision,
+    largest_step_month date,
+    known_issues text[] DEFAULT '{}'::text[] NOT NULL,
+    detail jsonb DEFAULT '{}'::jsonb NOT NULL
+);
 
 
 --
@@ -1458,7 +1503,7 @@ CREATE TABLE meta.variables (
     category_path public.ltree,
     category_basis text,
     CONSTRAINT variables_data_kind_check CHECK ((data_kind = ANY (ARRAY['in_situ'::text, 'satellite_retrieval'::text, 'model'::text, 'unknown'::text]))),
-    CONSTRAINT variables_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
+    CONSTRAINT variables_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text, 'observed'::text])))
 );
 
 
@@ -1529,8 +1574,9 @@ CREATE TABLE meta.known_issues (
     source_doc text NOT NULL,
     issue_ref text,
     break_months date[],
+    location_pattern text,
     CONSTRAINT known_issues_check CHECK (((variable_id IS NOT NULL) OR (variable_pattern IS NOT NULL))),
-    CONSTRAINT known_issues_kind_check CHECK ((kind = ANY (ARRAY['discontinuity'::text, 'product_disagreement'::text, 'missing_composites'::text, 'auxiliary'::text])))
+    CONSTRAINT known_issues_kind_check CHECK ((kind = ANY (ARRAY['discontinuity'::text, 'product_disagreement'::text, 'missing_composites'::text, 'auxiliary'::text, 'sampling_change'::text, 'no_data'::text])))
 );
 
 
@@ -1552,7 +1598,7 @@ CREATE TABLE meta.locations (
     bbox_n double precision,
     tier text NOT NULL,
     attributes jsonb DEFAULT '{}'::jsonb NOT NULL,
-    CONSTRAINT locations_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text])))
+    CONSTRAINT locations_tier_check CHECK ((tier = ANY (ARRAY['core'::text, 'extended'::text, 'observed'::text])))
 );
 
 
@@ -1601,7 +1647,7 @@ CREATE VIEW meta.series_known_issues AS
     k.summary_en,
     k.source_doc
    FROM (meta.series s
-     JOIN meta.known_issues k ON ((((k.aggregation IS NULL) OR (k.aggregation = s.aggregation)) AND (((k.variable_id IS NOT NULL) AND (k.variable_id = s.variable_id)) OR ((k.variable_id IS NULL) AND (s.variable_id ~ k.variable_pattern))))));
+     JOIN meta.known_issues k ON ((((k.aggregation IS NULL) OR (k.aggregation = s.aggregation)) AND ((k.location_pattern IS NULL) OR (s.location_id ~ k.location_pattern)) AND (((k.variable_id IS NOT NULL) AND (k.variable_id = s.variable_id)) OR ((k.variable_id IS NULL) AND (s.variable_id ~ k.variable_pattern))))));
 
 
 --
@@ -1913,6 +1959,14 @@ ALTER TABLE ONLY analysis.mining_wide_region
 
 
 --
+-- Name: model_obs_pairs model_obs_pairs_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_pkey PRIMARY KEY (pair_id);
+
+
+--
 -- Name: runs runs_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
 --
 
@@ -2192,6 +2246,13 @@ CREATE INDEX mining_rules_antecedents_gin ON analysis.mining_rules USING gin (an
 
 
 --
+-- Name: model_obs_pairs_by_location; Type: INDEX; Schema: analysis; Owner: -
+--
+
+CREATE INDEX model_obs_pairs_by_location ON analysis.model_obs_pairs USING btree (location_id);
+
+
+--
 -- Name: series_embeddings_hnsw; Type: INDEX; Schema: analysis; Owner: -
 --
 
@@ -2380,6 +2441,54 @@ ALTER TABLE ONLY analysis.mining_rules
 
 ALTER TABLE ONLY analysis.mining_runs
     ADD CONSTRAINT mining_runs_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_location_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_location_id_fkey FOREIGN KEY (location_id) REFERENCES meta.locations(id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_model_series_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_model_series_id_fkey FOREIGN KEY (model_series_id) REFERENCES meta.series(series_id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_model_variable_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_model_variable_id_fkey FOREIGN KEY (model_variable_id) REFERENCES meta.variables(id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_obs_series_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_obs_series_id_fkey FOREIGN KEY (obs_series_id) REFERENCES meta.series(series_id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_obs_variable_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_obs_variable_id_fkey FOREIGN KEY (obs_variable_id) REFERENCES meta.variables(id);
+
+
+--
+-- Name: model_obs_pairs model_obs_pairs_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.model_obs_pairs
+    ADD CONSTRAINT model_obs_pairs_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
 
 
 --

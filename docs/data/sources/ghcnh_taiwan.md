@@ -101,6 +101,8 @@
 
 ## 整合時要注意
 
+已完成（#97）：見 `docs/data/postgres.md` 的「觀測來源」。以下是當時列的待辦，留作紀錄。
+
 - `data/seed/sources/ghcnh_taiwan.json` 的 `locations` 用 `ghcnh_id` 標記測站，與 `locations.json` 的核心兩站相同；合併進 `locations.json` 後，`snapshot.py` 會把它們當成核心測站、從 2000 年起重抓，算法相同。
 - `source_api` 是 `noaa_ghcnh`（`meta.sources` 已有，不必新增）；序列檔格式與核心快照相同。
 - 這些序列只有一個「新」的地點屬性 `region`（含 `offshore`）與 `elevation_m`，核心地點沒有這兩個欄位。

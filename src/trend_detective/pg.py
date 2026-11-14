@@ -44,7 +44,7 @@ import numpy as np
 import psycopg
 from psycopg.types.json import Jsonb
 
-from trend_detective import cleaning, pg_extensions, taxonomy
+from trend_detective import cleaning, observed, pg_extensions, taxonomy
 from trend_detective.extended import EXTENDED_DIR
 from trend_detective.grid import read_frontend
 from trend_detective.snapshot import RAW_DIR, SEED_DIR, SNAPSHOT_DIR
@@ -278,9 +278,17 @@ def series_key(item: dict[str, Any]) -> str:
 
 
 def read_inputs(
-    snapshot_dir: Path, extended_dir: Path | None
+    snapshot_dir: Path,
+    extended_dir: Path | None,
+    observed_dir: Path | None = None,
+    sources_dir: Path | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[tuple[str, Path]]]:
-    """回傳 (變數, 地點, [(tier, 序列檔路徑)])。兩邊都有的變數、地點、序列以核心為準。"""
+    """回傳 (變數, 地點, [(tier, 序列檔路徑)])。兩邊都有的變數、地點、序列以核心為準。
+
+    觀測來源（#97，`observed_dir` 與 `sources_dir` 都有給時）排在最後、`tier = 'observed'`：
+    核心與擴充已有的變數、地點、序列不被覆蓋，既有序列的 `series_id` 也不會變（序列依
+    tier、鍵排序，`observed` 排在 `core`、`extended` 之後）。
+    """
     catalog = _load(snapshot_dir / "catalog.json")
     variables = {v["id"]: {**v, "tier": "core"} for v in catalog["variables"]}
     locations = {loc["id"]: {**loc, "tier": "core"} for loc in catalog["locations"]}
@@ -299,6 +307,16 @@ def read_inputs(
                 locations[loc["id"]] = {**loc, "tier": "extended"}
         for e in extended["series"]:
             files.setdefault(series_key(e), ("extended", extended_dir / e["file"]))
+    if observed_dir is not None and sources_dir is not None:
+        new_variables, new_locations, new_files, _ = observed.read_observed(
+            observed_dir, sources_dir
+        )
+        for v in new_variables:
+            variables.setdefault(v["id"], v)
+        for loc in new_locations:
+            locations.setdefault(loc["id"], loc)
+        for tier, path in new_files:
+            files.setdefault(path.stem, (tier, path))
     ordered = sorted(files.items(), key=lambda item: (item[1][0], item[0]))
     return (
         list(variables.values()),
@@ -324,11 +342,18 @@ def _load_lookups(
     rules: cleaning.CleaningRules,
     rule_notes: dict[str, str],
     kind_rules: list[dict[str, str]],
+    extra_sources: dict[str, str] | None = None,
 ) -> None:
     for source, description in SOURCE_DESCRIPTIONS.items():
         conn.execute(
             "INSERT INTO meta.sources VALUES (%s, %s, %s)",
             (source, f"raw.{source}", description),
+        )
+    # 觀測來源（#97）沒有 raw 表：原始粒度的檔案在 data/raw/<來源>/，資料庫只收月序列
+    for source, description in (extra_sources or {}).items():
+        conn.execute(
+            "INSERT INTO meta.sources VALUES (%s, NULL, %s) ON CONFLICT DO NOTHING",
+            (source, description),
         )
     for name, value in vars(rules).items():
         conn.execute(
@@ -338,7 +363,7 @@ def _load_lookups(
     for issue in issues:
         conn.execute(
             "INSERT INTO meta.known_issues VALUES"
-            " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            " (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (
                 issue.id,
                 issue.kind,
@@ -352,6 +377,7 @@ def _load_lookups(
                 issue.source_doc,
                 issue.issue_ref,
                 list(issue.break_months) if issue.break_months else None,
+                issue.location_pattern,
             ),
         )
     for v in variables:
@@ -596,6 +622,7 @@ def load(
     seed_file: Path,
     grid_dir: Path,
     migrations_dir: Path,
+    observed_dir: Path | None = None,
 ) -> dict[str, Any]:
     """清空並重建整個資料庫（不含清洗）。回傳各階段耗時與列數。"""
     started = datetime.now(UTC)
@@ -607,7 +634,15 @@ def load(
     kind_rules = (
         cleaning.load_data_kind_rules(kinds_file) if kinds_file.exists() else []
     )
-    variables, locations, files = read_inputs(snapshot_dir, extended_dir)
+    # 觀測來源（#97）的宣告在清洗 seed 旁邊的 sources/；沒有那個目錄就只載核心與擴充
+    sources_dir = seed_file.parent / observed.SOURCES_DIR.name
+    if observed_dir is None or not sources_dir.is_dir():
+        observed_dir, extra_sources = None, {}
+    else:
+        extra_sources = observed.read_observed(observed_dir, sources_dir)[3]
+    variables, locations, files = read_inputs(
+        snapshot_dir, extended_dir, observed_dir, sources_dir
+    )
     with connect(env_file) as conn:
         clock = time.monotonic()
         reset(conn)
@@ -615,7 +650,16 @@ def load(
         timings["migrate"] = time.monotonic() - clock
 
         clock = time.monotonic()
-        _load_lookups(conn, variables, locations, issues, rules, rule_notes, kind_rules)
+        _load_lookups(
+            conn,
+            variables,
+            locations,
+            issues,
+            rules,
+            rule_notes,
+            kind_rules,
+            extra_sources,
+        )
         taxonomy_counts = pg_extensions.load_taxonomy(
             conn, variables, seed_file.parent / taxonomy.TAXONOMY_SEED.name
         )
@@ -656,6 +700,7 @@ def load(
                 "snapshot_dir": snapshot_dir.as_posix(),
                 "extended_dir": extended_dir.as_posix() if extended_dir else None,
                 "raw_dir": raw_dir.as_posix(),
+                "observed_dir": observed_dir.as_posix() if observed_dir else None,
                 "migrations": applied,
             },
             rows,
@@ -723,11 +768,12 @@ def read_known_issues(conn: psycopg.Connection[Any]) -> list[cleaning.KnownIssue
             break_months=tuple(month.isoformat() for month in row[11])
             if row[11]
             else None,
+            location_pattern=row[12],
         )
         for row in conn.execute(
             "SELECT id, kind, variable_id, variable_pattern, aggregation, period_start,"
-            " period_end, flag_months, summary_en, source_doc, issue_ref, break_months"
-            " FROM meta.known_issues ORDER BY id"
+            " period_end, flag_months, summary_en, source_doc, issue_ref, break_months,"
+            " location_pattern FROM meta.known_issues ORDER BY id"
         )
     ]
 
@@ -747,10 +793,11 @@ def clean(env_file: Path) -> dict[str, Any]:
         )
         issues = read_known_issues(conn)
         series = {
-            row[0]: (row[1], row[2], row[3])
+            row[0]: (row[1], row[2], row[3], row[4])
             for row in conn.execute(
                 "SELECT series_id, variable_id, aggregation,"
-                " to_char(retrieved_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') FROM meta.series"
+                " to_char(retrieved_at AT TIME ZONE 'UTC', 'YYYY-MM-DD'), location_id"
+                " FROM meta.series"
             )
         }
         writer.execute("TRUNCATE clean.observations, clean.series_summary")
@@ -765,11 +812,12 @@ def clean(env_file: Path) -> dict[str, Any]:
             ) as copy,
         ):
             for series_id, points in _series_points(conn):
-                variable_id, aggregation, retrieved_at = series[series_id]
+                variable_id, aggregation, retrieved_at, location_id = series[series_id]
                 cleaned = cleaning.clean_series(
                     points,
                     variable_id=variable_id,
                     aggregation=aggregation,
+                    location_id=location_id,
                     retrieved_at=retrieved_at,
                     rules=rules,
                     issues=issues,
@@ -1077,6 +1125,14 @@ def export(
             path = extended_dir / "analysis" / "cleaning.json"
             _dump(path, cleaning_summary(conn, "extended"))
             written["cleaning_extended"] = path.as_posix()
+        has_observed = conn.execute(
+            "SELECT EXISTS (SELECT 1 FROM meta.series WHERE tier = %s)",
+            (observed.TIER,),
+        ).fetchone()
+        if extended_dir is not None and has_observed and has_observed[0]:
+            path = extended_dir / observed.ANALYSIS_SUBDIR / "cleaning.json"
+            _dump(path, cleaning_summary(conn, observed.TIER))
+            written["cleaning_observed"] = path.as_posix()
     schema_arguments = ["--schema-only", "--no-owner", "--no-privileges"]
     for schema in SCHEMAS:
         schema_arguments += ["-n", schema]
@@ -1175,6 +1231,13 @@ def load_analysis(
         sources = [("core", analysis_dir / "trends.json")]
         if extended_dir is not None:
             sources.append(("extended", extended_dir / "analysis" / "trends.json"))
+            # 觀測來源（#97）：`uv run python -m trend_detective.observed` 的輸出
+            sources.append(
+                (
+                    observed.TIER,
+                    extended_dir / observed.ANALYSIS_SUBDIR / "trends.json",
+                )
+            )
         for tier, path in sources:
             if not path.exists():
                 continue
@@ -1338,6 +1401,12 @@ def main(argv: list[str] | None = None) -> int:
     loader.add_argument("--snapshot-dir", type=Path, default=SNAPSHOT_DIR)
     loader.add_argument("--extended-dir", type=Path, default=EXTENDED_DIR)
     loader.add_argument("--raw-dir", type=Path, default=RAW_DIR)
+    loader.add_argument(
+        "--observed-dir",
+        type=Path,
+        default=observed.OBSERVED_DIR,
+        help="觀測來源的月序列（#97；宣告在 seed 旁的 sources/）",
+    )
     loader.add_argument("--seed-file", type=Path, default=SEED_DIR / "cleaning.json")
     loader.add_argument("--grid-dir", type=Path, default=GRID_DIR)
     loader.add_argument("--migrations-dir", type=Path, default=MIGRATIONS_DIR)
@@ -1394,6 +1463,7 @@ def main(argv: list[str] | None = None) -> int:
             seed_file=args.seed_file,
             grid_dir=args.grid_dir,
             migrations_dir=args.migrations_dir,
+            observed_dir=args.observed_dir,
         )
         print("載入完成，各階段秒數：")
         _print_counts((k, f"{v:.1f}") for k, v in result["timings_seconds"].items())

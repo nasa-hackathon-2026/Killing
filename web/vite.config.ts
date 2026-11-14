@@ -11,6 +11,7 @@ export default defineConfig({
         main: "index.html",
         lab: "lab/index.html",
         mining: "mining/index.html",
+        compare: "compare/index.html",
       },
     },
   },

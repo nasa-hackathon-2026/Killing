@@ -1,9 +1,9 @@
 {
   "command": "uv run python -m trend_detective.pg clean && uv run python -m trend_detective.pg export",
-  "generated_at": "2026-11-14T22:12:17Z",
+  "generated_at": "2026-11-14T22:42:57Z",
   "database": {
     "run_id": 2,
-    "git_commit": "32c5be193cffda04b04932409080caa17d0cd36d",
+    "git_commit": "109b32ce2170503513c9e394232b34a58f4905c3",
     "server": "17.11 (Ubuntu 17.11-1.pgdg22.04+2)",
     "extensions": {
       "btree_gist": "1.7",
@@ -35,8 +35,12 @@
     "known_issues": [
       "auxiliary_airs_counts",
       "auxiliary_airs_sdev",
+      "auxiliary_airs_totalcounts",
+      "auxiliary_imerg_quality",
       "auxiliary_merra2_variance",
       "auxiliary_omi_geometry",
+      "ghcnm_taiwan_no_data_after_2013_12",
+      "gistemp_land_no_value_after_2013_12",
       "gldas_evap_step_2024_07_2025_06",
       "gldas_soilmoist_vs_fldas_sign",
       "gldas_tair_step_2011_05",
@@ -45,7 +49,9 @@
       "modis_lst_pc_missing_composites_2022_10",
       "modis_lst_pc_missing_composites_2025",
       "modis_lst_point_missing_composites_2022_10",
-      "modis_lst_point_missing_composites_2025"
+      "modis_lst_point_missing_composites_2025",
+      "smap_taiwan_no_recommended_retrievals",
+      "station_temp_kaohsiung_airport_sampling"
     ],
     "flag_priority": [
       "missing",
@@ -57,37 +63,37 @@
     ]
   },
   "rows_affected": {
-    "missing_no_row": 90,
-    "clean.observations": 2277368,
-    "missing_null_value": 5599,
+    "missing_no_row": 2972,
+    "clean.observations": 2379422,
+    "missing_null_value": 5790,
     "gapfill_cross_check": {
-      "no_row": 90,
-      "null_value": 5599
+      "no_row": 2972,
+      "null_value": 5790
     },
-    "clean.series_summary": 6822
+    "clean.series_summary": 6889
   },
   "outputs": [
     "cleaning.json"
   ],
   "totals": {
-    "n_series": 6822,
-    "n_months": 2277368,
-    "n_in_source": 2277278,
-    "n_usable": 2215993,
-    "n_ok": 2182802,
-    "n_missing": 5689,
+    "n_series": 6889,
+    "n_months": 2379422,
+    "n_in_source": 2376450,
+    "n_usable": 2314974,
+    "n_ok": 2281770,
+    "n_missing": 8762,
     "n_partial_month": 575,
     "n_low_coverage": 55111,
-    "n_outlier_suspect": 32665,
+    "n_outlier_suspect": 32678,
     "n_known_discontinuity": 526,
-    "n_filled": 27984,
-    "n_filled_linear": 4428,
-    "n_filled_climatology": 23556,
-    "n_gaps": 6428,
-    "longest_gap_months": 69,
-    "n_series_mining_eligible": 6569,
-    "n_series_auxiliary": 2078,
-    "n_series_with_known_issues": 2199,
-    "n_series_with_filled_months": 332
+    "n_filled": 31053,
+    "n_filled_linear": 4774,
+    "n_filled_climatology": 26279,
+    "n_gaps": 6830,
+    "longest_gap_months": 276,
+    "n_series_mining_eligible": 6634,
+    "n_series_auxiliary": 2232,
+    "n_series_with_known_issues": 2357,
+    "n_series_with_filled_months": 362
   }
 }

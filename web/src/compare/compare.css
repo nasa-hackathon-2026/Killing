@@ -1,0 +1,141 @@
+/* Model vs observation page; layout and colours follow mining.css. */
+.compare .tag {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.compare .tag.kind-model {
+  border-color: #ffb84d;
+}
+
+.compare .tag.kind-in_situ {
+  border-color: #6fb3ff;
+}
+
+.compare .tag.kind-satellite_retrieval {
+  border-color: #7ad9a6;
+}
+
+.compare td {
+  vertical-align: top;
+}
+
+.compare tr.selected {
+  background: rgba(111, 179, 255, 0.12);
+}
+
+.compare .pair-button {
+  padding: 2px 8px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.compare .pair-button[aria-pressed="true"] {
+  border-color: #6fb3ff;
+}
+
+.compare td .trend-caveat {
+  min-width: 200px;
+  margin: 0;
+}
+
+.compare-chart {
+  margin: 12px 0;
+}
+
+.compare-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+}
+
+.compare-chart figcaption {
+  margin-top: 6px;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.compare-chart path {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.compare-chart .line-model {
+  stroke: #ffb84d;
+  stroke-width: 1.4;
+}
+
+.compare-chart .line-obs {
+  stroke: #6fb3ff;
+  stroke-width: 1.4;
+}
+
+.compare-chart .line-difference {
+  stroke: #e8eef7;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.compare-chart .axis-grid {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.compare-chart .axis-zero {
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.compare-chart .axis-label {
+  fill: #b7c6da;
+  font-size: 11px;
+}
+
+.compare-chart .mark-break {
+  stroke: #ff7a7a;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.compare-chart .mark-step {
+  stroke: #e8eef7;
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.compare-chart .key {
+  display: inline-block;
+  width: 18px;
+  height: 0;
+  margin: 0 4px 3px 8px;
+  border-top: 2px solid;
+  vertical-align: middle;
+}
+
+.compare-chart .key-model {
+  border-color: #ffb84d;
+}
+
+.compare-chart .key-obs {
+  border-color: #6fb3ff;
+}
+
+.compare-chart .key-difference {
+  border-color: rgba(232, 238, 247, 0.55);
+}
+
+.compare-chart .key-break {
+  border-top: 2px dashed #ff7a7a;
+}
+
+.compare-chart .key-step {
+  border-top: 1px dotted #e8eef7;
+}

@@ -49,7 +49,7 @@ from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from importlib.metadata import version
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pymannkendall as mk
@@ -461,6 +461,7 @@ def _analyze_entry(
             series["points"],
             variable_id=entry["variable_id"],
             aggregation=entry["aggregation"],
+            location_id=entry["location_id"],
             retrieved_at=series.get("retrieved_at"),
             rules=rules,
             issues=issues,
@@ -539,8 +540,12 @@ def analyze_snapshot(
     workers: int = 1,
     with_anomalies: bool = True,
     cleaning_seed: Path | None = None,
+    catalog: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """讀整份快照，回傳 (trends, anomalies) 兩個要寫出的結構。
+
+    `catalog`（#97）有給時不讀 `snapshot_dir/catalog.json`，用給的那份（`file` 相對於
+    `snapshot_dir`）；給多個來源各有目錄檔的觀測序列用。
 
     `fdr_group`、`workers`、`with_anomalies` 是給擴充資料用的（#68）；預設值下的輸出與
     核心快照原本的結果檔逐位元組相同。
@@ -552,7 +557,11 @@ def analyze_snapshot(
     if cleaning_seed is not None:
         seed_rules, issues = cleaning.load_seed(cleaning_seed)
         clean_config = (replace(seed_rules, min_coverage=params.min_coverage), issues)
-    catalog = json.loads((snapshot_dir / "catalog.json").read_text(encoding="utf-8"))
+    if catalog is None:
+        catalog = cast(
+            dict[str, Any],
+            json.loads((snapshot_dir / "catalog.json").read_text(encoding="utf-8")),
+        )
     jobs = [
         (snapshot_dir, entry, params, with_anomalies, clean_config)
         for entry in sorted(catalog["series"], key=series_key)

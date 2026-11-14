@@ -76,6 +76,8 @@ uv run python -m trend_detective.gistemp build   # 轉成 data/observed/gistemp/
 
 ## 和資料庫整合時要做的事（本來源沒有改共用檔）
 
+已完成（#97）：變數與新地點由 `observed.py` 從來源宣告讀進資料庫（沒有抄進 `variables*.json`、`locations.world.json`），`data_kinds.json` 與分類已補；見 `docs/data/postgres.md` 的「觀測來源」。以下是當時列的待辦，留作紀錄。
+
 - `data/seed/data_kinds.json`：兩個變數要補規則，`data_kind = in_situ`，note 說明是測站與船舶、浮標觀測的格點化分析，經均一化與空間內插，不是單點實測（內容見來源宣告的 `data_kind_note`）。
 - `src/trend_detective/pg.py` 的 `SOURCE_DESCRIPTIONS`：加 `gistemp`（`source_api` 的值）。
 - `data/seed/locations.world.json`：加 `northern_hemisphere`、`southern_hemisphere` 兩個地點（定義在來源宣告的 `new_locations`）。

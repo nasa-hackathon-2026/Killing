@@ -183,6 +183,7 @@
     {
       "id": "stn_chm00059358",
       "kind": "point",
+      "group": "taiwan",
       "name_zh": "臺南測站",
       "name_en": "Tainan (CWA / WMO 59358)",
       "lat": 23.0,
@@ -195,6 +196,7 @@
     {
       "id": "stn_chm00059559",
       "kind": "point",
+      "group": "taiwan",
       "name_zh": "恆春測站",
       "name_en": "Hengchun (CWA / WMO 59559)",
       "lat": 22.0,
@@ -207,6 +209,7 @@
     {
       "id": "stn_chm00059567",
       "kind": "point",
+      "group": "taiwan",
       "name_zh": "蘭嶼測站",
       "name_en": "Lanyu (CWA / WMO 59567)",
       "lat": 22.0333,
@@ -220,6 +223,7 @@
     {
       "id": "stn_twi0000rckh",
       "kind": "point",
+      "group": "taiwan",
       "name_zh": "高雄國際機場測站",
       "name_en": "Kaohsiung International Airport (ICAO RCKH)",
       "lat": 22.5771,

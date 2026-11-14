@@ -1,0 +1,101 @@
+{
+  "note": "Pairs of a model series and an observation series of the same physical quantity at the same location (#97). Each group gives the observation variables, the model variables and the locations; a pair is made for every combination whose observation series exists. Model source `series` uses a cleaned series of the database (location_map points to the location that holds the model series when it differs from the observation's); `grid_cube_cell` reads the cell of the global monthly cube that contains the observation's coordinates. `monthly: false` exports only statistics and annual means for that group. Method and limits: docs/data/model-vs-obs.md.",
+  "parameters": {
+    "window_start": "2001-01-01",
+    "window_end": "2025-12-01",
+    "min_common_months": 120,
+    "alpha": 0.05,
+    "step_half_window_months": 6,
+    "step_min_months_per_side": 4
+  },
+  "groups": [
+    {
+      "id": "taiwan_station",
+      "quantity": "near_surface_air_temperature",
+      "monthly": true,
+      "locations": [
+        "taipei_station",
+        "taichung_station",
+        "stn_chm00059358",
+        "stn_chm00059559",
+        "stn_chm00059567",
+        "stn_twi0000rckh"
+      ],
+      "observations": [
+        {"variable_id": "station_temp", "aggregation": "station"}
+      ],
+      "models": [
+        {"variable_id": "gldas_tair", "source": "grid_cube_cell", "cube_id": "gldas_tair"},
+        {"variable_id": "merra2_t2m", "source": "grid_cube_cell", "cube_id": "merra2_t2m"},
+        {
+          "variable_id": "power_t2m",
+          "source": "series",
+          "aggregation": "point",
+          "only_locations": ["taipei_station", "taichung_station"],
+          "location_map": {"taipei_station": "taipei", "taichung_station": "taichung"}
+        }
+      ]
+    },
+    {
+      "id": "taiwan_gistemp",
+      "quantity": "near_surface_air_temperature",
+      "monthly": true,
+      "locations": ["taipei", "taichung", "kaohsiung", "hualien", "yushan"],
+      "observations": [
+        {"variable_id": "gistemp_anom", "aggregation": "point"}
+      ],
+      "models": [
+        {"variable_id": "gldas_tair", "source": "series", "aggregation": "point"},
+        {"variable_id": "merra2_t2m", "source": "series", "aggregation": "point"},
+        {"variable_id": "power_t2m", "source": "series", "aggregation": "point"}
+      ]
+    },
+    {
+      "id": "world_city",
+      "quantity": "near_surface_air_temperature",
+      "monthly": false,
+      "locations": [
+        "tokyo", "delhi", "beijing", "jakarta", "cairo", "lagos", "london",
+        "moscow", "new_york", "los_angeles", "sao_paulo", "sydney"
+      ],
+      "observations": [
+        {"variable_id": "ghcnm_tavg", "aggregation": "point"},
+        {"variable_id": "ghcnm_tavg_unadj", "aggregation": "point"},
+        {"variable_id": "gistemp_anom", "aggregation": "point"}
+      ],
+      "models": [
+        {"variable_id": "gldas_tair", "source": "series", "aggregation": "point"},
+        {"variable_id": "merra2_t2m", "source": "series", "aggregation": "point"}
+      ]
+    },
+    {
+      "id": "global",
+      "quantity": "near_surface_air_temperature",
+      "monthly": true,
+      "locations": ["global"],
+      "observations": [
+        {"variable_id": "gistemp_anom", "aggregation": "area_mean"}
+      ],
+      "models": [
+        {"variable_id": "merra2_t2m", "source": "series", "aggregation": "area_mean_grid"}
+      ]
+    }
+  ],
+  "related_not_same_quantity": [
+    {
+      "variables": ["modis_lst", "modis_lst_pc"],
+      "quantity": "land_surface_skin_temperature",
+      "note": "MODIS land surface temperature is the radiometric skin temperature of the surface under clear sky, not the 2 m air temperature; it is not paired with station air temperature or GISTEMP."
+    },
+    {
+      "variables": ["airs_tsurf"],
+      "quantity": "satellite_retrieved_surface_air_temperature",
+      "note": "AIRS surface air temperature is a satellite retrieval (an observation, not a model), so it is not on the model side; AIRS skin temperature (surfskintemp) is a different quantity from air temperature."
+    },
+    {
+      "variables": ["gldas_evap", "gldas_soilmoist"],
+      "quantity": "evapotranspiration_and_soil_moisture",
+      "note": "No observation series is available to pair with: SMAP has 0 recommended-quality retrievals over Taiwan (docs/data/sources/smap.md) and there is no evapotranspiration observation in this project."
+    }
+  ]
+}

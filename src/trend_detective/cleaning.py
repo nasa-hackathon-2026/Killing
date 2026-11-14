@@ -87,6 +87,8 @@ class KnownIssue:
     variable_pattern: str | None = None
     # 只適用某一種聚合方式（例如只有點位序列）；None 是全部
     aggregation: str | None = None
+    # 只適用地點 id 符合這個正規表示式的序列（#97：某個測站、某幾個格子）；None 是全部
+    location_pattern: str | None = None
     period_start: str | None = None
     period_end: str | None = None
     flag_months: bool = False
@@ -94,8 +96,18 @@ class KnownIssue:
     # 已查證的跳變月份（新的一段從這個月開始）；資料探勘的分段距平用（#85）
     break_months: tuple[str, ...] | None = None
 
-    def matches(self, variable_id: str, aggregation: str | None = None) -> bool:
+    def matches(
+        self,
+        variable_id: str,
+        aggregation: str | None = None,
+        location_id: str | None = None,
+    ) -> bool:
         if self.aggregation is not None and aggregation != self.aggregation:
+            return False
+        # 限定地點的問題：呼叫端沒給地點時不算符合（寧可少標，不把別的地點標進來）
+        if self.location_pattern is not None and (
+            location_id is None or re.search(self.location_pattern, location_id) is None
+        ):
             return False
         if self.variable_id is not None:
             return self.variable_id == variable_id
@@ -122,9 +134,16 @@ def load_seed(path: Path = CLEANING_SEED) -> tuple[CleaningRules, list[KnownIssu
 
 
 def issues_for(
-    variable_id: str, issues: list[KnownIssue], aggregation: str | None = None
+    variable_id: str,
+    issues: list[KnownIssue],
+    aggregation: str | None = None,
+    location_id: str | None = None,
 ) -> list[KnownIssue]:
-    return [issue for issue in issues if issue.matches(variable_id, aggregation)]
+    return [
+        issue
+        for issue in issues
+        if issue.matches(variable_id, aggregation, location_id)
+    ]
 
 
 def is_auxiliary(variable_id: str, issues: list[KnownIssue]) -> bool:
@@ -288,12 +307,13 @@ def clean_series(
     *,
     variable_id: str,
     aggregation: str | None = None,
+    location_id: str | None = None,
     retrieved_at: str | None,
     rules: CleaningRules,
     issues: list[KnownIssue],
 ) -> CleanedSeries:
     """把一條序列的 `points` 展成逐月骨架並加上旗標、距平與補值。"""
-    matched = issues_for(variable_id, issues, aggregation)
+    matched = issues_for(variable_id, issues, aggregation, location_id)
     known = tuple(issue.id for issue in matched)
     auxiliary = any(issue.kind == KIND_AUXILIARY for issue in matched)
     if not points:

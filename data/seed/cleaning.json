@@ -169,6 +169,75 @@
       "summary_en": "OMI observation geometry (solar and viewing zenith angle). A trend reflects sampling changes, not a physical quantity.",
       "source_doc": "AGENTS.md",
       "issue_ref": "#68"
+    },
+    {
+      "id": "auxiliary_airs_totalcounts",
+      "kind": "auxiliary",
+      "variable_pattern": "^airs_totalcounts_",
+      "period_start": null,
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "AIRS total observation counts (TotalCounts). A trend reflects sampling or algorithm changes, not a physical quantity.",
+      "source_doc": "docs/data/postgres.md",
+      "issue_ref": "#91, #97"
+    },
+    {
+      "id": "auxiliary_imerg_quality",
+      "kind": "auxiliary",
+      "variable_pattern": "^(gpm_3imergm_07_(precipitationqualityindex|randomerror)|imerg_gaugerelativeweighting)$",
+      "period_start": null,
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "IMERG quality fields (quality index, random error, gauge relative weighting). They describe the estimate, not a physical quantity.",
+      "source_doc": "docs/data/postgres.md",
+      "issue_ref": "#91, #97"
+    },
+    {
+      "id": "station_temp_kaohsiung_airport_sampling",
+      "kind": "sampling_change",
+      "variable_id": "station_temp",
+      "location_pattern": "^stn_twi0000rckh$",
+      "period_start": null,
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "Kaohsiung International Airport (TWI0000RCKH): the median number of observations per day rose from about 24 (2001-2005) to 44 (2021-2025). The 2001-2025 trend is 0.465 degC per decade with all observations and 0.334 when only 3-hourly observations are kept; the monthly mean is not corrected for this.",
+      "source_doc": "docs/data/sources/ghcnh_taiwan.md",
+      "issue_ref": "#88"
+    },
+    {
+      "id": "gistemp_land_no_value_after_2013_12",
+      "kind": "no_data",
+      "variable_id": "gistemp_land_anom",
+      "location_pattern": "^(kaohsiung|hualien|yushan)$",
+      "period_start": "2014-01-01",
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "The land-only GISTEMP product (250 km smoothing) has no value after 2013-12 in the 2-degree cell that contains Kaohsiung, Hualien and Yushan, so a 2001-2025 comparison only has 2001-2013 there.",
+      "source_doc": "docs/data/sources/gistemp.md",
+      "issue_ref": "#89"
+    },
+    {
+      "id": "ghcnm_taiwan_no_data_after_2013_12",
+      "kind": "no_data",
+      "variable_pattern": "^ghcnm_tavg",
+      "location_pattern": "^(taipei|taichung|kaohsiung|hualien|yushan|taipei_station|taichung_station)$",
+      "period_start": "2014-01-01",
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "GHCNm v4 records of the Taiwan stations all end by 2013-12 (Taipei has 141 months in 2001-2025, the others fewer), so no Taiwan location has a GHCNm series.",
+      "source_doc": "docs/data/sources/ghcnm.md",
+      "issue_ref": "#87"
+    },
+    {
+      "id": "smap_taiwan_no_recommended_retrievals",
+      "kind": "no_data",
+      "variable_id": "smap_sm_l3",
+      "period_start": null,
+      "period_end": null,
+      "flag_months": false,
+      "summary_en": "With the recommended quality filter (retrieval_qual_flag 0 or 8), SPL3SMP V009 has 0 valid retrievals over Taiwan: 10 locations, 4,160 days (2015-03-31 to 2026-11-13), 0 valid months out of 141, so there is no series.",
+      "source_doc": "docs/data/sources/smap.md",
+      "issue_ref": "#90"
     }
   ]
 }
