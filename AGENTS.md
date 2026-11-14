@@ -66,6 +66,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 每條序列的原始回應存到 `data/raw/giovanni/<變數>__<地點>.csv`（不進 git），之後建 SQLite 的來源表用（#26）。
 - 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 README「原始資料」。
 
+## 全球格點月資料（試做，#47）
+每個網格一條月序列，給之後的全球地圖用；和 `data/snapshot/` 的序列分開，快照指令不會動它。
+
+- 重產：`uv run python -m trend_detective.grid_fetch`（`.env` 要有 `EARTHDATA_TOKEN`；加 `--product <id>` 只跑一個、`--since YYYY-MM` 只抓某月之後）。產品清單在 `data/seed/grids.json`，目前是 `merra2_t2m`（M2IMNXASM 的 T2M，0.5° × 0.625°）與 `gldas_soilmoist`（GLDAS_NOAH025_M 的 SoilMoi0_10cm_inst，0.25°）。兩個全期約 3 分鐘、下載約 420 MB。
+- 取得方式：CMR 查每個月的 granule，經 Earthdata Cloud OPeNDAP（`opendap.earthdata.nasa.gov`）用 `dap4.ce` 只取一個變數，每月一個約 0.5–0.8 MB 的 NetCDF。由最新月份往回抓，已下載的不重抓；偶發的 403 或逾時重跑一次就會補上。
+- 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN；逐月原始檔在同目錄的 `months/`。用 `trend_detective.grid.read_cube` 讀。只含「從最新月份往回連續不中斷」的月份。
+- 前端衍生檔（進 git）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`、`exploratory_linear_slope_per_decade.i16`。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。降成 1° 緯度帶（MERRA-2 經度 1.25°、GLDAS 1°），面積加權。讀法的參考實作是 `trend_detective.grid.read_frontend`。
+- 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
+- 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
+
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
 
