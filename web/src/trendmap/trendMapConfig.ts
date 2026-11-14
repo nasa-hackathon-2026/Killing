@@ -35,6 +35,10 @@ export type PaletteId = keyof typeof PALETTES;
 export type TrendMapVariable = {
   // Folder name under data/grid/.
   id: string;
+  // Name in the selector: `name_en` of data/grid/<id>/meta.json, which ends
+  // with the product, so the three temperature variables can be told apart.
+  // The legend title reads the same field from the file.
+  label: string;
   palette: PaletteId;
   // Optional display conversion of the slope: shown value = stored value ×
   // factor, labelled with `unit`. Without it the unit of the file is shown
@@ -44,10 +48,19 @@ export type TrendMapVariable = {
 
 // The order here is the order of the selector.
 export const TREND_MAP_VARIABLES: TrendMapVariable[] = [
-  { id: "imerg_precip", palette: "brown-teal" },
-  { id: "gldas_tair", palette: "blue-red" },
+  {
+    id: "imerg_precip",
+    label: "Precipitation (GPM IMERG Final)",
+    palette: "brown-teal",
+  },
+  {
+    id: "gldas_tair",
+    label: "Near-surface air temperature (GLDAS Noah)",
+    palette: "blue-red",
+  },
   {
     id: "gldas_evap",
+    label: "Evapotranspiration (GLDAS Noah)",
     palette: "brown-teal",
     display: {
       factor: 86400,
@@ -55,10 +68,26 @@ export const TREND_MAP_VARIABLES: TrendMapVariable[] = [
       note: "Shown as mm/day (kg m-2 s-1 × 86,400).",
     },
   },
-  { id: "gldas_soilmoist", palette: "brown-teal" },
-  { id: "airs_tsurf", palette: "blue-red" },
-  { id: "airs_h2ovap", palette: "brown-teal" },
-  { id: "merra2_t2m", palette: "blue-red" },
+  {
+    id: "gldas_soilmoist",
+    label: "Soil moisture 0-10 cm (GLDAS Noah)",
+    palette: "brown-teal",
+  },
+  {
+    id: "airs_tsurf",
+    label: "Surface air temperature (AIRS)",
+    palette: "blue-red",
+  },
+  {
+    id: "airs_h2ovap",
+    label: "Total column water vapor (AIRS)",
+    palette: "brown-teal",
+  },
+  {
+    id: "merra2_t2m",
+    label: "2 m air temperature (MERRA-2)",
+    palette: "blue-red",
+  },
 ];
 
 // The colour range is symmetric, ±L, where L is this quantile of the absolute
@@ -73,9 +102,10 @@ export const RANGE_QUANTILE = 0.98;
 export const SIGNIFICANT_ALPHA = 1;
 export const NOT_SIGNIFICANT_ALPHA = 0.28;
 
-// Overlay opacity: the starting value and the range of the slider. Below 1
-// the coastlines of the surface image stay visible.
-export const DEFAULT_OVERLAY_OPACITY = 0.7;
+// Overlay opacity: the starting value and the range of the slider. At 0.4
+// the coastlines of the surface image still show through variables that have
+// a value in every cell (IMERG, AIRS, MERRA-2) and the colours stay readable.
+export const DEFAULT_OVERLAY_OPACITY = 0.4;
 export const MIN_OVERLAY_OPACITY = 0.2;
 
 // Radius of the overlay shell; the Earth surface is 1 and the closer Taiwan

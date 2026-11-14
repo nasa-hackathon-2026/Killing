@@ -119,6 +119,10 @@ body,
   margin: 0 0 8px;
 }
 
+.month span {
+  white-space: nowrap;
+}
+
 .reading {
   margin-left: auto;
   color: #d5e4f5;

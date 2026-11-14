@@ -290,4 +290,10 @@ describe("loadTrendMap", () => {
     expect(TREND_MAP_VARIABLES).toHaveLength(7);
     await expect(loadTrendMap("omi_no2")).rejects.toThrow(/no trend map/);
   });
+
+  it("names each variable with its product so the selector can tell them apart", () => {
+    const labels = TREND_MAP_VARIABLES.map((variable) => variable.label);
+    expect(new Set(labels).size).toBe(labels.length);
+    for (const label of labels) expect(label).toMatch(/ \(.+\)$/);
+  });
 });

@@ -160,8 +160,7 @@ export function App() {
             <option value="">Off</option>
             {TREND_MAP_VARIABLES.map((variable) => (
               <option key={variable.id} value={variable.id}>
-                {layerRegistry.find((layer) => layer.id === variable.id)
-                  ?.nameEn ?? variable.id}
+                {variable.label}
               </option>
             ))}
           </select>

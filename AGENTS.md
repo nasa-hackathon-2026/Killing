@@ -176,14 +176,14 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
 
 ## 前端的全球趨勢地圖（#72）
-主畫面上方的「Global trend map」選單（預設 Off）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。
+主畫面上方的「Global trend map」選單（預設 Off；選項名稱是 `trendMapConfig.ts` 的 `label`，與 `meta.json` 的 `name_en` 相同、帶產品簡稱）把一個變數的逐格點趨勢地圖疊在地球上，旁邊是圖例；網址參數 `?trendmap=<變數 id>`，可和 `?layers=` 並用。程式都在 `web/src/trendmap/`，只呈現數字與方法，不寫解讀。
 
 - **要調的東西都在 `web/src/trendmap/trendMapConfig.ts`**：提供哪些變數與各用哪個色階（`TREND_MAP_VARIABLES`、`PALETTES`：氣溫用藍—白—紅、水相關用棕—白—青綠，都是 ColorBrewer 的色盲友善色階）、色階範圍取絕對斜率的哪個分位數（`RANGE_QUANTILE`，0.98；對稱的 ±L，L 取兩位有效數字，格子等權、沒有面積加權，超出的用端點色）、顯著與不顯著格子的不透明度（`SIGNIFICANT_ALPHA`、`NOT_SIGNIFICANT_ALPHA`）、疊加層的預設不透明度與球殼半徑、顯示用的單位換算（`display`，目前只有 `gldas_evap` 換成 mm/day；K 的差值一律標 °C）。
 - **顯著性的畫法**：FDR 校正後顯著（類別 3）全彩；不顯著（1）與只在校正前顯著（2）同樣淡化；缺值或不分析（0）完全透明。圖例有說明。
 - **讀檔與上色是純函式**（`trendGrid.ts`，有測試）：`trendGridSpec` 從 `meta.json` 讀網格與兩個趨勢圖層，排列方式或編碼和預期不同就丟錯而不猜；`decodeSlopes`／`decodeSignificance`、`symmetricLimit`、`paintTrendMap`。`loadTrendMap.ts` 抓三個檔，`useTrendMap.ts` 是 hook。
 - **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
 - **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES`（`meta.json`、`trend_slope_per_decade.i16`、`trend_significance.u8`），7 個變數共約 1.3 MB；逐年平均與月氣候值（共約 30 MB）不進 `dist`，開發伺服器也不提供。之後前端要讀其他圖層，就把檔名加進這個清單。
-- 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，要看海岸線就把圖例的 Opacity 調低；沒有點選格子看數值的功能。
+- 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77；AIRS、IMERG 看得出海岸線，MERRA-2 校正後顯著的淺色格子仍會蓋住陸地），要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。
