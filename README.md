@@ -87,6 +87,7 @@ uv run python -m trend_detective.sqlite_export
 | `src_harmony` | Harmony 區域平均的一筆原始值（月或日） | 追溯區域平均序列 |
 | `src_nasa_power` | NASA POWER 的一個原始鍵（含年平均 `YYYY13`） | 追溯 `power_t2m` |
 | `src_noaa_ghcnh` | 測站當地日的日平均與觀測筆數 | 追溯測站月均溫（不含逐時原始值） |
+| `src_appeears` | AppEEARS（MODIS）一個合成期的區域統計量：平均、標準差、像元數… | 追溯 `modis_ndvi`、`modis_lst` |
 
 來源表都有 `variable_id`、`location_id`，可以對回 `observations`。例如確認台中 2020-07 的臭氧月值是哪幾天平均出來的：
 
@@ -101,4 +102,4 @@ WHERE o.variable_id = 'omi_o3' AND o.location_id = 'taichung'
 -- 2020-07-01 | 275.383 | 275.383 | 23
 ```
 
-限制：單位沒有換算（`merra2_t2m` 是 K、`power_t2m` 是 C、`station_temp` 是 degC），跨變數比較要自己換算；MODIS（AppEEARS）的來源表還沒有，等統計 CSV 下載後再加。
+限制：單位沒有換算（`merra2_t2m` 是 K、`power_t2m` 是 C、`station_temp` 是 degC），跨變數比較要自己換算。

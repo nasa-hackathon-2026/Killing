@@ -23,6 +23,7 @@ ACCESS = {
     ("giovanni", "point"): "NASA Giovanni time-series API (point)",
     ("giovanni", "area_mean"): "NASA Harmony / Giovanni Averaging Service (area mean)",
     ("nasa_power", "point"): "NASA POWER Monthly API (point)",
+    ("appeears", "area_mean"): "NASA AppEEARS area request (area statistics)",
     ("noaa_ghcnh", "station"): "AWS Open Data (NOAA NODD)",
 }
 

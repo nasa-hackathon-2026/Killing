@@ -241,3 +241,45 @@ def test_without_raw_files_the_unified_table_is_complete_and_the_gap_is_reported
     assert series_without_source_rows(db_path) == [
         ("imerg_precip", "taichung", "point")
     ]
+
+
+def test_appeears_series_trace_back_to_per_composite_statistics(tmp_path: Path):
+    fixture = FIXTURES / "appeears_ndvi"
+    raw = tmp_path / "raw"
+    task_dir = raw / "appeears" / "modis_ndvi" / "task-1"
+    task_dir.mkdir(parents=True)
+    (task_dir / "submission.json").write_text(
+        json.dumps(
+            {
+                "task_id": "task-1",
+                "request": {"task_name": "trend-detective-modis_ndvi-20261114"},
+            }
+        )
+    )
+    for path in fixture.iterdir():
+        (task_dir / path.name).write_text(path.read_text(encoding="utf-8"))
+    ndvi = {
+        "id": "modis_ndvi",
+        "source": "appeears",
+        "source_variable_id": "_1_km_monthly_NDVI",
+        "product": "MOD13A3.061",
+        "product_version": "061",
+        "native_temporal_res": "month",
+        "is_nasa": True,
+        "unit": "1",
+        "valid_range": [-1, 1],
+    }
+    snapshot_dir = tmp_path / "snapshot"
+    build_snapshot(
+        None, snapshot_dir, [ndvi], [LOCATIONS[2]], appeears_dir=raw / "appeears", **RUN
+    )
+    db_path = tmp_path / "trend.sqlite"
+
+    build_database(snapshot_dir, raw, db_path)
+
+    assert _query(db_path, "SELECT source_table FROM series") == [("src_appeears",)]
+    assert _query(
+        db_path,
+        "SELECT date, pixel_count, mean FROM src_appeears WHERE location_id = 'taiwan' ORDER BY date LIMIT 1",
+    ) == [("2001-01-01", 46822, 0.6766119)]
+    assert series_without_source_rows(db_path) == []

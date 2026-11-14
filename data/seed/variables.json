@@ -206,5 +206,44 @@
     "note_zh": "交叉驗證用：和 merra2_t2m（Giovanni，單位 K）同源，換算後應該很接近。不要接成同一條線。POWER 的 IMERG 降水參數對台中回傳全是缺值，沒有使用。",
     "citation": "The data was obtained from the National Aeronautics and Space Administration (NASA) Langley Research Center (LaRC) Prediction of Worldwide Energy Resources (POWER) Project funded through the NASA Earth Science Division. POWER Monthly and Annual API v2.10.0, accessed 2026-11-14.",
     "product": "MERRA-2 (via NASA POWER)"
+  },
+  {
+    "id": "modis_ndvi",
+    "name_zh": "植生綠度",
+    "name_en": "Vegetation greenness, NDVI (MODIS Terra)",
+    "definition_zh": "衛星看到的地面有多綠：植物越茂密、越健康，數字越接近 1；裸地、都市接近 0，水面是負的。沒有單位。",
+    "category": "植物",
+    "source": "appeears",
+    "source_variable_id": "_1_km_monthly_NDVI",
+    "product": "MOD13A3.061",
+    "product_version": "061",
+    "native_temporal_res": "month",
+    "is_nasa": true,
+    "unit": "1",
+    "valid_range": [
+      -1,
+      1
+    ],
+    "doi": "10.5067/MODIS/MOD13A3.061",
+    "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均，含海面與雲的影響。coverage 是有值像元數 ÷ 這個區域出現過的最大像元數。"
+  },
+  {
+    "id": "modis_lst",
+    "name_zh": "地表溫度",
+    "name_en": "Daytime land surface temperature (MODIS Terra)",
+    "definition_zh": "衛星量到的地面本身有多熱（不是空氣溫度），這裡是白天約上午十點半衛星經過時的值，單位是絕對溫度 K。",
+    "category": "能量（地面）",
+    "source": "appeears",
+    "source_variable_id": "LST_Day_1km",
+    "product": "MOD11A2.061",
+    "product_version": "061",
+    "native_temporal_res": "8day",
+    "is_nasa": true,
+    "unit": "K",
+    "valid_range": [
+      250,
+      340
+    ],
+    "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。"
   }
 ]

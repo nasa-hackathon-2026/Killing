@@ -243,6 +243,49 @@
       "unit": "C",
       "valid_from": "2001-01-01",
       "valid_to": "2026-09-01"
+    },
+    {
+      "id": "modis_ndvi",
+      "name_zh": "植生綠度",
+      "name_en": "Vegetation greenness, NDVI (MODIS Terra)",
+      "definition_zh": "衛星看到的地面有多綠：植物越茂密、越健康，數字越接近 1；裸地、都市接近 0，水面是負的。沒有單位。",
+      "category": "植物",
+      "source": "appeears",
+      "source_variable_id": "_1_km_monthly_NDVI",
+      "product": "MOD13A3.061",
+      "product_version": "061",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "1",
+      "valid_range": [
+        -1,
+        1
+      ],
+      "doi": "10.5067/MODIS/MOD13A3.061",
+      "note_zh": "區域平均：區域 bbox 內所有 1 km 像元的平均，含海面與雲的影響。coverage 是有值像元數 ÷ 這個區域出現過的最大像元數。",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "modis_lst",
+      "name_zh": "地表溫度",
+      "name_en": "Daytime land surface temperature (MODIS Terra)",
+      "definition_zh": "衛星量到的地面本身有多熱（不是空氣溫度），這裡是白天約上午十點半衛星經過時的值，單位是絕對溫度 K。",
+      "category": "能量（地面）",
+      "source": "appeears",
+      "source_variable_id": "LST_Day_1km",
+      "product": "MOD11A2.061",
+      "product_version": "061",
+      "native_temporal_res": "8day",
+      "is_nasa": true,
+      "unit": null,
+      "valid_range": [
+        250,
+        340
+      ],
+      "note_zh": "8 日合成依起始日歸月後取平均；n_samples 是當月有值的合成期數。只有晴空像元有值，多雲月份的 coverage 會偏低。分兩個 AppEEARS task 送出（2001–2013、2014–今）再接起來。",
+      "valid_from": null,
+      "valid_to": null
     }
   ],
   "locations": [
@@ -1155,6 +1198,51 @@
       "last_month": "2026-09-01"
     },
     {
+      "variable_id": "modis_ndvi",
+      "location_id": "central",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi__central__area_mean.json",
+      "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi",
+      "location_id": "east",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi__east__area_mean.json",
+      "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi",
+      "location_id": "north",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi__north__area_mean.json",
+      "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi",
+      "location_id": "south",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi__south__area_mean.json",
+      "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "modis_ndvi",
+      "location_id": "taiwan",
+      "aggregation": "area_mean",
+      "file": "series/modis_ndvi__taiwan__area_mean.json",
+      "n_points": 310,
+      "first_month": "2001-01-01",
+      "last_month": "2026-10-01"
+    },
+    {
       "variable_id": "omi_aerosol",
       "location_id": "central",
       "aggregation": "area_mean",
@@ -1471,7 +1559,7 @@
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T09:13:28Z",
+    "generated_at": "2026-11-14T11:32:51Z",
     "latest_month": {
       "imerg_precip": "2025-09-01",
       "gldas_tair": "2026-07-01",
@@ -1484,7 +1572,9 @@
       "omi_o3": "2026-11-01",
       "omi_aerosol": "2026-11-01",
       "station_temp": "2026-10-01",
-      "power_t2m": "2026-09-01"
+      "power_t2m": "2026-09-01",
+      "modis_ndvi": "2026-10-01",
+      "modis_lst": null
     }
   }
 }

@@ -916,3 +916,91 @@ def test_a_full_regeneration_moves_only_the_snapshot_date_when_data_is_unchanged
     assert catalog_after["snapshot"]["generated_at"] == "2026-11-15T09:00:00Z"
     catalog_before["snapshot"]["generated_at"] = "2026-11-15T09:00:00Z"
     assert catalog_after == catalog_before
+
+
+APPEEARS_FIXTURE = Path(__file__).parent / "fixtures" / "appeears_ndvi"
+NDVI = {
+    "id": "modis_ndvi",
+    "source": "appeears",
+    "source_variable_id": "_1_km_monthly_NDVI",
+    "product": "MOD13A3.061",
+    "product_version": "061",
+    "native_temporal_res": "month",
+    "is_nasa": True,
+    "unit": "1",
+    "valid_range": [-1, 1],
+}
+EAST = {"id": "east", "kind": "region", "bbox": [121.0, 22.3, 121.8, 24.6]}
+
+
+def _appeears_task(
+    root: Path, task_id: str, task_name: str, *, downloaded: bool = True
+) -> None:
+    task_dir = root / "modis_ndvi" / task_id
+    task_dir.mkdir(parents=True)
+    (task_dir / "submission.json").write_text(
+        json.dumps({"task_id": task_id, "request": {"task_name": task_name}})
+    )
+    if downloaded:
+        for path in APPEEARS_FIXTURE.iterdir():
+            (task_dir / path.name).write_text(path.read_text(encoding="utf-8"))
+
+
+def test_downloaded_appeears_statistics_become_area_mean_series_per_region(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114")
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [NDVI], [TAIWAN, EAST], appeears_dir=raw, **RUN
+    )
+
+    assert result.failures == {}
+    assert result.succeeded == [("modis_ndvi", "taiwan"), ("modis_ndvi", "east")]
+    series = json.loads(
+        (tmp_path / "snap" / "series" / "modis_ndvi__east__area_mean.json").read_text()
+    )
+    assert series["source_api"] == "appeears"
+    assert series["unit"] == "1"
+    assert [p["month"] for p in series["points"]] == [
+        "2001-01-01",
+        "2001-02-01",
+        "2026-10-01",
+    ]
+    assert series["points"][0]["value"] == 0.7721598
+    assert all(-1 <= p["value"] <= 1 for p in series["points"])
+    # coverage = 有值像元數 ÷ 這個區域出現過的最大像元數（14850）
+    assert series["points"][0]["coverage"] == 14730 / 14850
+    assert series["request"]["tasks"] == [
+        {"task_name": "trend-detective-modis_ndvi-20261114", "task_id": "task-1"}
+    ]
+
+
+def test_a_variable_sent_in_parts_is_not_written_until_every_part_is_downloaded(
+    tmp_path: Path,
+):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114-p1of2")
+    _appeears_task(
+        raw, "task-2", "trend-detective-modis_ndvi-20261114-p2of2", downloaded=False
+    )
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [NDVI], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    assert "還沒下載" in result.failures[("modis_ndvi", "taiwan")]
+    assert not (tmp_path / "snap" / "series").exists()
+
+
+def test_a_value_outside_the_plausible_range_fails_the_variable(tmp_path: Path):
+    raw = tmp_path / "raw" / "appeears"
+    _appeears_task(raw, "task-1", "trend-detective-modis_ndvi-20261114")
+    kelvin_by_mistake = {**NDVI, "valid_range": [250, 340]}
+
+    result = build_snapshot(
+        None, tmp_path / "snap", [kelvin_by_mistake], [TAIWAN], appeears_dir=raw, **RUN
+    )
+
+    assert "合理範圍" in result.failures[("modis_ndvi", "taiwan")]

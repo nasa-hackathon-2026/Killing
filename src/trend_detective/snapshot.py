@@ -19,7 +19,7 @@ from typing import Any
 
 import httpx
 
-from trend_detective import ghcnh, power
+from trend_detective import appeears_stats, ghcnh, power
 from trend_detective.data_lists import OUT_DIR as LISTS_DIR
 from trend_detective.data_lists import write_lists
 from trend_detective.env import read_secret
@@ -54,7 +54,7 @@ STATION_START_YEAR = 2000
 STATION_UTC_OFFSET_HOURS = 8
 # 靠海點位被遮罩時，最多往內陸移幾格
 MAX_INLAND_STEPS = 2
-SOURCES = ("giovanni", "harmony", "noaa_ghcnh", "nasa_power")
+SOURCES = ("giovanni", "harmony", "noaa_ghcnh", "nasa_power", "appeears")
 # 區域平均一次同時跑幾個 Harmony job，以及每個 job 最多等多久
 HARMONY_BATCH = 6
 HARMONY_POLL_SECONDS = 10
@@ -144,6 +144,7 @@ def build_snapshot(
     harmony_client: HarmonyClient | None = None,
     sleep: Callable[[float], None] = time.sleep,
     stamp: bool = False,
+    appeears_dir: Path | None = None,
 ) -> SnapshotResult:
     """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
@@ -210,6 +211,8 @@ def build_snapshot(
             result,
             sleep,
         )
+    if appeears_dir is not None:
+        _appeears_series(appeears_dir, snapshot_dir, variables, regions, now, result)
     variable_ids = {variable["id"] for variable in variables}
     location_ids = {location["id"] for location in locations}
     all_series = [
@@ -443,6 +446,107 @@ def _area_series_batch(
                 waited += HARMONY_POLL_SECONDS
 
 
+def _appeears_series(
+    appeears_dir: Path,
+    snapshot_dir: Path,
+    variables: list[dict[str, Any]],
+    regions: list[dict[str, Any]],
+    now: str,
+    result: SnapshotResult,
+) -> None:
+    """把已下載的 AppEEARS 統計 CSV 轉成區域月序列。不連網；下載由 `appeears download` 負責。
+
+    一個變數可能分成幾個 task 送出（LST 分兩段）：取最新一批，全部分段都下載好才寫，
+    免得寫出只有前半段的序列。
+    """
+    for variable in variables:
+        if variable["source"] != "appeears":
+            continue
+        keys = [(variable["id"], region["id"]) for region in regions]
+        try:
+            rows_by_region, tasks = appeears_rows(
+                appeears_dir / variable["id"], variable
+            )
+            low, high = variable["valid_range"]
+            for region in regions:
+                rows = rows_by_region.get(region["id"], [])
+                if not rows:
+                    raise ValueError(f"統計 CSV 裡沒有區域 {region['id']}")
+                bad = [
+                    r.mean
+                    for r in rows
+                    if r.mean is not None and not low <= r.mean <= high
+                ]
+                if bad:
+                    raise ValueError(
+                        f"{region['id']} 有 {len(bad)} 個值超出合理範圍 [{low}, {high}]，例如 {bad[0]}"
+                    )
+                series = Series(
+                    variable_id=variable["id"],
+                    location_id=region["id"],
+                    aggregation="area_mean",
+                    unit=variable["unit"],
+                    source_api="appeears",
+                    request={
+                        "product": variable["product"],
+                        "layer": variable["source_variable_id"],
+                        "bbox": region["bbox"],
+                        "tasks": tasks,
+                    },
+                    retrieved_at=now,
+                    product_version=variable["product_version"],
+                    grid=None,
+                    points=appeears_stats.composites_to_monthly_points(rows),
+                )
+                result.written.append(write_series(snapshot_dir, series))
+                result.succeeded.append((variable["id"], region["id"]))
+        except Exception as err:  # noqa: BLE001 單一變數失敗不中斷整批
+            for key in keys:
+                if key not in result.succeeded:
+                    result.failures[key] = f"{type(err).__name__}: {err}"
+
+
+def appeears_rows(
+    variable_dir: Path, variable: dict[str, Any]
+) -> tuple[dict[str, list[appeears_stats.StatRow]], list[dict[str, str]]]:
+    """讀最新一批 task 的統計 CSV，回傳 (區域 id → 依日期排序的列, task 清單)。"""
+    submissions = []
+    for path in sorted(variable_dir.glob("*/submission.json")):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        name = record["request"]["task_name"]
+        base, _, part = name.partition("-p")
+        total = int(part.split("of")[1]) if "of" in part else 1
+        submissions.append((base, name, total, record["task_id"], path.parent))
+    if not submissions:
+        raise ValueError(f"{variable_dir} 沒有送件紀錄；先跑 appeears submit")
+    latest = max(base for base, *_ in submissions)
+    batch = [item for item in submissions if item[0] == latest]
+    if len(batch) < batch[0][2]:
+        raise ValueError(f"{latest} 應有 {batch[0][2]} 個 task，只找到 {len(batch)} 個")
+    rows_by_region: dict[str, list[appeears_stats.StatRow]] = {}
+    tasks = []
+    for _, name, _, task_id, task_dir in batch:
+        stats = [p for p in task_dir.glob("*-Statistics.csv") if "QA" not in p.name]
+        requests = list(task_dir.glob("*-request.json"))
+        if not stats or not requests:
+            raise ValueError(
+                f"{name} 的統計 CSV 還沒下載（task 可能還在跑）；跑 appeears download"
+            )
+        regions = appeears_stats.region_ids_by_aid(
+            requests[0].read_text(encoding="utf-8")
+        )
+        for stat_path in stats:
+            for row in appeears_stats.parse_statistics_csv(
+                stat_path.read_text(encoding="utf-8")
+            ):
+                if row.dataset == variable["source_variable_id"] and row.aid in regions:
+                    rows_by_region.setdefault(regions[row.aid], []).append(row)
+        tasks.append({"task_name": name, "task_id": task_id})
+    for rows in rows_by_region.values():
+        rows.sort(key=lambda row: row.day)
+    return rows_by_region, sorted(tasks, key=lambda task: task["task_name"])
+
+
 def _power_series(
     http: httpx.Client,
     variable: dict[str, Any],
@@ -641,6 +745,7 @@ def main(argv: list[str] | None = None) -> int:
         station_http=httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None,
         power_http=httpx.Client(timeout=120) if "nasa_power" in sources else None,
         harmony_client=HarmonyClient(token) if token and "harmony" in sources else None,
+        appeears_dir=args.raw_dir / "appeears" if "appeears" in sources else None,
         # 快照日（generated_at）只在「全部來源都跑、沒有略過」時更新，就算資料沒變；
         # 只重抓部分來源時快照日不動，免得讓人以為全部重抓過
         stamp=not args.source and not skipped,
