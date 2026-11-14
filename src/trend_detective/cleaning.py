@@ -119,6 +119,36 @@ def is_auxiliary(variable_id: str, issues: list[KnownIssue]) -> bool:
     return any(i.kind == KIND_AUXILIARY for i in issues_for(variable_id, issues))
 
 
+DATA_KIND_SEED = Path("data/seed/data_kinds.json")
+DATA_KINDS = ("in_situ", "satellite_retrieval", "model", "unknown")
+
+
+def load_data_kind_rules(path: Path = DATA_KIND_SEED) -> list[dict[str, str]]:
+    """變數屬於哪一類資料（現場實測、衛星反演、模式推算）的規則；依序比對，先符合的為準。"""
+    return json.loads(path.read_text(encoding="utf-8"))["rules"]
+
+
+def data_kind_for(
+    variable: dict[str, Any], rules: list[dict[str, str]]
+) -> tuple[str, str | None]:
+    """回傳 (`data_kind`, 依據)。規則裡有的鍵都要符合；都不符合就是 `unknown`。"""
+    variable_id = variable.get("id") or ""
+    product = variable.get("product") or ""
+    for rule in rules:
+        if "variable_id" in rule and rule["variable_id"] != variable_id:
+            continue
+        if "variable_pattern" in rule and not re.search(
+            rule["variable_pattern"], variable_id
+        ):
+            continue
+        if "product_pattern" in rule and not re.search(
+            rule["product_pattern"], product
+        ):
+            continue
+        return rule["data_kind"], rule.get("note")
+    return "unknown", None
+
+
 def month_index(month: str) -> int:
     """`2004-10-01` → 2004 × 12 + 9（與 `trends.month_index` 相同）。"""
     return int(month[:4]) * 12 + int(month[5:7]) - 1

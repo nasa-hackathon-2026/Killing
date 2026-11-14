@@ -120,6 +120,15 @@ def inputs(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
             ],
         },
     )
+    _write(
+        root / "data_kinds.json",
+        {
+            "rules": [
+                {"variable_id": "tair", "data_kind": "model", "note": "forcing"},
+                {"variable_pattern": "^soil", "data_kind": "satellite_retrieval"},
+            ]
+        },
+    )
     # 2 × 2 的趨勢格點，涵蓋 22–24°N、120–122°E；斜率 0.1、0.2、0.3、缺值
     grid = root / "grid" / "tair"
     grid.mkdir(parents=True)
@@ -302,7 +311,15 @@ def test_summary_views_and_run_log(database: psycopg.Connection[Any]) -> None:
         "load",
         "clean",
     ]  # fmt: skip
+    assert _all(
+        database, "SELECT id, data_kind, data_kind_note FROM meta.variables ORDER BY 1"
+    ) == [("soil_ct", "satellite_retrieval", None), ("tair", "model", "forcing")]
     exported = pg.cleaning_summary(database, "core")
+    assert exported["data_kinds"]["variables"]["tair"]["data_kind"] == "model"
+    assert exported["data_kinds"]["counts"]["model"] == {
+        "n_variables": 1,
+        "n_series": 1,
+    }
     assert exported["totals"]["all"]["n_series"] == 2
     assert exported["totals"]["all"]["n_filled"] == 7
     assert set(exported["series"]) == {
