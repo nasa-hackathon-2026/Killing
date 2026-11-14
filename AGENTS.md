@@ -84,7 +84,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
 - 各產品檔案結構的坑（2026-11-14 實測，程式已處理）：IMERG 的變數在 `/Grid` 群組、軸是 `lon × lat`；AIRS 是 HDF-EOS2，變數在 `/ascending/Data_Fields` 等四個群組、沒有時間軸、緯度由北到南，而且 **OPeNDAP 給的 `YDim`／`XDim` 是格子的北緣與西緣，不是中心**（和檔案自己的 `Latitude`／`Longitude` 差半格），seed 用 `cell_reference: north_west_corner` 標記，建立方體時換算成中心；FLDAS 的座標叫 `X`、`Y`。
-- 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 月平均的立方體沒有做任何品質篩選以外的處理（檔案本身已是 L3 網格），雲量等篩選照產品原樣。
+- 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 的月平均沒有另外做品質或雲量篩選，照 L3 檔案裡的值直接平均。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

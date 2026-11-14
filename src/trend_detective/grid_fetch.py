@@ -695,13 +695,16 @@ def assemble_product(
     日資料產品的 `month_dir` 是逐日檔的目錄、`days` 是 CMR 列出的資料日：先算成月平均
     （放在 `<raw_dir>/<id>/months/`）再建立方體。
     """
+    recomputed = 0
     if product.temporal == "day":
         day_dir, month_dir = month_dir, raw_dir / product.id / "months"
-        aggregate_days(product, day_dir, month_dir, days)
+        recomputed = aggregate_days(product, day_dir, month_dir, days)
     cube_path = raw_dir / product.id / f"{product.id}.nc"
     derived_dir = out_dir / product.id
-    if cube_is_current(product, month_dir, cube_path) and (
-        not product.derive or (derived_dir / META_FILE).exists()
+    if (
+        not recomputed
+        and cube_is_current(product, month_dir, cube_path)
+        and (not product.derive or (derived_dir / META_FILE).exists())
     ):
         return f"{product.id}：立方體已是最新，未重建"
     built = build_cube(product, month_dir, cube_path)
@@ -762,7 +765,7 @@ def fetch_batch(
     wanted = {month: url for month, url in granules.items() if month >= start}
     result.months = len(wanted)
     try:
-        if len(batch.products) > 1:
+        if BATCH_DIR in batch.month_dir.parts:
             batch.month_dir.mkdir(parents=True, exist_ok=True)
             (batch.month_dir / "variables.json").write_text(
                 json.dumps(

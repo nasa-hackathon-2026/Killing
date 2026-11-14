@@ -804,3 +804,20 @@ def test_a_daily_product_run_ends_with_a_monthly_cube(tmp_path: Path):
     assert cube.months == [date(2004, 10, 1), date(2004, 11, 1)]
     assert cube.unit == "DU"
     assert (cube.values == 300.0).all()
+
+    # 最新的月份多了一天（值不同）：月份數沒變，立方體仍要跟著更新
+    days.append("2004-11-02")
+    write_day(tmp_path / "make", date(2004, 11, 2), [[100.0, 100.0], [100.0, 100.0]])
+    reply = day_path(tmp_path / "make", date(2004, 11, 2)).read_bytes()
+    with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+        run(
+            [product],
+            http=http,
+            token=SECRET,
+            raw_dir=tmp_path / "raw",
+            out_dir=tmp_path / "out",
+            report=lines.append,
+        )
+
+    cube = read_cube(tmp_path / "raw" / "demo_o3" / "demo_o3.nc")
+    assert cube.values[:, 0, 0].tolist() == [300.0, 200.0]
