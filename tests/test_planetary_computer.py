@@ -448,3 +448,122 @@ def test_ndvi_style_tile_is_scaled_by_the_multiplier_not_the_divisor():
     # bbox 內：列 0 的欄 1–3（fill、7000、6000）與列 1 的欄 2–3（7000、6000）
     assert stat.count == 4
     assert stat.mean == pytest.approx(0.65)
+
+
+# --- 點位取樣（#51）---
+# 點位視窗用的 raster（4 欄 × 3 列，第 0 欄貼著 110° 的 tile 邊界）。0 是 fill value。
+POINT_TILE = [
+    [15000, 15010, 0, 9999],
+    [15100, 15110, 15120, 9999],
+    [15200, 0, 15220, 9999],
+]
+
+
+def _window(lon: float, lat: float, size: int = 3) -> pc.TilePixels | None:
+    with rasterio.open(io.BytesIO(_geotiff(POINT_TILE, first_column=0))) as dataset:
+        return pc.read_point_window(
+            dataset, lon, lat, size, tile="h28v06", item_id="item"
+        )
+
+
+def test_point_window_is_the_block_centred_on_the_pixel_holding_the_point():
+    # (120.53, 23.95)：x = 120.53 × cos(23.95°) = 110.15°，落在欄 1、列 1
+    pixels = _window(120.53, 23.95)
+
+    assert pixels is not None
+    assert pixels.raw.tolist() == [row[:3] for row in POINT_TILE]
+    stat = pc.region_statistics([pixels], pc.EVERYWHERE)
+    # 9 個像元裡 2 個是 fill value；其餘 7 個的和 105760 ÷ 7 × 0.02
+    assert (stat.pixels_in_bbox, stat.count) == (9, 7)
+    assert stat.mean == pytest.approx(105760 / 7 * 0.02)
+    assert stat.minimum == pytest.approx(300.0)
+    assert stat.maximum == pytest.approx(304.4)
+
+
+def test_point_window_is_clipped_at_the_edge_of_the_file():
+    # (120.51, 24.05)：欄 0、列 0，視窗只剩左上角 2 × 2
+    pixels = _window(120.51, 24.05)
+
+    assert pixels is not None
+    assert pixels.raw.tolist() == [[15000, 15010], [15100, 15110]]
+    stat = pc.region_statistics([pixels], pc.EVERYWHERE)
+    assert (stat.pixels_in_bbox, stat.count) == (4, 4)
+    # (15000 + 15010 + 15100 + 15110) ÷ 4 × 0.02
+    assert stat.mean == pytest.approx(301.1)
+
+
+def test_point_outside_the_file_gives_no_window():
+    # 121.5 × cos(24.05°) = 110.95°：欄 9，超出 4 欄
+    assert _window(121.5, 24.05) is None
+    # 緯度 24.2 在第一列（24.0–24.1）之上
+    assert _window(120.53, 24.2) is None
+
+
+def test_window_of_one_pixel_is_just_the_pixel_and_even_sizes_are_rejected():
+    pixels = _window(120.53, 23.95, size=1)
+    assert pixels is not None
+    assert pixels.raw.tolist() == [[15110]]
+    with pytest.raises(pc.PlanetaryComputerError, match="奇數"):
+        _window(120.53, 23.95, size=2)
+
+
+def test_fetch_for_points_writes_the_window_mean_of_the_tile_holding_each_point(
+    tmp_path: Path,
+):
+    service = _service()
+    variable = pc.point_variable(
+        {
+            **VARIABLE,
+            "id": "modis_lst",
+            "source": "appeears",
+            "point_source": {
+                "source": "planetary_computer",
+                "pc_collection": "modis-11A2-061",
+                "window_pixels": 3,
+            },
+        }
+    )
+    assert variable is not None
+    points = [
+        # 西邊 tile 的欄 1、列 1
+        {"id": "west_point", "kind": "point", "lat": 23.95, "lon": 120.53},
+        # 121.07 × cos(23.95°) = 110.65°：全域欄 6，也就是東邊 tile 的欄 2、列 1
+        {"id": "east_point", "kind": "point", "lat": 23.95, "lon": 121.07},
+    ]
+
+    with httpx.Client(transport=httpx.MockTransport(service)) as http:
+        summary = pc.fetch_variable(
+            http,
+            variable,
+            points,
+            tmp_path,
+            today=date(2020, 1, 31),
+            workers=2,
+            sleep=lambda _: None,
+        )
+
+    assert summary["failures"] == {}
+    assert summary["window_pixels"] == 3
+    rows = pc.read_stats(tmp_path / "planetary_computer" / "modis_lst" / "stats.csv")
+    assert sorted(rows) == [("2020-01-01", "east_point"), ("2020-01-01", "west_point")]
+    west = rows[("2020-01-01", "west_point")]
+    # WEST_TILE 的欄 0–2 共 9 個值，和 143130 ÷ 9 × 0.02
+    assert (int(west["count"]), int(west["pixels_in_bbox"])) == (9, 9)
+    assert float(west["mean"]) == pytest.approx(143130 / 9 * 0.02)
+    assert west["tiles"] == "h28v06"
+    assert west["item_ids"] == "MOD11A2.A20200101.h28v06.061.1"
+    east = rows[("2020-01-01", "east_point")]
+    # EAST_TILE 的欄 1–3：一個 fill value，其餘 5 × 18000 + 3 × 17000 = 141000，÷ 8 × 0.02
+    assert (int(east["count"]), int(east["pixels_in_bbox"])) == (8, 9)
+    assert float(east["mean"]) == pytest.approx(352.5)
+    assert east["tiles"] == "h29v06"
+    # 查詢的 bbox 是點位的外框；token 沒有寫進任何檔案
+    assert service.searches[0]["bbox"] == [120.53, 23.95, 121.07, 23.95]
+    for path in tmp_path.rglob("*"):
+        if path.is_file():
+            assert "SECRET-SIGNATURE" not in path.read_text(encoding="utf-8")
+
+
+def test_variable_without_a_planetary_computer_point_source_has_no_point_fetch():
+    assert pc.point_variable(VARIABLE) is None
+    assert pc.point_variable({**VARIABLE, "point_source": {"source": "other"}}) is None
