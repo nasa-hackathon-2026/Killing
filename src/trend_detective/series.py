@@ -111,6 +111,7 @@ def write_catalog(
     series: list[Series],
     *,
     generated_at: str,
+    stamp: bool = False,
 ) -> Path:
     """寫目錄檔：變數、地點、每條序列的檔名與起訖月，以及各變數的最新月份。"""
     entries = []
@@ -143,5 +144,13 @@ def write_catalog(
         "snapshot": {"generated_at": generated_at, "latest_month": latest},
     }
     path = snapshot_dir / "catalog.json"
+    if stamp:
+        # 整份重產：就算內容沒變也把 generated_at 更新成這次的時間（快照日）
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(catalog, ensure_ascii=False, indent=2, allow_nan=False) + "\n",
+            encoding="utf-8",
+        )
+        return path
     _write_unless_same(path, catalog, ignore="snapshot.generated_at")
     return path

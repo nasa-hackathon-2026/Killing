@@ -862,3 +862,57 @@ def test_region_without_any_grid_cell_of_the_product_is_skipped_not_failed(
 
     assert submitted == []
     assert result.failures == {}
+
+
+def test_sources_that_did_not_run_keep_their_series_and_are_listed_as_not_updated(
+    tmp_path: Path,
+):
+    # 例如沒有 token：Giovanni 來源沒跑，但快照仍完整
+    build_snapshot(_client(), tmp_path, [PRECIP, POWER_T2M], [TAICHUNG], **RUN)
+    power_http = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200, text=POWER_FIXTURE.read_text(encoding="utf-8")
+            )
+        )
+    )
+
+    result = build_snapshot(
+        None, tmp_path, [PRECIP, POWER_T2M], [TAICHUNG], power_http=power_http, **RUN
+    )
+
+    assert result.failures == {}
+    assert result.not_updated == [("imerg_precip", "taichung", "point")]
+    catalog = json.loads((tmp_path / "catalog.json").read_text())
+    assert [s["variable_id"] for s in catalog["series"]] == [
+        "imerg_precip",
+        "power_t2m",
+    ]
+
+
+def test_a_full_regeneration_moves_only_the_snapshot_date_when_data_is_unchanged(
+    tmp_path: Path,
+):
+    build_snapshot(_client(), tmp_path, [PRECIP], [TAICHUNG], stamp=True, **RUN)
+    series_before = (
+        tmp_path / "series" / "imerg_precip__taichung__point.json"
+    ).read_bytes()
+    catalog_before = json.loads((tmp_path / "catalog.json").read_text())
+
+    build_snapshot(
+        _client(),
+        tmp_path,
+        [PRECIP],
+        [TAICHUNG],
+        stamp=True,
+        today=date(2026, 11, 15),
+        now="2026-11-15T09:00:00Z",
+    )
+
+    catalog_after = json.loads((tmp_path / "catalog.json").read_text())
+    assert (
+        tmp_path / "series" / "imerg_precip__taichung__point.json"
+    ).read_bytes() == series_before
+    assert catalog_after["snapshot"]["generated_at"] == "2026-11-15T09:00:00Z"
+    catalog_before["snapshot"]["generated_at"] = "2026-11-15T09:00:00Z"
+    assert catalog_after == catalog_before

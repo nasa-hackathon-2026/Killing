@@ -20,6 +20,8 @@ from typing import Any
 import httpx
 
 from trend_detective import ghcnh, power
+from trend_detective.data_lists import OUT_DIR as LISTS_DIR
+from trend_detective.data_lists import write_lists
 from trend_detective.env import read_secret
 from trend_detective.giovanni import (
     GiovanniClient,
@@ -69,6 +71,8 @@ class SnapshotResult:
     failures: dict[Key, str] = field(default_factory=dict)
     # 因為被遮罩而改用內陸格點的序列 → 實際使用的座標
     shifted: dict[Key, list[float]] = field(default_factory=dict)
+    # 這次沒有重新寫出、沿用先前檔案的序列：(variable_id, location_id, aggregation)
+    not_updated: list[tuple[str, str, str]] = field(default_factory=list)
 
 
 def load_seed(seed_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -139,6 +143,7 @@ def build_snapshot(
     power_http: httpx.Client | None = None,
     harmony_client: HarmonyClient | None = None,
     sleep: Callable[[float], None] = time.sleep,
+    stamp: bool = False,
 ) -> SnapshotResult:
     """抓每個變數在它適用的地點的序列並寫檔，最後依磁碟上的序列檔寫目錄檔。
 
@@ -213,9 +218,20 @@ def build_snapshot(
         if series.variable_id in variable_ids and series.location_id in location_ids
     ]
     catalog_variables = [_describe(variable, all_series) for variable in variables]
+    refreshed = {path.name for path in result.written}
+    result.not_updated = [
+        (series.variable_id, series.location_id, series.aggregation)
+        for series in all_series
+        if Path(series.file).name not in refreshed
+    ]
     result.written.append(
         write_catalog(
-            snapshot_dir, catalog_variables, locations, all_series, generated_at=now
+            snapshot_dir,
+            catalog_variables,
+            locations,
+            all_series,
+            generated_at=now,
+            stamp=stamp,
         )
     )
     return result
@@ -590,6 +606,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--seed-dir", type=Path, default=SEED_DIR)
     parser.add_argument("--raw-dir", type=Path, default=RAW_DIR)
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
+    parser.add_argument("--lists-dir", type=Path, default=LISTS_DIR)
     parser.add_argument(
         "--source",
         choices=SOURCES,
@@ -598,45 +615,51 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     sources = args.source or list(SOURCES)
-    giovanni_client = None
-    if "giovanni" in sources:
-        token = read_secret(
-            "EARTHDATA_TOKEN",
-            args.env_file,
-            how_to_get="到 Earthdata Login 的 Generate Token 頁產生 token",
-        )
-        giovanni_client = GiovanniClient(token)
-    station_http = httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None
-    power_http = httpx.Client(timeout=120) if "nasa_power" in sources else None
-    harmony_client = None
-    if "harmony" in sources:
-        harmony_client = HarmonyClient(
-            read_secret(
+    skipped: list[str] = []
+    token = None
+    if "giovanni" in sources or "harmony" in sources:
+        try:
+            token = read_secret(
                 "EARTHDATA_TOKEN",
                 args.env_file,
                 how_to_get="到 Earthdata Login 的 Generate Token 頁產生 token",
             )
-        )
+        except SystemExit as err:
+            # 沒有 token 不讓整份快照停擺：略過需要它的來源，其餘照跑，既有序列檔保留
+            skipped = [name for name in ("giovanni", "harmony") if name in sources]
+            print(f"略過 {'、'.join(skipped)}：{err}")
     variables, locations = load_seed(args.seed_dir)
     now = datetime.now(UTC)
     result = build_snapshot(
-        giovanni_client,
+        GiovanniClient(token) if token and "giovanni" in sources else None,
         args.snapshot_dir,
         variables,
         locations,
         today=now.date(),
         now=now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         raw_dir=args.raw_dir,
-        station_http=station_http,
-        power_http=power_http,
-        harmony_client=harmony_client,
+        station_http=httpx.Client(timeout=120) if "noaa_ghcnh" in sources else None,
+        power_http=httpx.Client(timeout=120) if "nasa_power" in sources else None,
+        harmony_client=HarmonyClient(token) if token and "harmony" in sources else None,
+        # 快照日（generated_at）每次執行都更新，就算資料沒變
+        stamp=True,
     )
     print(f"成功 {len(result.succeeded)} 條，失敗 {len(result.failures)} 條")
     for (variable_id, location_id), used in result.shifted.items():
         print(f"  內移 {variable_id} @ {location_id} → {used}")
     for (variable_id, location_id), reason in result.failures.items():
         print(f"  失敗 {variable_id} @ {location_id}：{reason}")
-    return 1 if result.failures else 0
+    if result.not_updated:
+        print(f"這次沒有更新、沿用先前檔案的序列：{len(result.not_updated)} 條")
+        by_variable: dict[str, int] = {}
+        for variable_id, _, aggregation in result.not_updated:
+            name = f"{variable_id}（{aggregation}）"
+            by_variable[name] = by_variable.get(name, 0) + 1
+        for name, count in sorted(by_variable.items()):
+            print(f"  {name} × {count}")
+    for path in write_lists(args.snapshot_dir, args.lists_dir, Path("pyproject.toml")):
+        print(f"清單：{path}")
+    return 1 if result.failures or skipped else 0
 
 
 if __name__ == "__main__":
