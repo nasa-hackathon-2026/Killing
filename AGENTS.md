@@ -41,6 +41,13 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 測試（全部）：`uv run pytest`
 - 測試（單檔）：`uv run pytest path/to/test_x.py`
 
+### 前端
+- 安裝：`npm ci --prefix web`
+- 格式：`npm run format:check --prefix web`
+- 靜態檢查：`npm run lint --prefix web && npm run typecheck --prefix web`
+- 測試（全部）：`npm test --prefix web`
+- 測試（單檔）：`npm test --prefix web -- src/path/to/file.test.ts`
+
 ## 如何重新產生資料
 靜態快照在 `data/snapshot/`（`catalog.json` 加 `series/*.json`，統一格式見 #4），會進 git；公開 demo 只讀這些檔。
 
@@ -60,7 +67,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 抓取前會先查 Giovanni `/quota`，用量達 0.95 就停。
 - 重跑時，資料沒變的序列檔不動（`retrieved_at` 是「這條序列內容上次變動的時間」）；目錄檔的 `snapshot.generated_at`（快照日）在「全部來源都跑、沒有略過」時每次都更新，所以資料沒變時整份重跑，`git diff` 只有 `generated_at` 一行不同；加 `--source` 只重抓部分來源、或缺 token 被略過時，快照日不動。
 - 序列檔的 `request.end_policy = "run_date"` 表示查詢結束日是執行當天；實際涵蓋範圍看 `points` 的起訖月。`grid` 是資料實際所在的網格中心，可能與請求座標不同。
-- 本機看最小驗證頁：`python3 -m http.server 8791` 後開 `http://localhost:8791/web/`。
+- 本機看最小驗證頁：`python3 -m http.server 8791` 後開 `http://localhost:8791/web/tracer/`。地球畫面是 `web/` 的 Vite app，不取代這個驗證頁的資料路徑。
 - 新增變數或地點：改 `data/seed/variables.json`、`data/seed/locations.json`（清單是資料，不寫在程式裡）。目錄檔的 `unit`、`valid_from`、`valid_to` 由抓到的資料算出，不寫在 seed。
 - 單一序列失敗不會中斷整批；結束時印出成功、內移、失敗清單，有失敗時 exit code 為 1。失敗的序列若先前已有檔案，舊檔保留。
 - 靠海格點被遮罩時 Giovanni 不報錯，而是整條回傳缺值；地點有 `inland_direction` 時會往內陸移一格重試，實際座標記在序列檔的 `request.location`，原本的座標記在 `request.requested_location`。
@@ -81,15 +88,25 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 海面上或該產品沒有資料的點位會整條缺值，記為失敗、不內移（世界城市沒有設 `inland_direction`）。
 - 原始回應照舊存在 `data/raw/giovanni/`、`data/raw/harmony/`，檔名是 `<變數 id>__<地點 id>.csv`。
 
-## 全球格點月資料（試做，#47）
-每個網格一條月序列，給之後的全球地圖用；和 `data/snapshot/` 的序列分開，快照指令不會動它。
+## 全球格點月資料（#47、#50）
+每個網格一條月序列，給之後的全球地圖與「把網格彙整到國家」用；和 `data/snapshot/` 的序列分開，快照指令不會動它。
 
-- 重產：`uv run python -m trend_detective.grid_fetch`（`.env` 要有 `EARTHDATA_TOKEN`；加 `--product <id>` 只跑一個、`--since YYYY-MM` 只抓某月之後）。產品清單在 `data/seed/grids.json`，目前是 `merra2_t2m`（M2IMNXASM 的 T2M，0.5° × 0.625°）與 `gldas_soilmoist`（GLDAS_NOAH025_M 的 SoilMoi0_10cm_inst，0.25°）。兩個全期約 3 分鐘、下載約 420 MB。
-- 取得方式：CMR 查每個月的 granule，經 Earthdata Cloud OPeNDAP（`opendap.earthdata.nasa.gov`）用 `dap4.ce` 只取一個變數，每月一個約 0.5–0.8 MB 的 NetCDF。由最新月份往回抓，已下載的不重抓；偶發的 403 或逾時重跑一次就會補上。
-- 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN；逐月原始檔在同目錄的 `months/`。用 `trend_detective.grid.read_cube` 讀。只含「從最新月份往回連續不中斷」的月份。
-- 前端衍生檔（進 git）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`、`exploratory_linear_slope_per_decade.i16`。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。降成 1° 緯度帶（MERRA-2 經度 1.25°、GLDAS 1°），面積加權。讀法的參考實作是 `trend_detective.grid.read_frontend`。
+- **變數清單有兩份 seed**：`data/seed/grids.json`（手寫的 `merra2_t2m`、`gldas_soilmoist`）與 `data/seed/grids.extended.json`（343 筆，程式產生，不要手改）。後者由 `uv run python -m trend_detective.grid_catalog` 重產：要列哪些產品、哪幾個是核心變數（id 與前端衍生檔設定）寫在 `data/seed/grid_products.json`；concept id、DOI、引用、起始月來自 CMR，變數名、單位、長名稱來自各產品最新 granule 的 OPeNDAP DMR。只收「緯度 × 經度」的變數，有氣壓層等其他維度的（AIRS 的剖面，186 個）不列。各產品的筆數：IMERG 5、GLDAS Noah 35、AIRS 210、MERRA-2 47、FLDAS 28、OMTO3d 5、OMAERUVd 12、OMNO2d 1（設定檔 `only_core`：0.25° 的日資料每個變數全期約 15 GB，其餘 4 個變數先不列）。
+- 名稱：id 與 `data/seed/variables.json` 相同的核心變數沿用那裡的中英文名；其餘 `name_zh` 暫用英文長名並標 `needs_translation: true`，定義與分類還沒有。AIRS 的檔案與 CMR 都沒有單位與長名稱，所以那 208 筆的 `unit` 是空字串。
+- 重產（`.env` 要有 `EARTHDATA_TOKEN`）：
+  - 手寫的兩筆：`uv run python -m trend_detective.grid_fetch`。
+  - 核心變數（一個變數一個請求，會產生前端衍生檔）：`uv run python -m trend_detective.grid_fetch --seed-file data/seed/grids.extended.json --product imerg_precip --product gldas_tair --product gldas_evap --product airs_tsurf --product airs_h2ovap --parallel 5 --build-workers 5`。約 5 分鐘、下載 3.0 GB（其中 IMERG 2.3 GB）。
+  - 一個產品的全部變數（同一個產品的變數併在同一個請求）：加 `--product 'gldas_*' --batch-size 60 --parallel 4 --build-workers 10`。`--product`、`--exclude` 可重複、可用 `*`；`--since YYYY-MM` 只抓某月之後；`--fetch-only` 只下載。
+- **日資料產品（OMI，seed 的 `temporal: day`）**：同一個指令（`--product 'omi_*' --product 'omto3d_*' --product 'omaeruvd_*' --batch-size 60 --parallel 3 --workers 8`）。逐日檔下載後先算成月平均（`data/raw/grid/<id>/months/YYYYMM.nc4`，另含每格有值的天數 `n_days`）再建立方體。月平均是「當月該格有值的日子」的算術平均；一個月要 CMR 列出的每一天都下載好才算，所以抓到一半時不會有只含部分日子的月份，但最新的月份會隨日子增加而重算。
+- 取得方式：CMR 查每個月的 granule，經 Earthdata Cloud OPeNDAP（`opendap.earthdata.nasa.gov`）用 `dap4.ce` 只取需要的變數。由最新月份往回抓，已下載的月份不重抓，立方體已涵蓋目前下載到的月份時不重建，所以中斷後重跑同一個指令就會接著做。429、5xx、連線錯誤退避重試；403 偶爾是暫時的（回傳登入頁），最多重試 3 次。一批失敗不影響其他批，結束時印出失敗清單與各種重試的次數，有失敗時 exit code 為 1。
+- 平行度（2026-11-14 實測）：同時 4–5 批、每批 4 個執行緒沒有被限流（沒有 429，403 重試 8 次都補上）。重試次數明顯變多就調低 `--parallel`。一個請求的網址超過約 3000 字元時 CloudFront 回 414，`--batch-size` 再大也會自動切開。
+- 逐月原始檔（不進 git）：單一變數在 `data/raw/grid/<id>/months/`；批次在 `data/raw/grid/_batch/<產品>/<變數清單雜湊>/`（旁邊的 `variables.json` 記這一批有哪些變數）。立方體建好後它們只是中間產物，可以刪掉省空間，但刪掉之後重跑會整批重抓。
+- 立方體（不進 git）：`data/raw/grid/<id>/<id>.nc`，NetCDF-4，`(time, lat, lon)` float32、原始解析度與單位、缺值 NaN、緯度由南到北，一個月一個 chunk。用 `trend_detective.grid.read_cube` 讀（0.1° 的 IMERG、FLDAS 一個變數解開約 9–12 GB，要逐月讀就直接用 netCDF4）。只含「從最新月份往回連續不中斷」的月份，起訖月在檔案屬性 `first_month`、`last_month`。
+- 前端衍生檔（進 git，只有 seed 裡有 `frontend` 的變數）：`data/grid/<id>/meta.json` 加 `annual_mean.i16`、`monthly_climatology.i16`、`exploratory_linear_slope_per_decade.i16`。little-endian int16、`層 × 緯度（南到北）× 經度（西到東）`、`值 = 整數 × scale + offset`、缺值 -32768；網格定義、每層的標籤與實際涵蓋的起訖月（`coverage`）都在 `meta.json`。一律降成 1° 緯度帶、面積加權（經度：MERRA-2 1.25°，其餘 1°）。讀法的參考實作是 `trend_detective.grid.read_frontend`。目前有 7 個：`merra2_t2m`、`gldas_soilmoist`、`gldas_tair`、`gldas_evap`、`imerg_precip`、`airs_tsurf`、`airs_h2ovap`。
 - 斜率檔只是探索用的示範（逐年平均的最小平方法斜率），沒有顯著性檢定與自相關修正，不能當趨勢結論。
 - 內容沒變時重產，衍生檔逐位元組相同（沒有時間戳）。
+- 各產品檔案結構的坑（2026-11-14 實測，程式已處理）：IMERG 的變數在 `/Grid` 群組、軸是 `lon × lat`；AIRS 是 HDF-EOS2，變數在 `/ascending/Data_Fields` 等四個群組、沒有時間軸、緯度由北到南，而且 **OPeNDAP 給的 `YDim`／`XDim` 是格子的北緣與西緣，不是中心**（和檔案自己的 `Latitude`／`Longitude` 差半格），seed 用 `cell_reference: north_west_corner` 標記，建立方體時換算成中心；FLDAS 的座標叫 `X`、`Y`。
+- 已知限制：GLDAS 2025-12 的格點值與 Giovanni 的點位序列不同（`SoilMoi0_10cm_inst`、`Evap_tavg` 都是，`Tair_f_inst` 相同；推斷是檔案重製過而 Giovanni 仍是舊版，未求證）。IMERG Final 只到 2025-09。OMI 的月平均沒有另外做品質或雲量篩選，照 L3 檔案裡的值直接平均。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

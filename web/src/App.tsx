@@ -1,0 +1,121 @@
+import { useState } from "react";
+import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
+import { initialLayerVisibility, layerRegistry } from "./layers/registry";
+import { mockLocations } from "./mock/snapshot";
+import { EarthCanvas } from "./scene/EarthCanvas";
+import { FpsReadout } from "./scene/FpsReadout";
+import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
+import {
+  formatMeasurement,
+  intensityAt,
+  sortedMonths,
+  valueAt,
+} from "./snapshot/reading";
+import { usePlaceSnapshot } from "./snapshot/usePlaceSnapshot";
+
+const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
+  id: layer.id,
+  visible: initialLayerVisibility(layer.id),
+  opacity: 0.75,
+}));
+
+export function App() {
+  const [forceWebGL, setForceWebGL] = useState(false);
+  const [flying, setFlying] = useState(false);
+  const [kind, setKind] = useState<RendererKind>("webgl");
+  const [locationId, setLocationId] = useState("taichung");
+  const [controls, setControls] = useState(initialControls);
+  const [month, setMonth] = useState<string | null>(null);
+  const snapshot = usePlaceSnapshot();
+  const data = snapshot.status === "ready" ? snapshot.data : null;
+  const location =
+    data?.places.find((item) => item.id === locationId) ??
+    mockLocations.find((item) => item.id === locationId);
+  const here =
+    data?.series.filter((item) => item.locationId === locationId) ?? [];
+  const months = sortedMonths(here.map((item) => item.points));
+  const activeMonth =
+    month && months.includes(month) ? month : (months.at(-1) ?? null);
+  const intensities: Record<string, number> = {};
+  const readings: Record<string, string> = {};
+  for (const layer of layerRegistry) {
+    const series = here.find((item) => item.variableId === layer.id);
+    if (snapshot.status === "loading") {
+      readings[layer.id] = "Loading…";
+      intensities[layer.id] = 0;
+    } else if (!series || !activeMonth) {
+      readings[layer.id] =
+        snapshot.status === "error"
+          ? "Could not read the snapshot"
+          : "Not in this snapshot";
+      intensities[layer.id] = 0;
+    } else {
+      readings[layer.id] = formatMeasurement(
+        valueAt(series.points, activeMonth),
+        series.unit,
+      );
+      intensities[layer.id] = intensityAt(series.points, activeMonth);
+    }
+  }
+  const snapshotDay = data?.generatedAt.slice(0, 10);
+
+  return (
+    <div className="app">
+      <EarthCanvas
+        forceWebGL={forceWebGL}
+        flying={flying}
+        layers={controls}
+        intensities={intensities}
+        places={data?.places ?? []}
+        locationId={locationId}
+        onKind={setKind}
+        onFlyDone={() => setFlying(false)}
+        onSelectLocation={setLocationId}
+      />
+      <div className="hud">
+        <p className="badge">Renderer: {rendererLabel(kind)}</p>
+        <FpsReadout />
+        <button type="button" onClick={() => setForceWebGL((value) => !value)}>
+          {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
+        </button>
+        <button type="button" onClick={() => setFlying(true)} disabled={flying}>
+          Fly to Taiwan
+        </button>
+        <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
+      </div>
+      <LayerPanel
+        layers={layerRegistry}
+        controls={controls}
+        readings={readings}
+        locationName={location?.nameEn ?? locationId}
+        months={months}
+        month={activeMonth}
+        onMonth={setMonth}
+        onToggle={(id) =>
+          setControls((current) =>
+            current.map((layer) =>
+              layer.id === id ? { ...layer, visible: !layer.visible } : layer,
+            ),
+          )
+        }
+        onOpacity={(id, opacity) =>
+          setControls((current) =>
+            current.map((layer) =>
+              layer.id === id ? { ...layer, opacity } : layer,
+            ),
+          )
+        }
+      />
+      <p className="credit">
+        Surface: Blue Marble,{" "}
+        <a href="https://visibleearth.nasa.gov/images/57730/blue-marble-land-surface-ocean-color-sea-ice-and-clouds">
+          NASA Visible Earth
+        </a>
+        . Closer Taiwan view: Blue Marble shaded relief,{" "}
+        <a href="https://gibs.earthdata.nasa.gov/">NASA GIBS</a>.
+        {snapshotDay ? ` Snapshot ${snapshotDay}.` : ""} NASA insignia is not
+        used.
+      </p>
+    </div>
+  );
+}

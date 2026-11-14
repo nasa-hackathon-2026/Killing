@@ -1,0 +1,70 @@
+[
+  {
+    "prefix": "imerg",
+    "short_name": "GPM_3IMERGM",
+    "version": "07",
+    "core": {
+      "/Grid/precipitation": {
+        "id": "imerg_precip",
+        "frontend": {"lat_step": 1.0, "lon_factor": 10, "scale": 0.0001, "offset": 3.0, "slope_scale": 0.00001}
+      }
+    }
+  },
+  {
+    "prefix": "gldas",
+    "short_name": "GLDAS_NOAH025_M",
+    "version": "2.1",
+    "core": {
+      "/Tair_f_inst": {
+        "id": "gldas_tair",
+        "frontend": {"lat_step": 1.0, "lon_factor": 4, "scale": 0.01, "offset": 273.15, "slope_scale": 0.001}
+      },
+      "/Evap_tavg": {
+        "id": "gldas_evap",
+        "frontend": {"lat_step": 1.0, "lon_factor": 4, "scale": 1e-08, "offset": 0.0, "slope_scale": 1e-09}
+      }
+    }
+  },
+  {
+    "prefix": "airs",
+    "short_name": "AIRS3STM",
+    "version": "7.0",
+    "cell_reference": "north_west_corner",
+    "core": {
+      "/ascending/Data_Fields/SurfAirTemp_A": {
+        "id": "airs_tsurf",
+        "unit": "K",
+        "frontend": {"lat_step": 1.0, "lon_factor": 1, "scale": 0.01, "offset": 273.15, "slope_scale": 0.001}
+      },
+      "/ascending/Data_Fields/TotH2OVap_A": {
+        "id": "airs_h2ovap",
+        "unit": "kg/m2",
+        "frontend": {"lat_step": 1.0, "lon_factor": 1, "scale": 0.01, "offset": 0.0, "slope_scale": 0.001}
+      }
+    }
+  },
+  {"prefix": "merra2", "short_name": "M2IMNXASM", "version": "5.12.4", "core": {}},
+  {"prefix": "fldas", "short_name": "FLDAS_NOAH01_C_GL_M", "version": "001", "core": {}},
+  {
+    "prefix": "omto3d",
+    "short_name": "OMTO3d",
+    "version": "003",
+    "temporal": "day",
+    "core": {"/HDFEOS/GRIDS/OMI_Column_Amount_O3/Data_Fields/ColumnAmountO3": {"id": "omi_o3"}}
+  },
+  {
+    "prefix": "omaeruvd",
+    "short_name": "OMAERUVd",
+    "version": "003",
+    "temporal": "day",
+    "core": {"/HDFEOS/GRIDS/Aerosol_NearUV_Grid/Data_Fields/UVAerosolIndex": {"id": "omi_aerosol"}}
+  },
+  {
+    "prefix": "omno2d",
+    "short_name": "OMNO2d",
+    "version": "003",
+    "temporal": "day",
+    "only_core": true,
+    "core": {"/HDFEOS/GRIDS/ColumnAmountNO2/Data_Fields/ColumnAmountNO2TropCloudScreened": {"id": "omi_no2"}}
+  }
+]
