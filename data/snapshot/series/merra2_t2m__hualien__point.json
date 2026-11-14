@@ -1,0 +1,1878 @@
+{
+  "variable_id": "merra2_t2m",
+  "location_id": "hualien",
+  "aggregation": "point",
+  "unit": "K",
+  "source_api": "giovanni",
+  "request": {
+    "data": "M2IMNXASM_5_12_4_T2M",
+    "location": [
+      23.99,
+      121.6
+    ],
+    "start": "2001-01-01",
+    "end_policy": "run_date"
+  },
+  "retrieved_at": "2026-11-14T08:02:48Z",
+  "product_version": "5.12.4",
+  "grid": {
+    "lat": 24.0,
+    "lon": 121.875
+  },
+  "points": [
+    {
+      "month": "2001-01-01",
+      "value": 293.819,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-02-01",
+      "value": 293.921,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-03-01",
+      "value": 295.113,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-04-01",
+      "value": 297.329,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-05-01",
+      "value": 299.519,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-06-01",
+      "value": 301.523,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-07-01",
+      "value": 301.402,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-08-01",
+      "value": 302.105,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-09-01",
+      "value": 300.799,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-10-01",
+      "value": 298.642,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-11-01",
+      "value": 296.24,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2001-12-01",
+      "value": 294.031,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-01-01",
+      "value": 293.113,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-02-01",
+      "value": 293.584,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-03-01",
+      "value": 295.79,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-04-01",
+      "value": 297.997,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-05-01",
+      "value": 299.416,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-06-01",
+      "value": 301.356,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-07-01",
+      "value": 301.95,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-08-01",
+      "value": 301.369,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-09-01",
+      "value": 300.491,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-10-01",
+      "value": 298.964,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-11-01",
+      "value": 296.461,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2002-12-01",
+      "value": 294.829,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-01-01",
+      "value": 292.439,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-02-01",
+      "value": 293.75,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-03-01",
+      "value": 294.288,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-04-01",
+      "value": 297.661,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-05-01",
+      "value": 299.173,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-06-01",
+      "value": 300.272,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-07-01",
+      "value": 301.714,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-08-01",
+      "value": 301.658,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-09-01",
+      "value": 300.966,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-10-01",
+      "value": 298.506,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-11-01",
+      "value": 297.12,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2003-12-01",
+      "value": 293.956,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-01-01",
+      "value": 292.746,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-02-01",
+      "value": 293.484,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-03-01",
+      "value": 294.079,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-04-01",
+      "value": 296.785,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-05-01",
+      "value": 299.705,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-06-01",
+      "value": 300.185,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-07-01",
+      "value": 301.225,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-08-01",
+      "value": 302.002,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-09-01",
+      "value": 300.673,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-10-01",
+      "value": 297.98,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-11-01",
+      "value": 296.69,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2004-12-01",
+      "value": 294.489,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-01-01",
+      "value": 292.521,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-02-01",
+      "value": 293.699,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-03-01",
+      "value": 293.349,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-04-01",
+      "value": 297.517,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-05-01",
+      "value": 300.315,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-06-01",
+      "value": 301.142,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-07-01",
+      "value": 301.425,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-08-01",
+      "value": 301.567,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-09-01",
+      "value": 300.875,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-10-01",
+      "value": 299.131,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-11-01",
+      "value": 297.247,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2005-12-01",
+      "value": 293.184,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-01-01",
+      "value": 293.763,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-02-01",
+      "value": 293.897,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-03-01",
+      "value": 295.131,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-04-01",
+      "value": 297.898,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-05-01",
+      "value": 299.589,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-06-01",
+      "value": 301.255,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-07-01",
+      "value": 301.983,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-08-01",
+      "value": 301.806,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-09-01",
+      "value": 300.648,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-10-01",
+      "value": 299.361,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-11-01",
+      "value": 297.727,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2006-12-01",
+      "value": 294.858,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-01-01",
+      "value": 293.476,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-02-01",
+      "value": 295.172,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-03-01",
+      "value": 295.643,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-04-01",
+      "value": 296.53,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-05-01",
+      "value": 299.346,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-06-01",
+      "value": 301.423,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-07-01",
+      "value": 302.585,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-08-01",
+      "value": 301.726,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-09-01",
+      "value": 301.035,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-10-01",
+      "value": 299.168,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-11-01",
+      "value": 296.342,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2007-12-01",
+      "value": 294.996,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-01-01",
+      "value": 293.738,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-02-01",
+      "value": 292.079,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-03-01",
+      "value": 294.958,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-04-01",
+      "value": 297.557,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-05-01",
+      "value": 299.021,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-06-01",
+      "value": 300.958,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-07-01",
+      "value": 301.745,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-08-01",
+      "value": 301.631,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-09-01",
+      "value": 301.136,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-10-01",
+      "value": 299.716,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-11-01",
+      "value": 297.177,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2008-12-01",
+      "value": 294.747,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-01-01",
+      "value": 292.619,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-02-01",
+      "value": 295.569,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-03-01",
+      "value": 295.393,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-04-01",
+      "value": 296.454,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-05-01",
+      "value": 298.675,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-06-01",
+      "value": 300.831,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-07-01",
+      "value": 301.749,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-08-01",
+      "value": 301.793,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-09-01",
+      "value": 301.336,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-10-01",
+      "value": 299.163,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-11-01",
+      "value": 296.551,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2009-12-01",
+      "value": 293.484,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-01-01",
+      "value": 293.544,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-02-01",
+      "value": 294.898,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-03-01",
+      "value": 295.683,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-04-01",
+      "value": 296.499,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-05-01",
+      "value": 299.312,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-06-01",
+      "value": 300.66,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-07-01",
+      "value": 302.318,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-08-01",
+      "value": 302.178,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-09-01",
+      "value": 301.025,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-10-01",
+      "value": 298.998,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-11-01",
+      "value": 296.406,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2010-12-01",
+      "value": 293.77,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-01-01",
+      "value": 291.246,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-02-01",
+      "value": 293.56,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-03-01",
+      "value": 292.721,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-04-01",
+      "value": 295.93,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-05-01",
+      "value": 298.731,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-06-01",
+      "value": 301.044,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-07-01",
+      "value": 301.353,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-08-01",
+      "value": 301.858,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-09-01",
+      "value": 300.562,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-10-01",
+      "value": 298.819,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-11-01",
+      "value": 297.843,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2011-12-01",
+      "value": 293.636,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-01-01",
+      "value": 292.865,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-02-01",
+      "value": 293.725,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-03-01",
+      "value": 295.59,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-04-01",
+      "value": 297.754,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-05-01",
+      "value": 299.662,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-06-01",
+      "value": 301.154,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-07-01",
+      "value": 301.94,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-08-01",
+      "value": 301.786,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-09-01",
+      "value": 300.38,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-10-01",
+      "value": 298.16,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-11-01",
+      "value": 296.62,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2012-12-01",
+      "value": 294.24,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-01-01",
+      "value": 293.394,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-02-01",
+      "value": 294.995,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-03-01",
+      "value": 295.965,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-04-01",
+      "value": 296.847,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-05-01",
+      "value": 299.249,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-06-01",
+      "value": 301.84,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-07-01",
+      "value": 301.744,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-08-01",
+      "value": 301.875,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-09-01",
+      "value": 300.791,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-10-01",
+      "value": 298.67,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-11-01",
+      "value": 296.035,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2013-12-01",
+      "value": 293.26,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-01-01",
+      "value": 292.763,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-02-01",
+      "value": 292.992,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-03-01",
+      "value": 293.907,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-04-01",
+      "value": 296.867,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-05-01",
+      "value": 299.313,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-06-01",
+      "value": 301.291,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-07-01",
+      "value": 302.538,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-08-01",
+      "value": 302.194,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-09-01",
+      "value": 301.889,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-10-01",
+      "value": 298.781,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-11-01",
+      "value": 297.318,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2014-12-01",
+      "value": 293.079,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-01-01",
+      "value": 292.639,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-02-01",
+      "value": 293.294,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-03-01",
+      "value": 295.174,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-04-01",
+      "value": 297.185,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-05-01",
+      "value": 300.027,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-06-01",
+      "value": 302.354,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-07-01",
+      "value": 302.303,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-08-01",
+      "value": 301.969,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-09-01",
+      "value": 300.765,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-10-01",
+      "value": 299.248,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-11-01",
+      "value": 298.112,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2015-12-01",
+      "value": 295.358,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-01-01",
+      "value": 293.814,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-02-01",
+      "value": 292.714,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-03-01",
+      "value": 293.905,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-04-01",
+      "value": 298.583,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-05-01",
+      "value": 300.255,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-06-01",
+      "value": 302.377,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-07-01",
+      "value": 302.471,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-08-01",
+      "value": 302.103,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-09-01",
+      "value": 301.175,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-10-01",
+      "value": 300.305,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-11-01",
+      "value": 297.723,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2016-12-01",
+      "value": 295.624,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-01-01",
+      "value": 294.384,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-02-01",
+      "value": 293.493,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-03-01",
+      "value": 294.759,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-04-01",
+      "value": 297.081,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-05-01",
+      "value": 299.223,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-06-01",
+      "value": 301.793,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-07-01",
+      "value": 302.391,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-08-01",
+      "value": 302.542,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-09-01",
+      "value": 302.08,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-10-01",
+      "value": 300.106,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-11-01",
+      "value": 297.839,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2017-12-01",
+      "value": 294.287,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-01-01",
+      "value": 293.24,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-02-01",
+      "value": 292.967,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-03-01",
+      "value": 295.556,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-04-01",
+      "value": 297.193,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-05-01",
+      "value": 300.462,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-06-01",
+      "value": 301.467,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-07-01",
+      "value": 301.916,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-08-01",
+      "value": 302.195,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-09-01",
+      "value": 301.118,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-10-01",
+      "value": 298.575,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-11-01",
+      "value": 297.674,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2018-12-01",
+      "value": 295.683,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-01-01",
+      "value": 294.868,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-02-01",
+      "value": 295.864,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-03-01",
+      "value": 296.115,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-04-01",
+      "value": 298.681,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-05-01",
+      "value": 299.331,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-06-01",
+      "value": 301.968,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-07-01",
+      "value": 302.643,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-08-01",
+      "value": 302.315,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-09-01",
+      "value": 300.978,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-10-01",
+      "value": 299.076,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-11-01",
+      "value": 297.102,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2019-12-01",
+      "value": 294.905,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-01-01",
+      "value": 294.443,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-02-01",
+      "value": 294.73,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-03-01",
+      "value": 296.095,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-04-01",
+      "value": 296.439,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-05-01",
+      "value": 300.42,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-06-01",
+      "value": 302.715,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-07-01",
+      "value": 302.849,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-08-01",
+      "value": 302.366,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-09-01",
+      "value": 301.391,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-10-01",
+      "value": 299.426,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-11-01",
+      "value": 297.984,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2020-12-01",
+      "value": 294.621,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-01-01",
+      "value": 292.271,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-02-01",
+      "value": 294.503,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-03-01",
+      "value": 296.063,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-04-01",
+      "value": 297.401,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-05-01",
+      "value": 300.715,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-06-01",
+      "value": 302.409,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-07-01",
+      "value": 302.566,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-08-01",
+      "value": 301.953,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-09-01",
+      "value": 302.0,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-10-01",
+      "value": 299.974,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-11-01",
+      "value": 297.078,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2021-12-01",
+      "value": 295.108,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-01-01",
+      "value": 294.282,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-02-01",
+      "value": 293.956,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-03-01",
+      "value": 296.365,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-04-01",
+      "value": 297.517,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-05-01",
+      "value": 299.2,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-06-01",
+      "value": 302.155,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-07-01",
+      "value": 302.762,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-08-01",
+      "value": 302.656,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-09-01",
+      "value": 301.547,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-10-01",
+      "value": 299.221,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-11-01",
+      "value": 298.428,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2022-12-01",
+      "value": 294.6,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-01-01",
+      "value": 293.893,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-02-01",
+      "value": 294.562,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-03-01",
+      "value": 295.533,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-04-01",
+      "value": 297.344,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-05-01",
+      "value": 299.373,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-06-01",
+      "value": 301.784,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-07-01",
+      "value": 302.667,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-08-01",
+      "value": 302.727,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-09-01",
+      "value": 301.513,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-10-01",
+      "value": 300.004,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-11-01",
+      "value": 297.727,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2023-12-01",
+      "value": 295.572,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-01-01",
+      "value": 293.929,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-02-01",
+      "value": 294.866,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-03-01",
+      "value": 295.572,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-04-01",
+      "value": 299.627,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-05-01",
+      "value": 300.029,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-06-01",
+      "value": 302.453,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-07-01",
+      "value": 302.998,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-08-01",
+      "value": 302.868,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-09-01",
+      "value": 302.307,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-10-01",
+      "value": 300.474,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-11-01",
+      "value": 297.709,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2024-12-01",
+      "value": 294.348,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-01-01",
+      "value": 292.645,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-02-01",
+      "value": 292.992,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-03-01",
+      "value": 295.532,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-04-01",
+      "value": 298.063,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-05-01",
+      "value": 300.128,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-06-01",
+      "value": 302.046,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-07-01",
+      "value": 302.514,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-08-01",
+      "value": 302.095,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-09-01",
+      "value": 302.086,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-10-01",
+      "value": 300.758,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-11-01",
+      "value": 297.919,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2025-12-01",
+      "value": 295.729,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-01-01",
+      "value": 293.231,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-02-01",
+      "value": 294.856,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-03-01",
+      "value": 295.94,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-04-01",
+      "value": 298.812,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-05-01",
+      "value": 300.358,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-06-01",
+      "value": 301.482,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-07-01",
+      "value": 302.439,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-08-01",
+      "value": 302.51,
+      "n_samples": 1,
+      "coverage": 1
+    },
+    {
+      "month": "2026-09-01",
+      "value": 301.264,
+      "n_samples": 1,
+      "coverage": 1
+    }
+  ]
+}

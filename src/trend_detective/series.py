@@ -115,7 +115,7 @@ def write_catalog(
     """寫目錄檔：變數、地點、每條序列的檔名與起訖月，以及各變數的最新月份。"""
     entries = []
     # 沒有任何有值月份的變數記為 None，讓讀的人能分辨「沒資料」與「沒這個變數」
-    latest: dict[str, str | None] = {}
+    latest: dict[str, str | None] = {variable["id"]: None for variable in variables}
     ordered = sorted(
         series, key=lambda s: (s.variable_id, s.location_id, s.aggregation)
     )

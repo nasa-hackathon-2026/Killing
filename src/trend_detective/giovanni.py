@@ -33,8 +33,18 @@ class GiovanniSeries:
     grid_lon: float
     product: str
     doi: str
+    # 網格解析度（度）；metadata 沒給就是 None
+    lat_resolution: float | None
+    lon_resolution: float | None
     # 缺值（metadata 的 undef）轉成 None
     rows: list[tuple[date, float | None]]
+
+
+def _optional_float(raw: str | None) -> float | None:
+    try:
+        return float(raw) if raw is not None else None
+    except ValueError:
+        return None
 
 
 def _value(raw: str, undef: float | None) -> float | None:
@@ -88,13 +98,15 @@ def parse_timeseries_csv(text: str) -> GiovanniSeries:
         grid_lon=grid_lon,
         product=meta.get("prod_name", ""),
         doi=meta.get("doi", ""),
+        lat_resolution=_optional_float(meta.get("lat_resolution")),
+        lon_resolution=_optional_float(meta.get("lon_resolution")),
         rows=rows,
     )
 
 
 class GiovanniClient:
     def __init__(self, token: str, http: httpx.Client | None = None) -> None:
-        self._http = http or httpx.Client(base_url=API_URL, timeout=120)
+        self._http = http or httpx.Client(base_url=API_URL, timeout=300)
         self._headers = {"Authorization": f"Bearer {token}"}
 
     def _get(self, path: str, params: dict[str, str] | None = None) -> httpx.Response:

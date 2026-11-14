@@ -6,15 +6,152 @@
       "name_en": "Precipitation (GPM IMERG Final)",
       "definition_zh": "從天空落到地面的雨和雪；這裡是整個月平均下來每小時下了幾毫米。",
       "category": "水（液態）",
-      "unit": "mm/hr",
       "source": "giovanni",
       "source_variable_id": "GPM_3IMERGM_07_precipitation",
       "product_version": "07",
       "native_temporal_res": "month",
-      "valid_from": "2001-01-01",
-      "valid_to": "2025-09-01",
       "is_nasa": true,
-      "doi": "10.5067/GPM/IMERG/3B-MONTH/07"
+      "note_zh": "IMERG Final 只到 2025-09；之後的 Late 版算法不同，不可接續（#4 R5）。",
+      "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
+      "unit": "mm/hr",
+      "valid_from": "2001-01-01",
+      "valid_to": "2025-09-01"
+    },
+    {
+      "id": "gldas_tair",
+      "name_zh": "近地面氣溫",
+      "name_en": "Near-surface air temperature (GLDAS Noah)",
+      "definition_zh": "靠近地面的空氣有多熱，由陸地模式結合觀測算出；單位是絕對溫度 K（減 273.15 就是攝氏）。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_Tair_f_inst",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "K",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "gldas_soilmoist",
+      "name_zh": "表層土壤水",
+      "name_en": "Soil moisture 0–10 cm (GLDAS Noah)",
+      "definition_zh": "地表往下 10 公分的土壤裡含有多少水，每平方公尺幾公斤。",
+      "category": "水（地下）",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_SoilMoi0_10cm_inst",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "kg m-2",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "gldas_evap",
+      "name_zh": "蒸散",
+      "name_en": "Evapotranspiration (GLDAS Noah)",
+      "definition_zh": "水從土壤、水面蒸發，加上植物葉片散出水氣，合起來回到空氣中的速度。",
+      "category": "水（上升）",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_Evap_tavg",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "kg m-2 s-1",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "airs_tsurf",
+      "name_zh": "地表氣溫（AIRS）",
+      "name_en": "Surface air temperature (AIRS)",
+      "definition_zh": "衛星上的紅外線儀器量到的近地面空氣溫度，單位是絕對溫度 K。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "AIRS3STM_7_0_SurfAirTemp_A",
+      "product_version": "7.0",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "K",
+      "valid_from": "2002-09-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "airs_h2ovap",
+      "name_zh": "大氣總水氣",
+      "name_en": "Total column water vapor (AIRS)",
+      "definition_zh": "從地面到大氣層頂一整柱空氣裡的水氣，如果全部凝結成水，每平方公尺有幾公斤。",
+      "category": "水（氣態）",
+      "source": "giovanni",
+      "source_variable_id": "AIRS3STM_7_0_TotH2OVap_A",
+      "product_version": "7.0",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "kg/m2",
+      "valid_from": "2002-09-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "merra2_t2m",
+      "name_zh": "2 m 氣溫（MERRA-2）",
+      "name_en": "2 m air temperature (MERRA-2)",
+      "definition_zh": "離地 2 公尺高的空氣溫度，由 NASA 的再分析把全球觀測和大氣模式合起來算出，單位是 K。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "M2IMNXASM_5_12_4_T2M",
+      "product_version": "5.12.4",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "unit": "K",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-09-01"
+    },
+    {
+      "id": "omi_no2",
+      "name_zh": "對流層 NO₂",
+      "name_en": "Tropospheric NO2 column (OMI)",
+      "definition_zh": "靠近地面這層大氣裡的二氧化氮有多少，主要來自車輛和工廠燃燒；數字是每平方公分上方的分子數。",
+      "category": "氣體分子",
+      "source": "giovanni",
+      "source_variable_id": "OMNO2d_003_ColumnAmountNO2TropCloudScreened",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。",
+      "unit": "molecules/cm^2",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-03-01"
+    },
+    {
+      "id": "omi_o3",
+      "name_zh": "臭氧總量",
+      "name_en": "Total column ozone (OMI)",
+      "definition_zh": "從地面到大氣層頂一整柱空氣裡的臭氧總量，單位是多布森單位（DU）；臭氧層幫我們擋掉紫外線。",
+      "category": "氣體分子",
+      "source": "giovanni",
+      "source_variable_id": "OMTO3d_003_ColumnAmountO3",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "unit": "DU",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-11-01"
+    },
+    {
+      "id": "omi_aerosol",
+      "name_zh": "UV 氣膠指數",
+      "name_en": "UV aerosol index (OMI)",
+      "definition_zh": "空氣中會吸收紫外線的懸浮微粒（沙塵、煙）有多少的指標；數字越大代表這類微粒越多，沒有單位。",
+      "category": "懸浮微粒",
+      "source": "giovanni",
+      "source_variable_id": "OMAERUVd_003_UVAerosolIndex",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "unit": "1",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-11-01"
     }
   ],
   "locations": [
@@ -25,9 +162,295 @@
       "name_en": "Taichung",
       "lat": 24.15,
       "lon": 120.68
+    },
+    {
+      "id": "taipei",
+      "kind": "point",
+      "name_zh": "臺北",
+      "name_en": "Taipei",
+      "lat": 25.03,
+      "lon": 121.56
+    },
+    {
+      "id": "kaohsiung",
+      "kind": "point",
+      "name_zh": "高雄",
+      "name_en": "Kaohsiung",
+      "lat": 22.63,
+      "lon": 120.3,
+      "inland_direction": [
+        0,
+        1
+      ],
+      "note_zh": "靠海；格點被遮罩時往東（內陸）移一格。"
+    },
+    {
+      "id": "hualien",
+      "kind": "point",
+      "name_zh": "花蓮",
+      "name_en": "Hualien",
+      "lat": 23.99,
+      "lon": 121.6,
+      "inland_direction": [
+        0,
+        -1
+      ],
+      "note_zh": "靠海；格點被遮罩時往西（內陸）移一格。"
+    },
+    {
+      "id": "yushan",
+      "kind": "point",
+      "name_zh": "玉山",
+      "name_en": "Yushan",
+      "lat": 23.47,
+      "lon": 120.95,
+      "note_zh": "高山對照點。"
     }
   ],
   "series": [
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__hualien__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__kaohsiung__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__taichung__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__taipei__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__yushan__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__hualien__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__kaohsiung__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__taichung__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__taipei__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__yushan__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/gldas_evap__hualien__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/gldas_evap__kaohsiung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/gldas_evap__taichung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/gldas_evap__taipei__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/gldas_evap__yushan__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__hualien__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__kaohsiung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__taichung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__taipei__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__yushan__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/gldas_tair__hualien__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/gldas_tair__kaohsiung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/gldas_tair__taichung__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/gldas_tair__taipei__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/gldas_tair__yushan__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/imerg_precip__hualien__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/imerg_precip__kaohsiung__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
     {
       "variable_id": "imerg_precip",
       "location_id": "taichung",
@@ -36,12 +459,219 @@
       "n_points": 297,
       "first_month": "2001-01-01",
       "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/imerg_precip__taipei__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/imerg_precip__yushan__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__hualien__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__kaohsiung__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__taichung__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__taipei__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__yushan__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__hualien__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__kaohsiung__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__taichung__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__taipei__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__yushan__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/omi_no2__hualien__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/omi_no2__kaohsiung__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/omi_no2__taichung__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/omi_no2__taipei__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/omi_no2__yushan__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "hualien",
+      "aggregation": "point",
+      "file": "series/omi_o3__hualien__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "kaohsiung",
+      "aggregation": "point",
+      "file": "series/omi_o3__kaohsiung__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/omi_o3__taichung__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "taipei",
+      "aggregation": "point",
+      "file": "series/omi_o3__taipei__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "yushan",
+      "aggregation": "point",
+      "file": "series/omi_o3__yushan__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
     }
   ],
   "snapshot": {
-    "generated_at": "2026-11-14T07:46:11Z",
+    "generated_at": "2026-11-14T08:02:48Z",
     "latest_month": {
-      "imerg_precip": "2025-09-01"
+      "imerg_precip": "2025-09-01",
+      "gldas_tair": "2026-07-01",
+      "gldas_soilmoist": "2026-07-01",
+      "gldas_evap": "2026-07-01",
+      "airs_tsurf": "2026-10-01",
+      "airs_h2ovap": "2026-10-01",
+      "merra2_t2m": "2026-09-01",
+      "omi_no2": "2026-03-01",
+      "omi_o3": "2026-11-01",
+      "omi_aerosol": "2026-11-01"
     }
   }
 }

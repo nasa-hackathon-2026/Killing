@@ -1,0 +1,53 @@
+[
+  {
+    "id": "taichung",
+    "kind": "point",
+    "name_zh": "臺中",
+    "name_en": "Taichung",
+    "lat": 24.15,
+    "lon": 120.68
+  },
+  {
+    "id": "taipei",
+    "kind": "point",
+    "name_zh": "臺北",
+    "name_en": "Taipei",
+    "lat": 25.03,
+    "lon": 121.56
+  },
+  {
+    "id": "kaohsiung",
+    "kind": "point",
+    "name_zh": "高雄",
+    "name_en": "Kaohsiung",
+    "lat": 22.63,
+    "lon": 120.3,
+    "inland_direction": [
+      0,
+      1
+    ],
+    "note_zh": "靠海；格點被遮罩時往東（內陸）移一格。"
+  },
+  {
+    "id": "hualien",
+    "kind": "point",
+    "name_zh": "花蓮",
+    "name_en": "Hualien",
+    "lat": 23.99,
+    "lon": 121.6,
+    "inland_direction": [
+      0,
+      -1
+    ],
+    "note_zh": "靠海；格點被遮罩時往西（內陸）移一格。"
+  },
+  {
+    "id": "yushan",
+    "kind": "point",
+    "name_zh": "玉山",
+    "name_en": "Yushan",
+    "lat": 23.47,
+    "lon": 120.95,
+    "note_zh": "高山對照點。"
+  }
+]

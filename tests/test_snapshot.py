@@ -7,16 +7,53 @@ from pathlib import Path
 import httpx
 
 from trend_detective.giovanni import GiovanniClient
-from trend_detective.snapshot import build_snapshot
+from trend_detective.snapshot import build_snapshot, load_seed
 
 FIXTURE = Path(__file__).parent / "fixtures" / "giovanni_imerg_taichung_2020.csv"
+SEED_DIR = Path(__file__).parents[1] / "data" / "seed"
 SECRET = "secret-token-value"
+RUN = {"today": date(2026, 11, 14), "now": "2026-11-14T08:00:00Z"}
+
+PRECIP = {
+    "id": "imerg_precip",
+    "name_zh": "降水",
+    "source": "giovanni",
+    "source_variable_id": "GPM_3IMERGM_07_precipitation",
+    "product_version": "07",
+    "native_temporal_res": "month",
+    "is_nasa": True,
+}
+NO2 = {
+    **PRECIP,
+    "id": "omi_no2",
+    "source_variable_id": "NO2",
+    "native_temporal_res": "day",
+}
+TAICHUNG = {"id": "taichung", "kind": "point", "lat": 24.15, "lon": 120.68}
+HUALIEN = {
+    "id": "hualien",
+    "kind": "point",
+    "lat": 23.99,
+    "lon": 121.60,
+    "inland_direction": [0, -1],
+}
 
 
-def _client() -> GiovanniClient:
+def _csv(*rows: str, lat: float = 24.125, lon: float = 120.625) -> str:
+    return (
+        f"unit,K\nundef,-9999\nlat,{lat}\nlon,{lon}\n"
+        "lat_resolution,0.25\nlon_resolution,0.25\n\nTimestamp (UTC),Data\n"
+        + "\n".join(rows)
+        + "\n"
+    )
+
+
+def _client(respond=None) -> GiovanniClient:
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/quota":
             return httpx.Response(200, json={"status": 200, "quota": 0.0})
+        if respond is not None:
+            return respond(request)
         return httpx.Response(200, text=FIXTURE.read_text(encoding="utf-8"))
 
     http = httpx.Client(
@@ -28,9 +65,7 @@ def _client() -> GiovanniClient:
 def test_snapshot_writes_taichung_precipitation_series_matching_the_csv(
     tmp_path: Path,
 ):
-    build_snapshot(
-        _client(), tmp_path, today=date(2026, 11, 14), now="2026-11-14T08:00:00Z"
-    )
+    build_snapshot(_client(), tmp_path, [PRECIP], [TAICHUNG], **RUN)
 
     series = json.loads(
         (tmp_path / "series" / "imerg_precip__taichung__point.json").read_text()
@@ -53,27 +88,162 @@ def test_snapshot_writes_taichung_precipitation_series_matching_the_csv(
     }
 
 
-def test_snapshot_catalog_points_at_the_series_and_its_latest_month(tmp_path: Path):
-    build_snapshot(
-        _client(), tmp_path, today=date(2026, 11, 14), now="2026-11-14T08:00:00Z"
-    )
+def test_catalog_describes_each_variable_with_unit_and_valid_period_from_the_data(
+    tmp_path: Path,
+):
+    build_snapshot(_client(), tmp_path, [PRECIP], [TAICHUNG], **RUN)
 
     catalog = json.loads((tmp_path / "catalog.json").read_text())
     assert catalog["series"][0]["file"] == "series/imerg_precip__taichung__point.json"
     assert catalog["snapshot"]["latest_month"] == {"imerg_precip": "2020-12-01"}
+    variable = catalog["variables"][0]
+    assert variable["unit"] == "mm/hr"
+    assert variable["valid_from"] == "2020-01-01"
+    assert variable["valid_to"] == "2020-12-01"
+
+
+def test_daily_variable_is_stored_monthly_with_sample_count_and_coverage(
+    tmp_path: Path,
+):
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            text=_csv(
+                "2021-02-01 00:00,10", "2021-02-02 00:00,-9999", "2021-02-03 00:00,20"
+            ),
+        )
+
+    build_snapshot(_client(respond), tmp_path, [NO2], [TAICHUNG], **RUN)
+
+    series = json.loads(
+        (tmp_path / "series" / "omi_no2__taichung__point.json").read_text()
+    )
+    assert series["points"] == [
+        {"month": "2021-02-01", "value": 15.0, "n_samples": 2, "coverage": 2 / 28}
+    ]
+
+
+def test_masked_coastal_point_is_retried_one_grid_cell_inland_and_recorded(
+    tmp_path: Path,
+):
+    asked = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        location = request.url.params["location"]
+        asked.append(location)
+        if location == "[23.99,121.6]":
+            return httpx.Response(
+                200, text=_csv("2020-01-01 00:00,-9999", lat=23.875, lon=121.625)
+            )
+        return httpx.Response(
+            200, text=_csv("2020-01-01 00:00,290.5", lat=23.875, lon=121.375)
+        )
+
+    result = build_snapshot(_client(respond), tmp_path, [PRECIP], [HUALIEN], **RUN)
+
+    assert asked == ["[23.99,121.6]", "[23.99,121.35]"]
+    series = json.loads(
+        (tmp_path / "series" / "imerg_precip__hualien__point.json").read_text()
+    )
+    assert series["request"]["location"] == [23.99, 121.35]
+    assert series["request"]["requested_location"] == [23.99, 121.6]
+    assert series["grid"] == {"lat": 23.875, "lon": 121.375}
+    assert series["points"][0]["value"] == 290.5
+    assert result.failures == {}
+
+
+def test_masked_point_without_an_inland_direction_is_reported_not_written(
+    tmp_path: Path,
+):
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=_csv("2020-01-01 00:00,-9999"))
+
+    result = build_snapshot(_client(respond), tmp_path, [PRECIP], [TAICHUNG], **RUN)
+
+    assert list(result.failures) == [("imerg_precip", "taichung")]
+    assert "遮罩" in result.failures[("imerg_precip", "taichung")]
+    assert not (tmp_path / "series" / "imerg_precip__taichung__point.json").exists()
+
+
+def test_one_failing_series_does_not_stop_the_rest_of_the_batch(tmp_path: Path):
+    def respond(request: httpx.Request) -> httpx.Response:
+        if request.url.params["data"] == "NO2":
+            return httpx.Response(500, text="boom")
+        return httpx.Response(200, text=FIXTURE.read_text(encoding="utf-8"))
+
+    result = build_snapshot(
+        _client(respond), tmp_path, [NO2, PRECIP], [TAICHUNG], **RUN
+    )
+
+    assert result.succeeded == [("imerg_precip", "taichung")]
+    assert "500" in result.failures[("omi_no2", "taichung")]
+    catalog = json.loads((tmp_path / "catalog.json").read_text())
+    assert [s["variable_id"] for s in catalog["series"]] == ["imerg_precip"]
+    assert catalog["snapshot"]["latest_month"] == {
+        "imerg_precip": "2020-12-01",
+        "omi_no2": None,
+    }
+
+
+def test_a_failed_refetch_keeps_the_previously_written_series_in_the_catalog(
+    tmp_path: Path,
+):
+    build_snapshot(_client(), tmp_path, [PRECIP], [TAICHUNG], **RUN)
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="boom")
+
+    build_snapshot(_client(respond), tmp_path, [PRECIP], [TAICHUNG], **RUN)
+
+    catalog = json.loads((tmp_path / "catalog.json").read_text())
+    assert catalog["series"][0]["n_points"] == 12
+
+
+def test_raw_responses_are_kept_per_series_when_a_raw_dir_is_given(tmp_path: Path):
+    raw = tmp_path / "raw"
+
+    build_snapshot(
+        _client(), tmp_path / "snap", [PRECIP], [TAICHUNG], raw_dir=raw, **RUN
+    )
+
+    saved = raw / "giovanni" / "imerg_precip__taichung.csv"
+    assert saved.read_text(encoding="utf-8") == FIXTURE.read_text(encoding="utf-8")
 
 
 def test_rerunning_on_a_later_day_changes_no_file_and_no_file_holds_the_token(
     tmp_path: Path,
 ):
-    build_snapshot(
-        _client(), tmp_path, today=date(2026, 11, 14), now="2026-11-14T08:00:00Z"
-    )
+    build_snapshot(_client(), tmp_path, [PRECIP], [TAICHUNG], **RUN)
     before = {p: p.read_bytes() for p in tmp_path.rglob("*.json")}
 
     build_snapshot(
-        _client(), tmp_path, today=date(2026, 11, 15), now="2026-11-15T09:00:00Z"
+        _client(),
+        tmp_path,
+        [PRECIP],
+        [TAICHUNG],
+        today=date(2026, 11, 15),
+        now="2026-11-15T09:00:00Z",
     )
 
     assert {p: p.read_bytes() for p in tmp_path.rglob("*.json")} == before
     assert all(SECRET.encode() not in content for content in before.values())
+
+
+def test_seed_lists_ten_giovanni_variables_and_five_points_with_student_facing_text():
+    variables, locations = load_seed(SEED_DIR)
+
+    assert len(variables) == 10
+    assert len({v["id"] for v in variables}) == 10
+    for variable in variables:
+        assert variable["source"] == "giovanni"
+        assert (
+            variable["name_zh"] and variable["definition_zh"] and variable["category"]
+        )
+        assert variable["native_temporal_res"] in {"month", "day"}
+    assert [loc["id"] for loc in locations] == [
+        "taichung",
+        "taipei",
+        "kaohsiung",
+        "hualien",
+        "yushan",
+    ]
