@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T14:15:38Z",
+  "generated_at": "2026-11-14T14:47:41Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -16,20 +16,24 @@
   "parameters": {
     "low_quantile": 0.33333333,
     "high_quantile": 0.66666667,
-    "exclude_variables": [
-      "power_t2m",
-      "modis_ndvi_pc"
+    "exclude_variables": [],
+    "exclude_locations": [
+      "taiwan"
     ],
+    "max_abs_correlation": 0.85,
     "tree_table": "region",
     "tree_target": "modis_ndvi",
     "tree_max_depth": 3,
     "tree_min_samples_leaf": 20,
-    "tree_train_fraction": 0.8,
+    "tree_n_folds": 3,
+    "tree_min_train_months": 120,
+    "tree_include_target_lag": true,
     "tree_random_state": 0
   },
   "packages": {
     "numpy": "2.5.4",
     "pandas": "3.1.1",
+    "scipy": "1.18.1",
     "mlxtend": "0.25.0",
     "scikit-learn": "1.9.1"
   },
@@ -37,21 +41,40 @@
     "decision_tree.json"
   ],
   "summary": {
-    "n_train": 789,
-    "n_test": 200,
-    "accuracy": {
-      "train": 0.54499366,
-      "test": 0.425
-    },
-    "baseline_majority_class": {
-      "predicted_class": "low",
-      "tie": true,
-      "train_accuracy": 0.33333333,
-      "test_accuracy": 0.125,
-      "best_constant_on_test": {
-        "predicted_class": "high",
-        "test_accuracy": 0.635
+    "n_folds": 3,
+    "n_folds_above_train_majority": 3,
+    "n_folds_above_test_majority": 3,
+    "n_folds_above_both": 3,
+    "above_both_in_every_fold": true,
+    "mean_test_accuracy": 0.56613757,
+    "mean_train_majority_accuracy": 0.31481481,
+    "mean_test_majority_accuracy": 0.43121693,
+    "text_en": "The tree's test accuracy is above both baselines in 3 of 3 folds (above the training-majority guess in 3, above the test-majority guess in 3).",
+    "folds": [
+      {
+        "fold": 1,
+        "n_train": 354,
+        "n_test": 126,
+        "test_accuracy": 0.54761905,
+        "train_majority_accuracy": 0.26984127,
+        "test_majority_accuracy": 0.46825397
+      },
+      {
+        "fold": 2,
+        "n_train": 480,
+        "n_test": 126,
+        "test_accuracy": 0.61111111,
+        "train_majority_accuracy": 0.32539683,
+        "test_majority_accuracy": 0.42063492
+      },
+      {
+        "fold": 3,
+        "n_train": 606,
+        "n_test": 126,
+        "test_accuracy": 0.53968254,
+        "train_majority_accuracy": 0.34920635,
+        "test_majority_accuracy": 0.4047619
       }
-    }
+    ]
   }
 }

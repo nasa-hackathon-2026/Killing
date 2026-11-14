@@ -1,7 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "exploratory": true,
-  "note": "Exploratory data mining on monthly anomalies. It has no significance test, does not replace the trend statistics, and does not show cause and effect.",
+  "note": "Exploratory data mining on detrended monthly anomalies. It does not replace the trend statistics and does not show cause and effect.",
+  "detrending_note": "Each series has its own least-squares linear trend removed before states are assigned. Rules and the variable screening use the trend of the whole table period (descriptive). The decision tree re-estimates monthly means, trend and target thresholds from the training months of each fold only.",
   "input": {
     "anomalies": "data/analysis/anomalies.json",
     "snapshot_generated_at": "2026-11-14T13:02:25Z",
@@ -16,22 +17,62 @@
   "parameters": {
     "low_quantile": 0.33333333,
     "high_quantile": 0.66666667,
-    "exclude_variables": [
-      "power_t2m",
-      "modis_ndvi_pc"
+    "exclude_variables": [],
+    "exclude_locations": [
+      "taiwan"
     ],
+    "max_abs_correlation": 0.85,
     "tree_table": "region",
     "tree_target": "modis_ndvi",
     "tree_max_depth": 3,
     "tree_min_samples_leaf": 20,
-    "tree_train_fraction": 0.8,
+    "tree_n_folds": 3,
+    "tree_min_train_months": 120,
+    "tree_include_target_lag": true,
     "tree_random_state": 0
   },
   "packages": {
     "numpy": "2.5.4",
     "pandas": "3.1.1",
+    "scipy": "1.18.1",
     "mlxtend": "0.25.0",
     "scikit-learn": "1.9.1"
+  },
+  "variable_priority": [
+    "imerg_precip",
+    "gldas_tair",
+    "gldas_soilmoist",
+    "gldas_evap",
+    "airs_tsurf",
+    "airs_h2ovap",
+    "merra2_t2m",
+    "omi_no2",
+    "omi_o3",
+    "omi_aerosol",
+    "station_temp",
+    "power_t2m",
+    "modis_ndvi",
+    "modis_lst",
+    "modis_lst_pc",
+    "modis_ndvi_pc"
+  ],
+  "variable_names": {
+    "imerg_precip": "Precipitation (GPM IMERG Final)",
+    "gldas_tair": "Near-surface air temperature (GLDAS Noah)",
+    "gldas_soilmoist": "Soil moisture 0–10 cm (GLDAS Noah)",
+    "gldas_evap": "Evapotranspiration (GLDAS Noah)",
+    "airs_tsurf": "Surface air temperature (AIRS)",
+    "airs_h2ovap": "Total column water vapor (AIRS)",
+    "merra2_t2m": "2 m air temperature (MERRA-2)",
+    "omi_no2": "Tropospheric NO2 column (OMI)",
+    "omi_o3": "Total column ozone (OMI)",
+    "omi_aerosol": "UV aerosol index (OMI)",
+    "station_temp": "Station air temperature (NOAA GHCNh)",
+    "power_t2m": "2 m air temperature (NASA POWER, MERRA-2)",
+    "modis_ndvi": "Vegetation greenness, NDVI (MODIS Terra)",
+    "modis_lst": "Daytime land surface temperature (MODIS Terra)",
+    "modis_lst_pc": "Daytime land surface temperature (MODIS Terra, via Planetary Computer)",
+    "modis_ndvi_pc": "Vegetation greenness, NDVI (MODIS Terra 250 m 16-day, via Planetary Computer)"
   },
   "table": "region",
   "target": "modis_ndvi",
@@ -47,25 +88,37 @@
     "gldas_soilmoist",
     "gldas_tair",
     "imerg_precip",
-    "merra2_t2m",
     "modis_lst_pc",
+    "modis_ndvi_pc",
     "omi_aerosol",
     "omi_no2",
-    "omi_o3"
+    "omi_o3",
+    "prev:airs_h2ovap",
+    "prev:airs_tsurf",
+    "prev:gldas_evap",
+    "prev:gldas_soilmoist",
+    "prev:gldas_tair",
+    "prev:imerg_precip",
+    "prev:modis_lst_pc",
+    "prev:modis_ndvi",
+    "prev:modis_ndvi_pc",
+    "prev:omi_aerosol",
+    "prev:omi_no2",
+    "prev:omi_o3"
   ],
   "rows_by_location": {
     "central": {
-      "n_rows": 252,
-      "n_complete_rows": 247,
+      "n_rows": 251,
+      "n_complete_rows": 244,
       "missing_variables": []
     },
     "east": {
-      "n_rows": 252,
-      "n_complete_rows": 246,
+      "n_rows": 251,
+      "n_complete_rows": 242,
       "missing_variables": []
     },
     "north": {
-      "n_rows": 252,
+      "n_rows": 251,
       "n_complete_rows": 0,
       "missing_variables": [
         "airs_h2ovap",
@@ -75,283 +128,961 @@
       ]
     },
     "south": {
-      "n_rows": 252,
-      "n_complete_rows": 248,
-      "missing_variables": []
-    },
-    "taiwan": {
-      "n_rows": 252,
-      "n_complete_rows": 248,
+      "n_rows": 251,
+      "n_complete_rows": 246,
       "missing_variables": []
     }
   },
   "dropped_series": [],
-  "split": {
-    "method": "by month: earlier months train, later months test",
-    "train_first_month": "2004-10-01",
-    "train_last_month": "2021-03-01",
-    "test_first_month": "2021-04-01",
-    "test_last_month": "2025-06-01",
-    "n_train_months": 198,
-    "n_test_months": 50,
-    "n_train": 789,
-    "n_test": 200
-  },
-  "target_thresholds": {
-    "central": {
-      "low": -0.0048894051,
-      "high": 0.005591109
-    },
-    "east": {
-      "low": -0.0047114538,
-      "high": 0.0061408077
-    },
-    "south": {
-      "low": -0.0091651893,
-      "high": 0.0034712128
-    },
-    "taiwan": {
-      "low": -0.0073768718,
-      "high": 0.0045288885
-    }
-  },
-  "class_counts": {
-    "train": {
-      "low": 263,
-      "normal": 263,
-      "high": 263
-    },
-    "test": {
-      "low": 25,
-      "normal": 48,
-      "high": 127
-    }
-  },
-  "accuracy": {
-    "train": 0.54499366,
-    "test": 0.425
-  },
-  "baseline_majority_class": {
-    "predicted_class": "low",
-    "tie": true,
-    "train_accuracy": 0.33333333,
-    "test_accuracy": 0.125,
-    "best_constant_on_test": {
-      "predicted_class": "high",
-      "test_accuracy": 0.635
-    }
-  },
-  "confusion_matrix_test": {
-    "low": {
-      "low": 2,
-      "normal": 19,
-      "high": 4
-    },
-    "normal": {
-      "low": 0,
-      "normal": 33,
-      "high": 15
-    },
-    "high": {
-      "low": 0,
-      "normal": 77,
-      "high": 50
-    }
-  },
-  "feature_importances": [
+  "excluded_variables": [
     {
-      "feature": "omi_no2",
-      "importance": 0.36124085
-    },
-    {
-      "feature": "gldas_evap",
-      "importance": 0.26306572
-    },
-    {
-      "feature": "merra2_t2m",
-      "importance": 0.18022711
-    },
-    {
-      "feature": "airs_h2ovap",
-      "importance": 0.070596189
-    },
-    {
-      "feature": "omi_aerosol",
-      "importance": 0.068350283
-    },
-    {
-      "feature": "gldas_tair",
-      "importance": 0.05651985
-    },
-    {
-      "feature": "airs_tsurf",
-      "importance": 0.0
-    },
-    {
-      "feature": "gldas_soilmoist",
-      "importance": 0.0
-    },
-    {
-      "feature": "imerg_precip",
-      "importance": 0.0
-    },
-    {
-      "feature": "modis_lst_pc",
-      "importance": 0.0
-    },
-    {
-      "feature": "omi_o3",
-      "importance": 0.0
+      "variable_id": "merra2_t2m",
+      "correlated_with": "gldas_tair",
+      "correlation": 0.85842548,
+      "n_pairs": 1008
     }
   ],
-  "tree": {
-    "n_samples": 789,
-    "class_counts": {
-      "high": 263,
-      "low": 263,
-      "normal": 263
-    },
-    "predicted_class": "high",
-    "feature": "omi_no2",
-    "threshold": 285981640000000.0,
-    "left": {
-      "n_samples": 512,
+  "validation": {
+    "method": "walk-forward by month: each fold tests on the next block of months and trains on every month before it; monthly means, linear trend and target thresholds are estimated from the training months only",
+    "n_folds": 3,
+    "min_train_months": 120
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "train_first_month": "2004-11-01",
+      "train_last_month": "2014-10-01",
+      "test_first_month": "2014-11-01",
+      "test_last_month": "2018-04-01",
+      "n_train_months": 120,
+      "n_test_months": 42,
+      "n_train": 354,
+      "n_test": 126,
       "class_counts": {
-        "high": 212,
-        "low": 111,
-        "normal": 189
+        "train": {
+          "low": 116,
+          "normal": 120,
+          "high": 118
+        },
+        "test": {
+          "low": 33,
+          "normal": 34,
+          "high": 59
+        }
       },
-      "predicted_class": "high",
-      "feature": "merra2_t2m",
-      "threshold": 0.089860622,
-      "left": {
-        "n_samples": 269,
+      "target_thresholds": {
+        "central": {
+          "low": -0.0038988783,
+          "high": 0.0050469006
+        },
+        "east": {
+          "low": -0.0027795179,
+          "high": 0.0054440195
+        },
+        "south": {
+          "low": -0.0031294216,
+          "high": 0.0065748552
+        }
+      },
+      "accuracy": {
+        "train": 0.59322034,
+        "test": 0.54761905
+      },
+      "baselines": {
+        "train_majority": {
+          "predicted_class": "normal",
+          "tie": false,
+          "test_accuracy": 0.26984127
+        },
+        "test_majority": {
+          "predicted_class": "high",
+          "test_accuracy": 0.46825397
+        }
+      },
+      "above_train_majority": true,
+      "above_test_majority": true,
+      "confusion_matrix_test": {
+        "low": {
+          "low": 9,
+          "normal": 17,
+          "high": 7
+        },
+        "normal": {
+          "low": 5,
+          "normal": 13,
+          "high": 16
+        },
+        "high": {
+          "low": 0,
+          "normal": 12,
+          "high": 47
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "prev:modis_ndvi",
+          "importance": 0.45033055
+        },
+        {
+          "feature": "airs_h2ovap",
+          "importance": 0.23949248
+        },
+        {
+          "feature": "modis_ndvi_pc",
+          "importance": 0.22787825
+        },
+        {
+          "feature": "gldas_tair",
+          "importance": 0.082298715
+        },
+        {
+          "feature": "airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_soilmoist",
+          "importance": 0.0
+        },
+        {
+          "feature": "imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_no2",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_o3",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:airs_h2ovap",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_soilmoist",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_tair",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:modis_ndvi_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_no2",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_o3",
+          "importance": 0.0
+        }
+      ],
+      "tree": {
+        "n_samples": 354,
         "class_counts": {
-          "high": 75,
-          "low": 77,
-          "normal": 117
+          "high": 118,
+          "low": 116,
+          "normal": 120
         },
         "predicted_class": "normal",
-        "feature": "omi_aerosol",
-        "threshold": -0.21412238,
+        "feature": "prev:modis_ndvi",
+        "threshold": 0.0063969775,
         "left": {
-          "n_samples": 91,
+          "n_samples": 245,
           "class_counts": {
-            "high": 11,
-            "low": 38,
-            "normal": 42
+            "high": 52,
+            "low": 101,
+            "normal": 92
           },
-          "predicted_class": "normal"
+          "predicted_class": "low",
+          "feature": "modis_ndvi_pc",
+          "threshold": -0.00087992093,
+          "left": {
+            "n_samples": 110,
+            "class_counts": {
+              "high": 14,
+              "low": 67,
+              "normal": 29
+            },
+            "predicted_class": "low",
+            "feature": "airs_h2ovap",
+            "threshold": 1.5393486,
+            "left": {
+              "n_samples": 83,
+              "class_counts": {
+                "high": 5,
+                "low": 59,
+                "normal": 19
+              },
+              "predicted_class": "low"
+            },
+            "right": {
+              "n_samples": 27,
+              "class_counts": {
+                "high": 9,
+                "low": 8,
+                "normal": 10
+              },
+              "predicted_class": "normal"
+            }
+          },
+          "right": {
+            "n_samples": 135,
+            "class_counts": {
+              "high": 38,
+              "low": 34,
+              "normal": 63
+            },
+            "predicted_class": "normal",
+            "feature": "airs_h2ovap",
+            "threshold": 0.78474343,
+            "left": {
+              "n_samples": 88,
+              "class_counts": {
+                "high": 13,
+                "low": 29,
+                "normal": 46
+              },
+              "predicted_class": "normal"
+            },
+            "right": {
+              "n_samples": 47,
+              "class_counts": {
+                "high": 25,
+                "low": 5,
+                "normal": 17
+              },
+              "predicted_class": "high"
+            }
+          }
         },
         "right": {
-          "n_samples": 178,
+          "n_samples": 109,
           "class_counts": {
-            "high": 64,
-            "low": 39,
-            "normal": 75
-          },
-          "predicted_class": "normal"
-        }
-      },
-      "right": {
-        "n_samples": 243,
-        "class_counts": {
-          "high": 137,
-          "low": 34,
-          "normal": 72
-        },
-        "predicted_class": "high",
-        "feature": "gldas_evap",
-        "threshold": 6.7404338e-07,
-        "left": {
-          "n_samples": 99,
-          "class_counts": {
-            "high": 37,
-            "low": 24,
-            "normal": 38
-          },
-          "predicted_class": "normal"
-        },
-        "right": {
-          "n_samples": 144,
-          "class_counts": {
-            "high": 100,
-            "low": 10,
-            "normal": 34
-          },
-          "predicted_class": "high"
-        }
-      }
-    },
-    "right": {
-      "n_samples": 277,
-      "class_counts": {
-        "high": 51,
-        "low": 152,
-        "normal": 74
-      },
-      "predicted_class": "low",
-      "feature": "gldas_evap",
-      "threshold": 4.6973034e-07,
-      "left": {
-        "n_samples": 164,
-        "class_counts": {
-          "high": 11,
-          "low": 113,
-          "normal": 40
-        },
-        "predicted_class": "low",
-        "feature": "gldas_tair",
-        "threshold": 0.34174693,
-        "left": {
-          "n_samples": 143,
-          "class_counts": {
-            "high": 10,
-            "low": 105,
+            "high": 66,
+            "low": 15,
             "normal": 28
           },
-          "predicted_class": "low"
-        },
-        "right": {
-          "n_samples": 21,
-          "class_counts": {
-            "high": 1,
-            "low": 8,
-            "normal": 12
+          "predicted_class": "high",
+          "feature": "prev:modis_ndvi",
+          "threshold": 0.014613393,
+          "left": {
+            "n_samples": 72,
+            "class_counts": {
+              "high": 35,
+              "low": 13,
+              "normal": 24
+            },
+            "predicted_class": "high",
+            "feature": "gldas_tair",
+            "threshold": 0.46264556,
+            "left": {
+              "n_samples": 49,
+              "class_counts": {
+                "high": 18,
+                "low": 9,
+                "normal": 22
+              },
+              "predicted_class": "normal"
+            },
+            "right": {
+              "n_samples": 23,
+              "class_counts": {
+                "high": 17,
+                "low": 4,
+                "normal": 2
+              },
+              "predicted_class": "high"
+            }
           },
-          "predicted_class": "normal"
+          "right": {
+            "n_samples": 37,
+            "class_counts": {
+              "high": 31,
+              "low": 2,
+              "normal": 4
+            },
+            "predicted_class": "high"
+          }
         }
       },
-      "right": {
-        "n_samples": 113,
-        "class_counts": {
-          "high": 40,
-          "low": 39,
-          "normal": 34
+      "tree_text": "if prev:modis_ndvi <= 0.006397:\n  if modis_ndvi_pc <= -0.0008799:\n    if airs_h2ovap <= 1.539:\n      -> low (n = 83: high 5, low 59, normal 19)\n    else:\n      -> normal (n = 27: high 9, low 8, normal 10)\n  else:\n    if airs_h2ovap <= 0.7847:\n      -> normal (n = 88: high 13, low 29, normal 46)\n    else:\n      -> high (n = 47: high 25, low 5, normal 17)\nelse:\n  if prev:modis_ndvi <= 0.01461:\n    if gldas_tair <= 0.4626:\n      -> normal (n = 49: high 18, low 9, normal 22)\n    else:\n      -> high (n = 23: high 17, low 4, normal 2)\n  else:\n    -> high (n = 37: high 31, low 2, normal 4)\n"
+    },
+    {
+      "fold": 2,
+      "train_first_month": "2004-11-01",
+      "train_last_month": "2018-04-01",
+      "test_first_month": "2018-05-01",
+      "test_last_month": "2021-10-01",
+      "n_train_months": 162,
+      "n_test_months": 42,
+      "n_train": 480,
+      "n_test": 126,
+      "class_counts": {
+        "train": {
+          "low": 159,
+          "normal": 161,
+          "high": 160
         },
-        "predicted_class": "high",
-        "feature": "airs_h2ovap",
-        "threshold": 0.21766325,
+        "test": {
+          "low": 53,
+          "normal": 41,
+          "high": 32
+        }
+      },
+      "target_thresholds": {
+        "central": {
+          "low": -0.0051563153,
+          "high": 0.0050027492
+        },
+        "east": {
+          "low": -0.0017901799,
+          "high": 0.0040153924
+        },
+        "south": {
+          "low": -0.0044024399,
+          "high": 0.0066682568
+        }
+      },
+      "accuracy": {
+        "train": 0.56041667,
+        "test": 0.61111111
+      },
+      "baselines": {
+        "train_majority": {
+          "predicted_class": "normal",
+          "tie": false,
+          "test_accuracy": 0.32539683
+        },
+        "test_majority": {
+          "predicted_class": "low",
+          "test_accuracy": 0.42063492
+        }
+      },
+      "above_train_majority": true,
+      "above_test_majority": true,
+      "confusion_matrix_test": {
+        "low": {
+          "low": 37,
+          "normal": 5,
+          "high": 11
+        },
+        "normal": {
+          "low": 9,
+          "normal": 26,
+          "high": 6
+        },
+        "high": {
+          "low": 4,
+          "normal": 14,
+          "high": 14
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "modis_ndvi_pc",
+          "importance": 0.33419326
+        },
+        {
+          "feature": "airs_h2ovap",
+          "importance": 0.19203623
+        },
+        {
+          "feature": "prev:modis_ndvi",
+          "importance": 0.1610239
+        },
+        {
+          "feature": "prev:airs_h2ovap",
+          "importance": 0.15511952
+        },
+        {
+          "feature": "omi_o3",
+          "importance": 0.11734501
+        },
+        {
+          "feature": "omi_no2",
+          "importance": 0.040282097
+        },
+        {
+          "feature": "airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_soilmoist",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_tair",
+          "importance": 0.0
+        },
+        {
+          "feature": "imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_soilmoist",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_tair",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:modis_ndvi_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_no2",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_o3",
+          "importance": 0.0
+        }
+      ],
+      "tree": {
+        "n_samples": 480,
+        "class_counts": {
+          "high": 160,
+          "low": 159,
+          "normal": 161
+        },
+        "predicted_class": "normal",
+        "feature": "modis_ndvi_pc",
+        "threshold": 0.007201124,
         "left": {
-          "n_samples": 56,
+          "n_samples": 247,
           "class_counts": {
-            "high": 11,
-            "low": 29,
-            "normal": 16
+            "high": 46,
+            "low": 119,
+            "normal": 82
           },
-          "predicted_class": "low"
+          "predicted_class": "low",
+          "feature": "prev:modis_ndvi",
+          "threshold": -0.0017187893,
+          "left": {
+            "n_samples": 116,
+            "class_counts": {
+              "high": 6,
+              "low": 76,
+              "normal": 34
+            },
+            "predicted_class": "low",
+            "feature": "omi_o3",
+            "threshold": 2.826463,
+            "left": {
+              "n_samples": 75,
+              "class_counts": {
+                "high": 6,
+                "low": 38,
+                "normal": 31
+              },
+              "predicted_class": "low"
+            },
+            "right": {
+              "n_samples": 41,
+              "class_counts": {
+                "high": 0,
+                "low": 38,
+                "normal": 3
+              },
+              "predicted_class": "low"
+            }
+          },
+          "right": {
+            "n_samples": 131,
+            "class_counts": {
+              "high": 40,
+              "low": 43,
+              "normal": 48
+            },
+            "predicted_class": "normal",
+            "feature": "airs_h2ovap",
+            "threshold": 1.8519717,
+            "left": {
+              "n_samples": 88,
+              "class_counts": {
+                "high": 16,
+                "low": 36,
+                "normal": 36
+              },
+              "predicted_class": "low"
+            },
+            "right": {
+              "n_samples": 43,
+              "class_counts": {
+                "high": 24,
+                "low": 7,
+                "normal": 12
+              },
+              "predicted_class": "high"
+            }
+          }
         },
         "right": {
-          "n_samples": 57,
+          "n_samples": 233,
           "class_counts": {
-            "high": 29,
-            "low": 10,
-            "normal": 18
+            "high": 114,
+            "low": 40,
+            "normal": 79
           },
-          "predicted_class": "high"
+          "predicted_class": "high",
+          "feature": "prev:airs_h2ovap",
+          "threshold": 2.0108558,
+          "left": {
+            "n_samples": 178,
+            "class_counts": {
+              "high": 70,
+              "low": 40,
+              "normal": 68
+            },
+            "predicted_class": "high",
+            "feature": "airs_h2ovap",
+            "threshold": 0.90602231,
+            "left": {
+              "n_samples": 122,
+              "class_counts": {
+                "high": 35,
+                "low": 33,
+                "normal": 54
+              },
+              "predicted_class": "normal"
+            },
+            "right": {
+              "n_samples": 56,
+              "class_counts": {
+                "high": 35,
+                "low": 7,
+                "normal": 14
+              },
+              "predicted_class": "high"
+            }
+          },
+          "right": {
+            "n_samples": 55,
+            "class_counts": {
+              "high": 44,
+              "low": 0,
+              "normal": 11
+            },
+            "predicted_class": "high",
+            "feature": "omi_no2",
+            "threshold": -252414800000000.0,
+            "left": {
+              "n_samples": 21,
+              "class_counts": {
+                "high": 21,
+                "low": 0,
+                "normal": 0
+              },
+              "predicted_class": "high"
+            },
+            "right": {
+              "n_samples": 34,
+              "class_counts": {
+                "high": 23,
+                "low": 0,
+                "normal": 11
+              },
+              "predicted_class": "high"
+            }
+          }
         }
-      }
+      },
+      "tree_text": "if modis_ndvi_pc <= 0.007201:\n  if prev:modis_ndvi <= -0.001719:\n    if omi_o3 <= 2.826:\n      -> low (n = 75: high 6, low 38, normal 31)\n    else:\n      -> low (n = 41: high 0, low 38, normal 3)\n  else:\n    if airs_h2ovap <= 1.852:\n      -> low (n = 88: high 16, low 36, normal 36)\n    else:\n      -> high (n = 43: high 24, low 7, normal 12)\nelse:\n  if prev:airs_h2ovap <= 2.011:\n    if airs_h2ovap <= 0.906:\n      -> normal (n = 122: high 35, low 33, normal 54)\n    else:\n      -> high (n = 56: high 35, low 7, normal 14)\n  else:\n    if omi_no2 <= -2.524e+14:\n      -> high (n = 21: high 21, low 0, normal 0)\n    else:\n      -> high (n = 34: high 23, low 0, normal 11)\n"
+    },
+    {
+      "fold": 3,
+      "train_first_month": "2004-11-01",
+      "train_last_month": "2021-10-01",
+      "test_first_month": "2021-11-01",
+      "test_last_month": "2025-06-01",
+      "n_train_months": 204,
+      "n_test_months": 42,
+      "n_train": 606,
+      "n_test": 126,
+      "class_counts": {
+        "train": {
+          "low": 201,
+          "normal": 203,
+          "high": 202
+        },
+        "test": {
+          "low": 51,
+          "normal": 44,
+          "high": 31
+        }
+      },
+      "target_thresholds": {
+        "central": {
+          "low": -0.0042528753,
+          "high": 0.0049498905
+        },
+        "east": {
+          "low": -0.0023237173,
+          "high": 0.0041762528
+        },
+        "south": {
+          "low": -0.0042504338,
+          "high": 0.0063906766
+        }
+      },
+      "accuracy": {
+        "train": 0.58415842,
+        "test": 0.53968254
+      },
+      "baselines": {
+        "train_majority": {
+          "predicted_class": "normal",
+          "tie": false,
+          "test_accuracy": 0.34920635
+        },
+        "test_majority": {
+          "predicted_class": "low",
+          "test_accuracy": 0.4047619
+        }
+      },
+      "above_train_majority": true,
+      "above_test_majority": true,
+      "confusion_matrix_test": {
+        "low": {
+          "low": 28,
+          "normal": 22,
+          "high": 1
+        },
+        "normal": {
+          "low": 9,
+          "normal": 27,
+          "high": 8
+        },
+        "high": {
+          "low": 0,
+          "normal": 18,
+          "high": 13
+        }
+      },
+      "feature_importances": [
+        {
+          "feature": "prev:modis_ndvi",
+          "importance": 0.51182047
+        },
+        {
+          "feature": "gldas_soilmoist",
+          "importance": 0.15606128
+        },
+        {
+          "feature": "airs_h2ovap",
+          "importance": 0.13953219
+        },
+        {
+          "feature": "modis_ndvi_pc",
+          "importance": 0.091042741
+        },
+        {
+          "feature": "prev:modis_ndvi_pc",
+          "importance": 0.05772002
+        },
+        {
+          "feature": "prev:airs_h2ovap",
+          "importance": 0.0438233
+        },
+        {
+          "feature": "airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "gldas_tair",
+          "importance": 0.0
+        },
+        {
+          "feature": "imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_no2",
+          "importance": 0.0
+        },
+        {
+          "feature": "omi_o3",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:airs_tsurf",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_evap",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_soilmoist",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:gldas_tair",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:imerg_precip",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:modis_lst_pc",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_aerosol",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_no2",
+          "importance": 0.0
+        },
+        {
+          "feature": "prev:omi_o3",
+          "importance": 0.0
+        }
+      ],
+      "tree": {
+        "n_samples": 606,
+        "class_counts": {
+          "high": 202,
+          "low": 201,
+          "normal": 203
+        },
+        "predicted_class": "normal",
+        "feature": "prev:modis_ndvi",
+        "threshold": -0.0017065931,
+        "left": {
+          "n_samples": 238,
+          "class_counts": {
+            "high": 33,
+            "low": 130,
+            "normal": 75
+          },
+          "predicted_class": "low",
+          "feature": "gldas_soilmoist",
+          "threshold": -0.59093663,
+          "left": {
+            "n_samples": 78,
+            "class_counts": {
+              "high": 3,
+              "low": 64,
+              "normal": 11
+            },
+            "predicted_class": "low",
+            "feature": "prev:modis_ndvi_pc",
+            "threshold": 0.0079093114,
+            "left": {
+              "n_samples": 56,
+              "class_counts": {
+                "high": 0,
+                "low": 53,
+                "normal": 3
+              },
+              "predicted_class": "low"
+            },
+            "right": {
+              "n_samples": 22,
+              "class_counts": {
+                "high": 3,
+                "low": 11,
+                "normal": 8
+              },
+              "predicted_class": "low"
+            }
+          },
+          "right": {
+            "n_samples": 160,
+            "class_counts": {
+              "high": 30,
+              "low": 66,
+              "normal": 64
+            },
+            "predicted_class": "low",
+            "feature": "modis_ndvi_pc",
+            "threshold": -0.0052943742,
+            "left": {
+              "n_samples": 65,
+              "class_counts": {
+                "high": 5,
+                "low": 41,
+                "normal": 19
+              },
+              "predicted_class": "low"
+            },
+            "right": {
+              "n_samples": 95,
+              "class_counts": {
+                "high": 25,
+                "low": 25,
+                "normal": 45
+              },
+              "predicted_class": "normal"
+            }
+          }
+        },
+        "right": {
+          "n_samples": 368,
+          "class_counts": {
+            "high": 169,
+            "low": 71,
+            "normal": 128
+          },
+          "predicted_class": "high",
+          "feature": "airs_h2ovap",
+          "threshold": 1.5384552,
+          "left": {
+            "n_samples": 261,
+            "class_counts": {
+              "high": 96,
+              "low": 57,
+              "normal": 108
+            },
+            "predicted_class": "normal",
+            "feature": "prev:modis_ndvi",
+            "threshold": 0.016206132,
+            "left": {
+              "n_samples": 225,
+              "class_counts": {
+                "high": 68,
+                "low": 54,
+                "normal": 103
+              },
+              "predicted_class": "normal"
+            },
+            "right": {
+              "n_samples": 36,
+              "class_counts": {
+                "high": 28,
+                "low": 3,
+                "normal": 5
+              },
+              "predicted_class": "high"
+            }
+          },
+          "right": {
+            "n_samples": 107,
+            "class_counts": {
+              "high": 73,
+              "low": 14,
+              "normal": 20
+            },
+            "predicted_class": "high",
+            "feature": "prev:airs_h2ovap",
+            "threshold": -0.9173694,
+            "left": {
+              "n_samples": 23,
+              "class_counts": {
+                "high": 9,
+                "low": 7,
+                "normal": 7
+              },
+              "predicted_class": "high"
+            },
+            "right": {
+              "n_samples": 84,
+              "class_counts": {
+                "high": 64,
+                "low": 7,
+                "normal": 13
+              },
+              "predicted_class": "high"
+            }
+          }
+        }
+      },
+      "tree_text": "if prev:modis_ndvi <= -0.001707:\n  if gldas_soilmoist <= -0.5909:\n    if prev:modis_ndvi_pc <= 0.007909:\n      -> low (n = 56: high 0, low 53, normal 3)\n    else:\n      -> low (n = 22: high 3, low 11, normal 8)\n  else:\n    if modis_ndvi_pc <= -0.005294:\n      -> low (n = 65: high 5, low 41, normal 19)\n    else:\n      -> normal (n = 95: high 25, low 25, normal 45)\nelse:\n  if airs_h2ovap <= 1.538:\n    if prev:modis_ndvi <= 0.01621:\n      -> normal (n = 225: high 68, low 54, normal 103)\n    else:\n      -> high (n = 36: high 28, low 3, normal 5)\n  else:\n    if prev:airs_h2ovap <= -0.9174:\n      -> high (n = 23: high 9, low 7, normal 7)\n    else:\n      -> high (n = 84: high 64, low 7, normal 13)\n"
     }
-  },
-  "tree_text": "if omi_no2 <= 2.86e+14:\n  if merra2_t2m <= 0.08986:\n    if omi_aerosol <= -0.2141:\n      -> normal (n = 91: high 11, low 38, normal 42)\n    else:\n      -> normal (n = 178: high 64, low 39, normal 75)\n  else:\n    if gldas_evap <= 6.74e-07:\n      -> normal (n = 99: high 37, low 24, normal 38)\n    else:\n      -> high (n = 144: high 100, low 10, normal 34)\nelse:\n  if gldas_evap <= 4.697e-07:\n    if gldas_tair <= 0.3417:\n      -> low (n = 143: high 10, low 105, normal 28)\n    else:\n      -> normal (n = 21: high 1, low 8, normal 12)\n  else:\n    if airs_h2ovap <= 0.2177:\n      -> low (n = 56: high 11, low 29, normal 16)\n    else:\n      -> high (n = 57: high 29, low 10, normal 18)\n"
+  ],
+  "summary": {
+    "n_folds": 3,
+    "n_folds_above_train_majority": 3,
+    "n_folds_above_test_majority": 3,
+    "n_folds_above_both": 3,
+    "above_both_in_every_fold": true,
+    "mean_test_accuracy": 0.56613757,
+    "mean_train_majority_accuracy": 0.31481481,
+    "mean_test_majority_accuracy": 0.43121693,
+    "text_en": "The tree's test accuracy is above both baselines in 3 of 3 folds (above the training-majority guess in 3, above the test-majority guess in 3)."
+  }
 }

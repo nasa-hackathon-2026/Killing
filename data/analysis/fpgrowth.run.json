@@ -1,6 +1,6 @@
 {
   "command": "uv run python -m trend_detective.mining",
-  "generated_at": "2026-11-14T14:15:38Z",
+  "generated_at": "2026-11-14T14:47:41Z",
   "exploratory": true,
   "input": {
     "anomalies": "data/analysis/anomalies.json",
@@ -16,20 +16,23 @@
   "parameters": {
     "low_quantile": 0.33333333,
     "high_quantile": 0.66666667,
-    "exclude_variables": [
-      "power_t2m",
-      "modis_ndvi_pc"
+    "exclude_variables": [],
+    "exclude_locations": [
+      "taiwan"
     ],
-    "min_support": 0.1,
+    "max_abs_correlation": 0.85,
+    "min_support": 0.05,
     "min_confidence": 0.6,
-    "min_lift": 1.2,
+    "min_lift": 1.5,
     "max_itemset_size": 3,
+    "rule_alpha": 0.05,
     "max_rules": 200,
     "max_itemsets": 200
   },
   "packages": {
     "numpy": "2.5.4",
     "pandas": "3.1.1",
+    "scipy": "1.18.1",
     "mlxtend": "0.25.0",
     "scikit-learn": "1.9.1"
   },
@@ -39,13 +42,29 @@
   "summary": {
     "point": {
       "n_transactions": 1260,
-      "n_rules_same_month": 62,
-      "n_rules_lagged_one_month": 11
+      "n_rules_same_month": 368,
+      "n_rules_lagged_one_month": 0,
+      "excluded_variables": [
+        {
+          "variable_id": "power_t2m",
+          "correlated_with": "merra2_t2m",
+          "correlation": 0.99952736,
+          "n_pairs": 1260
+        }
+      ]
     },
     "region": {
-      "n_transactions": 1260,
-      "n_rules_same_month": 85,
-      "n_rules_lagged_one_month": 27
+      "n_transactions": 1008,
+      "n_rules_same_month": 248,
+      "n_rules_lagged_one_month": 1,
+      "excluded_variables": [
+        {
+          "variable_id": "merra2_t2m",
+          "correlated_with": "gldas_tair",
+          "correlation": 0.85842548,
+          "n_pairs": 1008
+        }
+      ]
     }
   }
 }

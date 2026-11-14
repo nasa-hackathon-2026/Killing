@@ -125,3 +125,14 @@ body:has(.mining) {
   border-radius: 8px;
   font-size: 13px;
 }
+
+.mining .verdict {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-left: 3px solid #6fb3ff;
+  background: #142033;
+}
+
+.mining .verdict.warn {
+  border-left-color: #f0b35a;
+}

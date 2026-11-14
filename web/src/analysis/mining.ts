@@ -3,20 +3,36 @@
 // decision_tree.json). This module only reads, sorts and formats them.
 import { analysisUrl } from "./trends";
 
+export type VariableNames = Record<string, string>;
+
 export type Rule = {
   antecedents: string[];
   consequent: string;
   support: number;
   confidence: number;
   lift: number;
+  // One-sided Fisher exact test, and its Benjamini-Hochberg corrected value
+  p: number;
+  q: number;
   same_variable: boolean;
 };
 
 export type RuleSet = {
   n_transactions: number;
   n_frequent_itemsets: number;
+  n_candidate_rules: number;
   n_rules: number;
   rules: Rule[];
+  // Lagged rules whose right-side variable is also on the left
+  n_persistence_rules: number;
+  persistence_rules: Rule[];
+};
+
+export type ExcludedVariable = {
+  variable_id: string;
+  correlated_with: string;
+  correlation: number;
+  n_pairs: number;
 };
 
 export type RuleTable = {
@@ -27,27 +43,60 @@ export type RuleTable = {
   n_missing_cells: number;
   n_cells: number;
   dropped_series: { variable_id: string; location_id: string }[];
+  excluded_variables: ExcludedVariable[];
   same_month: RuleSet;
   lagged_one_month: RuleSet;
 };
 
-export type Parameters = Record<string, number | string | string[] | null>;
+export type Parameters = Record<
+  string,
+  number | string | boolean | string[] | null
+>;
 
-export type FpGrowthFile = {
+type FileHeader = {
   exploratory: boolean;
   note: string;
+  detrending_note: string;
   input: { snapshot_generated_at: string };
   parameters: Parameters;
+  variable_names: VariableNames;
+};
+
+export type FpGrowthFile = FileHeader & {
+  significance_note: string;
   tables: Record<string, RuleTable>;
 };
 
 export type ClassCounts = Record<string, number>;
 
-export type DecisionTreeFile = {
-  exploratory: boolean;
-  note: string;
-  input: { snapshot_generated_at: string };
-  parameters: Parameters;
+export type Fold = {
+  fold: number;
+  train_first_month: string;
+  train_last_month: string;
+  test_first_month: string;
+  test_last_month: string;
+  n_train: number;
+  n_test: number;
+  class_counts: { train: ClassCounts; test: ClassCounts };
+  accuracy: { train: number; test: number };
+  baselines: {
+    // Always guess the most common class of the training months
+    train_majority: {
+      predicted_class: string;
+      tie: boolean;
+      test_accuracy: number;
+    };
+    // Always guess the most common class of the test months (hindsight)
+    test_majority: { predicted_class: string; test_accuracy: number };
+  };
+  above_train_majority: boolean;
+  above_test_majority: boolean;
+  confusion_matrix_test: Record<string, ClassCounts>;
+  feature_importances: { feature: string; importance: number }[];
+  tree_text: string;
+};
+
+export type DecisionTreeFile = FileHeader & {
   table: string;
   target: string;
   target_classes: string[];
@@ -56,26 +105,18 @@ export type DecisionTreeFile = {
     string,
     { n_rows: number; n_complete_rows: number; missing_variables: string[] }
   >;
-  split: {
-    train_first_month: string;
-    train_last_month: string;
-    test_first_month: string;
-    test_last_month: string;
-    n_train: number;
-    n_test: number;
+  excluded_variables: ExcludedVariable[];
+  validation: { n_folds: number; min_train_months: number };
+  folds: Fold[];
+  summary: {
+    n_folds: number;
+    n_folds_above_both: number;
+    above_both_in_every_fold: boolean;
+    mean_test_accuracy: number;
+    mean_train_majority_accuracy: number;
+    mean_test_majority_accuracy: number;
+    text_en: string;
   };
-  class_counts: { train: ClassCounts; test: ClassCounts };
-  accuracy: { train: number; test: number };
-  baseline_majority_class: {
-    predicted_class: string;
-    tie: boolean;
-    train_accuracy: number;
-    test_accuracy: number;
-    best_constant_on_test: { predicted_class: string; test_accuracy: number };
-  };
-  confusion_matrix_test: Record<string, ClassCounts>;
-  feature_importances: { feature: string; importance: number }[];
-  tree_text: string;
 };
 
 export type MiningResults = {
@@ -83,7 +124,7 @@ export type MiningResults = {
   tree: DecisionTreeFile;
 };
 
-export type RuleSortKey = "rule" | "support" | "confidence" | "lift";
+export type RuleSortKey = "rule" | "support" | "confidence" | "lift" | "q";
 
 export type RuleSort = { key: RuleSortKey; descending: boolean };
 
@@ -97,15 +138,63 @@ export async function loadMining(
   return { rules, tree };
 }
 
-// "prev:omi_o3=low" → "omi_o3 low (previous month)"
-export function formatItem(item: string): string {
-  const lagged = item.startsWith("prev:");
-  const [variable, state] = (lagged ? item.slice(5) : item).split("=");
-  return `${variable} ${state}${lagged ? " (previous month)" : ""}`;
+function nameOf(variable: string, names: VariableNames): string {
+  return names[variable] ?? variable;
 }
 
-export function formatRule(rule: Rule): string {
-  return `${rule.antecedents.map(formatItem).join(" + ")} → ${formatItem(rule.consequent)}`;
+// "prev:omi_o3=low" → "Total column ozone (OMI) low (previous month)"
+export function formatItem(item: string, names: VariableNames): string {
+  const lagged = item.startsWith("prev:");
+  const [variable = "", state] = (lagged ? item.slice(5) : item).split("=");
+  return `${nameOf(variable, names)} ${state}${lagged ? " (previous month)" : ""}`;
+}
+
+export function formatRule(rule: Rule, names: VariableNames): string {
+  const left = rule.antecedents.map((item) => formatItem(item, names));
+  return `${left.join(" + ")} → ${formatItem(rule.consequent, names)}`;
+}
+
+// A decision tree feature: "prev:omi_o3" is last month's value of omi_o3.
+export function formatFeature(feature: string, names: VariableNames): string {
+  return feature.startsWith("prev:")
+    ? `${nameOf(feature.slice(5), names)} (previous month)`
+    : nameOf(feature, names);
+}
+
+// The tree is written as indented "if <feature> <= <threshold>:" lines.
+export function labelTreeText(text: string, names: VariableNames): string {
+  return text.replace(
+    /^(\s*if )(\S+)( <= )/gm,
+    (_, start: string, feature: string, end: string) =>
+      `${start}${formatFeature(feature, names)}${end}`,
+  );
+}
+
+export function formatQ(q: number): string {
+  return q < 0.001 ? "<0.001" : q.toFixed(3);
+}
+
+export function formatExcluded(
+  item: ExcludedVariable,
+  names: VariableNames,
+): string {
+  return (
+    `${nameOf(item.variable_id, names)} (correlation ` +
+    `${item.correlation.toFixed(3)} with ` +
+    `${nameOf(item.correlated_with, names)}, ${item.n_pairs} location-months)`
+  );
+}
+
+export function foldVerdict(fold: Fold): string {
+  if (fold.above_train_majority && fold.above_test_majority) {
+    return "above both baselines";
+  }
+  if (!fold.above_train_majority && !fold.above_test_majority) {
+    return "not above either baseline";
+  }
+  return fold.above_train_majority
+    ? "not above the test-majority guess"
+    : "not above the training-majority guess";
 }
 
 export function formatShare(value: number): string {
@@ -113,29 +202,37 @@ export function formatShare(value: number): string {
 }
 
 // Clicking the active column flips its direction; a new column starts with
-// the largest values first (text starts A to Z).
+// the largest values first (text starts A to Z, q starts with the smallest).
 export function nextSort(current: RuleSort, key: RuleSortKey): RuleSort {
   if (current.key === key) return { key, descending: !current.descending };
-  return { key, descending: key !== "rule" };
+  return { key, descending: key !== "rule" && key !== "q" };
 }
 
-export function sortRules(rules: Rule[], sort: RuleSort): Rule[] {
+export function sortRules(
+  rules: Rule[],
+  sort: RuleSort,
+  names: VariableNames = {},
+): Rule[] {
   const direction = sort.descending ? -1 : 1;
+  const key = sort.key;
   return [...rules].sort((a, b) => {
     const order =
-      sort.key === "rule"
-        ? formatRule(a).localeCompare(formatRule(b))
-        : a[sort.key] - b[sort.key];
+      key === "rule"
+        ? formatRule(a, names).localeCompare(formatRule(b, names))
+        : a[key] - b[key];
     return order * direction;
   });
 }
 
-export function filterRules(rules: Rule[], hideSameVariable: boolean): Rule[] {
-  return hideSameVariable ? rules.filter((rule) => !rule.same_variable) : rules;
+// Rules never have the same variable on both sides. Lagged rules that only
+// say "a variable stays in its state" are kept apart and hidden by default.
+export function visibleRules(set: RuleSet, showPersistence: boolean): Rule[] {
+  return showPersistence ? [...set.rules, ...set.persistence_rules] : set.rules;
 }
 
 export function formatParameter(value: Parameters[string]): string {
   if (value === null) return "none";
+  if (typeof value === "boolean") return value ? "yes" : "no";
   if (Array.isArray(value)) return value.length ? value.join(", ") : "none";
   if (typeof value === "number" && !Number.isInteger(value)) {
     return String(Number(value.toFixed(4)));
