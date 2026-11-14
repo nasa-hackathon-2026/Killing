@@ -1,0 +1,28 @@
+{
+  "hits": 3,
+  "items": [
+    {
+      "umm": {
+        "TemporalExtent": {"RangeDateTime": {"BeginningDateTime": "2026-11-12T00:00:00.000Z", "EndingDateTime": "2026-11-12T23:59:59.999Z"}},
+        "RelatedUrls": [
+          {"Type": "GET DATA", "URL": "https://data.example/A.h5"},
+          {"Type": "USE SERVICE API", "Subtype": "OPENDAP DATA", "URL": "https://opendap.example/granules/A.h5_x"}
+        ]
+      }
+    },
+    {
+      "umm": {
+        "TemporalExtent": {"RangeDateTime": {"BeginningDateTime": "2026-11-13T00:00:00.000Z", "EndingDateTime": "2026-11-13T23:59:59.999Z"}},
+        "RelatedUrls": [
+          {"Type": "USE SERVICE API", "Subtype": "OPENDAP DATA", "URL": "https://opendap.example/granules/B.h5_y"}
+        ]
+      }
+    },
+    {
+      "umm": {
+        "TemporalExtent": {"RangeDateTime": {"BeginningDateTime": "2026-11-14T00:00:00.000Z"}},
+        "RelatedUrls": [{"Type": "GET DATA", "URL": "https://data.example/C.h5"}]
+      }
+    }
+  ]
+}

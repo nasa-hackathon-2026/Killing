@@ -1,0 +1,39 @@
+{
+  "source": "smap",
+  "source_api": "smap",
+  "description": "NASA SMAP L3 radiometer daily 36 km soil moisture (SPL3SMP V009) via Earthdata Cloud OPeNDAP, subset to Taiwan and averaged to months (#90).",
+  "locations": [
+    "taichung",
+    "taipei",
+    "kaohsiung",
+    "hualien",
+    "yushan",
+    "taiwan",
+    "north",
+    "central",
+    "south",
+    "east"
+  ],
+  "variables": [
+    {
+      "id": "smap_sm_l3",
+      "name_zh": "表層土壤水（SMAP 衛星反演）",
+      "name_en": "Surface soil moisture, satellite retrieval (SMAP L3 36 km)",
+      "definition_zh": "地表往下約 5 公分的土壤裡，每立方公尺的土有幾立方公尺是水；由 SMAP 衛星的 L 波段微波輻射計反演。",
+      "category": "水（地下）",
+      "source": "smap",
+      "source_variable_id": "SPL3SMP_009_soil_moisture",
+      "product_version": "009",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "note_zh": "只用官方建議品質（retrieval_qual_flag 為 0 或 8）的像元；台灣多山多植被、近海，有效日與有效月都少。單位是體積含水量，GLDAS 是 0–10 cm 的 kg m-2，對照要用標準化距平（docs/data/sources/smap.md）。",
+      "doi": "10.5067/4XXOGX0OOW1S",
+      "product": "SPL3SMP.009",
+      "source_long_name": "Representative DCA soil moisture measurement for the Earth based grid cell.",
+      "cmr_collection": "C2938664585-NSIDC_CPRD",
+      "citation": "O'Neill, P. E., S. Chan, E. G. Njoku, T. Jackson, R. Bindlish, and J. Chaubell. SMAP L3 Radiometer Global Daily 36 km EASE-Grid Soil Moisture, Version 9. NASA National Snow and Ice Data Center Distributed Active Archive Center. https://doi.org/10.5067/4XXOGX0OOW1S",
+      "data_kind": "satellite_retrieval",
+      "data_kind_note": "SMAP L-band radiometer brightness temperatures inverted to soil moisture with the Dual Channel Algorithm (SPL3SMP V009 baseline); a satellite retrieval, not a model output, and the input of neither GLDAS nor FLDAS."
+    }
+  ]
+}
