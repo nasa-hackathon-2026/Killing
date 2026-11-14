@@ -1,0 +1,28 @@
+prod_name,GPM_3IMERGM.07
+doi,10.5067/GPM/IMERG/3B-MONTH/07
+param_short_name,/Grid/precipitation
+param_name,Merged satellite-gauge precipitation estimate - Final Run (recommended for general use)
+unit,mm/hr
+undef,-9999.9
+begin_time,2020-01-01 00:00:00
+end_time,2020-12-01 00:00:00
+lat,24.15
+lon,120.649994
+lat_resolution,0.1
+lon_resolution,0.1
+mean,1.7858e-01
+Request_time,2026-11-14 07:44:35
+
+Timestamp (UTC),Data
+2020-01-01 00:00,0.075
+2020-02-01 00:00,0.06
+2020-03-01 00:00,0.147
+2020-04-01 00:00,0.14
+2020-05-01 00:00,0.495
+2020-06-01 00:00,0.263
+2020-07-01 00:00,0.155
+2020-08-01 00:00,0.461
+2020-09-01 00:00,0.12
+2020-10-01 00:00,0.051
+2020-11-01 00:00,0.076
+2020-12-01 00:00,0.1

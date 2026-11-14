@@ -41,6 +41,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 測試（全部）：`uv run pytest`
 - 測試（單檔）：`uv run pytest path/to/test_x.py`
 
+## 如何重新產生資料
+靜態快照在 `data/snapshot/`（`catalog.json` 加 `series/*.json`，統一格式見 #4），會進 git；公開 demo 只讀這些檔。
+
+- 重新產生：`uv run python -m trend_detective.snapshot`（在 repo 根目錄；本機 `.env` 要有 `EARTHDATA_TOKEN`）。
+- 抓取前會先查 Giovanni `/quota`，用量達 0.95 就停。
+- 重跑是冪等的：資料沒變時檔案不動（保留原本的 `retrieved_at`、`generated_at`），`git diff` 為空。
+- 本機看最小驗證頁：`python3 -m http.server 8791` 後開 `http://localhost:8791/web/`。
+- 新增變數或地點：改 `src/trend_detective/snapshot.py` 的 `VARIABLES`、`LOCATIONS`。
+- 原始下載檔（AppEEARS bundle 等）在 `data/raw/`，不進 git，見 README「原始資料」。
+
 ## Agent skills
 
 `setup-matt-pocock-skills` 的設定已預先完成，不需要重跑；重跑會在 `CLAUDE.md` 產生重複的區塊。

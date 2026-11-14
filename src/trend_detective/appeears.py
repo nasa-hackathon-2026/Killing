@@ -11,7 +11,6 @@ AppEEARS 是非同步的：`submit` 只送件並記錄 task_id，之後用 `stat
 
 import argparse
 import json
-import os
 import sys
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -20,6 +19,7 @@ from typing import Any
 
 import httpx
 
+from trend_detective.env import read_secret
 from trend_detective.regions import DEFAULT_REGIONS, Region, regions_feature_collection
 
 API_URL = "https://appeears.earthdatacloud.nasa.gov/api/"
@@ -184,19 +184,11 @@ def download_small_files(
 
 
 def read_token(env_file: Path) -> str:
-    """先看環境變數，再看 `.env`；都沒有就說明怎麼取得。"""
-    token = os.environ.get(TOKEN_ENV, "")
-    if not token and env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            key, _, value = line.partition("=")
-            if key.strip() == TOKEN_ENV:
-                token = value.strip().strip("\"'")
-    if not token:
-        raise SystemExit(
-            f"找不到 {TOKEN_ENV}。先用 EDL 帳密呼叫 AppEEARS 的 POST /login，"
-            f"把回傳的 token 以 {TOKEN_ENV}=… 寫進 {env_file}。"
-        )
-    return token
+    return read_secret(
+        TOKEN_ENV,
+        env_file,
+        how_to_get="先用 EDL 帳密呼叫 AppEEARS 的 POST /login 取得 token",
+    )
 
 
 def _submissions(raw_dir: Path) -> list[dict[str, Any]]:

@@ -1,0 +1,47 @@
+{
+  "variables": [
+    {
+      "id": "imerg_precip",
+      "name_zh": "降水",
+      "name_en": "Precipitation (GPM IMERG Final)",
+      "definition_zh": "從天空落到地面的雨和雪；這裡是整個月平均下來每小時下了幾毫米。",
+      "category": "水（液態）",
+      "unit": "mm/hr",
+      "source": "giovanni",
+      "source_variable_id": "GPM_3IMERGM_07_precipitation",
+      "product_version": "07",
+      "native_temporal_res": "month",
+      "valid_from": "2001-01-01",
+      "valid_to": "2025-09-01",
+      "is_nasa": true,
+      "doi": "10.5067/GPM/IMERG/3B-MONTH/07"
+    }
+  ],
+  "locations": [
+    {
+      "id": "taichung",
+      "kind": "point",
+      "name_zh": "臺中",
+      "name_en": "Taichung",
+      "lat": 24.15,
+      "lon": 120.68
+    }
+  ],
+  "series": [
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "taichung",
+      "aggregation": "point",
+      "file": "series/imerg_precip__taichung__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    }
+  ],
+  "snapshot": {
+    "generated_at": "2026-11-14T07:46:11Z",
+    "latest_month": {
+      "imerg_precip": "2025-09-01"
+    }
+  }
+}
