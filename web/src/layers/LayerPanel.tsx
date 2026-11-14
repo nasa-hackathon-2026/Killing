@@ -1,3 +1,4 @@
+import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
 import { trendMark, type TrendSignal } from "../forms/encoding";
 import type { LayerDefinition } from "./registry";
@@ -83,6 +84,7 @@ export function LayerPanel({
           const trend = trends?.[layer.id];
           const signal = signals?.[layer.id];
           const mark = signal ? trendMark(signal) : null;
+          const caveat = trend ? trendCaveat(layer.id) : null;
           return (
             <li key={layer.id}>
               <label>
@@ -111,6 +113,11 @@ export function LayerPanel({
                     {trend.significance}
                     {trend.period ? ` · ${trend.period}` : ""}
                   </span>
+                </p>
+              ) : null}
+              {caveat ? (
+                <p className="trend-caveat" role="note">
+                  {caveat.text} <span>Sources: {caveat.sources}</span>
                 </p>
               ) : null}
               {onCloseUp ? (

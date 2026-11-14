@@ -136,6 +136,21 @@ body,
   color: #b7c6da;
 }
 
+.trend-caveat {
+  margin: 4px 0 0;
+  padding: 6px 8px;
+  border-left: 3px solid #ffb84d;
+  background: rgba(255, 184, 77, 0.12);
+  color: #ffe2b0;
+  font-size: 12px;
+}
+
+.trend-caveat span {
+  display: block;
+  margin-top: 2px;
+  color: #b7c6da;
+}
+
 .layers input[type="range"] {
   width: 100%;
 }

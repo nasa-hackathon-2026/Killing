@@ -1,3 +1,4 @@
+import { trendCaveat } from "../analysis/trendCaveats";
 import { formatSlope, slopeUnitLabel } from "./trendGrid";
 import {
   MIN_OVERLAY_OPACITY,
@@ -51,6 +52,7 @@ export function TrendMapLegend({
     .join(", ")})`;
   const high = `rgb(${(stops.at(-1) ?? [0, 0, 0]).join(",")})`;
   const { period, parameters, significant } = meta.trend;
+  const caveat = trendCaveat(variable.id);
 
   return (
     <aside className="trendmap">
@@ -58,6 +60,11 @@ export function TrendMapLegend({
       <p className="trendmap-note">
         Change per decade, {unit} per decade · {meta.product}
       </p>
+      {caveat ? (
+        <p className="trend-caveat" role="note">
+          {caveat.text} <span>Sources: {caveat.sources}</span>
+        </p>
+      ) : null}
       <div
         className="trendmap-ramp"
         style={{ background: gradient }}
