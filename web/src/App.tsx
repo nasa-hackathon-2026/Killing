@@ -31,6 +31,7 @@ import {
   type SnapshotState,
 } from "./snapshot/usePlaceSnapshot";
 import { TimelineProvider, useTimeline } from "./timeline/TimelineContext";
+import { TimelineDock } from "./timeline/TimelineDock";
 import { useTrendMap } from "./trendmap/useTrendMap";
 import {
   DEFAULT_OVERLAY_OPACITY,
@@ -230,6 +231,17 @@ function AppView({
           )
         }
         onCloseUp={setCloseUpId}
+        chartId={timeline.selectedVariableId}
+        onChart={timeline.setSelectedVariableId}
+      />
+      <TimelineDock
+        series={here}
+        variables={layerRegistry}
+        visibleIds={controls
+          .filter((layer) => layer.visible)
+          .map((layer) => layer.id)}
+        locationName={location?.nameEn ?? locationId}
+        trends={trendsFile}
       />
       <TrendMapLegend
         state={trendMap}

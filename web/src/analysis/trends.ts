@@ -12,10 +12,20 @@ export type TestResult = {
 export type AnalyzedTrend = {
   status: "analyzed";
   unit: string;
-  data: { first_month: string; last_month: string; n_valid: number };
+  data: {
+    first_month: string;
+    last_month: string;
+    n_valid: number;
+    n_points?: number;
+    missing_fraction?: number;
+  };
   ols: TestResult & {
     slope_per_decade: number;
     ci_per_decade: [number, number];
+    // Lag-1 autocorrelation of the residuals and the effective sample size
+    // the corrected test used.
+    lag1_autocorrelation?: number;
+    n_effective?: number;
   };
   mann_kendall: {
     original: TestResult;
@@ -23,6 +33,14 @@ export type AnalyzedTrend = {
     seasonal: TestResult;
   };
   sen: { slope_per_decade: number; ci_per_decade: [number, number] };
+  // Ids into TrendsFile.known_issues.
+  known_issues?: string[];
+};
+
+export type TrendKnownIssue = {
+  kind: string;
+  summary_en: string;
+  break_months?: string[];
 };
 
 export type InsufficientTrend = {
@@ -36,6 +54,7 @@ export type TrendEntry = AnalyzedTrend | InsufficientTrend;
 export type TrendsFile = {
   input: { snapshot_generated_at: string };
   parameters: { alpha: number; min_coverage: number };
+  known_issues?: Record<string, TrendKnownIssue>;
   series: Record<string, TrendEntry>;
 };
 
