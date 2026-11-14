@@ -198,6 +198,20 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - `src_noaa_ghcnh` 只放當地日的日平均與觀測筆數，不放逐時原始值。
 - 散布方式（使用者 2026-11-14 決定）：SQLite 檔不進 git，放 GitHub Release。Release 只放核心資料的版本（完整版約 1.5 GB，太大）：`uv run python -m trend_detective.sqlite_export --extended-dir <一個空目錄> --db data/sqlite/trend_detective_core.sqlite`。快照有實質更新後（例如新增來源），在存有 `data/raw/` 的機器重建，再用 `gh release create data-<日期> data/sqlite/trend_detective.sqlite …` 發新的一版，並更新 `docs/data/sqlite.md` 與 README 的下載連結；發佈前先確認檔案裡沒有憑證。這是對外可見的動作，照「工作方式」先確認。
 
+## PostgreSQL 清洗資料庫（#83）
+本機的工作資料庫：同一批資料加上清洗結果、空間查詢與時間骨架。公開 demo 不讀它；沒有它也能做趨勢統計與探勘。完整說明（schema、每個擴充用在哪、缺值政策、範例查詢、搬到 GCP）見 `docs/data/postgres.md`。
+
+- **啟動**：`uv run python -m trend_detective.pg init-env`（第一次；把 `PG*` 與隨機密碼追加到 `.env`，不印出）→ `docker compose --env-file .env -f db/compose.yaml up -d --wait`。容器 `trend-detective-postgres`，映像 `timescale/timescaledb-ha:pg17`（PostgreSQL 17＋TimescaleDB＋PostGIS），埠只綁 `127.0.0.1:55432`，資料在具名 volume `trend-detective-pgdata`。不要動機器上其他容器。
+- **重建**：`uv run python -m trend_detective.pg load`（先 DROP 六個 schema 再跑 `db/migrations/*.sql` 並載入，冪等，約 80 秒）→ `… pg clean`（約 20 秒）→ `… pg export`（`data/analysis/cleaning.json`、`db/schema.sql`、`data/pg-dump/`）。`… pg status` 列各表列數。輸入與 SQLite 匯出相同，另讀 `data/seed/cleaning.json` 與 `data/grid/`。在 worktree 裡：`TREND_DETECTIVE_ENV_FILE=<主 checkout>/.env`，`load` 加 `--extended-dir`、`--raw-dir` 指到主 checkout。
+- **Schema**：`meta`（變數、地點、序列、來源、`known_issues`、`cleaning_rules`）、`raw`（一來源一表：共同欄位加 `payload` JSONB）、`obs.observations`（hypertable）、`clean`（`observations`、`series_summary`、`monthly_climatology`、`trend_input`、`mining_input`）、`geo`（PostGIS）、`analysis.runs`。改 schema 就改 migration（要能重跑：`IF NOT EXISTS`／`OR REPLACE`），再 `load`、`export` 更新 `db/schema.sql`。
+- **清洗的算法只有一處**：`src/trend_detective/cleaning.py`（純函式，不連資料庫）。`pg clean` 把 `obs.observations` 讀出來、呼叫它、寫回 `clean.*`，再用 `obs.missing_months()`（`time_bucket_gapfill`）獨立數一次缺月，兩邊不等就失敗。不要在 SQL 裡另寫一套旗標規則。
+- **規則是資料**：門檻（`min_coverage` 0.25、`outlier_z` 5、`max_linear_gap_months` 2、`max_fill_fraction` 0.2）與已查證的資料問題在 `data/seed/cleaning.json`。新查出的問題加一筆 `known_issues`（要有 `source_doc`，數字取自那份文件；`flag_months: true` 才會把期間內的月份標 `known_discontinuity`；`aggregation` 可限定只適用某一種聚合方式），不要寫進程式。輔助變數（`_ct`、`_sdev`、`merra2_var_*`、OMI 天頂角）用 `variable_pattern` 標成 `auxiliary`。
+- **原始值不覆蓋**：`value_raw` 等於序列檔的值；`missing`、`partial_month`、`low_coverage` 的月份 `value_clean` 是 NULL，`outlier_suspect`、`known_discontinuity` 只標記。
+- **缺值政策（協調者 2026-11-15 定）**：趨勢檢定不補值（用 `value_clean`；補值會提高自相關、壓低變異，使檢定偏樂觀）。資料探勘才在距平上補：連續缺 ≤ 2 個月線性內插，更長補距平 0（月氣候值），頭尾不外推，不用前一個月的值帶入；補值比例超過 20% 的序列不進探勘表。每個補的值有 `fill_method`。
+- **測試**：`tests/test_cleaning.py` 不連資料庫。`tests/test_pg.py`（marker `pg`）連不上資料庫時整個檔跳過；連得上時用自己的資料庫 `trend_detective_test`（每次重建後刪掉），不碰正式的資料。
+- 2026-11-15 實跑：6,822 條序列（核心 133、擴充 6,689），統一表 2,277,278 列，骨架 2,277,368 列（補出 90 個沒有列的月份，另有 5,599 個值為 NULL）。旗標：`ok` 2,182,802、`low_coverage` 55,111、`outlier_suspect` 32,665、`missing` 5,689、`partial_month` 575、`known_discontinuity` 526。補值 27,984 個月（線性 4,428、月氣候值 23,556），253 條序列不符合探勘條件（補值比例超過 20% 或沒有可用月份）。`geo.region_grid_trends` 的全球面積加權平均斜率與各變數 `meta.json` 的 `area_weighted_mean_slope_per_decade` 相對差 1e-7 至 2.4e-4（`gldas_tair` 0.5949；差異來自衍生檔的 int16 量化）。
+- 已知限制：離群門檻沒有先去趨勢；`partial_month` 只看取得時間所在的月份；區域是經緯度方框；Cloud SQL for PostgreSQL 的擴充清單沒有 TimescaleDB（2026-11-15 查），搬過去要改 `004_obs.sql`。
+
 ## Agent skills
 
 `setup-matt-pocock-skills` 的設定已預先完成，不需要重跑；重跑會在 `CLAUDE.md` 產生重複的區塊。

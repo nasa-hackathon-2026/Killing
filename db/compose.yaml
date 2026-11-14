@@ -1,0 +1,28 @@
+# 本機的清洗資料庫（#83）：PostgreSQL 17＋TimescaleDB＋PostGIS，官方映像 timescale/timescaledb-ha。
+# 啟動（在 repo 根目錄；密碼來自 .env 的 PGPASSWORD，先跑 `uv run python -m trend_detective.pg init-env`）：
+#   docker compose --env-file .env -f db/compose.yaml up -d
+# 停止：docker compose --env-file .env -f db/compose.yaml down（資料留在具名 volume；加 -v 才刪）
+name: trend-detective
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg17
+    container_name: trend-detective-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-trend}
+      POSTGRES_PASSWORD: ${PGPASSWORD:?先在 .env 設定 PGPASSWORD（uv run python -m trend_detective.pg init-env）}
+      POSTGRES_DB: ${PGDATABASE:-trend_detective}
+    ports:
+      # 只綁本機；不用 5432，避免撞到機器上別的 PostgreSQL
+      - "127.0.0.1:${PGPORT:-55432}:5432"
+    volumes:
+      - pgdata:/home/postgres/pgdata
+    shm_size: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-trend} -d ${PGDATABASE:-trend_detective}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:
+    name: trend-detective-pgdata

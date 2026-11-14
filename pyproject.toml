@@ -8,6 +8,7 @@ dependencies = [
     "mlxtend>=0.25.0",
     "netcdf4>=1.7.5.1.post1",
     "numpy>=2.4.6",
+    "psycopg[binary]>=3.3.9",
     "pymannkendall>=1.4.3",
     "rasterio>=1.4.4",
     "scikit-learn>=1.9.1",
@@ -27,6 +28,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["pg: 需要本機的 PostgreSQL 容器（db/compose.yaml）；連不上時自動跳過"]
 
 [tool.pyright]
 include = ["src", "tests"]

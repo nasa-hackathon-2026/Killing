@@ -1,0 +1,79 @@
+{
+  "command": "uv run python -m trend_detective.pg clean && uv run python -m trend_detective.pg export",
+  "generated_at": "2026-11-14T21:07:42Z",
+  "database": {
+    "run_id": 2,
+    "git_commit": "b1009a2ad9c7270546371a718b8b08407dc058ef",
+    "server": "17.11 (Ubuntu 17.11-1.pgdg22.04+2)",
+    "extensions": {
+      "pg_trgm": "1.6",
+      "postgis": "3.7.0",
+      "timescaledb": "2.32.0"
+    }
+  },
+  "parameters": {
+    "rules": {
+      "outlier_z": 5.0,
+      "min_coverage": 0.25,
+      "max_fill_fraction": 0.2,
+      "max_linear_gap_months": 2
+    },
+    "known_issues": [
+      "auxiliary_airs_counts",
+      "auxiliary_airs_sdev",
+      "auxiliary_merra2_variance",
+      "auxiliary_omi_geometry",
+      "gldas_evap_step_2024_07_2025_06",
+      "gldas_soilmoist_vs_fldas_sign",
+      "gldas_tair_step_2011_05",
+      "gldas_tair_step_2017_07",
+      "gldas_tair_step_2019_06",
+      "modis_lst_pc_missing_composites_2022_10",
+      "modis_lst_pc_missing_composites_2025",
+      "modis_lst_point_missing_composites_2022_10",
+      "modis_lst_point_missing_composites_2025"
+    ],
+    "flag_priority": [
+      "missing",
+      "partial_month",
+      "low_coverage",
+      "outlier_suspect",
+      "known_discontinuity",
+      "ok"
+    ]
+  },
+  "rows_affected": {
+    "missing_no_row": 90,
+    "clean.observations": 2277368,
+    "missing_null_value": 5599,
+    "gapfill_cross_check": {
+      "no_row": 90,
+      "null_value": 5599
+    },
+    "clean.series_summary": 6822
+  },
+  "outputs": [
+    "cleaning.json"
+  ],
+  "totals": {
+    "n_series": 6822,
+    "n_months": 2277368,
+    "n_in_source": 2277278,
+    "n_usable": 2215993,
+    "n_ok": 2182802,
+    "n_missing": 5689,
+    "n_partial_month": 575,
+    "n_low_coverage": 55111,
+    "n_outlier_suspect": 32665,
+    "n_known_discontinuity": 526,
+    "n_filled": 27984,
+    "n_filled_linear": 4428,
+    "n_filled_climatology": 23556,
+    "n_gaps": 6428,
+    "longest_gap_months": 69,
+    "n_series_mining_eligible": 6569,
+    "n_series_auxiliary": 2078,
+    "n_series_with_known_issues": 2199,
+    "n_series_with_filled_months": 332
+  }
+}
