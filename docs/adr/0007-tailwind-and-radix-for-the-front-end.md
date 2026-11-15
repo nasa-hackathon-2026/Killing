@@ -32,4 +32,5 @@ date: 2026-11-15
 
 - 新元件用 Tailwind utility 與 `ui/` 的元件；要搬舊元件時先刪掉它的舊 CSS 規則（舊的未分層規則會蓋過 utility）。不要在元件旁新增手寫 CSS，除非是 Tailwind 表達不了的（例如依 `:has()` 的停靠規則）。
 - 測試環境是 node，沒有 DOM；元件用 `renderToStaticMarkup` 測結構。Radix 的行為（展開、鍵盤）沒有自動測試，靠它自己的測試與手動檢查。
+- 後續（#207）：圖層與資料夥伴合成一個可滑入滑出的右側側邊欄；Switch 改照 shadcn/ui 的寫法並修正被瀏覽器預設 padding 裁切的問題。**沒有用 shadcn CLI**：它的元件假設有 Tailwind preflight、`@/` 路徑別名與 shadcn 的 CSS 變數主題，而這裡刻意沒有 preflight；改成照它的元件寫法手寫在 `web/src/ui/`。
 - 還沒搬的：左側面板（圖例、統計、調查面板、近看）、資料夥伴面板、HUD、時間軸列。它們的位置仍靠 `index.css`、`strata.css`、`companions.css` 的手寫規則。

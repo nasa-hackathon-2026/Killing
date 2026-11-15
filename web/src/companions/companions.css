@@ -145,7 +145,7 @@
   }
 }
 
-/* The panel in the main view. It sits left of the Layers panel. */
+/* The base of the gather and gallery pages (they add their own position). */
 .companion-dock {
   position: absolute;
   top: 64px;
@@ -271,11 +271,6 @@
   opacity: 0.6;
 }
 
-.companion-dock-collapsed {
-  width: auto;
-  max-width: 260px;
-}
-
 .companion-avatars,
 .companion-list,
 .companion-gallery-grid {
@@ -297,27 +292,6 @@
   gap: 4px;
   min-height: 0;
   overflow: auto;
-}
-
-.companion-list-two {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px;
-}
-
-.companion-list-two .companion-name {
-  font-size: 11px;
-  line-height: 1.15;
-  white-space: normal;
-  text-align: center;
-}
-
-.companion-list-two .companion-name .companion-sub {
-  display: none;
-}
-
-.companion-dock-wide {
-  width: 236px;
 }
 
 .companion-item {
@@ -362,8 +336,7 @@
 }
 
 .companion-sub,
-.companion-foot,
-.companion-bubble-pose {
+.companion-foot {
   color: #b7c6da;
   font-size: 11px;
 }
@@ -457,69 +430,6 @@
   order: -2;
 }
 
-.companion-bubble {
-  order: -1;
-  flex: none;
-  box-sizing: border-box;
-  max-height: min(55vh, 420px);
-  overflow: auto;
-  padding: 10px 12px;
-  color: #10202e;
-  background: #f4f8fd;
-  border-radius: 10px;
-  font-size: 12px;
-}
-
-.companion-dock:not(.companion-gather) > .companion-bubble {
-  height: min(25vh, 180px);
-}
-
-/* Room for the sentence: the panel takes its two-column width. */
-.companion-dock:has(.companion-bubble):not(
-    .companion-gather,
-    .companion-gallery
-  ) {
-  width: min(320px, calc(100vw - 24px));
-}
-
-.companion-bubble-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-}
-
-.companion-dock .companion-bubble button {
-  color: #10202e;
-  border-color: rgba(16, 32, 46, 0.3);
-}
-
-.companion-bubble-facts {
-  display: grid;
-  gap: 10px;
-  margin: 10px 0;
-  padding-inline-start: 18px;
-  font-size: 13px;
-  line-height: 1.55;
-  overflow-wrap: anywhere;
-}
-
-.companion-bubble .companion-bubble-pose {
-  margin-top: 6px;
-  color: #4c5d70;
-}
-
-.companion-bubble .trend-caveat {
-  margin-top: 8px;
-  background: #ffe9c7;
-}
-
-.companion-bubble .trend-caveat,
-.companion-bubble .trend-caveat summary,
-.companion-bubble .trend-caveat .trend-caveat-sources {
-  color: #10202e;
-}
-
 /* Gather: all twelve in one composition. */
 .companion-gather {
   top: 64px;
@@ -564,12 +474,6 @@
   text-shadow: 0 1px 2px #000;
 }
 
-.companion-gather .companion-bubble {
-  order: 0;
-  max-height: none;
-  font-size: 13px;
-}
-
 /* ?companions=gallery: every companion on one page. */
 .companion-gallery {
   inset: 0;
@@ -596,22 +500,8 @@
   text-align: center;
 }
 
-/* Phone widths: the panel is a chip under the HUD on the left (the Layers
-   chip is on the right); unfolded, it ends above the timeline bar. */
+/* Phone widths. */
 @media (max-width: 700px) {
-  .companion-dock:not(.companion-gather, .companion-gallery) {
-    top: 60px;
-    right: auto;
-    left: 12px;
-    z-index: 2;
-    max-width: calc(100% - 24px - 162px);
-    max-height: calc(
-      100% - 60px - var(--timeline-bottom, 92px) -
-        var(--timeline-height, 112px) - 8px
-    );
-    background: #0b1220;
-  }
-
   .companion-dock-collapsed .companion-avatars {
     flex-wrap: nowrap;
     overflow: hidden;
@@ -620,4 +510,63 @@
   .companion-gather-figure .companion-name {
     display: none;
   }
+}
+
+/* The panel of the main view is a section of the right sidebar (#207): no
+   frame, position or width of its own. Later and more specific than the
+   base above, so it wins; the gather and gallery pages do not have the
+   class and keep the base. */
+.companion-dock.companion-dock-embedded {
+  position: static;
+  z-index: auto;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+/* The list in the sidebar (#207): a row per companion, the figure on the left
+   and the name and the kind of data beside it, so twelve of them take far
+   less height than twelve figures stacked. The drop or bead between two
+   neighbours (companion-link) and the warm light still sit on the figure. */
+.companion-dock-embedded .companion-list {
+  gap: 2px;
+}
+
+.companion-dock-embedded .companion-figure {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.companion-dock-embedded .companion-name {
+  white-space: normal;
+}
+
+.companion-dock-embedded .companion-name .companion-sub {
+  display: block;
+}
+
+.companion-dock-embedded .companion-link {
+  left: 26px;
+}
+
+.companion-dock-embedded .companion-caution {
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
+.companion-dock-embedded .companion-lit {
+  background: radial-gradient(
+    ellipse at 18% 50%,
+    rgba(255, 176, 64, 0.34),
+    rgba(255, 176, 64, 0) 60%
+  );
 }

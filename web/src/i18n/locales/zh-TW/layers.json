@@ -18,5 +18,7 @@
   "cautionHint": "有已知的資料問題：展開這個圖層可看注意事項。",
   "showAria": "顯示{{name}}",
   "display": "顯示設定",
-  "opacity": "透明度"
+  "opacity": "透明度",
+  "sidebarOpen": "開啟圖層與資料夥伴",
+  "sidebarClose": "收起圖層與資料夥伴"
 }

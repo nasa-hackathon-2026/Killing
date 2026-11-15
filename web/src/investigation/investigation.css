@@ -469,11 +469,6 @@
     .timeline-chart.investigation-wide {
     width: calc(100% - 306px - 36px);
   }
-
-  .app:has(.investigation-wide)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
-  }
 }
 
 @media (max-width: 700px) {

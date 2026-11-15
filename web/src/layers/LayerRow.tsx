@@ -80,7 +80,7 @@ export function LayerRow({
           <Collapsible.Trigger
             aria-describedby={caveat ? hintId : undefined}
             className={cn(
-              "group grid min-w-0 flex-1 cursor-pointer grid-cols-[1fr_auto_auto] items-start gap-x-2 rounded border-0 bg-transparent p-0 text-left text-ink",
+              "group grid min-w-0 flex-1 cursor-pointer grid-cols-[1fr_auto_auto] items-start gap-x-3 rounded border-0 bg-transparent p-0 text-left text-ink",
               "hover:text-white",
             )}
           >
@@ -98,7 +98,7 @@ export function LayerRow({
                 </Tip>
               ) : null}
             </span>
-            <span className="pt-px text-right text-xs leading-snug text-soft tabular-nums">
+            <span className="max-w-[6rem] pt-px text-right text-xs leading-snug break-words text-soft tabular-nums">
               <UnitText text={reading ?? ""} />
             </span>
             <svg

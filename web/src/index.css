@@ -398,33 +398,6 @@ body,
   }
 }
 
-.layers {
-  position: absolute;
-  top: 64px;
-  right: 12px;
-  z-index: 1;
-  box-sizing: border-box;
-  width: min(306px, calc(100% - 24px));
-  max-height: calc(100% - 76px);
-  overflow: auto;
-  margin: 0;
-  padding: 12px;
-  color: #e8eef7;
-  /* Mostly opaque with a blur, so the text stays readable over the globe. */
-  background: rgba(8, 14, 28, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  font:
-    13px/1.35 system-ui,
-    sans-serif;
-}
-
-.layers.layers-collapsed {
-  width: auto;
-  padding: 8px 12px;
-}
-
 .trend {
   margin: 0;
   color: #d5e4f5;
@@ -1263,13 +1236,6 @@ body,
     max-height: 150px;
   }
 
-  /* A close-up is as wide as the room left of the Layers panel; the
-     companions give way to it until it is closed. */
-  .app:has(.closeup)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
-  }
-
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
     max-height: calc(
@@ -1286,11 +1252,6 @@ body,
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
     width: calc(100% - 306px - 36px);
-  }
-
-  .app:has(.timeline-chart)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
   }
 }
 
@@ -1343,17 +1304,6 @@ body,
     );
   }
 
-  /* Folded: a chip in the top-right corner, beside the companions' chip.
-     Unfolded: a sheet over the page, down to the timeline bar. */
-  .layers {
-    top: 60px;
-    z-index: 4;
-  }
-
-  .layers.layers-collapsed {
-    z-index: 1;
-  }
-
   /* The unfolded Layers sheet starts right under the HUD row, so the More
      menu, which drops down from that row, has to open above the sheet. */
   .hud {
@@ -1366,12 +1316,6 @@ body,
 
   .timeline-strip-key {
     display: none;
-  }
-
-  .app:has(.timeline-bar) .layers {
-    max-height: calc(
-      100% - 60px - var(--timeline-bottom) - var(--timeline-height) - 8px
-    );
   }
 }
 
@@ -1469,4 +1413,15 @@ body,
 .timeline-details {
   margin: 6px 0 0;
   font-size: 12px;
+}
+
+/* The Layers panel is a section of the right sidebar (sidebar/RightSidebar):
+   the sidebar has the frame, the position and the scrolling. */
+.layers {
+  box-sizing: border-box;
+  margin: 0;
+  color: #e8eef7;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
 }
