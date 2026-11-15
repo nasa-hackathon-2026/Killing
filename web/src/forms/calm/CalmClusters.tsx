@@ -18,6 +18,8 @@ import {
   type MeshStandardMaterial,
 } from "three";
 import { latLonToVector3 } from "../../geo/latLon";
+import { useI18n } from "../../i18n";
+import { variableName } from "../../i18n/names";
 import type { LayerDefinition } from "../../layers/registry";
 import { encodeForm } from "../encoding";
 import { formColor } from "../formColor";
@@ -127,6 +129,7 @@ function CalmCluster({
   labelRoom: number;
   facingRef: RefObject<boolean>;
 }) {
+  useI18n();
   const { layer, opacity, value, hasData, usual, trendDirection } = input;
   const group = useRef<Group>(null);
   const units = useRef<InstancedMesh>(null);
@@ -381,7 +384,7 @@ function CalmCluster({
             labelRoom > 3 ? "calm-label calm-label-small" : "calm-label"
           }
         >
-          {layer.nameEn}
+          {variableName(layer.id, layer.nameEn)}
         </p>
       </Html>
     </group>

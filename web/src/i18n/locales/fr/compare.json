@@ -76,5 +76,13 @@
     "gapUnclear": "This record shows no clear change in the gap between the two. That is not the same as no change.",
     "tooFew": "Too few common months ({{count}}) for statistics."
   },
-  "notPaired": "Not paired: {{list}}."
+  "notPaired": "Not paired: {{list}}.",
+  "caveat": {
+    "model": "model",
+    "observation": "observation",
+    "both": "model and observation",
+    "paired": "paired",
+    "one": "Caution: the {{side}} series has a known issue.",
+    "many": "Caution: the {{side}} series has {{count}} known issues."
+  }
 }

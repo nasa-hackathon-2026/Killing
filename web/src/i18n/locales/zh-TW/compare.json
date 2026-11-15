@@ -76,5 +76,13 @@
     "gapUnclear": "這段紀錄裡看不出兩者的差距有明確的變化；這不等於沒有變。",
     "tooFew": "共同月份太少（{{count}}），無法計算統計。"
   },
-  "notPaired": "未配對：{{list}}。"
+  "notPaired": "未配對：{{list}}。",
+  "caveat": {
+    "model": "模式",
+    "observation": "觀測",
+    "both": "模式與觀測",
+    "paired": "配對",
+    "one": "注意：{{side}}序列有一個已知資料問題。",
+    "many": "注意：{{side}}序列有 {{count}} 個已知資料問題。"
+  }
 }
