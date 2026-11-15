@@ -1,10 +1,10 @@
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { DoubleSide, Quaternion, Vector3, type Mesh } from "three";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { latLonToVector3 } from "../geo/latLon";
-import { markerScale } from "./markerScale";
+import { markerHitScale, markerScale } from "./markerScale";
 import { useI18n } from "../i18n";
 import { placeName } from "../i18n/names";
 import type { MockLocation } from "../mock/snapshot";
@@ -18,10 +18,16 @@ type MarkersProps = {
 
 const PULSE_SECONDS = 2.4;
 const OUTWARD = new Vector3(0, 0, 1);
+// Wait for a second click before treating the first as a single click, so a
+// double-click does not start the framed flight and then miss the marker.
+const CLICK_DELAY_MS = 280;
+// Invisible hit sphere: larger than the drawn dot so it stays easy to hit.
+const HIT_RADIUS = 0.028;
 
 // A ring around the selected place and its name, so the place the panels
 // talk about can be found at a glance. The outer ring pulses unless the
-// reader asked for reduced motion.
+// reader asked for reduced motion. Rings do not catch clicks (raycast
+// off); the place dot's hit sphere does.
 function SelectedPlace({ location }: { location: MockLocation }) {
   useI18n();
   const ring = useRef<Mesh>(null);
@@ -60,11 +66,21 @@ function SelectedPlace({ location }: { location: MockLocation }) {
 
   return (
     <>
-      <mesh ref={ring} position={position} quaternion={facing}>
+      <mesh
+        ref={ring}
+        position={position}
+        quaternion={facing}
+        raycast={() => {}}
+      >
         <ringGeometry args={[0.024, 0.031, 48]} />
         <meshBasicMaterial color="#ffffff" side={DoubleSide} />
       </mesh>
-      <mesh ref={pulse} position={position} quaternion={facing}>
+      <mesh
+        ref={pulse}
+        position={position}
+        quaternion={facing}
+        raycast={() => {}}
+      >
         <ringGeometry args={[0.031, 0.036, 48]} />
         <meshBasicMaterial
           color="#ffffff"
@@ -96,28 +112,59 @@ function PlaceDot({
   selected: boolean;
   onSelect: (id: string, close?: boolean) => void;
 }) {
-  const dot = useRef<Mesh>(null);
+  const visual = useRef<Mesh>(null);
+  const hit = useRef<Mesh>(null);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const position = latLonToVector3(location.lat, location.lon, 1.008);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimer.current !== null) clearTimeout(clickTimer.current);
+    };
+  }, []);
+
   useFrame(({ camera }) => {
-    const size = markerScale(camera.position.length());
-    dot.current?.scale.setScalar(size);
+    const distance = camera.position.length();
+    visual.current?.scale.setScalar(markerScale(distance));
+    hit.current?.scale.setScalar(markerHitScale(distance));
   });
+
+  const pick = (close: boolean) => {
+    if (clickTimer.current !== null) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+    }
+    if (close) {
+      onSelect(location.id, true);
+      return;
+    }
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      onSelect(location.id, false);
+    }, CLICK_DELAY_MS);
+  };
+
   return (
-    <mesh
-      ref={dot}
-      position={[position.x, position.y, position.z]}
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelect(location.id, false);
-      }}
-      onDoubleClick={(event) => {
-        event.stopPropagation();
-        onSelect(location.id, true);
-      }}
-    >
-      <sphereGeometry args={[selected ? 0.012 : 0.007, 16, 16]} />
-      <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
-    </mesh>
+    <group position={[position.x, position.y, position.z]}>
+      <mesh ref={visual} raycast={() => {}}>
+        <sphereGeometry args={[selected ? 0.012 : 0.007, 16, 16]} />
+        <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
+      </mesh>
+      <mesh
+        ref={hit}
+        onClick={(event) => {
+          event.stopPropagation();
+          pick(false);
+        }}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          pick(true);
+        }}
+      >
+        <sphereGeometry args={[HIT_RADIUS, 12, 12]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+    </group>
   );
 }
 

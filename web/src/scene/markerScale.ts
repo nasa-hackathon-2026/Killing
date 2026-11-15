@@ -3,9 +3,16 @@
 // makes the marker smaller as the camera comes closer.
 export const MARKER_REFERENCE_DISTANCE = 3.2;
 const SPAN = MARKER_REFERENCE_DISTANCE - 1;
+// The drawn dot may shrink, but the invisible hit sphere stays at least
+// this large so a double-click still lands after the camera has framed in.
+export const MARKER_HIT_FLOOR = 0.55;
 
 export function markerScale(distance: number): number {
   if (!Number.isFinite(distance)) return 0;
   const height = Math.max(0, distance - 1);
   return Math.min(1.6, (height / SPAN) ** 1.7);
+}
+
+export function markerHitScale(distance: number): number {
+  return Math.max(MARKER_HIT_FLOOR, markerScale(distance));
 }
