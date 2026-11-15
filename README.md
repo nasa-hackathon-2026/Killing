@@ -45,6 +45,7 @@ Screenshots were taken from a local build on 2026-11-15 in a headless browser, w
 3. Press play on the timeline at the bottom, or drag it, to watch the months go by.
 4. Press "Chart" on a layer to open the investigation panel: four tabs (What is changing? Where? How much? Is it significant?), each with a one-sentence answer and a chart. Arrow keys move between the tabs; "Expand" widens the panel. `?chart=<id>&tab=howmuch` opens a tab directly.
 5. "Layer view" shows which layer of the atmosphere or ground each variable belongs to; "Global trend map" lays one variable's per-cell trend over the globe; "More" leads to the model vs observation, data mining and form lab pages (and holds the renderer and FPS readout).
+   "Fly near me" (top row, wide windows only) asks the browser for this device's location only when it is pressed and uses it inside the page to pick the nearest Taiwan point or world city; the location is not stored and not sent anywhere. Without a location (refused, unavailable or timed out) it flies to Taiwan.
 6. On the data mining page, the row of links at the top jumps to each analysis; every section starts with the question it asks and its limits, and "Method details" opens the full method and parameters. "Similar series" at the bottom of a chart on the globe page opens that place and variable there.
 
 The five examples on the start card are ordinary links, and so is the "Similar series" link at the bottom of a chart (the Tokyo row below is one of those; it is not on the card). Their titles are questions; the page shows the numbers and how they were computed, and leaves the answer to the reader.
@@ -90,7 +91,7 @@ Everything can be reached with the keyboard (Tab, Enter or Space; Space and the 
 - **Per-place trend marks and the trend map are not drawn together.** While a global trend map is on, the per-place marks are hidden (the legend says so), because the two pictures use different units of space: a grid cell and a point.
 - **Units are as provided by each product** (for example K for MERRA-2, °C for NASA POWER); the layer panel converts Kelvin to °C for display only.
 - **A close-up covers the chart.** The close-up panel opens over the left side of the page, on top of an open time series chart; close it to see the chart again.
-- **Phone widths are simplified.** The Layers and Companions panels start folded, "Fly to Taiwan" is left out of the top row, the layer view shows values without variable names in its labels (tap a label for the names) and hides the companion panel, and an open chart covers the layer view until it is closed. Between 701 and 1180 px, an open chart takes the place of the Layers panel in the layer view, and below 900 px the companion panel gives way to an open chart.
+- **Phone widths are simplified.** The Layers and Companions panels start folded, "Fly near me" is left out of the top row, the layer view shows values without variable names in its labels (tap a label for the names) and hides the companion panel, and an open chart covers the layer view until it is closed. Between 701 and 1180 px, an open chart takes the place of the Layers panel in the layer view, and below 900 px the companion panel gives way to an open chart.
 - Performance has not been measured on real phones.
 
 ## NASA data and resources
