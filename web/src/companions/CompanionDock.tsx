@@ -9,6 +9,7 @@ import { trendKey, type TrendsFile } from "../analysis/trends";
 import { rememberFlag, storedFlag, useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
+import { UnitText } from "../snapshot/UnitText";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
 import { companionReading, type CompanionReading } from "./companionData";
@@ -310,7 +311,9 @@ export function CompanionDock({
       </p>
       <ul className="companion-bubble-facts">
         {(displayParts[selected.id] ?? []).map((part) => (
-          <li key={part}>{part}</li>
+          <li key={part}>
+            <UnitText text={part} />
+          </li>
         ))}
       </ul>
       <p className="companion-bubble-pose">
@@ -399,7 +402,9 @@ export function CompanionDock({
                 <p className="companion-name">{companionTitle(spec)}</p>
                 <p className="companion-sub">
                   {companionVariable(spec)} ·{" "}
-                  {formatMeasurement(reading.raw, reading.unit)}
+                  <UnitText
+                    text={formatMeasurement(reading.raw, reading.unit)}
+                  />
                 </p>
               </li>
             );

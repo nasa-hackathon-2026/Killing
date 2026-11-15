@@ -3,6 +3,7 @@ import { useRef } from "react";
 import { elements, molecules, rmsSpeed } from "../chemistry/molecules";
 import { formSpec } from "../forms/formMapping";
 import { localNumber, useI18n } from "../i18n";
+import { UnitText } from "../snapshot/UnitText";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { closeUp, type SceneKind } from "./closeUps";
 import { CloseUpScene } from "./CloseUpScene";
@@ -154,7 +155,7 @@ export function CloseUpPanel({
       <header>
         <div>
           <p className="closeup-kicker">
-            {variableName} · {reading}
+            {variableName} · <UnitText text={reading} />
             {trendLabel
               ? ` · ${t("closeup.trend", { label: trendLabel })}`
               : ""}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import { formatSigned } from "../analysis/modelVsObs";
+import { UnitText } from "../snapshot/UnitText";
 import { GLOBE_STATS_TEXT as T } from "./globeStatsText";
 import type { GlobeStatsState } from "./useGlobeStats";
 import { countGlyphs } from "./trendGlyphs";
@@ -167,11 +168,14 @@ function GapTable({ state }: { state: GlobeStatsState }) {
                 />
               </td>
               <td>
-                {formatSigned(glyph.modelSlope)} {glyph.unit} {T.perDecade}
+                <UnitText
+                  text={`${formatSigned(glyph.modelSlope)} ${glyph.unit} ${T.perDecade}`}
+                />
               </td>
               <td>
-                {formatSigned(glyph.observationSlope)} {glyph.unit}{" "}
-                {T.perDecade}
+                <UnitText
+                  text={`${formatSigned(glyph.observationSlope)} ${glyph.unit} ${T.perDecade}`}
+                />
               </td>
               <td>{formatSigned(glyph.correlation)}</td>
               <td>{glyph.commonMonths}</td>

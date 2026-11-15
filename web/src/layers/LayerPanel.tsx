@@ -13,6 +13,7 @@ import {
   placeGroupLabel,
   type Place,
 } from "../snapshot/places";
+import { UnitText } from "../snapshot/UnitText";
 import type { LayerDefinition } from "./registry";
 
 export type LayerControl = {
@@ -188,7 +189,9 @@ export function LayerPanel({
                 />
                 <span>{name}</span>
                 {signal ? <TrendMarkIcon signal={signal} /> : null}
-                <span className="reading">{readings[layer.id]}</span>
+                <span className="reading">
+                  <UnitText text={readings[layer.id] ?? ""} />
+                </span>
               </label>
               <TrendBlock variableId={layer.id} trend={trend} signal={signal} />
               <div className="timeline-layer-actions">
