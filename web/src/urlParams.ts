@@ -7,6 +7,7 @@
 // ?strata=1&at=taipei opens the layer view at a place (`at` is optional).
 // ?field=imerg_precip (or auto, or off) turns on the global distribution
 // (web/src/fields).
+// ?particles=calm|lively picks the particle style (forms/calm/particleStyle.ts).
 function param(name: string): string | null {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get(name);
@@ -42,4 +43,8 @@ export function requestedPlace(): string | null {
 
 export function requestedField(): string | null {
   return param("field");
+}
+
+export function requestedParticles(): string | null {
+  return param("particles");
 }

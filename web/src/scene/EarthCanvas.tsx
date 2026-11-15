@@ -1,6 +1,8 @@
 import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState, type ReactNode } from "react";
+import { CalmLayers } from "../forms/calm/CalmLayers";
+import { useParticleStyle } from "../forms/calm/particleStyle";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
 import { GlobalField } from "../fields/GlobalField";
 import { LocalParticlesBlend } from "../fields/LocalParticlesBlend";
@@ -30,6 +32,8 @@ type EarthCanvasProps = {
   // Layers whose current month has a value; the others draw no particles.
   available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
+  // Per layer: the normalized mean of the shown calendar month (Calm style).
+  usual?: Record<string, number | null>;
   // Global trend map drawn over the surface; null = off.
   trendMap?: TrendMap | null;
   trendMapOpacity?: number;
@@ -52,6 +56,7 @@ function Scene({
   intensities,
   available,
   trendDirections,
+  usual,
   trendMap,
   trendMapOpacity,
   places,
@@ -70,6 +75,8 @@ function Scene({
   // Layers whose current month has a value; the others draw no particles.
   available: Record<string, boolean>;
   trendDirections?: Record<string, number>;
+  // Per layer: the normalized mean of the shown calendar month (Calm style).
+  usual?: Record<string, number | null>;
   // Global trend map drawn over the surface; null = off.
   trendMap?: TrendMap | null;
   trendMapOpacity?: number;
@@ -80,6 +87,10 @@ function Scene({
 }) {
   const [controlEpoch, setControlEpoch] = useState(0);
   const openLayers = layers.filter((layer) => layer.visible).length;
+  // The Calm style needs a place to float above; the global mean has none
+  // and keeps the Lively style.
+  const selected = places.find((place) => place.id === locationId);
+  const calm = useParticleStyle() === "calm" && selected !== undefined;
 
   return (
     <>
@@ -114,8 +125,20 @@ function Scene({
             hasData={available[layer.id] ?? false}
             openLayers={openLayers}
             trendDirection={trendDirections?.[layer.id] ?? 0}
+            calm={calm}
           />
         ))}
+        {calm && selected ? (
+          <CalmLayers
+            lat={selected.lat}
+            lon={selected.lon}
+            layers={layers}
+            intensities={intensities}
+            available={available}
+            usual={usual}
+            trendDirections={trendDirections}
+          />
+        ) : null}
       </LocalParticlesBlend>
       <FlyCamera
         target={flyTarget}
@@ -143,6 +166,7 @@ function LayerView({
   hasData,
   openLayers,
   trendDirection,
+  calm,
 }: {
   layer: LayerDefinition;
   control: SceneLayer | undefined;
@@ -150,6 +174,7 @@ function LayerView({
   hasData: boolean;
   openLayers: number;
   trendDirection: number;
+  calm: boolean;
 }) {
   if (!control) return null;
   return (
@@ -161,6 +186,7 @@ function LayerView({
       hasData={hasData}
       openLayers={openLayers}
       trendDirection={trendDirection}
+      calm={calm}
     />
   );
 }
@@ -172,6 +198,7 @@ export function EarthCanvas({
   intensities,
   available,
   trendDirections,
+  usual,
   trendMap,
   trendMapOpacity,
   places,
@@ -197,6 +224,7 @@ export function EarthCanvas({
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
+        usual={usual}
         trendMap={trendMap}
         trendMapOpacity={trendMapOpacity}
         places={places}
