@@ -308,6 +308,7 @@ export function SignificantTab({
               download(
                 `${fileKey}.csv`,
                 seriesCsv({
+                  unit: model.unit,
                   months: model.months,
                   values: model.raw,
                   anomalies: model.anomalies,

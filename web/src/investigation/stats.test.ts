@@ -143,15 +143,16 @@ describe("interval chart", () => {
 describe("CSV", () => {
   it("writes one row per month with a value or an anomaly", () => {
     const csv = seriesCsv({
+      unit: "K",
       months: ["2001-01-01", "2001-02-01", "2001-03-01"],
       values: [1.5, null, 2],
       anomalies: [0.1, null, null],
       coverage: [1, null, 0.2],
     });
     expect(csv).toBe(
-      "month,value,anomaly,coverage,used_in_trend\n" +
-        "2001-01,1.5,0.1,1,true\n" +
-        "2001-03,2,,0.2,false\n",
+      "month,value,anomaly,coverage,used_in_trend,unit\n" +
+        "2001-01,1.5,0.1,1,true,K\n" +
+        "2001-03,2,,0.2,false,K\n",
     );
   });
 });

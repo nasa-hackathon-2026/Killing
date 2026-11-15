@@ -269,9 +269,11 @@ export function changeOverPeriod(
   return (slopePerDecade * (monthNumber(last) - monthNumber(first))) / 120;
 }
 
-// One series as CSV: month, value, anomaly, coverage and whether the month
-// entered the trend tests (its anomaly is not null).
+// One series as CSV: month, value, anomaly, coverage, whether the month
+// entered the trend tests (its anomaly is not null) and the unit of value
+// and anomaly (as in the snapshot: K stays K).
 export function seriesCsv(rows: {
+  unit: string;
   months: string[];
   values: (number | null)[];
   anomalies: (number | null)[];
@@ -279,7 +281,7 @@ export function seriesCsv(rows: {
 }): string {
   const cell = (value: number | null | undefined) =>
     value === null || value === undefined ? "" : String(value);
-  const lines = ["month,value,anomaly,coverage,used_in_trend"];
+  const lines = ["month,value,anomaly,coverage,used_in_trend,unit"];
   rows.months.forEach((month, index) => {
     const value = rows.values[index] ?? null;
     const anomaly = rows.anomalies[index] ?? null;
@@ -291,6 +293,7 @@ export function seriesCsv(rows: {
         cell(anomaly),
         cell(rows.coverage[index]),
         anomaly === null ? "false" : "true",
+        rows.unit.includes(",") ? `"${rows.unit}"` : rows.unit,
       ].join(","),
     );
   });

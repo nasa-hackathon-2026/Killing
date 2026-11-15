@@ -66,7 +66,8 @@
     },
     "notAnalyzed": "未分析：{{reason}}",
     "noTrend": "這條序列沒有趨勢結果。",
-    "noSeries": "{{place}}沒有這個變數的資料。"
+    "noSeries": "{{place}}沒有這個變數的資料。",
+    "loading": "正在讀取{{place}}的序列…"
   },
   "what": {
     "seasonTitle": "季節循環：每個日曆月的多年平均",

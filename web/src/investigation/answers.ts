@@ -66,7 +66,11 @@ export function answerFor(
     });
   }
   if (!input.hasSeries) {
-    return t("investigation.answer.noSeries", { place: input.locationName });
+    // A place whose series are read when it is picked (a world city, a
+    // Taiwan region) has a trend result before its series arrive.
+    return trend
+      ? t("investigation.answer.loading", { place: input.locationName })
+      : t("investigation.answer.noSeries", { place: input.locationName });
   }
   if (!trend) return t("investigation.answer.noTrend");
   if (trend.status === "insufficient") {
