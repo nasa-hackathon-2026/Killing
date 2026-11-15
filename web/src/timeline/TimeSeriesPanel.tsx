@@ -12,6 +12,7 @@ import { companionFor } from "../companions/companionSpec";
 import { formatCount, localNumber, t, useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
+import { UnitText } from "../snapshot/UnitText";
 import {
   formatTick,
   linearScale,
@@ -180,12 +181,14 @@ export function TimeSeriesPanel({
       <dl className="timeline-stats">
         <dt>{t("chart.stats.change")}</dt>
         <dd>
-          {formatChangePerDecade(
-            analyzed.ols.slope_per_decade,
-            analyzed.ols.ci_per_decade,
-            analyzed.unit,
-            alpha,
-          )}
+          <UnitText
+            text={formatChangePerDecade(
+              analyzed.ols.slope_per_decade,
+              analyzed.ols.ci_per_decade,
+              analyzed.unit,
+              alpha,
+            )}
+          />
         </dd>
         <dt>{t("chart.stats.ttest")}</dt>
         <dd>
@@ -210,12 +213,14 @@ export function TimeSeriesPanel({
         </dd>
         <dt>{t("chart.stats.sen")}</dt>
         <dd>
-          {formatChangePerDecade(
-            analyzed.sen.slope_per_decade,
-            analyzed.sen.ci_per_decade,
-            analyzed.unit,
-            alpha,
-          )}
+          <UnitText
+            text={formatChangePerDecade(
+              analyzed.sen.slope_per_decade,
+              analyzed.sen.ci_per_decade,
+              analyzed.unit,
+              alpha,
+            )}
+          />
         </dd>
         <dt>{t("chart.stats.period")}</dt>
         <dd>
@@ -408,15 +413,17 @@ export function TimeSeriesPanel({
           {chart && focusMonth ? (
             <p className="timeline-readout">
               <strong>{focusMonth.slice(0, 7)}</strong> ·{" "}
-              {tm("chart.readout", {
-                value: formatMeasurement(chart.raw[focus] ?? null, unit),
-                anomaly: formatAnomaly(chart.departures[focus] ?? null, unit),
-                coverage:
-                  chart.coverage[focus] === null ||
-                  chart.coverage[focus] === undefined
-                    ? t("common.status.notAvailable")
-                    : `${Math.round((chart.coverage[focus] ?? 0) * 100)}%`,
-              })}
+              <UnitText
+                text={tm("chart.readout", {
+                  value: formatMeasurement(chart.raw[focus] ?? null, unit),
+                  anomaly: formatAnomaly(chart.departures[focus] ?? null, unit),
+                  coverage:
+                    chart.coverage[focus] === null ||
+                    chart.coverage[focus] === undefined
+                      ? t("common.status.notAvailable")
+                      : `${Math.round((chart.coverage[focus] ?? 0) * 100)}%`,
+                })}
+              />
               {hover === null ? ` ${t("chart.readout.timelineMonth")}` : ""}
             </p>
           ) : null}
@@ -425,9 +432,11 @@ export function TimeSeriesPanel({
           ) : null}
           <p className="timeline-chart-note">
             <i className="timeline-key timeline-key-series" />
-            {mode === "values"
-              ? t("chart.key.values", { unit: unitNote })
-              : tm(`chart.key.${mode}`, { unit: unitNote })}
+            {mode === "values" ? (
+              <UnitText text={t("chart.key.values", { unit: unitNote })} />
+            ) : (
+              <UnitText text={tm(`chart.key.${mode}`, { unit: unitNote })} />
+            )}
             {chart?.line ? (
               <>
                 {" "}
@@ -453,11 +462,13 @@ export function TimeSeriesPanel({
             <dl className="timeline-stats timeline-plain">
               <dt>{t("chart.plain.change")}</dt>
               <dd>
-                {formatChangePlain(
-                  analyzed.ols.slope_per_decade,
-                  analyzed.ols.ci_per_decade,
-                  analyzed.unit,
-                )}
+                <UnitText
+                  text={formatChangePlain(
+                    analyzed.ols.slope_per_decade,
+                    analyzed.ols.ci_per_decade,
+                    analyzed.unit,
+                  )}
+                />
               </dd>
               <dt>{t("chart.plain.holds")}</dt>
               <dd>{significanceText(analyzed.ols, unreliable, "general")}</dd>

@@ -83,6 +83,85 @@ body,
   max-width: 300px;
 }
 
+/* Search sits at the left of the row so its list opens inside the viewport.
+   The visible word is the placeholder; the longer name stays on aria-label.
+   The field does not shrink, or the placeholder collides with the next control. */
+.hud-search {
+  position: relative;
+  flex: 0 0 7.25rem;
+}
+
+.hud-search > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.hud-search input {
+  box-sizing: border-box;
+  width: 7.25rem;
+  padding: 8px 8px;
+}
+
+.hud-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 5;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 24px));
+  max-height: 280px;
+  margin: 0;
+  padding: 4px;
+  overflow: auto;
+  list-style: none;
+  background: rgba(8, 14, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+}
+
+.hud-search-empty {
+  padding: 6px 8px;
+  color: #b7c6da;
+}
+
+.hud-search-results button {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.hud-search-results button span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-search-results button[aria-selected="true"],
+.hud-search-results button:hover {
+  background: rgba(207, 227, 255, 0.16);
+}
+
+.hud-search-kind {
+  flex: none;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.unit-text sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
 .hud input[type="range"] {
   width: 140px;
 }
@@ -191,6 +270,14 @@ body,
 
   .hud-main select {
     max-width: 132px;
+  }
+
+  .hud-search {
+    flex-basis: 5.5rem;
+  }
+
+  .hud-search input {
+    width: 5.5rem;
   }
 
   .hud-menu {

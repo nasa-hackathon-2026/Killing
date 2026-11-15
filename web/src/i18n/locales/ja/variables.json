@@ -1,130 +1,130 @@
 {
   "imerg_precip": {
-    "name": "Precipitation",
-    "short": "rain and snow",
+    "name": "降水量",
+    "short": "雨と雪",
     "definition": {
-      "general": "Precipitation is the rain and snow that reach the ground, here as the month's average in millimetres per hour.",
-      "expert": "GPM IMERG Final monthly precipitation rate (satellite retrieval, gauge-adjusted), mm/hr."
+      "general": "降水量は、地面に届いた雨や雪の量で、ここでは月平均の、1時間あたりのミリメートルで表しています。",
+      "expert": "GPM IMERG Final 月別降水強度（衛星による推定、雨量計で補正）、mm/hr。"
     }
   },
   "gldas_tair": {
-    "name": "Near-surface air temperature",
-    "short": "air temperature near the ground",
+    "name": "地表付近の気温",
+    "short": "地面近くの気温",
     "definition": {
-      "general": "This is how warm the air near the ground is, computed by a land model that is fed with observations.",
-      "expert": "GLDAS-2.1 Noah near-surface air temperature (forcing field of the land surface model), K, shown as °C."
+      "general": "地面近くの空気の暖かさで、観測データを取り込んだ陸面モデルで計算した値です。",
+      "expert": "GLDAS-2.1 Noah 地表付近気温（陸面モデルの強制場）、K、°Cで表示。"
     }
   },
   "gldas_soilmoist": {
-    "name": "Surface soil moisture",
-    "short": "water in the top soil",
+    "name": "表層土壌水分",
+    "short": "表層の土に含まれる水",
     "definition": {
-      "general": "Soil moisture is the water held in the top 10 cm of soil, in kilograms per square metre.",
-      "expert": "GLDAS-2.1 Noah soil moisture content, 0–10 cm layer (land surface model), kg m-2."
+      "general": "土壌水分は、表層10 cmの土に含まれる水の量で、1平方メートルあたりのキログラムで表します。",
+      "expert": "GLDAS-2.1 Noah 土壌水分量、0〜10 cm層（陸面モデル）、kg m-2。"
     }
   },
   "gldas_evap": {
-    "name": "Evapotranspiration",
-    "short": "water going back into the air",
+    "name": "蒸発散",
+    "short": "空気中に戻る水",
     "definition": {
-      "general": "Evapotranspiration is how fast water returns to the air: evaporation from soil and water, plus water given off by leaves.",
-      "expert": "GLDAS-2.1 Noah evapotranspiration flux (land surface model), kg m-2 s-1."
+      "general": "蒸発散は、水が空気中に戻る速さです。土や水面からの蒸発に、葉から出る水を加えたものです。",
+      "expert": "GLDAS-2.1 Noah 蒸発散フラックス（陸面モデル）、kg m-2 s-1。"
     }
   },
   "airs_tsurf": {
-    "name": "Surface air temperature",
-    "short": "air temperature near the ground",
+    "name": "地表気温",
+    "short": "地面近くの気温",
     "definition": {
-      "general": "This is the air temperature near the ground as an infrared instrument on a satellite reads it, at about 1:30 pm local time.",
-      "expert": "AIRS Level 3 surface air temperature, ascending (daytime, about 13:30 local) overpass (satellite retrieval), K, shown as °C."
+      "general": "衛星の赤外線センサーが読み取った、地面近くの気温で、現地時間の午後1時30分ごろの値です。",
+      "expert": "AIRS Level 3 地表気温、上昇軌道（昼側、現地時間13:30ごろ）の通過（衛星による推定）、K、°Cで表示。"
     }
   },
   "airs_h2ovap": {
-    "name": "Total water vapor",
-    "short": "water vapor in the air",
+    "name": "全水蒸気量",
+    "short": "空気中の水蒸気",
     "definition": {
-      "general": "Total water vapor is all the vapor in the air above one square metre of ground, counted as kilograms of water.",
-      "expert": "AIRS Level 3 total column water vapor (satellite retrieval), kg/m2."
+      "general": "全水蒸気量は、地面1平方メートルの真上にある空気中の水蒸気をすべて合わせて、水のキログラムで数えたものです。",
+      "expert": "AIRS Level 3 水蒸気全量（衛星による推定）、kg/m2。"
     }
   },
   "merra2_t2m": {
-    "name": "2 m air temperature",
-    "short": "air temperature 2 m above the ground",
+    "name": "2 m気温",
+    "short": "地上2 mの気温",
     "definition": {
-      "general": "This is the air temperature 2 metres above the ground, computed by NASA's MERRA-2, which blends worldwide observations with a weather model.",
-      "expert": "MERRA-2 reanalysis 2 m air temperature (T2M), K, shown as °C."
+      "general": "地面から2メートルの高さの気温で、世界中の観測と気象モデルを組み合わせるNASAのMERRA-2で計算した値です。",
+      "expert": "MERRA-2 再解析 2 m気温（T2M）、K、°Cで表示。"
     }
   },
   "omi_no2": {
-    "name": "Tropospheric NO₂",
-    "short": "nitrogen dioxide",
+    "name": "対流圏NO₂",
+    "short": "二酸化窒素",
     "definition": {
-      "general": "This is the amount of nitrogen dioxide (NO₂), a gas given off when fuel burns, in the lowest layer of the atmosphere.",
-      "expert": "OMI tropospheric NO₂ vertical column density (satellite retrieval), molecules/cm^2."
+      "general": "大気の最も低い層にある二酸化窒素（NO₂）の量です。NO₂は、燃料が燃えるときに出る気体です。",
+      "expert": "OMI 対流圏NO₂鉛直カラム密度（衛星による推定）、molecules/cm^2。"
     }
   },
   "omi_o3": {
-    "name": "Total ozone",
-    "short": "ozone",
+    "name": "オゾン全量",
+    "short": "オゾン",
     "definition": {
-      "general": "Total ozone is all the ozone in the air above a place, in Dobson units (DU); most of it sits high up in the ozone layer.",
-      "expert": "OMI total column ozone (satellite retrieval), Dobson units (DU)."
+      "general": "オゾン全量は、ある場所の上空にあるオゾンをすべて合わせた量で、ドブソン単位（DU）で表します。大部分は、高い所のオゾン層にあります。",
+      "expert": "OMI オゾン全量（衛星による推定）、ドブソン単位（DU）。"
     }
   },
   "omi_aerosol": {
-    "name": "UV aerosol index",
-    "short": "dust and smoke",
+    "name": "UVエアロゾル指数",
+    "short": "ちりと煙",
     "definition": {
-      "general": "The UV aerosol index shows how much dust and smoke that absorb ultraviolet light are in the air; it has no unit.",
-      "expert": "OMI UV aerosol index (satellite retrieval), unitless; responds mainly to UV-absorbing aerosols and their height."
+      "general": "UVエアロゾル指数は、紫外線を吸収するちりや煙が、空気中にどのくらいあるかを示します。単位はありません。",
+      "expert": "OMI UVエアロゾル指数（衛星による推定）、無次元。主に、紫外線を吸収するエアロゾルとその高度に反応します。"
     }
   },
   "modis_ndvi": {
-    "name": "Vegetation greenness",
-    "short": "how green the land is",
+    "name": "植生の緑度",
+    "short": "土地の緑の濃さ",
     "definition": {
-      "general": "Vegetation greenness (NDVI) is how green the land looks from space: near 1 for dense plants, near 0 for bare ground or cities.",
-      "expert": "MODIS Terra NDVI, (NIR − red) / (NIR + red) (satellite retrieval), unitless."
+      "general": "植生の緑度（NDVI）は、宇宙から見た土地の緑の濃さです。植物が密なら1に近く、裸地や都市では0に近くなります。",
+      "expert": "MODIS Terra NDVI、(NIR − red) / (NIR + red)（衛星による推定）、無次元。"
     }
   },
   "modis_lst": {
-    "name": "Land surface temperature",
-    "short": "temperature of the ground",
+    "name": "地表面温度",
+    "short": "地面の温度",
     "definition": {
-      "general": "Land surface temperature is how hot the ground itself is (not the air), as a satellite reads it at about 10:30 am local time.",
-      "expert": "MODIS Terra daytime land surface temperature, about 10:30 local overpass (satellite retrieval), K, shown as °C."
+      "general": "地表面温度は、空気ではなく地面そのものの熱さで、衛星が現地時間の午前10時30分ごろに読み取った値です。",
+      "expert": "MODIS Terra 昼間の地表面温度、現地時間10:30ごろの通過（衛星による推定）、K、°Cで表示。"
     }
   },
   "station_temp": {
-    "name": "Station air temperature",
-    "short": "station temperature",
+    "name": "観測所の気温",
+    "short": "観測所の気温",
     "definition": {
-      "general": "This is the air temperature a thermometer at a weather station measured, averaged over the month.",
-      "expert": "NOAA GHCNh station air temperature, monthly mean of daily means (in situ), °C."
+      "general": "気象観測所の温度計が測った気温を、月ごとに平均したものです。",
+      "expert": "NOAA GHCNh 観測所の気温、日平均の月平均（現地観測）、°C。"
     }
   },
   "power_t2m": {
-    "name": "2 m air temperature (NASA POWER)",
-    "short": "air temperature 2 m above the ground",
+    "name": "2 m気温（NASA POWER）",
+    "short": "地上2 mの気温",
     "definition": {
-      "general": "This is the air temperature 2 metres above the ground from the same MERRA-2 data, obtained through the NASA POWER service.",
-      "expert": "NASA POWER 2 m air temperature (MERRA-2 reanalysis), °C."
+      "general": "同じMERRA-2のデータから得た、地面から2メートルの高さの気温で、NASA POWERというサービスを通じて取得しています。",
+      "expert": "NASA POWER 2 m気温（MERRA-2 再解析）、°C。"
     }
   },
   "modis_lst_pc": {
-    "name": "Land surface temperature",
-    "short": "temperature of the ground",
+    "name": "地表面温度",
+    "short": "地面の温度",
     "definition": {
-      "general": "Land surface temperature is how hot the ground itself is (not the air), as a satellite reads it at about 10:30 am local time.",
-      "expert": "MODIS Terra daytime land surface temperature via Planetary Computer (satellite retrieval), K, shown as °C."
+      "general": "地表面温度は、空気ではなく地面そのものの熱さで、衛星が現地時間の午前10時30分ごろに読み取った値です。",
+      "expert": "Planetary Computer 経由の MODIS Terra 昼間の地表面温度（衛星による推定）、K、°Cで表示。"
     }
   },
   "modis_ndvi_pc": {
-    "name": "Vegetation greenness",
-    "short": "how green the land is",
+    "name": "植生の緑度",
+    "short": "土地の緑の濃さ",
     "definition": {
-      "general": "Vegetation greenness (NDVI) is how green the land looks from space: near 1 for dense plants, near 0 for bare ground or cities.",
-      "expert": "MODIS Terra NDVI, 250 m 16-day composites via Planetary Computer (satellite retrieval), unitless."
+      "general": "植生の緑度（NDVI）は、宇宙から見た土地の緑の濃さです。植物が密なら1に近く、裸地や都市では0に近くなります。",
+      "expert": "Planetary Computer 経由の MODIS Terra NDVI、250 m、16日コンポジット（衛星による推定）、無次元。"
     }
   }
 }

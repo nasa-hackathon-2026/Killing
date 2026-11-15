@@ -1,26 +1,26 @@
 {
   "groups": {
     "taiwan": "Taiwan",
-    "world_city": "World cities",
+    "world_city": "Weltstädte",
     "global": "Global"
   },
   "names": {
     "taichung": "Taichung",
-    "taipei": "Taipei",
+    "taipei": "Taipeh",
     "kaohsiung": "Kaohsiung",
     "hualien": "Hualien",
     "yushan": "Yushan",
-    "taichung_station": "Taichung station",
-    "taipei_station": "Taipei station",
-    "global": "Global mean",
-    "tokyo": "Tokyo",
+    "taichung_station": "Station Taichung",
+    "taipei_station": "Station Taipeh",
+    "global": "Globaler Mittelwert",
+    "tokyo": "Tokio",
     "delhi": "Delhi",
-    "beijing": "Beijing",
+    "beijing": "Peking",
     "jakarta": "Jakarta",
-    "cairo": "Cairo",
+    "cairo": "Kairo",
     "lagos": "Lagos",
     "london": "London",
-    "moscow": "Moscow",
+    "moscow": "Moskau",
     "new_york": "New York",
     "los_angeles": "Los Angeles",
     "sao_paulo": "São Paulo",
@@ -28,8 +28,8 @@
   },
   "note": {
     "globalMean": {
-      "general": "This is the average over the whole globe, not the value at one place.",
-      "expert": "Mean of the whole global grid, weighted by cos(latitude), land and ocean together where the product covers both. Not a point value."
+      "general": "Das ist der Durchschnitt über den ganzen Globus, nicht der Wert an einem Ort.",
+      "expert": "Mittelwert über das gesamte globale Gitter, gewichtet mit cos(Breite), Land und Ozean zusammen, wo das Produkt beides abdeckt. Kein Punktwert."
     }
   },
   "placeMonth": "{{place}}, {{month}}"

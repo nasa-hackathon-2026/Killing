@@ -1,27 +1,27 @@
 {
-  "aria": "Timeline",
-  "play": "Play",
+  "aria": "Chronologie",
+  "play": "Lire",
   "pause": "Pause",
-  "playTitle": "Play or pause (Space)",
-  "speed": "Speed",
-  "speedTitle": "Months per second: {{count}}",
-  "slower": "Slower",
-  "faster": "Faster",
-  "speedInput": "Speed in months per second",
-  "latest": "Latest",
-  "latestTitle": "Back to the latest month most layers have",
-  "slider": "Timeline month",
+  "playTitle": "Lire ou mettre en pause (Espace)",
+  "speed": "Vitesse",
+  "speedTitle": "Mois par seconde : {{count}}",
+  "slower": "Plus lent",
+  "faster": "Plus rapide",
+  "speedInput": "Vitesse en mois par seconde",
+  "latest": "Dernier",
+  "latestTitle": "Revenir au dernier mois couvert par la plupart des couches",
+  "slider": "Mois de la chronologie",
   "strip": {
-    "aria": "Monthly anomalies of {{name}}",
-    "ariaFallback": "the selected layer",
-    "above": "above",
+    "aria": "Anomalies mensuelles : {{name}}",
+    "ariaFallback": "la couche sélectionnée",
+    "above": "au-dessus",
     "below": {
-      "general": "below the usual for the month: {{name}}",
-      "expert": "below the calendar-month mean: {{name}}"
+      "general": "en dessous de l’habituel pour ce mois : {{name}}",
+      "expert": "en dessous de la moyenne du mois calendaire : {{name}}"
     },
     "step": {
-      "general": "data product changed",
-      "expert": "documented step"
+      "general": "produit de données modifié",
+      "expert": "saut documenté"
     }
   }
 }

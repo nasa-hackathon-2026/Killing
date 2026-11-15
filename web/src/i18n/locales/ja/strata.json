@@ -1,37 +1,37 @@
 {
-  "title": "Layer view",
-  "back": "Back to the globe",
-  "hint": "Enter layer view at {{place}}",
-  "noLayer": "No layer is on. Tick one in the Layers panel to see it here.",
-  "about": "About this view",
-  "controls": "Drag to turn, scroll to zoom, click a layer for its numbers.",
+  "title": "層別ビュー",
+  "back": "地球に戻る",
+  "hint": "{{place}}の層別ビューに入る",
+  "noLayer": "オンのレイヤーがありません。レイヤーパネルでチェックを入れると、ここに表示されます。",
+  "about": "このビューについて",
+  "controls": "ドラッグで回転、スクロールでズーム、層をクリックすると数値が出ます。",
   "names": {
-    "stratosphere": "Stratosphere",
-    "troposphere-air": "Troposphere: gases and aerosols",
-    "troposphere-water": "Troposphere: water vapor and rain",
-    "near-surface": "Near-surface air",
-    "land-surface": "Land surface",
-    "top-soil": "Top soil"
+    "stratosphere": "成層圏",
+    "troposphere-air": "対流圏：気体とエアロゾル",
+    "troposphere-water": "対流圏：水蒸気と雨",
+    "near-surface": "地表付近の大気",
+    "land-surface": "地表面",
+    "top-soil": "表層土壌"
   },
   "heights": {
-    "stratosphere": "roughly 15–50 km up",
-    "troposphere-air": "ground to roughly 10–15 km",
-    "troposphere-water": "ground to roughly 10–15 km",
-    "near-surface": "about 2 m above the ground",
-    "top-soil": "0–10 cm below the ground"
+    "stratosphere": "地上およそ15〜50 km",
+    "troposphere-air": "地表からおよそ10〜15 kmまで",
+    "troposphere-water": "地表からおよそ10〜15 kmまで",
+    "near-surface": "地上およそ2 m",
+    "top-soil": "地下0〜10 cm"
   },
   "notes": {
-    "scale": "Heights are not to scale.",
-    "columnTotals": "Column totals are shown in the layer where most of the gas sits.",
-    "flow": "Flow directions are illustrative; there is no wind data."
+    "scale": "高さは縮尺どおりではありません。",
+    "columnTotals": "気柱の総量は、その気体の大部分がある層に表示しています。",
+    "flow": "流れの向きはイメージです。風のデータはありません。"
   },
   "columnTotal": {
-    "general": "This counts the gas in the whole column of air above the place. It is drawn in the layer that holds most of it.",
-    "expert": "A total over the whole air column, shown in the layer where most of the gas sits."
+    "general": "その場所の上空にある、空気の柱全体に含まれる気体の量です。その大部分がある層に描いています。",
+    "expert": "空気の柱全体の総量を、その気体の大部分がある層に表示。"
   },
-  "flow": "Particles travel from “{{from}}” to “{{to}}”; the path is illustrative.",
-  "valuesAria": "{{name}}: values",
-  "valuesAt": "Values at {{where}}.",
-  "off": "Switched off in the Layers panel; no particles drawn.",
-  "listedUnder": "{{name}} is listed under “{{stratum}}”."
+  "flow": "粒子は「{{from}}」から「{{to}}」へ移動します。経路はイメージです。",
+  "valuesAria": "{{name}}：値",
+  "valuesAt": "{{where}}の値。",
+  "off": "レイヤーパネルでオフになっているため、粒子は描かれません。",
+  "listedUnder": "{{name}}は「{{stratum}}」に含まれます。"
 }

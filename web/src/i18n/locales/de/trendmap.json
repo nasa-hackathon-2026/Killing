@@ -1,30 +1,30 @@
 {
-  "loading": "Loading the trend map…",
-  "error": "Could not read the trend map.",
-  "unitLine": "Change per decade ({{unit}} per decade) · {{product}}",
-  "rampAria": "Colour scale from −{{edge}} (falling) to +{{edge}} (rising) {{unit}} per decade",
-  "falling": "falling",
-  "rising": "rising",
+  "loading": "Trendkarte wird geladen …",
+  "error": "Die Trendkarte konnte nicht gelesen werden.",
+  "unitLine": "Änderung pro Jahrzehnt ({{unit}} pro Jahrzehnt) · {{product}}",
+  "rampAria": "Farbskala von −{{edge}} (fallend) bis +{{edge}} (steigend) {{unit}} pro Jahrzehnt",
+  "falling": "fallend",
+  "rising": "steigend",
   "key": {
     "full": {
-      "general": "Strong colour: the change holds up in the statistical tests",
-      "expert": "Full colour: significant after FDR correction"
+      "general": "Kräftige Farbe: Die Veränderung besteht die statistischen Tests",
+      "expert": "Volle Farbe: signifikant nach FDR-Korrektur"
     },
     "faded": {
-      "general": "Faded: no clear change, or only weak evidence",
-      "expert": "Faded: not significant, or significant only before correction"
+      "general": "Verblasst: keine eindeutige Veränderung oder nur schwache Belege",
+      "expert": "Verblasst: nicht signifikant oder nur vor der Korrektur signifikant"
     },
-    "empty": "No colour: no data, or not analysed"
+    "empty": "Keine Farbe: keine Daten oder nicht analysiert"
   },
-  "fadeNote": "Colours also fade where the change is close to zero, so the surface shows through.",
-  "opacity": "Opacity",
-  "opacityAria": "Trend map opacity",
-  "summary": "{{share}} of the analysed area shows a change that holds up in the tests ({{first}} to {{last}}).",
-  "periodLine": "Period {{first}} to {{last}} ({{count}} months). Grid {{lat}} × {{lon}}. Significant after FDR correction: {{fdr}} of the analysed area ({{raw}} before correction).",
-  "method": "Method: linear trend of monthly anomalies in each grid cell; t-test adjusted for lag-1 autocorrelation; Benjamini-Hochberg FDR across the map at α = {{alpha}}. The colour range is ± the {{quantile}}th percentile of the absolute cell trends; values beyond it take the end colours.",
+  "fadeNote": "Die Farben verblassen auch dort, wo die Veränderung nahe null liegt, sodass die Oberfläche durchscheint.",
+  "opacity": "Deckkraft",
+  "opacityAria": "Deckkraft der Trendkarte",
+  "summary": "{{share}} der analysierten Fläche zeigt eine Veränderung, die die Tests besteht ({{first}} bis {{last}}).",
+  "periodLine": "Zeitraum {{first}} bis {{last}} ({{count}} Monate). Gitter {{lat}} × {{lon}}. Signifikant nach FDR-Korrektur: {{fdr}} der analysierten Fläche ({{raw}} vor der Korrektur).",
+  "method": "Methode: linearer Trend der Monatsanomalien in jeder Gitterzelle; t-Test mit Korrektur für die Autokorrelation bei Lag 1; FDR nach Benjamini-Hochberg über die ganze Karte bei α = {{alpha}}. Der Farbbereich ist ± das {{quantile}}. Perzentil der absoluten Zelltrends; Werte darüber erhalten die Endfarben.",
   "warning": {
-    "general": "Faded does not mean no change. A change of sensor or data product can also create a false trend.",
-    "expert": "Not significant does not mean no change. Trends are computed on a ~1° grid; sensor or product changes can cause artificial trends."
+    "general": "Verblasst heißt nicht, dass es keine Veränderung gibt. Auch ein Wechsel des Sensors oder des Datenprodukts kann einen falschen Trend erzeugen.",
+    "expert": "Nicht signifikant heißt nicht, dass es keine Veränderung gibt. Die Trends werden auf einem Gitter von etwa 1° berechnet; Sensor- oder Produktwechsel können künstliche Trends verursachen."
   },
-  "evapUnit": "Shown as mm/day (kg m-2 s-1 × 86,400)."
+  "evapUnit": "Dargestellt in mm/day (kg m-2 s-1 × 86.400)."
 }

@@ -1,25 +1,25 @@
 {
-  "title": "Form lab",
-  "intro": "Try each particle form by itself. Lab values are not measurements.",
-  "back": "Earth",
-  "renderer": "Renderer: {{name}}",
+  "title": "形状ラボ",
+  "intro": "粒子の形を1つずつ試せます。ラボの値は測定値ではありません。",
+  "back": "地球",
+  "renderer": "レンダラー：{{name}}",
   "control": {
-    "variable": "Variable",
-    "value": "Value",
-    "valueAria": "Form value",
-    "trend": "Trend",
-    "play": "Play",
-    "pause": "Pause",
-    "closeUp": "Close-up",
-    "hideCloseUp": "Hide close-up"
+    "variable": "変数",
+    "value": "値",
+    "valueAria": "形状の値",
+    "trend": "トレンド",
+    "play": "再生",
+    "pause": "一時停止",
+    "closeUp": "拡大",
+    "hideCloseUp": "拡大を隠す"
   },
   "trend": {
-    "notSignificant": "Not significant",
-    "rising": "Rising, significant",
-    "falling": "Falling, significant",
-    "insufficient": "Insufficient data"
+    "notSignificant": "有意でない",
+    "rising": "上昇（有意）",
+    "falling": "下降（有意）",
+    "insufficient": "データ不足"
   },
-  "labSuffix": "{{name}} (lab)",
-  "labValue": "lab value {{value}}",
-  "footer": "Flow direction is illustrative; no wind data. Lab values are not measurements."
+  "labSuffix": "{{name}}（ラボ）",
+  "labValue": "ラボの値 {{value}}",
+  "footer": "流れの向きはイメージで、風のデータはありません。ラボの値は測定値ではありません。"
 }

@@ -1,88 +1,88 @@
 {
-  "title": "Model vs observation",
-  "back": "← Globe",
+  "title": "モデルと観測の比較",
+  "back": "← 地球",
   "intro": {
-    "general": "This page puts air temperature from computer models next to temperature that was measured, at the same place. Each line shows how far a month is from its usual value for that calendar month ({{start}} to {{end}}).",
-    "expert": "Near-surface air temperature from models and reanalyses, next to observations of the same quantity at the same place. Both series are anomalies over their common months ({{start}} to {{end}}): each value minus that series' own mean of the same calendar month, so baselines and units do not matter."
+    "general": "このページでは、コンピューターのモデルによる気温と、同じ場所で実際に測られた気温を並べます。各線は、その月が、同じ暦月のふだんの値からどれだけ離れているかを示します（{{start}}〜{{end}}）。",
+    "expert": "モデルや再解析による地表付近の気温を、同じ場所で観測された同じ量と並べます。どちらの系列も、共通の月（{{start}}〜{{end}}）での偏差で、各値から、その系列自身の同じ暦月の平均を引いたものです。そのため、基準や単位の違いは影響しません。"
   },
   "verdict": {
-    "general": "A gap between a model and a measurement does not tell you which one is right. A station measures one point; a model value covers a whole grid cell.",
-    "expert": "A difference between a model and an observation does not by itself say which is right. A station is a point and a model value is a grid cell; GISTEMP is a 2° gridded analysis of station and ship observations."
+    "general": "モデルと測定値にずれがあっても、どちらが正しいかは分かりません。観測所が測るのは1点で、モデルの値は格子セル全体を表します。",
+    "expert": "モデルと観測の差だけでは、どちらが正しいかは分かりません。観測所は点であり、モデルの値は格子セルです。GISTEMP は、観測所と船舶の観測から作られた2°格子の解析です。"
   },
-  "error": "Could not read the comparison results.",
+  "error": "比較結果を読み込めませんでした。",
   "group": {
-    "label": "Group",
-    "option": "{{name}} ({{count}})",
-    "taiwan_station": "Taiwan stations",
-    "taiwan_gistemp": "Taiwan, GISTEMP grid cell",
-    "world_city": "World cities",
-    "global": "Global mean"
+    "label": "グループ",
+    "option": "{{name}}（{{count}}）",
+    "taiwan_station": "台湾の観測所",
+    "taiwan_gistemp": "台湾、GISTEMP の格子セル",
+    "world_city": "世界の都市",
+    "global": "全球平均"
   },
   "tableNote": {
-    "general": "Trends are in °C per decade. Select a place to draw its chart.",
-    "expert": "Trends in °C per decade over the common months. Select a location to plot the pair."
+    "general": "トレンドの単位は、10年あたりの°Cです。場所を選ぶと、そのグラフを描きます。",
+    "expert": "共通の月でのトレンド。単位は°C／10年。地点を選ぶと、その組をプロットします。"
   },
   "table": {
-    "location": "Location",
-    "model": "Model product",
-    "obs": "Observation source",
-    "months": "Months",
+    "location": "地点",
+    "model": "モデル製品",
+    "obs": "観測の出典",
+    "months": "月⁠数",
     "r": "r",
-    "modelTrend": "Model trend",
-    "obsTrend": "Obs. trend",
-    "difference": "Difference",
-    "largestStep": "Largest step",
-    "knownIssues": "Known issues"
+    "modelTrend": "モデルの ト⁠レ⁠ン⁠ド",
+    "obsTrend": "観測の ト⁠レ⁠ン⁠ド",
+    "difference": "差",
+    "largestStep": "最大段差",
+    "knownIssues": "既知の問題"
   },
   "modelPlace": {
-    "containingCell": "grid cell containing the station",
-    "nearestCell": "nearest grid cell with values",
-    "cellDistance": "{{where}}, centre {{km}} km away",
-    "pointSeries": "point series at {{place}}",
-    "pointSeriesDistance": "point series at {{place}}, {{km}} km away",
-    "sameLocation": "series at the same location"
+    "containingCell": "観測所を含む格子セル",
+    "nearestCell": "値のある最も近い格子セル",
+    "cellDistance": "{{where}}、中心まで{{km}} km",
+    "pointSeries": "{{place}}の点系列",
+    "pointSeriesDistance": "{{place}}の点系列、{{km}} km離れている",
+    "sameLocation": "同じ地点の系列"
   },
   "chart": {
-    "aria": "Anomalies of {{model}} and {{obs}} at {{place}}, and their difference",
-    "empty": "No series to plot for this pair.",
-    "keyModel": "Model anomaly",
-    "keyObs": "Observation anomaly",
-    "keyDifference": "Difference (model − observation)",
-    "keyBreak": "Known step month ({{months}})",
-    "keyStep": "Largest step of the difference ({{month}})",
-    "monthly": "Monthly anomalies, °C.",
-    "annual": "Calendar-year means of the monthly anomalies, °C (this group has no monthly values in the file).",
+    "aria": "{{place}}の{{model}}と{{obs}}の偏差、およびその差",
+    "empty": "この組には、描画する系列がありません。",
+    "keyModel": "モデルの偏差",
+    "keyObs": "観測の偏差",
+    "keyDifference": "差（モデル − 観測）",
+    "keyBreak": "既知の段差の月（{{months}}）",
+    "keyStep": "差の最大の段差（{{month}}）",
+    "monthly": "月別偏差、°C。",
+    "annual": "月別偏差の暦年平均、°C（このグループは、ファイルに月別の値がありません）。",
     "baseline": {
-      "general": "Zero is each line's own usual value for that calendar month.",
-      "expert": "Each series is relative to its own mean of the same calendar month over the common months."
+      "general": "0は、各線の、その暦月のふだんの値です。",
+      "expert": "各系列は、共通の月における、同じ暦月の自身の平均が基準です。"
     }
   },
   "stats": {
-    "commonMonths": "Common months",
-    "commonMonthsValue": "{{count}} ({{first}} to {{last}})",
-    "modelTrend": "Model trend",
-    "obsTrend": "Observation trend",
-    "differenceTrend": "Trend of the difference",
-    "trendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}})",
-    "trendValuePlain": "about {{slope}} °C per decade",
-    "differenceTrendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}}; {{p}})",
+    "commonMonths": "共通の月",
+    "commonMonthsValue": "{{count}}（{{first}}〜{{last}}）",
+    "modelTrend": "モデルのトレンド",
+    "obsTrend": "観測のトレンド",
+    "differenceTrend": "差のトレンド",
+    "trendValue": "10年あたり{{slope}} °C（95%信頼区間 {{low}}〜{{high}}）",
+    "trendValuePlain": "10年あたり約{{slope}} °C",
+    "differenceTrendValue": "10年あたり{{slope}} °C（95%信頼区間 {{low}}〜{{high}}；{{p}}）",
     "pBelow": "p < {{alpha}}",
     "pAtLeast": "p ≥ {{alpha}}",
-    "difference": "Difference",
-    "differenceValue": "standard deviation {{sd}} °C, RMSE {{rmse}} °C",
-    "largestStep": "Largest step",
-    "largestStepValue": "{{step}} °C at {{month}} (mean of the 6 months from that month minus the 6 months before)",
-    "gapChanging": "The gap between the two changes by about {{slope}} °C per decade, and that change holds up in the statistical test.",
-    "gapUnclear": "This record shows no clear change in the gap between the two. That is not the same as no change.",
-    "tooFew": "Too few common months ({{count}}) for statistics."
+    "difference": "差",
+    "differenceValue": "標準偏差 {{sd}} °C、RMSE {{rmse}} °C",
+    "largestStep": "最大の段差",
+    "largestStepValue": "{{month}}で{{step}} °C（その月からの6か月の平均から、その前の6か月の平均を引いたもの）",
+    "gapChanging": "2つのずれは、10年あたり約{{slope}} °Cずつ変化していて、この変化は統計的な検定でも裏づけられています。",
+    "gapUnclear": "この記録の範囲では、2つのずれに、はっきりした変化は読み取れません。変化がないという意味ではありません。",
+    "tooFew": "共通の月（{{count}}か月）が少なすぎて、統計量を出せません。"
   },
-  "notPaired": "Not paired: {{list}}.",
+  "notPaired": "組にならなかったもの：{{list}}。",
   "caveat": {
-    "model": "model",
-    "observation": "observation",
-    "both": "model and observation",
-    "paired": "paired",
-    "one": "Caution: the {{side}} series has a known issue.",
-    "many": "Caution: the {{side}} series has {{count}} known issues."
+    "model": "モデル",
+    "observation": "観測",
+    "both": "モデルと観測",
+    "paired": "組",
+    "one": "注意：{{side}}の系列に、既知の問題があります。",
+    "many": "注意：{{side}}の系列に、既知の問題が{{count}}件あります。"
   }
 }
