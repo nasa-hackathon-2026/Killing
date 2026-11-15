@@ -10,6 +10,7 @@ import { UnitText } from "../snapshot/UnitText";
 import {
   displayPlaceName,
   groupedPlaces,
+  placeGroupLabel,
   type Place,
 } from "../snapshot/places";
 import { paddedExtent } from "../timeline/chartGeometry";
@@ -100,7 +101,9 @@ export function WhereTab({
       </div>
       {groupedPlaces(places).map((group) => (
         <div key={group.id}>
-          <h5 className="investigation-place-group">{group.label}</h5>
+          <h5 className="investigation-place-group">
+            {placeGroupLabel(group.id)}
+          </h5>
           <ul className="investigation-cells">
             {group.places.map((place) => {
               const cell = cells.find((item) => item.place.id === place.id);

@@ -1,6 +1,7 @@
 {
   "groups": {
     "taiwan": "Taiwan",
+    "taiwan_region": "Regionen Taiwans (Gebietsmittel)",
     "world_city": "Weltstädte",
     "global": "Global"
   },
@@ -12,6 +13,11 @@
     "yushan": "Yushan",
     "taichung_station": "Station Taichung",
     "taipei_station": "Station Taipeh",
+    "taiwan": "Taiwan (gesamte Insel, Gebietsmittel)",
+    "north": "Nordtaiwan (Gebietsmittel)",
+    "central": "Mitteltaiwan (Gebietsmittel)",
+    "south": "Südtaiwan (Gebietsmittel)",
+    "east": "Osttaiwan (Gebietsmittel)",
     "global": "Globaler Mittelwert",
     "tokyo": "Tokio",
     "delhi": "Delhi",
@@ -30,6 +36,10 @@
     "globalMean": {
       "general": "Das ist der Durchschnitt über den ganzen Globus, nicht der Wert an einem Ort.",
       "expert": "Mittelwert über das gesamte globale Gitter, gewichtet mit cos(Breite), Land und Ozean zusammen, wo das Produkt beides abdeckt. Kein Punktwert."
+    },
+    "region": {
+      "general": "Das ist der Durchschnitt aller Gitterzellen in diesem Datengebiet ({{bbox}}), nicht der Wert an einem Ort. Jedes Datenprodukt hat eine eigene Zellgröße, daher kann ein kleines Gebiet nur eine oder zwei Zellen enthalten.",
+      "expert": "Gebietsmittel über das Datengebiet {{bbox}} (ein Begrenzungsrechteck, keine Grenze), vom Mittelungsdienst des Datenanbieters berechnet. Die Produkte haben unterschiedliche Auflösungen; ein kleines Gebiet kann nur eine oder zwei Zellen enthalten."
     }
   },
   "placeMonth": "{{place}}, {{month}}"
