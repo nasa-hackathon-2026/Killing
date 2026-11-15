@@ -22,6 +22,8 @@ import {
   startingLayers,
 } from "./guide/firstVisit";
 import { GuideCard } from "./guide/GuideCard";
+import { usualIntensity } from "./forms/calm/calmMath";
+import { useParticleStyle } from "./forms/calm/particleStyle";
 import { particleNote } from "./guide/particleNote";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
@@ -240,6 +242,7 @@ function AppView({
   const activeMonth = timeline.month;
   const intensities: Record<string, number> = {};
   const available: Record<string, boolean> = {};
+  const usual: Record<string, number | null> = {};
   const readings: Record<string, string> = {};
   const kelvins: Record<string, number | null> = {};
   for (const layer of layerRegistry) {
@@ -260,6 +263,7 @@ function AppView({
       );
       intensities[layer.id] = intensityAt(series.points, activeMonth);
       available[layer.id] = valueAt(series.points, activeMonth) !== null;
+      usual[layer.id] = usualIntensity(series.points, activeMonth);
       kelvins[layer.id] =
         series.unit === "K" ? valueAt(series.points, activeMonth) : null;
     }
@@ -298,7 +302,9 @@ function AppView({
       : undefined;
 
   // What the particles are, so they are not read as a global map.
+  const particleStyle = useParticleStyle();
   const particleLine = particleNote({
+    style: location ? particleStyle : "lively",
     layerNames: layerRegistry
       .filter((layer) =>
         controls.some((item) => item.id === layer.id && item.visible),
@@ -318,6 +324,7 @@ function AppView({
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
+        usual={usual}
         trendMap={trendMap.status === "ready" ? trendMap.map : null}
         trendMapOpacity={trendMapOpacity}
         places={places.filter(hasCoordinates)}

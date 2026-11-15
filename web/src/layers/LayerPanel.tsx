@@ -4,6 +4,7 @@ import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
+import { ParticleStyleToggle } from "../forms/calm/ParticleStyleToggle";
 import type { TrendSignal } from "../forms/encoding";
 import { groupedPlaces, type Place } from "../snapshot/places";
 import type { LayerDefinition } from "./registry";
@@ -102,6 +103,7 @@ export function LayerPanel({
   return (
     <aside className="layers" aria-label="Layers">
       {head}
+      <ParticleStyleToggle />
       {places && places.length > 0 && onLocation ? (
         <label className="layers-place">
           <span>Values at</span>

@@ -205,6 +205,15 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **近看的文字標籤**：`web/src/closeup/labels.ts` 的 `labelingPainter` 包住 `Painter`，script 不用改：每畫一個分子就記一個化學式標籤、光子記 `hν`，同一種最多 `MAX_LABELS_PER_KIND` 個、全部最多 `MAX_CLOSEUP_LABELS` 個。標籤是疊在 canvas 上的 HTML（`CloseUpPanel` 的 `.closeup-labels`），每一幀由 `CloseUpScene` 投影定位，「減少動態效果」時照樣顯示。沒有分子的檢視（土壤水）沒有標籤。
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
 
+### 粒子樣式 Calm（#133）
+地球主畫面的粒子有兩種樣式：原本的 Lively（粒子散佈整顆地球）與 Calm（每個開啟的圖層在選定地點上方聚成一團）。程式都在 `web/src/forms/calm/`；分層視圖、近看檢視、Form lab、資料夥伴不受影響。
+
+- **預設值只有一處**：`particleStyle.ts` 的 `DEFAULT_PARTICLE_STYLE`（目前 `lively`）。實際樣式依序取網址 `?particles=calm|lively`、`localStorage` 的 `estd-particle-style`、預設值（`resolveParticleStyle`，純函式）。各元件用 `useParticleStyle()` 讀（canvas 內外同一個值），切換鈕是 `ParticleStyleToggle.tsx`（`LayerPanel` 只掛一行）。
+- **數值對應是純函式**（`calmMath.ts`，有測試），用的是和 Lively 相同的正規化數值（`intensityAt`）：`calmUnits` 把 0–1 對到 1–`CALM_MAX_UNITS`（25）個單位（有資料的月份至少 `CALM_MIN_UNITS` 個，沒有資料是 0）；`calmSplit` 每 `CALM_GROUP_SIZE`（5）個合成一顆大的；`calmLayout` 決定每個單位的位置（先排大的、再排零散的，單位編號固定，所以 4 → 5 時是同樣五顆靠攏）；`calmRadius` 是色盤半徑（面積正比於單位數，`CALM_PACKING`）；`usualIntensity` 是「同一個日曆月整段紀錄的平均」的正規化數值（重用 `companionData.ts` 的 `monthlyAnomaly`，沒有值的月份也算得出來），`calmUsualRadius` 把它畫成白色參考圈，和色盤同一個比例尺；`approach` 是月份之間的平滑過渡；`calmGrid`／`calmSlot` 決定多個圖層怎麼排（依 `formMapping.ts` 高度帶由低到高、由下往上排；寬螢幕往左長，避開右側面板）；`calmDriftSpeed` 把形態的速度對應壓到很窄的慢速範圍。要調單位數、進位、大小、排列就改這個檔的常數。
+- **畫法**在 `CalmClusters.tsx`：整組顯示永遠面向鏡頭、大小隨鏡頭距離調整（`calmViewScale`），浮在地點上方並有一條細線連到地點標記；單位沿用該形態的遠看形狀與 `formColor`（`calmGeometry.ts`）；大顆是深色圓底上的五顆；無資料的月份只剩虛線圈；顯著且可靠的趨勢（`trendDirection` 不為 0）在團塊右側畫一個朝上或朝下的三角。`prefers-reduced-motion` 時不漂浮，月份改變時直接到位。
+- **掛載點**：`EarthCanvas.tsx` 的 `Scene` 在樣式為 Calm 且選定地點有座標時畫 `<CalmLayers />`，並把 `calm` 傳給 `GlassParticleLayer`（玻璃殼、粒子、趨勢箭頭淡出）。全球平均沒有座標，維持 Lively。`App.tsx` 多算一個 `usual`（每層的 `usualIntensity`）傳進去。
+- **文字集中在 `calmText.ts`**（切換鈕、圖例、粒子說明那一行在 Calm 下的說法；`guide/particleNote.ts` 依 `style` 選用），元件不寫死字串。
+
 ## 前端的首次使用引導與面板停靠（#105）
 主畫面的開始卡片、範例與 HUD。程式在 `web/src/guide/`（CSS 類別一律 `guide-` 開頭），`App.tsx` 只掛一個 `<GuideCard />` 與一段 HUD。
 
