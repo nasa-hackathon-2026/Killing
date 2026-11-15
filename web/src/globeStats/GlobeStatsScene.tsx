@@ -1,11 +1,16 @@
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Quaternion, Vector3 } from "three";
 import { latLonToVector3 } from "../geo/latLon";
 import { greatCircleArcPoints } from "./greatCircleArc";
 import { css, directionColor, paletteFor, slopeColor } from "./globePalette";
-import { robustMax } from "./trendGlyphs";
+import {
+  minSeparationDeg,
+  OUTLINE_STROKE_PX,
+  robustMax,
+  spreadMarks,
+} from "./trendGlyphs";
 import type { GlobeStatsState } from "./useGlobeStats";
 import "./globeStats.css";
 
@@ -48,6 +53,9 @@ function FrontFacingButton({
         className={className}
         aria-label={label}
         title={label}
+        // Out of the Tab order: "Show as table" lists the same places, and
+        // the keyboard reaches the HUD first.
+        tabIndex={-1}
         style={style}
         onClick={(event) => {
           event.stopPropagation();
@@ -60,9 +68,28 @@ function FrontFacingButton({
   );
 }
 
+// The minimum separation between marks for the current camera distance,
+// rounded so the marks are recomputed only when it changes noticeably.
+function useMinSeparation(): number {
+  const [minDeg, setMinDeg] = useState(() => minSeparationDeg(3.2));
+  useFrame(({ camera }) => {
+    const next = Math.round(minSeparationDeg(camera.position.length()) * 4) / 4;
+    if (next !== minDeg) setMinDeg(next);
+  });
+  return minDeg;
+}
+
 function TrendMarks({ state }: { state: GlobeStatsState }) {
   const palette = paletteFor(state.selectedVariableId ?? "");
-  return state.trendGlyphs.map((glyph) => {
+  const minDeg = useMinSeparation();
+  // Far away, places close together (the Taiwan points) share one mark:
+  // the selected place's. The others appear when the camera comes closer.
+  const shown = spreadMarks(
+    state.trendGlyphs,
+    state.selectedLocationId,
+    minDeg,
+  );
+  return shown.map((glyph) => {
     const color = css(directionColor(palette, glyph.direction));
     const position = latLonToVector3(glyph.lat, glyph.lon, 1.025);
     return (
@@ -106,7 +133,10 @@ function TrendMarks({ state }: { state: GlobeStatsState }) {
               transform={glyph.direction < 0 ? "rotate(180 12 12)" : undefined}
               fill={glyph.kind === "solid" ? "currentColor" : "none"}
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth={glyph.kind === "solid" ? 2 : OUTLINE_STROKE_PX}
+              vectorEffect={
+                glyph.kind === "solid" ? undefined : "non-scaling-stroke"
+              }
               strokeLinejoin="round"
             />
           </svg>

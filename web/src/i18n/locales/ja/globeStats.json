@@ -23,6 +23,8 @@
   "trendUnreliable": "斜線入りの三角、破線で薄い：トレンドに影響するデータ上の問題が記録されており、気候シグナルとしては信頼できない",
   "trendNoData": "灰色の点：この場所には結果なし",
   "trendLengthScale": "長さは、この変数について表示している変化の第90パーセンタイルに合わせています。",
+  "trendKeyShort": "Arrows: change per decade · filled = significant · outline = not significant · crossed = not reliable",
+  "pausedForTrendMap": "Per-place trend marks are hidden while the global trend map is on, so the two trend pictures do not mix.",
   "gapIntro": "各円盤は、1つの場所でのモデルのトレンドと、観測所のトレンドを比べています。",
   "gapHalves": "左半分：モデルのトレンド。右半分：観測所のトレンド。色の尺度は同じです。",
   "gapRing": "外側のリング：太いほど、月別偏差の一致度が低い（1 − 相関）。",

@@ -46,6 +46,19 @@ export function nextPlayIndex(index: number, count: number): number | null {
   return index + 1;
 }
 
+// Pressing play this close to the end (in months) starts from the first
+// month instead: the default month is near the end of the record, and a few
+// months of playback looks like the button did not work.
+export const PLAY_FROM_START_WITHIN = 24;
+
+// Where pressing play starts: the first month when the current month is one
+// of the last PLAY_FROM_START_WITHIN months, otherwise where it is.
+export function playStartIndex(index: number, count: number): number {
+  if (count <= 0) return -1;
+  if (index < 0 || index >= count - PLAY_FROM_START_WITHIN) return 0;
+  return index;
+}
+
 // "?month=2015-07" (or a full "2015-07-01") as the snapshot's month string;
 // null when it is not a month.
 export function parseMonthParam(text: string | null): string | null {

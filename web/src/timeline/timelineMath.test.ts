@@ -7,6 +7,8 @@ import {
   monthLabel,
   monthNumber,
   nextPlayIndex,
+  PLAY_FROM_START_WITHIN,
+  playStartIndex,
   parseMonthParam,
   playIntervalMs,
   resolveMonth,
@@ -64,6 +66,29 @@ describe("clampIndex", () => {
 
   it("is -1 when there are no months", () => {
     expect(clampIndex(0, 0)).toBe(-1);
+  });
+});
+
+describe("playStartIndex", () => {
+  it("starts from the first month within the last 24 months", () => {
+    // 2001-01 .. 2026-11 is 311 months; 2025-06 is index 293.
+    expect(playStartIndex(293, 311)).toBe(0);
+    expect(playStartIndex(310, 311)).toBe(0);
+    expect(playStartIndex(311 - PLAY_FROM_START_WITHIN, 311)).toBe(0);
+  });
+
+  it("keeps an earlier month", () => {
+    expect(playStartIndex(311 - PLAY_FROM_START_WITHIN - 1, 311)).toBe(
+      311 - PLAY_FROM_START_WITHIN - 1,
+    );
+    expect(playStartIndex(0, 311)).toBe(0);
+    expect(playStartIndex(100, 311)).toBe(100);
+  });
+
+  it("handles no month and short records", () => {
+    expect(playStartIndex(-1, 311)).toBe(0);
+    expect(playStartIndex(0, 0)).toBe(-1);
+    expect(playStartIndex(5, 10)).toBe(0);
   });
 });
 
