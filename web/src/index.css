@@ -1617,8 +1617,10 @@ body,
   cursor: pointer;
 }
 
-@media (max-width: 1500px) {
-  .hud-main .hud-fly {
+/* "Fly near me" stays in the row on laptops as an icon; its words need a
+   wide window. */
+@media (max-width: 1599px) {
+  .hud-main .hud-fly .hud-text {
     display: none;
   }
 }

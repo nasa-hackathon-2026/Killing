@@ -6,7 +6,8 @@
   "needsPlace": "The layer view needs a single place",
   "trendMap": "Global trend map",
   "trendMapOff": "Trend map: off",
-  "flyTaiwan": "Fly to Taiwan",
+  "flyNear": "Fly near me",
+  "flyNearTitle": "Uses this device's location to pick the nearest place; flies to Taiwan when the location is not available",
   "search": "Search",
   "searchAria": "Search places and layers",
   "searchEmpty": "No matches",
@@ -26,7 +27,7 @@
   },
   "credit": {
     "surface": "Surface: Blue Marble,",
-    "detail": "Closer Taiwan view: Blue Marble shaded relief,",
+    "detail": "Closer view: Blue Marble shaded relief,",
     "snapshot": "Snapshot {{date}}.",
     "insignia": "NASA insignia is not used."
   }

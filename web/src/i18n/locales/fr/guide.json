@@ -78,7 +78,7 @@
     "welcome": "Salut, je suis Pluie, l’un des compagnons de données. Ce site montre jusqu’à 25 ans de données terrestres de la NASA en un lieu, et si chaque mesure a changé.",
     "place": "En ce moment, tu regardes {{place}} en {{month}}. Tu peux choisir un autre lieu dans le panneau Couches et un autre mois sur la chronologie.",
     "particles": "Les particules autour du globe montrent un chiffre par couche pour ce lieu et ce mois. Plus de particules, ou plus rapides, signifient une valeur plus élevée. Ce n’est pas une carte.",
-    "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
+    "particlesCalm": "L’amas au-dessus de ce lieu montre un nombre par couche pour ce mois. Plus d’unités signifie une valeur plus haute, et l’anneau fin est l’habituel pour ce mois. Ce n’est pas une carte.",
     "enter": "Chaque mesure appartient à une hauteur, de la couche d’ozone jusqu’au sol. Visitons-les de haut en bas.",
     "trendMap": "C’était un seul lieu. Pour voir où sur Terre une mesure change, ouvre Carte des tendances en haut.",
     "research": "Pour les statistiques complètes, comme les intervalles de confiance et les noms des tests, passe en mode Chercheur en haut. À toi de jouer maintenant."

@@ -6,7 +6,8 @@
   "needsPlace": "分層視圖需要選一個地點",
   "trendMap": "全球趨勢地圖",
   "trendMapOff": "趨勢地圖：關",
-  "flyTaiwan": "飛到臺灣",
+  "flyNear": "飛到我附近",
+  "flyNearTitle": "用這台裝置的位置選最近的地點；無法定位時飛到臺灣",
   "search": "搜尋",
   "searchAria": "搜尋地點與圖層",
   "searchEmpty": "沒有符合的項目",
@@ -26,7 +27,7 @@
   },
   "credit": {
     "surface": "地表影像：Blue Marble，",
-    "detail": "臺灣近景：Blue Marble 地形暈渲，",
+    "detail": "近景：Blue Marble 地形暈渲，",
     "snapshot": "資料快照 {{date}}。",
     "insignia": "未使用 NASA 徽章。"
   }

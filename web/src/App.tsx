@@ -64,6 +64,7 @@ import {
   displayPlaceName,
   hasCoordinates,
   isRegion,
+  nearestPlace,
   placeNote,
   resolvePlaceId,
   type Place,
@@ -382,6 +383,37 @@ function AppView({
   const openingFlight = useOpeningFlight(place, requestedStrata());
   const flyTarget = askedFlight ?? (startDone ? null : openingFlight);
   const flying = flyTarget !== null;
+  // "Fly near me": the device's position (asked only on this click, never
+  // stored or sent anywhere) picks the closest Taiwan point or world city.
+  // Without a position (no support, refused, timed out) it flies to Taiwan
+  // as before.
+  const [locating, setLocating] = useState(false);
+  const flyToTaiwan = () =>
+    setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE });
+  const flyNearMe = () => {
+    if (!("geolocation" in navigator)) {
+      flyToTaiwan();
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false);
+        const nearest = nearestPlace(
+          position.coords.latitude,
+          position.coords.longitude,
+          places,
+        );
+        if (nearest) selectPlace(nearest.id, true);
+        else flyToTaiwan();
+      },
+      () => {
+        setLocating(false);
+        flyToTaiwan();
+      },
+      { timeout: 8000, maximumAge: 10 * 60 * 1000 },
+    );
+  };
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
   const months = timeline.months;
@@ -692,15 +724,13 @@ function AppView({
         <button
           type="button"
           className="hud-fly"
-          onClick={() =>
-            setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE })
-          }
-          disabled={flying || strata.phase !== "off"}
-          title={t("hud.flyTaiwan")}
-          aria-label={t("hud.flyTaiwan")}
+          title={t("hud.flyNearTitle")}
+          aria-label={t("hud.flyNear")}
+          onClick={flyNearMe}
+          disabled={flying || locating || strata.phase !== "off"}
         >
           <HudIcon name="fly" />
-          <span className="hud-text">{t("hud.flyTaiwan")}</span>
+          <span className="hud-text">{t("hud.flyNear")}</span>
         </button>
         <div className="hud-choices">{roleControls}</div>
         {/* Secondary pages and the renderer diagnostics. */}
@@ -817,6 +847,8 @@ function AppView({
         locationName={placeName}
         aggregation={aggregation}
         trends={trendsFile}
+        places={places}
+        onSelectLocation={(id) => selectPlace(id, true)}
       />
       <CompanionDock
         compact={strata.shown}
@@ -882,7 +914,7 @@ function AppView({
       ) : null}
       <p className="credit">
         {t("hud.credit.surface")}{" "}
-        <a href="https://visibleearth.nasa.gov/images/57730/blue-marble-land-surface-ocean-color-sea-ice-and-clouds">
+        <a href="https://visibleearth.nasa.gov/images/57730/the-blue-marble-land-surface-ocean-color-and-sea-ice">
           NASA Visible Earth
         </a>
         . {t("hud.credit.detail")}{" "}

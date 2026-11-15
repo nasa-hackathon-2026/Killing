@@ -6,7 +6,8 @@
   "needsPlace": "La vue en couches a besoin d’un seul lieu",
   "trendMap": "Carte des tendances",
   "trendMapOff": "Désactivée",
-  "flyTaiwan": "Aller à Taïwan",
+  "flyNear": "Aller près de moi",
+  "flyNearTitle": "Choisit le lieu le plus proche d’après la position de cet appareil ; sans position, va à Taïwan",
   "search": "Rechercher",
   "searchAria": "Rechercher des lieux et des couches",
   "searchEmpty": "Aucun résultat",
@@ -26,7 +27,7 @@
   },
   "credit": {
     "surface": "Surface : Blue Marble,",
-    "detail": "Vue rapprochée de Taïwan : relief ombré Blue Marble,",
+    "detail": "Vue rapprochée : relief ombré Blue Marble,",
     "snapshot": "Instantané {{date}}.",
     "insignia": "L’insigne de la NASA n’est pas utilisé."
   }

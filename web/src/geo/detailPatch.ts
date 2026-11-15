@@ -1,4 +1,4 @@
-import { TAIWAN_DETAIL } from "./detailCoverage";
+import { TAIWAN_DETAIL, type LonLatBounds } from "./detailCoverage";
 import { latLonToVector3 } from "./latLon";
 
 export type SurfacePatch = {
@@ -7,12 +7,13 @@ export type SurfacePatch = {
   indices: Uint16Array;
 };
 
-export function taiwanPatch(
+export function surfacePatch(
+  bounds: LonLatBounds,
   radius: number,
   rows = 64,
   columns = 64,
 ): SurfacePatch {
-  const { south, north, west, east } = TAIWAN_DETAIL;
+  const { south, north, west, east } = bounds;
   const positions = new Float32Array((rows + 1) * (columns + 1) * 3);
   const uvs = new Float32Array((rows + 1) * (columns + 1) * 2);
   const indices = new Uint16Array(rows * columns * 6);
@@ -49,4 +50,12 @@ export function taiwanPatch(
     }
   }
   return { positions, uvs, indices };
+}
+
+export function taiwanPatch(
+  radius: number,
+  rows = 64,
+  columns = 64,
+): SurfacePatch {
+  return surfacePatch(TAIWAN_DETAIL, radius, rows, columns);
 }

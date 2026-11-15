@@ -75,11 +75,11 @@ const SHAPES: Record<HudIconName, ReactElement> = {
       <path d="M3.2 8h.01M8 8h.01M12.8 8h.01" strokeWidth="2.4" />
     </>
   ),
-  // A map pin.
+  // A locate crosshair ("near me").
   fly: (
     <>
-      <path d="M8 14.3C5.2 11.3 3.6 9 3.6 6.6a4.4 4.4 0 0 1 8.8 0c0 2.4-1.6 4.7-4.4 7.7z" />
-      <circle cx="8" cy="6.6" r="1.6" />
+      <circle cx="8" cy="8" r="3.2" />
+      <path d="M8 1.6v2.4M8 12v2.4M1.6 8H4M12 8h2.4" />
     </>
   ),
 };

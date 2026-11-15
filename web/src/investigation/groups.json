@@ -1,0 +1,26 @@
+{
+  "note": "Question groups of the investigation panel. Every layer variable belongs to exactly one group (checked by groups.test.ts). Labels are in the investigation namespace (groups.<id>).",
+  "groups": [
+    {
+      "id": "water",
+      "variables": [
+        "imerg_precip",
+        "gldas_soilmoist",
+        "gldas_evap",
+        "airs_h2ovap"
+      ]
+    },
+    {
+      "id": "heat",
+      "variables": ["merra2_t2m", "gldas_tair", "airs_tsurf", "modis_lst"]
+    },
+    {
+      "id": "air",
+      "variables": ["omi_no2", "omi_o3", "omi_aerosol"]
+    },
+    {
+      "id": "other",
+      "variables": ["modis_ndvi"]
+    }
+  ]
+}

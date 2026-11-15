@@ -25,3 +25,16 @@ export function latLonToVector3(
     z: radius * cosLat * Math.sin(phi),
   };
 }
+
+// Inverse of latLonToVector3. Longitude is in (−180, 180].
+export function vectorToLatLon(
+  x: number,
+  y: number,
+  z: number,
+): { lat: number; lon: number } {
+  const radius = Math.hypot(x, y, z);
+  const lat = Math.asin(y / radius) / DEG;
+  let lon = Math.atan2(z, -x) / DEG - 180;
+  if (lon <= -180) lon += 360;
+  return { lat, lon };
+}

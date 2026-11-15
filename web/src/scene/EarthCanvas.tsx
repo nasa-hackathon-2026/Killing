@@ -19,7 +19,7 @@ import { TrendMapOverlay } from "../trendmap/TrendMapOverlay";
 import { createSceneRenderer } from "./createSceneRenderer";
 import { DEFAULT_ORBIT_DISTANCE, orbitRotateSpeed } from "./orbitSpeed";
 import { Earth } from "./Earth";
-import { TaiwanDetail } from "./TaiwanDetail";
+import { DetailSurface } from "./TaiwanDetail";
 import { FlyCamera, type FlyTarget } from "./FlyCamera";
 import { Markers } from "./Markers";
 import { RegionFrame } from "./RegionFrame";
@@ -117,7 +117,7 @@ function Scene({
       <directionalLight position={[4, 2, 3]} intensity={1.1} />
       <Suspense fallback={null}>
         <Earth />
-        <TaiwanDetail />
+        <DetailSurface />
       </Suspense>
       {trendMap ? (
         <TrendMapOverlay map={trendMap} opacity={trendMapOpacity ?? 1} />
