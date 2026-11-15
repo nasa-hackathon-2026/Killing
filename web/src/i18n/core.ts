@@ -143,6 +143,14 @@ export function hasMessage(key: string): boolean {
   return lookup(key) !== undefined;
 }
 
+export function getMessageLocale(key: string): Locale {
+  const translated = dictionaries.get(locale)?.get(key);
+  const english = dictionaries.get(DEFAULT_LOCALE)?.get(key);
+  return translated !== undefined && translated !== english
+    ? locale
+    : DEFAULT_LOCALE;
+}
+
 export function interpolate(template: string, vars?: Vars): string {
   if (!vars) return template;
   return template.replace(/\{\{(\w+)\}\}/g, (whole, name: string) =>
@@ -218,11 +226,16 @@ export function formatCount(value: number): string {
 function dateFormat(
   key: string,
   options: Intl.DateTimeFormatOptions,
+  targetLocale: Locale = locale,
 ): Intl.DateTimeFormat {
-  let format = formatters.get(key) as Intl.DateTimeFormat | undefined;
+  const cacheKey = `${targetLocale}:${key}`;
+  let format = formatters.get(cacheKey) as Intl.DateTimeFormat | undefined;
   if (!format) {
-    format = new Intl.DateTimeFormat(locale, { ...options, timeZone: "UTC" });
-    formatters.set(key, format);
+    format = new Intl.DateTimeFormat(targetLocale, {
+      ...options,
+      timeZone: "UTC",
+    });
+    formatters.set(cacheKey, format);
   }
   return format;
 }
@@ -238,21 +251,29 @@ function monthDate(month: string): Date | null {
 export function monthName(
   month: string,
   width: "long" | "short" = "long",
+  targetLocale: Locale = locale,
 ): string {
   const date = monthDate(month);
   if (!date) return month.slice(5, 7);
-  return dateFormat(`month-${width}`, { month: width }).format(date);
+  return dateFormat(`month-${width}`, { month: width }, targetLocale).format(
+    date,
+  );
 }
 
 // "2024-06-01" -> "June 2024" (en), "2024年6月" (zh-TW, ja), "Juni 2024" (de).
 export function monthYear(
   month: string,
   width: "long" | "short" = "long",
+  targetLocale: Locale = locale,
 ): string {
   const date = monthDate(month);
   if (!date) return month.slice(0, 7);
-  return dateFormat(`month-year-${width}`, {
-    month: width,
-    year: "numeric",
-  }).format(date);
+  return dateFormat(
+    `month-year-${width}`,
+    {
+      month: width,
+      year: "numeric",
+    },
+    targetLocale,
+  ).format(date);
 }

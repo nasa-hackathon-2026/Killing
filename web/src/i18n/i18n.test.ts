@@ -3,6 +3,10 @@ import {
   detectLocale,
   detectRole,
   getRole,
+  getMessageLocale,
+  monthName,
+  monthYear,
+  registerMessages,
   setLocale,
   setRole,
   t,
@@ -41,5 +45,26 @@ describe("reader choices", () => {
   it("falls back to English when a translated key is unavailable", () => {
     setLocale("de");
     expect(t("common.role.researcher.name")).toBe("Researcher");
+  });
+
+  it("uses the active language only when the companion text is translated", () => {
+    registerMessages("ja", {
+      companions: { say: { noMonth: "No month is selected yet." } },
+    });
+    registerMessages("zh-TW", {
+      companions: { say: { noMonth: "還沒有選月份。" } },
+    });
+
+    setLocale("ja");
+    expect(getMessageLocale("companions.say.noMonth")).toBe("en");
+    setLocale("zh-TW");
+    expect(getMessageLocale("companions.say.noMonth")).toBe("zh-TW");
+  });
+
+  it("formats a spoken month in its text language without changing the UI locale", () => {
+    setLocale("ja");
+    expect(monthYear("2015-07-01", "long", "en")).toBe("July 2015");
+    expect(monthName("2015-07-01", "long", "en")).toBe("July");
+    expect(monthYear("2015-07-01")).toBe("2015年7月");
   });
 });

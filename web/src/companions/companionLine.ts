@@ -23,14 +23,21 @@ import {
   monthName,
   monthYear,
   t,
+  type Locale,
   type Voice,
 } from "../i18n";
 import { formatMeasurement } from "../snapshot/reading";
 
 // "2024-06-01" -> { name: "June", label: "June 2024" } in the active
 // language.
-export function monthLabel(month: string): { name: string; label: string } {
-  return { name: monthName(month), label: monthYear(month) };
+export function monthLabel(
+  month: string,
+  formatLocale: Locale = getLocale(),
+): { name: string; label: string } {
+  return {
+    name: monthName(month, "long", formatLocale),
+    label: monthYear(month, "long", formatLocale),
+  };
 }
 
 export type CompanionLineInput = {
@@ -39,6 +46,7 @@ export type CompanionLineInput = {
   place: string;
   // "YYYY-MM" or "YYYY-MM-DD"; null when no month is selected.
   month: string | null;
+  formatLocale?: Locale;
   // Raw value in `unit`; null for a month without data.
   value: number | null;
   unit: string;
@@ -76,7 +84,7 @@ export function companionLine(input: CompanionLineInput): string {
 function companionLineParts(input: CompanionLineInput): string[] {
   const who = { name: input.variableName, place: input.place };
   if (!input.month) return [t("companions.line.noMonth", who)];
-  const { name, label } = monthLabel(input.month);
+  const { name, label } = monthLabel(input.month, input.formatLocale);
   const parts: string[] = [];
   if (input.value === null) {
     parts.push(t("companions.line.noData", { ...who, month: label }));
@@ -166,7 +174,7 @@ export function companionSentences(
   if (!input.month) {
     now = t("companions.say.noMonth");
   } else {
-    const { name, label } = monthLabel(input.month);
+    const { name, label } = monthLabel(input.month, input.formatLocale);
     if (input.value === null) {
       now = t("companions.say.noData", { place: input.place, month: label });
     } else {

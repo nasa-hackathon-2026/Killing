@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { TrendEntry } from "../analysis/trends";
 import { allTrendCaveats } from "../analysis/trendCaveats";
+import { setLocale } from "../i18n";
 import {
   companionLine,
   companionSpeech,
@@ -28,6 +29,10 @@ const trend: TrendEntry = {
   },
   sen: { slope_per_decade: 0.4, ci_per_decade: [0.2, 0.6] },
 };
+
+afterEach(() => {
+  setLocale("en");
+});
 
 describe("companionLine", () => {
   it("keeps missing-month, trend uncertainty and data kind in separate display items", () => {
@@ -75,6 +80,27 @@ describe("companionLine", () => {
         "significant after autocorrelation and FDR correction. " +
         "Data kind: model.",
     );
+  });
+
+  it("formats spoken months in the text language without changing the displayed month", () => {
+    setLocale("ja");
+    const input = {
+      companionName: "Rain",
+      variableName: "Precipitation",
+      place: "Taipei",
+      month: "2015-07-01",
+      value: 0.23,
+      unit: "mm/hr",
+    };
+
+    expect(companionSpeechParts(input, "general").join(" ")).toContain(
+      "2015年7月",
+    );
+    expect(
+      companionSpeechParts({ ...input, formatLocale: "en" }, "general").join(
+        " ",
+      ),
+    ).toContain("July 2015");
   });
 
   it("says the number first, then that an unreliable trend is not a climate signal", () => {

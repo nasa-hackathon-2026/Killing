@@ -1,12 +1,13 @@
 // The companion panel of the main view: one companion per layer that is
 // switched on, highest form on top. Clicking one shows its sentence of data
 // facts (companionLine.ts); the browser reads it aloud only after the user
-// turns the voice on. "Gather" shows all twelve in one composition, and
-// ?companions=gallery lays them out for a screenshot.
+// turns the voice on, using the language of the displayed companion text.
+// "Gather" shows all twelve in one
+// composition, and ?companions=gallery lays them out for a screenshot.
 import { useEffect, useRef, useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendKey, type TrendsFile } from "../analysis/trends";
-import { rememberFlag, storedFlag, useI18n } from "../i18n";
+import { getMessageLocale, rememberFlag, storedFlag, useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
 import { UnitText } from "../snapshot/UnitText";
@@ -27,7 +28,9 @@ import {
 import { gatherLayout } from "./gather";
 import { nextNarration, type NarrationState } from "./narration";
 import { interactionsFor } from "./interactions";
-import { speak, speechAvailable, stopSpeaking } from "./speech";
+import { shouldSpeakLine } from "./speechPolicy";
+import { voiceForLocale } from "./speechVoice";
+import { primeSpeech, speak, speechAvailable, stopSpeaking } from "./speech";
 import { useCurrentMonth } from "./useCurrentMonth";
 
 export type CompanionDockProps = {
@@ -142,7 +145,7 @@ export function CompanionDock({
   compact = false,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
-  const { t, voice, settings } = useI18n();
+  const { t, voice, settings, locale } = useI18n();
   const [mode] = useState(requestedMode);
   const [narrateChoice, setNarrateChoice] = useState(() =>
     storedFlag(NARRATION_STORAGE_KEY),
@@ -158,9 +161,17 @@ export function CompanionDock({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [caveatOpen, setCaveatOpen] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
+  const [installedVoices, setInstalledVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
   const [gathered, setGathered] = useState(mode === "gather");
   const [gallery, setGallery] = useState(mode === "gallery");
   const canSpeak = speechAvailable();
+  const speechLocale = getMessageLocale(
+    voice === "expert" ? "companions.line.noMonth" : "companions.say.noMonth",
+  );
+  const selectedVoice = voiceForLocale(installedVoices, speechLocale);
+  const voiceAvailable = selectedVoice !== null;
 
   const readings: Record<string, CompanionReading> = {};
   const lines: Record<string, string> = {};
@@ -176,27 +187,28 @@ export function CompanionDock({
       trends?.known_issues,
     );
     readings[spec.id] = reading;
-    displayParts[spec.id] = companionSpeechParts(
-      {
-        companionName: companionName(spec),
-        definition: variableDefinition(spec.id, "general"),
-        variableName: companionVariable(spec),
-        place: locationName,
-        month,
-        value: reading.raw,
-        unit: reading.unit,
-        anomaly: reading.anomaly,
-        trend,
-        alpha: trends?.parameters.alpha,
-        caveatSummary: reading.caveat?.summary,
-        unreliableReason: reading.signal.unreliable
-          ? (reading.caveat?.reason ?? t("caveats.genericReason"))
-          : null,
-        dataKind: spec.dataKind,
-      },
+    const lineInput = {
+      companionName: companionName(spec),
+      definition: variableDefinition(spec.id, "general"),
+      variableName: companionVariable(spec),
+      place: locationName,
+      month,
+      value: reading.raw,
+      unit: reading.unit,
+      anomaly: reading.anomaly,
+      trend,
+      alpha: trends?.parameters.alpha,
+      caveatSummary: reading.caveat?.summary,
+      unreliableReason: reading.signal.unreliable
+        ? (reading.caveat?.reason ?? t("caveats.genericReason"))
+        : null,
+      dataKind: spec.dataKind,
+    };
+    displayParts[spec.id] = companionSpeechParts(lineInput, voice);
+    lines[spec.id] = companionSpeechParts(
+      { ...lineInput, formatLocale: speechLocale },
       voice,
-    );
-    lines[spec.id] = displayParts[spec.id].join(" ");
+    ).join(" ");
   }
 
   const shown = byAltitude(visibleIds);
@@ -206,7 +218,6 @@ export function CompanionDock({
         spec.id === selectedId &&
         (gathered || gallery || visibleIds.includes(spec.id)),
     ) ?? null;
-  const selectedLine = selected ? (lines[selected.id] ?? "") : "";
   const oneColumn = shown.length <= ONE_COLUMN_MAX;
   const interactions = oneColumn ? interactionsFor(shown) : [];
   const size = figureSize(shown.length);
@@ -243,26 +254,52 @@ export function CompanionDock({
   }
   // The voice follows what the bubble shows, when it is on.
   const spokenFor = useRef<string | null>(null);
-  useEffect(() => {
-    if (!voiceOn || playing || !selectedId) return;
-    const key = `${selectedId}|${locationId}`;
-    if (spokenFor.current === key) return;
-    spokenFor.current = key;
-    const line = lines[selectedId];
-    if (line) speak(spokenLine(line));
-    // `lines` is rebuilt every render; the key above is what matters.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [voiceOn, playing, selectedId, locationId]);
-
-  // Speak when playback pauses, never on every month while it runs.
   const wasPlaying = useRef(playing);
   useEffect(() => {
-    if (wasPlaying.current && !playing && voiceOn && selectedLine) {
-      speak(spokenLine(selectedLine));
-    }
+    const justPaused = wasPlaying.current;
     wasPlaying.current = playing;
-  }, [playing, voiceOn, selectedLine]);
-  useEffect(() => stopSpeaking, []);
+    const line = selectedId ? lines[selectedId] : null;
+    const key =
+      selectedId && line
+        ? `${selectedId}|${locationId}|${locale}|${voice}`
+        : null;
+    if (
+      !shouldSpeakLine({
+        voiceOn,
+        playing,
+        wasPlaying: justPaused,
+        voiceAvailable,
+        key,
+        spokenFor: spokenFor.current,
+      })
+    ) {
+      return;
+    }
+    spokenFor.current = key;
+    speak(spokenLine(line ?? ""), speechLocale);
+    // `lines` is rebuilt every render; the key above is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    voiceOn,
+    playing,
+    selectedId,
+    locationId,
+    locale,
+    voice,
+    speechLocale,
+    voiceAvailable,
+  ]);
+  useEffect(() => {
+    primeSpeech();
+    if (!speechAvailable()) return stopSpeaking;
+    const take = () => setInstalledVoices(window.speechSynthesis.getVoices());
+    take();
+    window.speechSynthesis.addEventListener("voiceschanged", take);
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", take);
+      stopSpeaking();
+    };
+  }, []);
   // Esc closes the Gather composition, the same as its Close button.
   useEffect(() => {
     if (!gathered) return;
@@ -280,7 +317,10 @@ export function CompanionDock({
     const closing = selectedId === id && caveatOpen === withCaveat;
     setSelectedId(closing ? null : id);
     setCaveatOpen(withCaveat);
-    if (closing) stopSpeaking();
+    if (closing) {
+      spokenFor.current = null;
+      stopSpeaking();
+    }
   }
 
   function toggleNarrate() {
@@ -289,10 +329,19 @@ export function CompanionDock({
   }
 
   function toggleVoice() {
-    if (voiceOn) stopSpeaking();
-    else if (selectedLine) speak(spokenLine(selectedLine));
-    setVoiceOn(!voiceOn);
+    if (voiceOn && voiceAvailable) {
+      spokenFor.current = null;
+      stopSpeaking();
+    }
+    setVoiceOn(!voiceOn && voiceAvailable);
   }
+
+  useEffect(() => {
+    if (voiceOn && !voiceAvailable) {
+      spokenFor.current = null;
+      stopSpeaking();
+    }
+  }, [voiceOn, voiceAvailable]);
 
   const bubble = selected ? (
     <div className="companion-bubble" role="status">
@@ -302,6 +351,7 @@ export function CompanionDock({
           type="button"
           aria-label={t("common.action.close")}
           onClick={() => {
+            spokenFor.current = null;
             setSelectedId(null);
             stopSpeaking();
           }}
@@ -339,8 +389,20 @@ export function CompanionDock({
         <button
           type="button"
           className="companion-voice"
-          aria-pressed={voiceOn}
-          title={t("companions.voiceTitle")}
+          aria-pressed={voiceOn && voiceAvailable}
+          aria-label={t(
+            voiceAvailable
+              ? voiceOn
+                ? "companions.voiceOn"
+                : "companions.voiceOff"
+              : "companions.voiceUnavailable",
+          )}
+          title={t(
+            voiceAvailable
+              ? "companions.voiceTitle"
+              : "companions.voiceUnavailable",
+          )}
+          disabled={!voiceAvailable}
           onClick={toggleVoice}
         >
           <svg viewBox="0 0 20 16" width="15" height="12" aria-hidden="true">
@@ -362,7 +424,13 @@ export function CompanionDock({
               />
             )}
           </svg>
-          {t(voiceOn ? "companions.voiceOn" : "companions.voiceOff")}
+          {t(
+            !voiceAvailable
+              ? "companions.voiceUnavailable"
+              : voiceOn
+                ? "companions.voiceOn"
+                : "companions.voiceOff",
+          )}
         </button>
       ) : null}
       <button
