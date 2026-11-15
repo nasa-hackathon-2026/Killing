@@ -77,13 +77,14 @@ export function RightSidebar({ children }: { children: ReactNode }) {
           "max-[700px]:max-h-[calc(100%-60px-var(--timeline-bottom,92px)-var(--timeline-height,112px)-8px)] max-[700px]:top-[60px]",
         )}
       >
-        {/* The first section (the layers) takes the room and scrolls; the
-            companions below it stay in view. */}
+        {/* The companions come first and keep to the top (at most 45% of the
+            panel, scrolling inside); the layers under them take the rest and
+            scroll. */}
         <div
           className={cn(
             "flex min-h-0 flex-1 flex-col gap-3",
-            "[&>*+*]:shrink-0 [&>*+*]:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-line/40 [&>*+*]:pt-3 [&>*+*]:max-h-[45%]",
-            "[&>:first-child]:min-h-0 [&>:first-child]:flex-1 [&>:first-child]:overflow-y-auto [&>:first-child]:[scrollbar-gutter:stable]",
+            "[&>:first-child]:shrink-0 [&>:first-child]:overflow-y-auto [&>:first-child]:border-b [&>:first-child]:border-line/40 [&>:first-child]:pb-3",
+            "[&>:last-child]:min-h-[9rem] [&>:last-child]:flex-1 [&>:last-child]:overflow-y-auto [&>:last-child]:[scrollbar-gutter:stable]",
           )}
         >
           {children}

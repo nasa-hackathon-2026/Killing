@@ -814,6 +814,19 @@ function AppView({
         </Suspense>
       ) : null}
       <RightSidebar>
+        <CompanionDock
+          compact={strata.shown}
+          visibleIds={controls
+            .filter((layer) => layer.visible)
+            .map((layer) => layer.id)}
+          series={here}
+          locationId={locationId}
+          locationName={placeName}
+          aggregation={aggregation}
+          trends={trendsFile.status === "ready" ? trendsFile.data : null}
+          onTurnOn={showLayer}
+          autoIntro={tourStep === null}
+        />
         <LayerPanel
           layers={layerRegistry}
           controls={controls}
@@ -853,19 +866,6 @@ function AppView({
             if (next.kind !== "none") setGuideOpen(false);
             timeline.setLeftView(next);
           }}
-        />
-        <CompanionDock
-          compact={strata.shown}
-          visibleIds={controls
-            .filter((layer) => layer.visible)
-            .map((layer) => layer.id)}
-          series={here}
-          locationId={locationId}
-          locationName={placeName}
-          aggregation={aggregation}
-          trends={trendsFile.status === "ready" ? trendsFile.data : null}
-          onTurnOn={showLayer}
-          autoIntro={tourStep === null}
         />
       </RightSidebar>
       <TimelineDock

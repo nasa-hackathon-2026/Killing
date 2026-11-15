@@ -177,12 +177,9 @@ export function CompanionDock({
     () => document.querySelector<HTMLElement>(".app"),
     () => null,
   );
-  // Folded to a chip unless the reader opens it: the panel repeated the layer
-  // list in a second column and took the globe's room (#201). It still opens
-  // by itself when the narration speaks, and ?companions=gather|gallery.
-  const [userCollapsed, setCollapsed] = useState(
-    () => mode !== "gather" && mode !== "gallery",
-  );
+  // Open, above the layers in the sidebar (#221); ?companions=collapsed
+  // folds it to a row of small figures.
+  const [userCollapsed, setCollapsed] = useState(() => mode === "collapsed");
   const collapsed = compact ? !compactOpen : userCollapsed;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [caveatOpen, setCaveatOpen] = useState(false);
