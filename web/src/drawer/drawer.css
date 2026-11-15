@@ -1,9 +1,8 @@
 /* The right drawer (RightDrawer.tsx): Layers and the statistics on the
    globe in one panel on the right edge, with a handle that opens and
-   closes it. Same width and gap as the Layers panel had, so the companion
-   panel (right: 326px) and the layer view's PANEL_COLUMN stay as they are.
-   It never reaches below the top of the timeline bar; longer content
-   scrolls inside it. */
+   closes it. Same width and gap as the Layers panel had, so the layer
+   view's PANEL_COLUMN stays as it is. It never reaches below the top of the
+   timeline bar; longer content scrolls inside it. */
 .drawer-root {
   --drawer-width: 306px;
   --drawer-handle-width: 28px;
@@ -15,15 +14,36 @@
   --drawer-slide: 250ms;
 }
 
+/* The shell is fixed to the window's right edge, top to bottom, as wide as
+   the panel plus its gap, with no background: closed, it slides out by its
+   own width, so it leaves no box on the page and adds nothing to the
+   page's width. Only the panel and the handle take the pointer. */
+.drawer-shell {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: calc(
+    min(var(--drawer-width), calc(100% - 2 * var(--drawer-gap))) +
+      var(--drawer-gap)
+  );
+  pointer-events: none;
+  transition: transform var(--drawer-slide) ease;
+}
+
+.drawer-root[data-open="false"] .drawer-shell {
+  transform: translateX(100%);
+}
+
 .right-drawer {
   position: absolute;
   top: var(--drawer-top);
   right: var(--drawer-gap);
-  z-index: 1;
+  left: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  width: min(var(--drawer-width), calc(100% - 2 * var(--drawer-gap)));
   max-height: calc(100% - var(--drawer-top) - var(--drawer-floor));
   overflow: auto;
   overscroll-behavior: contain;
@@ -35,19 +55,15 @@
   font:
     13px/1.35 system-ui,
     sans-serif;
-  transition:
-    transform var(--drawer-slide) ease,
-    visibility 0s linear 0s;
+  pointer-events: auto;
+  transition: visibility 0s linear 0s;
 }
 
-/* Closed: slid out past the right edge, and hidden once the slide is over
-   (inert also takes it out of the tab order). */
+/* Hidden once the slide is over (inert also takes it out of the tab order;
+   the handle, outside it, stays reachable). */
 .drawer-root[data-open="false"] .right-drawer {
-  transform: translateX(calc(100% + var(--drawer-gap) + 2px));
   visibility: hidden;
-  transition:
-    transform var(--drawer-slide) ease,
-    visibility 0s linear var(--drawer-slide);
+  transition: visibility 0s linear var(--drawer-slide);
 }
 
 /* Sections: Layers, then the statistics on the globe. */
@@ -57,13 +73,12 @@
   border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-/* On the right edge, halfway down the screen; on the drawer's left edge
-   while it is open. */
+/* Just outside the panel's left edge, halfway down the window; it moves
+   with the shell, so closed it sits on the window's right edge. */
 .drawer-handle {
   position: absolute;
   top: 50%;
-  right: 0;
-  z-index: 2;
+  right: 100%;
   box-sizing: border-box;
   width: var(--drawer-handle-width);
   height: 64px;
@@ -78,29 +93,11 @@
   border-right: 0;
   border-radius: 8px 0 0 8px;
   cursor: pointer;
-  transition: right var(--drawer-slide) ease;
-}
-
-.drawer-root[data-open="true"] .drawer-handle {
-  right: calc(
-    var(--drawer-gap) +
-      min(var(--drawer-width), calc(100% - 2 * var(--drawer-gap)))
-  );
+  pointer-events: auto;
 }
 
 .drawer-handle:hover {
   background: rgba(30, 44, 70, 0.95);
-}
-
-/* With the drawer closed, the companion panel moves up to the handle (its
-   width plus the 12px gap) on a wide screen instead of leaving a gap where
-   the drawer was. Not in the layer view, whose docking keeps the panel's
-   column (strata/strata.css). */
-@media (min-width: 701px) {
-  .app:not(:has(.strata)):has(.drawer-root[data-open="false"])
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    right: calc(28px + 12px);
-  }
 }
 
 /* Narrow screens: the open drawer is a sheet under the HUD, leaving the
@@ -108,24 +105,25 @@
 @media (max-width: 700px) {
   .drawer-root {
     --drawer-top: 60px;
-    --drawer-width: calc(100vw - 52px);
+    --drawer-width: calc(
+      100% - 2 * var(--drawer-gap) - var(--drawer-handle-width)
+    );
+  }
+
+  .drawer-shell {
+    z-index: 4;
   }
 
   /* Opaque: it covers the companion chip and the globe. */
   .right-drawer {
-    z-index: 4;
     background: rgba(8, 14, 28, 0.97);
-  }
-
-  .drawer-handle {
-    z-index: 4;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .drawer-shell,
   .right-drawer,
-  .drawer-root[data-open="false"] .right-drawer,
-  .drawer-handle {
+  .drawer-root[data-open="false"] .right-drawer {
     transition: none;
   }
 }

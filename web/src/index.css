@@ -6,6 +6,13 @@ body,
   margin: 0;
 }
 
+/* Nothing on the page may widen it: the window never scrolls sideways. On
+   the root only; on .app it would make .app a scroll box (overflow-y turns
+   to auto). */
+html {
+  overflow-x: hidden;
+}
+
 .app {
   position: relative;
   background: #0b1220;
@@ -565,7 +572,7 @@ body,
   z-index: 2;
   display: flex;
   flex-direction: column;
-  width: min(640px, calc(100% - 24px));
+  width: var(--closeup-width);
   max-height: calc(100% - 88px);
   overflow: auto;
   color: #e8eef7;
@@ -849,6 +856,41 @@ body,
 .app {
   --timeline-bottom: 72px;
   --timeline-height: 108px;
+  /* The panels that open in the top-left corner under the HUD. The
+     companion panel, which stands there otherwise, moves past whichever is
+     open (companions/companions.css). */
+  --guide-card-width: min(380px, calc(100% - 24px));
+  --chart-left: 12px;
+  --chart-width: min(440px, calc(100% - 24px));
+  --closeup-width: min(640px, calc(100% - 24px));
+}
+
+/* Beside the bottom-left legends (globeStats/globeStats.css .map-legends,
+   min(360px, …) wide) when the trend map legend is open, so the chart does
+   not reach down over it; narrower when the window has no room for the
+   legends, the chart, the companions (8 + 188 + 8) and the drawer (318 + 8)
+   side by side. */
+.app:has(.trendmap) {
+  --chart-left: calc(12px + min(360px, calc(100% - 24px)) + 8px);
+  --chart-width: min(440px, calc(100% - var(--chart-left) - 530px));
+}
+
+/* Where the panels of the top-left corner end (the companions, the start
+   card): above the bottom-left legends, that is the one-line particle note,
+   or the trend map / global distribution legend at its tallest. */
+@media (min-width: 701px) {
+  .app {
+    --left-floor: calc(
+      var(--timeline-bottom) + var(--timeline-height) + 12px + 72px + 8px
+    );
+  }
+
+  .app:has(.map-legends .trendmap, .map-legends .field-legend) {
+    --left-floor: calc(
+      var(--timeline-bottom) + var(--timeline-height) + 12px +
+        min(42vh, calc(100% - 100px)) + 8px
+    );
+  }
 }
 
 .timeline-bar,
@@ -1021,22 +1063,14 @@ body,
 
 .timeline-chart {
   top: 64px;
-  left: 12px;
-  width: min(440px, calc(100% - 24px));
+  left: var(--chart-left);
+  width: var(--chart-width);
   max-height: calc(
     100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 16px
   );
   overflow: auto;
   padding: 10px 12px;
   background: rgba(8, 14, 28, 0.94);
-}
-
-/* Beside the trend map legend when both are open; narrower when the window
-   has no room for the legend, the chart, the companions and the Layers
-   panel side by side (314px legend + 574px companions and Layers). */
-.app:has(.trendmap) .timeline-chart {
-  left: 314px;
-  width: min(440px, calc(100% - 314px - 574px));
 }
 
 .timeline-chart header {
@@ -1227,11 +1261,6 @@ body,
   .timeline-chart,
   .app:has(.trendmap) .timeline-chart {
     width: calc(100% - 306px - 36px);
-  }
-
-  .app:has(.timeline-chart)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
   }
 }
 

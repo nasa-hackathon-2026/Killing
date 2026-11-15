@@ -7,7 +7,7 @@
   left: 12px;
   z-index: 3;
   box-sizing: border-box;
-  width: min(380px, calc(100% - 24px));
+  width: var(--guide-card-width, min(380px, calc(100% - 24px)));
   max-height: calc(
     100% - 64px - var(--timeline-bottom, 72px) - var(--timeline-height, 108px) -
       16px
@@ -136,8 +136,8 @@
 /* Short windows (a 720px-high laptop): the card drops the "Opens" lines so
    the steps, the four questions and the start button fit without scrolling. */
 @media (max-height: 800px) and (min-width: 701px) {
-  .guide-card {
-    width: min(420px, calc(100% - 24px));
+  .app {
+    --guide-card-width: min(420px, calc(100% - 24px));
   }
 
   .guide-examples a span {
@@ -298,5 +298,13 @@
 
   .guide-tour-bubble::before {
     display: none;
+  }
+}
+
+/* Wider than a phone: the card ends above the bottom-left legends and the
+   particle note (index.css --left-floor). */
+@media (min-width: 701px) {
+  .guide-card {
+    max-height: calc(100% - 64px - var(--left-floor));
   }
 }

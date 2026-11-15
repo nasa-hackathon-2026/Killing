@@ -224,7 +224,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **開場鏡頭與地點標記（#126）**：頁面載入時鏡頭直接對準選定的地點（`App.tsx` 的 `useStartFlight`，與 `?at=` 的世界城市同一條路徑；台灣地點用整顆地球看得到的 `START_DISTANCE`，全球平均沒有座標就維持預設朝向）。選定地點在 `scene/Markers.tsx` 有白色外圈、脈動環（`prefers-reduced-motion` 時不畫）與名稱標籤（drei 的 `<Html>`，轉到背面時隱藏）。時間軸列下方的一行字（`guide/particleNote.ts`，純函式，有測試）說明粒子只代表選定地點該月的一個數值、不是地圖；趨勢地圖開著時補一句它才是地圖。
 - **卡片文字**在 `GuideCard.tsx`：一句話說明與三個步驟只描述工具做什麼，「How to read this」只講怎麼讀圖（粒子、▲▼◇、Not significant、資料性質、警語），措辭沿用圖層面板；**不寫科學結論**。開圖表、近看、趨勢地圖或進分層視圖時卡片會自動收起（它們用同一個左側位置），不算關閉。
 - **HUD 只有一列、不換行**（`index.css` 的 `.hud`）：? Guide、Layer view、Global trend map、Fly to Taiwan、More。次要連結（Model vs observation、Data mining、Form lab）與除錯資訊（Renderer、FPS、Force WebGL）在 More 的 `<details>` 裡。所有面板從 `top: 64px` 開始，所以 HUD 不能長到第二列；要加按鈕就放進 More，或在窄螢幕的 media query 裡把別的收掉。
-- **面板的位置（主畫面）**：左側是開始卡片／趨勢地圖圖例（290 px）／時間序列圖（440 px，圖例開著時排在它右邊並視窗寬度縮窄）；右側是抽屜（306 px，Layers 與地球上的統計，見「前端的右側抽屜」）與它左邊的 Companions（`right: 326px`；抽屜收合時寬螢幕移到把手旁）；下方中央是時間軸列。夥伴的那句話開在 Companions 面板裡面（不再浮在面板左邊），所以不會蓋到圖。1180 px 以下時間軸列與圖改靠左、圖是時間軸列上方的抽屜（寬度留給 Companions；圖例同時開著時圖例縮成 150 px 高、可捲動）；900 px 以下圖開著時 Companions 讓位；近看檢視（`.closeup`）是蓋在左側的一張，會蓋住時間序列圖，高度停在時間軸列上方，1180 px 以下開著時 Companions 讓位；700 px 以下 Companions 預設收合成 HUD 下方左側的小方塊，抽屜預設收合、展開時是 HUD 下方蓋住畫面的一張，從抽屜按 Chart 或 Close-up 會自動收起。
+- **面板的位置（主畫面）**：左側是開始卡片／趨勢地圖圖例（290 px）／時間序列圖（440 px，圖例開著時排在它右邊並視窗寬度縮窄）；右側是抽屜（306 px，Layers 與地球上的統計，見「前端的右側抽屜」）；Companions 在左上角（開始卡片、時間序列圖、近看開著時移到它們右邊，寬度用 `.app` 上的 `--guide-card-width`、`--chart-left`／`--chart-width`、`--closeup-width`；左上角的面板都停在 `--left-floor`，也就是左下的說明句與圖例上方）；下方中央是時間軸列。夥伴的那句話開在 Companions 面板裡面（不再浮在面板左邊），所以不會蓋到圖。1180 px 以下時間軸列與圖改靠左、圖是時間軸列上方的抽屜（寬度留給 Companions；圖例同時開著時圖例縮成 150 px 高、可捲動）；900 px 以下圖開著時 Companions 讓位；近看檢視（`.closeup`）是蓋在左側的一張，會蓋住時間序列圖，高度停在時間軸列上方，1180 px 以下開著時 Companions 讓位；700 px 以下 Companions 預設收合成 HUD 下方左側的小方塊，抽屜預設收合、展開時是 HUD 下方蓋住畫面的一張，從抽屜按 Chart 或 Close-up 會自動收起。
 - **分層視圖開著時的停靠規則**（CSS 在 `strata.css` 的「Docking」一段，鏡頭留白在 `strataCamera.ts` 的 `viewInsets`，兩邊的數字要對得上：`LABEL_COLUMN`、`PANEL_COLUMN`、`CHART_COLUMN`、`HUD_RESERVE`、`TIMELINE_RESERVE`）：
 
   | 視窗寬度 | 左欄 | 中間 | 右側 |
@@ -297,7 +297,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
 - **開關的規則是純函式**（`drawerState.ts`，有測試）：`drawerOpenAtStart` 依序看網址有沒有檢視參數（`guide/firstVisit.ts` 的 `hasViewParams`，有就展開）、存過的選擇（`localStorage` 的 `estd.drawer.open`，讀寫都包 try/catch）、視窗寬度（> 1180 展開）。`useRightDrawer` 的 `setOpen` 是使用者的選擇（把手、Esc）會記住；`close` 是頁面自己讓位（窄螢幕從 Layers 開圖表或近看，`LayerPanel` 的 `onNarrowOpen`）不記住。
 - **鍵盤**：Esc 只在焦點位於抽屜或把手時收合，並把焦點移回把手（導覽與 Gather 各自用 Esc）；收合時抽屜是 `inert`，Tab 不會進去。
-- **版面**：寬度與右邊距和原本的 Layers 面板相同（306 px、12 px），所以 Companions 的 `right: 326px` 與分層視圖的 `PANEL_COLUMN` 不用改；最高到時間軸列上緣，內容過長在抽屜內捲動。滑動用 `transform`（250 ms），`prefers-reduced-motion` 時不動畫。分層視圖的停靠規則（`strata.css`）改針對 `.right-drawer`／`.drawer-root`。
+- **版面**：外框 `.drawer-shell` 是 `position: fixed`、貼右緣上下到底、沒有背景，收合時整個 `translateX(100%)` 移出畫面，所以不會撐寬頁面；把手在外框裡、緊貼面板左緣外側，跟著一起移動。面板寬度與右邊距和原本的 Layers 面板相同（306 px、12 px），所以分層視圖的 `PANEL_COLUMN` 不用改；最高到時間軸列上緣，內容過長在抽屜內捲動。滑動 250 ms，`prefers-reduced-motion` 時不動畫。`html` 有 `overflow-x: hidden`（不放在 `.app`：那會讓 `.app` 變成可捲動的容器）。分層視圖的停靠規則（`strata.css`）改針對 `.right-drawer`／`.drawer-root`。
 - **統計區塊**（`globeStats/GlobeStatsSection.tsx`）：標題加收合鈕，收合時標題寫目前模式（`globeStats.sectionFolded`）；內容是原本的 `GlobeStatsControls` 與 `GlobeStatsPanel`。模式名稱一律用 `globeStatsText.ts` 的 `modeLabel`。左側的 `.map-legends` 仍放趨勢地圖圖例、全球分布圖例（`FieldToggle` 會找它）與粒子說明。
 
 ## 前端的全球分布（#134）

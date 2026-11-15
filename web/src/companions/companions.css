@@ -145,7 +145,9 @@
   }
 }
 
-/* The panel in the main view. It sits left of the Layers panel. */
+/* The panel. In the layer view it keeps the column left of the right
+   drawer (strata/strata.css relies on it); in the main view it stands in
+   the top-left corner (below). */
 .companion-dock {
   position: absolute;
   top: 64px;
@@ -533,6 +535,55 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+}
+
+/* Main view, wider than a phone (#185): the top-left corner, clear of the
+   right drawer and its handle. It ends above the bottom-left legends (the
+   one-line particle note, or the trend map / global distribution legend
+   at their tallest) and the credit. A start card, chart or close-up opening
+   in that corner pushes it to their right; where the window has no room
+   for both, it gives way until they close. */
+@media (min-width: 701px) {
+  .app:not(:has(.strata))
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    right: auto;
+    left: 12px;
+    max-height: calc(100% - 64px - var(--left-floor));
+  }
+}
+
+@media (min-width: 1181px) {
+  .app:not(:has(.strata)):has(.guide-card)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    left: calc(12px + var(--guide-card-width) + 8px);
+  }
+
+  .app:not(:has(.strata)):has(.timeline-chart)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    left: calc(var(--chart-left) + var(--chart-width) + 8px);
+  }
+
+  .app:not(:has(.strata)):has(.closeup)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    left: calc(12px + var(--closeup-width) + 8px);
+  }
+}
+
+/* Medium widths: the start card and the chart (a sheet above the timeline
+   bar here) take the left side; the tour bubble, centred under the HUD,
+   reaches the corner below about 936px. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .app:not(:has(.strata)):has(.guide-card, .timeline-chart)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 935px) {
+  .app:has(.guide-tour)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
 }
 
 /* Phone widths: the panel is a chip under the HUD on the left (the Layers

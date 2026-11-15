@@ -34,26 +34,31 @@ export function RightDrawer({
   };
   return (
     <div className="drawer-root" data-open={open} onKeyDown={onKeyDown}>
-      <button
-        ref={handle}
-        type="button"
-        className="drawer-handle"
-        aria-expanded={open}
-        aria-controls={DRAWER_ID}
-        aria-label={t(open ? "layers.drawerClose" : "layers.drawerOpen")}
-        title={label}
-        onClick={() => onOpenChange(!open)}
-      >
-        <span aria-hidden="true">{open ? ">" : "<"}</span>
-      </button>
-      <div
-        id={DRAWER_ID}
-        className="right-drawer"
-        role="region"
-        aria-label={label}
-        inert={!open}
-      >
-        {children}
+      {/* Fixed to the right edge of the window and slid out by its own
+          width when closed, carrying the handle on its left side; it has
+          no box of its own, so nothing is left behind on the page. */}
+      <div className="drawer-shell">
+        <button
+          ref={handle}
+          type="button"
+          className="drawer-handle"
+          aria-expanded={open}
+          aria-controls={DRAWER_ID}
+          aria-label={t(open ? "layers.drawerClose" : "layers.drawerOpen")}
+          title={label}
+          onClick={() => onOpenChange(!open)}
+        >
+          <span aria-hidden="true">{open ? ">" : "<"}</span>
+        </button>
+        <div
+          id={DRAWER_ID}
+          className="right-drawer"
+          role="region"
+          aria-label={label}
+          inert={!open}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
