@@ -30,6 +30,8 @@ import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
 import { EarthCanvas } from "./scene/EarthCanvas";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
+import { FieldToggle } from "./fields/FieldToggle";
+import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
 import {
@@ -298,6 +300,10 @@ function AppView({
       : undefined;
 
   // What the particles are, so they are not read as a global map.
+  const openIds = controls
+    .filter((control) => control.visible)
+    .map((control) => control.id);
+  const fieldNote = useFieldNote(openIds);
   const particleLine = particleNote({
     layerNames: layerRegistry
       .filter((layer) =>
@@ -369,6 +375,12 @@ function AppView({
         <StrataHint placeName={location.nameEn} onEnter={enterStrata} />
       ) : null}
       <div className="hud hud-main">
+        {strata.phase === "off" ? (
+          <FieldToggle
+            openIds={openIds}
+            trendMapOn={trendMap.status === "ready"}
+          />
+        ) : null}
         <button
           type="button"
           className="hud-guide"
@@ -527,6 +539,7 @@ function AppView({
       {particleLine && strata.phase === "off" ? (
         <p className="particle-note" role="note">
           {particleLine}
+          {fieldNote ? ` ${fieldNote}` : ""}
         </p>
       ) : null}
       <p className="credit">

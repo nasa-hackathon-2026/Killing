@@ -278,8 +278,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **顏色強度隨變化量（#81）**：每格的不透明度再乘上 `changeStrength`（`trendGrid.ts`，純函式）：斜率 0 時是 `ZERO_CHANGE_STRENGTH`（0.4），到 ±L 以上是 1，中間線性；顏色本身不變。顯著與不顯著乘同一個係數，所以同樣的斜率下顯著格子永遠是不顯著的 1 ÷ `NOT_SIGNIFICANT_ALPHA` 倍。原因是色階中間近白，而 `WebGPURenderer` 在線性光下混色（#81 實測：全白格子在不透明度 0.4 疊在深色海面上約 185／255，以 sRGB 數值混色會是約 120），淺色格子會蓋住陸地。係數大於 0，有分析但沒變化的格子仍然有畫，和缺值不同；代價是不顯著又近零的格子很淡。圖例有一句說明。
 - **讀檔與上色是純函式**（`trendGrid.ts`，有測試）：`trendGridSpec` 從 `meta.json` 讀網格與兩個趨勢圖層，排列方式或編碼和預期不同就丟錯而不猜；`decodeSlopes`／`decodeSignificance`、`symmetricLimit`、`paintTrendMap`。`loadTrendMap.ts` 抓三個檔，`useTrendMap.ts` 是 hook。
 - **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
-- **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES`（`meta.json`、`trend_slope_per_decade.i16`、`trend_significance.u8`），7 個變數共約 1.3 MB；逐年平均與月氣候值（共約 30 MB）不進 `dist`，開發伺服器也不提供。之後前端要讀其他圖層，就把檔名加進這個清單。
+- **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES` 提供趨勢圖與全球分布需要的 metadata、趨勢斜率、顯著性、月氣候值；逐年平均不進 `dist`。新增前端圖層時才擴充這個清單。
 - 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77），顏色強度再隨變化量調淡（#81，見上）；之後 MERRA-2、AIRS 看得出海岸線與陸地，MERRA-2 顯著升溫的區域仍有一層淡紅，要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
+
+## 前端的全球分布（#134）
+
+- `?field=<變數 id>` 顯示七個既有格點變數的月氣候值；預設關閉，`field=off` 關閉，`field=auto` 跟隨圖表或第一個有格點的開啟圖層。控制與映射設定在 `web/src/fields/fieldConfig.ts`。
+- 圖例必須保留「典型月份，不是這個年月的實際值」與平均期間。月份跟隨時間軸，所有年份重複同一組十二個月；原始時間軸是 `YYYY-MM-01`，不是只有年月。
+- 密度與亮度共用十二個月的 2%–98% 分位範圍，再套各變數的 gamma；格子等權。缺值不畫，最低有效值仍有少量微光。點位依球面面積均勻抽樣、維持固定位置，沒有風場或輸送的意義。
+- 遠看凸顯全球點、近看凸顯地點粒子；減少動態效果時直接切月、停止閃爍。趨勢圖可同時顯示，全球點會調淡；分層視圖隱藏全球圖例。
+- 修改讀檔或座標時跑 `web/src/fields/fieldGrid.test.ts`；修改密度、月份插值或遠近混合時跑 `fieldMapping.test.ts`。這個功能只讀既有靜態格點，不重算或下載資料。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

@@ -2,6 +2,8 @@ import { OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { Suspense, useState, type ReactNode } from "react";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
+import { GlobalField } from "../fields/GlobalField";
+import { LocalParticlesBlend } from "../fields/LocalParticlesBlend";
 import { layerRegistry, type LayerDefinition } from "../layers/registry";
 import { mockLocations, type MockLocation } from "../mock/snapshot";
 import type { TrendMap } from "../trendmap/loadTrendMap";
@@ -96,17 +98,25 @@ function Scene({
         selectedId={locationId}
         onSelect={onSelectLocation}
       />
-      {layerRegistry.map((layer) => (
-        <LayerView
-          key={layer.id}
-          layer={layer}
-          control={layers.find((item) => item.id === layer.id)}
-          intensity={intensities[layer.id] ?? 0}
-          hasData={available[layer.id] ?? false}
-          openLayers={openLayers}
-          trendDirection={trendDirections?.[layer.id] ?? 0}
-        />
-      ))}
+      <GlobalField
+        openIds={layers
+          .filter((layer) => layer.visible)
+          .map((layer) => layer.id)}
+        trendMapOn={Boolean(trendMap)}
+      />
+      <LocalParticlesBlend>
+        {layerRegistry.map((layer) => (
+          <LayerView
+            key={layer.id}
+            layer={layer}
+            control={layers.find((item) => item.id === layer.id)}
+            intensity={intensities[layer.id] ?? 0}
+            hasData={available[layer.id] ?? false}
+            openLayers={openLayers}
+            trendDirection={trendDirections?.[layer.id] ?? 0}
+          />
+        ))}
+      </LocalParticlesBlend>
       <FlyCamera
         target={flyTarget}
         onDone={() => {
