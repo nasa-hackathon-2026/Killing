@@ -8,6 +8,11 @@ body,
 
 .app {
   position: relative;
+  /* The closed right sidebar waits just outside the right edge
+     (sidebar/RightSidebar); without this the page grows wider than the window
+     and gets a horizontal scroll bar (#219). `clip`, not `hidden`, so the
+     page cannot be scrolled sideways by focus or script either. */
+  overflow: clip;
   background: #0b1220;
   touch-action: none;
 }
