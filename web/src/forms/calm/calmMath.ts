@@ -302,10 +302,10 @@ export function calmSlot(index: number, count: number, grid: CalmGrid): Point {
 // smaller, so an exponent of 1 would keep it the same on screen; above 1 the
 // display shrinks faster than the view comes closer, so zooming in makes it
 // smaller on screen and the map shows through (#197). 1.5 shrank it to about
-// 30% at the closest distance, too small to read (#211); 1.15 leaves about
-// 70%: still smaller than from afar, still legible.
+// 30% at the closest distance, too small to read (#211); 1.15 left about
+// 70%, and 1.05 leaves about 90%: only slightly smaller than from afar.
 export const CALM_REFERENCE_DISTANCE = 3.2;
-export const CALM_VIEW_EXPONENT = 1.15;
+export const CALM_VIEW_EXPONENT = 1.05;
 export function calmViewScale(distance: number): number {
   const ratio = (distance - 1) / (CALM_REFERENCE_DISTANCE - 1);
   return Math.pow(Math.min(1.6, Math.max(0.05, ratio)), CALM_VIEW_EXPONENT);
