@@ -10,12 +10,11 @@ import {
 import { CalmLayers } from "../forms/calm/CalmLayers";
 import { useParticleStyle } from "../forms/calm/particleStyle";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
-import { GlobalField } from "../fields/GlobalField";
 import { LocalParticlesBlend } from "../fields/LocalParticlesBlend";
 import { layerRegistry, type LayerDefinition } from "../layers/registry";
 import { mockLocations, type MockLocation } from "../mock/snapshot";
 import type { TrendMap } from "../trendmap/loadTrendMap";
-import { TrendMapOverlay } from "../trendmap/TrendMapOverlay";
+import { GlobalTrendMap } from "../trendmap/GlobalTrendMap";
 import { createSceneRenderer } from "./createSceneRenderer";
 import { DEFAULT_ORBIT_DISTANCE, orbitRotateSpeed } from "./orbitSpeed";
 import { Earth } from "./Earth";
@@ -47,6 +46,8 @@ type EarthCanvasProps = {
   usual?: Record<string, number | null>;
   // Global trend map drawn over the surface; null = off.
   trendMap?: TrendMap | null;
+  // Variable of the trend map (also the variable of the dots); null = off.
+  trendMapId?: string | null;
   trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
@@ -72,6 +73,7 @@ function Scene({
   trendDirections,
   usual,
   trendMap,
+  trendMapId,
   trendMapOpacity,
   places,
   locationId,
@@ -94,6 +96,7 @@ function Scene({
   usual?: Record<string, number | null>;
   // Global trend map drawn over the surface; null = off.
   trendMap?: TrendMap | null;
+  trendMapId?: string | null;
   trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
@@ -119,21 +122,17 @@ function Scene({
         <Earth />
         <DetailSurface />
       </Suspense>
-      {trendMap ? (
-        <TrendMapOverlay map={trendMap} opacity={trendMapOpacity ?? 1} />
-      ) : null}
+      <GlobalTrendMap
+        id={trendMapId ?? null}
+        map={trendMap ?? null}
+        opacity={trendMapOpacity ?? 1}
+      />
       <Markers
         locations={places.length > 0 ? places : mockLocations}
         selectedId={locationId}
         onSelect={onSelectLocation}
       />
       {region ? <RegionFrame bbox={region.bbox} name={region.name} /> : null}
-      <GlobalField
-        openIds={layers
-          .filter((layer) => layer.visible)
-          .map((layer) => layer.id)}
-        trendMapOn={Boolean(trendMap)}
-      />
       <LocalParticlesBlend>
         {layerRegistry.map((layer) => (
           <LayerView
@@ -237,6 +236,7 @@ export function EarthCanvas({
   trendDirections,
   usual,
   trendMap,
+  trendMapId,
   trendMapOpacity,
   places,
   locationId,
@@ -264,6 +264,7 @@ export function EarthCanvas({
         trendDirections={trendDirections}
         usual={usual}
         trendMap={trendMap}
+        trendMapId={trendMapId}
         trendMapOpacity={trendMapOpacity}
         places={places}
         locationId={locationId}

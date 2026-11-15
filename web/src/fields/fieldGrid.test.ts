@@ -7,7 +7,7 @@ import {
   type FieldGridMeta,
 } from "./fieldGrid";
 import { loadField } from "./loadField";
-import { parseFieldParam, resolveField } from "./fieldStore";
+import { parseFieldParam } from "./fieldStore";
 
 const meta: FieldGridMeta = {
   id: "gldas_tair",
@@ -107,16 +107,11 @@ describe("global distribution grid", () => {
     await expect(loadField("unknown", 20)).rejects.toThrow();
   });
 
-  it("defaults to off and resolves only supported URL and auto selections", () => {
+  it("reads the old ?field= as the variable of the trend map (#197)", () => {
     expect(parseFieldParam(null)).toBeNull();
     expect(parseFieldParam("unknown")).toBeNull();
+    expect(parseFieldParam("off")).toBeNull();
+    expect(parseFieldParam("auto")).toBeNull();
     expect(parseFieldParam("imerg_precip")).toBe("imerg_precip");
-    expect(resolveField("auto", "gldas_tair", ["imerg_precip"])).toBe(
-      "gldas_tair",
-    );
-    expect(resolveField("auto", "unknown", ["imerg_precip"])).toBe(
-      "imerg_precip",
-    );
-    expect(resolveField(null, "gldas_tair", [])).toBeNull();
   });
 });

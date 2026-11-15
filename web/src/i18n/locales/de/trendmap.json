@@ -26,5 +26,6 @@
     "general": "Verblasst heißt nicht, dass es keine Veränderung gibt. Auch ein Wechsel des Sensors oder des Datenprodukts kann einen falschen Trend erzeugen.",
     "expert": "Nicht signifikant heißt nicht, dass es keine Veränderung gibt. Die Trends werden auf einem Gitter von etwa 1° berechnet; Sensor- oder Produktwechsel können künstliche Trends verursachen."
   },
-  "evapUnit": "Dargestellt in mm/day (kg m-2 s-1 × 86.400)."
+  "evapUnit": "Dargestellt in mm/day (kg m-2 s-1 × 86.400).",
+  "seasonNote": "Die Helligkeit folgt der Zeitachse: Jede Zelle und jeder Punkt ist in den Monaten heller, in denen ihr typischer Wert höher liegt. Das ist der typische Jahresgang, der sich jedes Jahr wiederholt, nicht der Wert des gewählten Jahres. Die Farben zeigen den Trend der gesamten Reihe. Die Punkte zeigen keinen Wind und keine Strömung."
 }

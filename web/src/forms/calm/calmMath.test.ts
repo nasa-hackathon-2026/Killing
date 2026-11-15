@@ -226,7 +226,15 @@ describe("calmViewScale and calmDriftSpeed", () => {
   it("is 1 at the starting distance and smaller nearer the ground", () => {
     expect(calmViewScale(3.2)).toBeCloseTo(1);
     expect(calmViewScale(1.6)).toBeLessThan(1);
-    expect(calmViewScale(1.6)).toBeGreaterThan((1.6 - 1) / 2.2);
+  });
+
+  it("gets smaller on screen the closer the camera comes (#197)", () => {
+    // Apparent size ~ world size / distance from the camera to the surface.
+    const onScreen = (distance: number) =>
+      calmViewScale(distance) / (distance - 1);
+    expect(onScreen(1.6)).toBeLessThan(onScreen(3.2));
+    expect(onScreen(1.2)).toBeLessThan(onScreen(1.6));
+    expect(calmViewScale(1.01)).toBeGreaterThan(0);
   });
 
   it("keeps every layer slow", () => {

@@ -26,5 +26,6 @@
     "general": "Faded does not mean no change. A change of sensor or data product can also create a false trend.",
     "expert": "Not significant does not mean no change. Trends are computed on a ~1° grid; sensor or product changes can cause artificial trends."
   },
-  "evapUnit": "Shown as mm/day (kg m-2 s-1 × 86,400)."
+  "evapUnit": "Shown as mm/day (kg m-2 s-1 × 86,400).",
+  "seasonNote": "Brightness follows the timeline: each cell and dot is brighter in the months when its typical value is higher. This is the typical seasonal cycle, repeated every year, not the value of the chosen year. The colours are the trend of the whole record. Dots show no wind or flow."
 }
