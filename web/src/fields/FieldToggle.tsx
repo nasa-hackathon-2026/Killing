@@ -26,6 +26,7 @@ type FieldToggleProps = {
   openIds: readonly string[];
   // The global trend map is on (the legend says how the two are layered).
   trendMapOn?: boolean;
+  legendHidden?: boolean;
 };
 
 function layerName(id: string): string {
@@ -35,7 +36,11 @@ function layerName(id: string): string {
 // "Global distribution: Off / <variable>" in the HUD, and its legend above
 // the timeline (rendered into the page's .app so it can use the timeline's
 // CSS variables).
-export function FieldToggle({ openIds, trendMapOn = false }: FieldToggleProps) {
+export function FieldToggle({
+  openIds,
+  trendMapOn = false,
+  legendHidden = false,
+}: FieldToggleProps) {
   useI18n();
   const mode = useFieldMode();
   const timeline = useTimeline();
@@ -76,7 +81,7 @@ export function FieldToggle({ openIds, trendMapOn = false }: FieldToggleProps) {
           ),
         )}
       </select>
-      {anchor && mode !== null
+      {anchor && mode !== null && !legendHidden
         ? createPortal(
             <aside className="field-legend" aria-live="polite">
               {id === null ? (

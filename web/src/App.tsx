@@ -509,6 +509,7 @@ function AppView({
           <FieldToggle
             openIds={openIds}
             trendMapOn={trendMap.status === "ready"}
+            legendHidden={Boolean(closeUpLayer)}
           />
         ) : null}
         <button
