@@ -335,7 +335,7 @@
 /* Medium: no room for both, so the chart takes the place of the Layers
    panel until it is closed. */
 @media (min-width: 701px) and (max-width: 1180px) {
-  .app:has(.strata):has(.timeline-chart) .layers {
+  .app:has(.strata):has(.timeline-chart) .drawer-root {
     display: none;
   }
 
@@ -371,16 +371,21 @@
     display: none;
   }
 
-  .app:has(.strata) aside.layers {
+  .app:has(.strata) .right-drawer {
     top: auto;
-    right: 12px;
     bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
-    left: 12px;
-    width: auto;
     max-height: 15%;
   }
 
-  .app:has(.strata-detail) aside.layers {
+  /* The handle sits at the sheet's lower left corner instead of halfway
+     down, where the stratum labels are. */
+  .app:has(.strata) .drawer-handle {
+    top: auto;
+    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
+    margin-top: 0;
+  }
+
+  .app:has(.strata-detail) .drawer-root {
     display: none;
   }
 

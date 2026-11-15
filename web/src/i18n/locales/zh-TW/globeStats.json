@@ -71,5 +71,8 @@
   "columnOther": "相似序列",
   "columnSimilarity": "相似度",
   "columnDetrended": "去趨勢後",
-  "columnDashed": "以虛線繪製"
+  "columnDashed": "以虛線繪製",
+  "sectionFolded": "{{title}}：{{mode}}",
+  "sectionExpand": "展開地球上的統計",
+  "sectionCollapse": "收合地球上的統計"
 }

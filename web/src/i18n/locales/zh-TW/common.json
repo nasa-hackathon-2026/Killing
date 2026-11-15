@@ -36,7 +36,7 @@
   "dataKind": {
     "in_situ": {
       "label": "現地觀測",
-      "short": "現地",
+      "short": "測站",
       "general": "由現場的儀器直接量到。",
       "expert": "資料性質：現地觀測。"
     },

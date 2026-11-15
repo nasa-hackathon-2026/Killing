@@ -3,7 +3,7 @@
 // facts (companionLine.ts); the browser reads it aloud only after the user
 // turns the voice on. "Gather" shows all twelve in one composition, and
 // ?companions=gallery lays them out for a screenshot.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendKey, type TrendsFile } from "../analysis/trends";
 import { rememberFlag, storedFlag, useI18n } from "../i18n";
@@ -11,6 +11,7 @@ import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
+import { CompanionCaption, CompanionToolbar } from "./CompanionControls";
 import { companionReading, type CompanionReading } from "./companionData";
 import { companionSpeechParts, spokenLine } from "./companionLine";
 import { GROUND_Y, VIEW_HEIGHT_BARE } from "./companionShape";
@@ -20,7 +21,6 @@ import {
   companionName,
   companionTitle,
   companionVariable,
-  dataKindShort,
   type CompanionSpec,
 } from "./companionSpec";
 import { gatherLayout } from "./gather";
@@ -330,48 +330,24 @@ export function CompanionDock({
     </div>
   ) : null;
 
-  const controls = (
-    <>
-      {canSpeak ? (
-        <button
-          type="button"
-          className="companion-voice"
-          aria-pressed={voiceOn}
-          title={t("companions.voiceTitle")}
-          onClick={toggleVoice}
-        >
-          <svg viewBox="0 0 20 16" width="15" height="12" aria-hidden="true">
-            <path d="M1 5.5h3.5L9 2v12L4.5 10.5H1z" fill="currentColor" />
-            {voiceOn ? (
-              <path
-                d="M12 4.5a5 5 0 0 1 0 7M14.5 2a8.5 8.5 0 0 1 0 12"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            ) : (
-              <path
-                d="M12.5 5l5 6M17.5 5l-5 6"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            )}
-          </svg>
-          {t(voiceOn ? "companions.voiceOn" : "companions.voiceOff")}
-        </button>
-      ) : null}
-      <button
-        type="button"
-        className="companion-narrate"
-        aria-pressed={narrate}
-        title={t("companions.narrateTitle")}
-        onClick={toggleNarrate}
-      >
-        {t(narrate ? "companions.narrateOn" : "companions.narrateOff")}
-      </button>
-    </>
+  function closeGather() {
+    setGathered(false);
+    setSelectedId(null);
+    stopSpeaking();
+  }
+
+  const toolbar = (children?: ReactNode) => (
+    <CompanionToolbar
+      canSpeak={canSpeak}
+      voiceOn={voiceOn}
+      narrate={narrate}
+      gathered={gathered}
+      onVoice={toggleVoice}
+      onNarrate={toggleNarrate}
+      onGather={() => (gathered ? closeGather() : setGathered(true))}
+    >
+      {children}
+    </CompanionToolbar>
   );
 
   if (gallery) {
@@ -495,12 +471,7 @@ export function CompanionDock({
           </ul>
         ) : (
           <>
-            <div className="companion-tools">
-              {controls}
-              <button type="button" onClick={() => setGathered(true)}>
-                {t("companions.gather.open")}
-              </button>
-            </div>
+            {toolbar()}
             {shown.length === 0 ? (
               <div className="companion-empty-state">
                 <Companion
@@ -551,13 +522,11 @@ export function CompanionDock({
                           showLabel={false}
                           warning={false}
                         />
-                        <span className="companion-name">
-                          {companionTitle(spec)}
-                          <span className="companion-sub">
-                            {" "}
-                            {dataKindShort(spec.dataKind)}
-                          </span>
-                        </span>
+                        <CompanionCaption
+                          title={companionTitle(spec)}
+                          reading={formatMeasurement(reading.raw, reading.unit)}
+                          kind={spec.dataKind}
+                        />
                       </button>
                       {reading.caveat ? (
                         <button
@@ -584,9 +553,7 @@ export function CompanionDock({
                 })}
               </ol>
             )}
-            <p className="companion-foot">
-              {t("companions.foot")} {t("companions.interactionNote")}
-            </p>
+            <p className="companion-foot">{t("companions.foot")}</p>
           </>
         )}
         {!gathered ? bubble : null}
@@ -601,19 +568,11 @@ export function CompanionDock({
               {t("companions.gather.open")} · {locationName}
               {month ? ` · ${month.slice(0, 7)}` : ""}
             </p>
-            <div className="companion-tools">
-              {controls}
-              <button
-                type="button"
-                onClick={() => {
-                  setGathered(false);
-                  setSelectedId(null);
-                  stopSpeaking();
-                }}
-              >
+            {toolbar(
+              <button type="button" onClick={closeGather}>
                 {t("common.action.close")}
-              </button>
-            </div>
+              </button>,
+            )}
           </header>
           <div className="companion-gather-stage">
             <Backdrop />

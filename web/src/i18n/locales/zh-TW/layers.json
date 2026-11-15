@@ -16,5 +16,8 @@
   "compareStation": "和測站比較",
   "compareObservations": "和觀測比較",
   "cautionHint": "有已知的資料問題：展開這個圖層可看注意事項。",
-  "showAria": "顯示{{name}}"
+  "showAria": "顯示{{name}}",
+  "drawerHandle": "圖層與統計",
+  "drawerOpen": "打開圖層與統計",
+  "drawerClose": "收合圖層與統計"
 }

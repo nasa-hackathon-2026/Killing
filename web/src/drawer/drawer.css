@@ -1,0 +1,129 @@
+/* The right drawer (RightDrawer.tsx): Layers and the statistics on the
+   globe in one panel on the right edge, with a handle that opens and
+   closes it. Same width and gap as the Layers panel had, so the layer
+   view's PANEL_COLUMN stays as it is. It never reaches below the top of the
+   timeline bar; longer content scrolls inside it. */
+.drawer-root {
+  --drawer-width: 306px;
+  --drawer-handle-width: 28px;
+  --drawer-gap: 12px;
+  --drawer-top: 64px;
+  --drawer-floor: calc(
+    var(--timeline-bottom, 72px) + var(--timeline-height, 108px) + 8px
+  );
+  --drawer-slide: 250ms;
+}
+
+/* The shell is fixed to the window's right edge, top to bottom, as wide as
+   the panel plus its gap, with no background: closed, it slides out by its
+   own width, so it leaves no box on the page and adds nothing to the
+   page's width. Only the panel and the handle take the pointer. */
+.drawer-shell {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: calc(
+    min(var(--drawer-width), calc(100% - 2 * var(--drawer-gap))) +
+      var(--drawer-gap)
+  );
+  pointer-events: none;
+  transition: transform var(--drawer-slide) ease;
+}
+
+.drawer-root[data-open="false"] .drawer-shell {
+  transform: translateX(100%);
+}
+
+.right-drawer {
+  position: absolute;
+  top: var(--drawer-top);
+  right: var(--drawer-gap);
+  left: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - var(--drawer-top) - var(--drawer-floor));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  color: #e8eef7;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
+  pointer-events: auto;
+  transition: visibility 0s linear 0s;
+}
+
+/* Hidden once the slide is over (inert also takes it out of the tab order;
+   the handle, outside it, stays reachable). */
+.drawer-root[data-open="false"] .right-drawer {
+  visibility: hidden;
+  transition: visibility 0s linear var(--drawer-slide);
+}
+
+/* Sections: Layers, then the statistics on the globe. */
+.right-drawer > * + * {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Just outside the panel's left edge, halfway down the window; it moves
+   with the shell, so closed it sits on the window's right edge. */
+.drawer-handle {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  box-sizing: border-box;
+  width: var(--drawer-handle-width);
+  height: 64px;
+  margin-top: -32px;
+  padding: 0;
+  color: #e8eef7;
+  font:
+    600 16px/1 system-ui,
+    sans-serif;
+  background: rgba(8, 14, 28, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.drawer-handle:hover {
+  background: rgba(30, 44, 70, 0.95);
+}
+
+/* Narrow screens: the open drawer is a sheet under the HUD, leaving the
+   handle visible on its left; above the timeline bar. */
+@media (max-width: 700px) {
+  .drawer-root {
+    --drawer-top: 60px;
+    --drawer-width: calc(
+      100% - 2 * var(--drawer-gap) - var(--drawer-handle-width)
+    );
+  }
+
+  .drawer-shell {
+    z-index: 4;
+  }
+
+  /* Opaque: it covers the companion chip and the globe. */
+  .right-drawer {
+    background: rgba(8, 14, 28, 0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-shell,
+  .right-drawer,
+  .drawer-root[data-open="false"] .right-drawer {
+    transition: none;
+  }
+}

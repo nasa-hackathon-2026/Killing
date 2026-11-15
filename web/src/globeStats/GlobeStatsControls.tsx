@@ -1,6 +1,6 @@
 import { GLOBE_MODE_IDS } from "./globeStatsMode";
 import { useI18n } from "../i18n";
-import { GLOBE_STATS_TEXT as T } from "./globeStatsText";
+import { GLOBE_STATS_TEXT as T, modeLabel } from "./globeStatsText";
 import type { GlobeStatsState } from "./useGlobeStats";
 import "./globeStats.css";
 
@@ -21,11 +21,7 @@ export function GlobeStatsControls({ state }: { state: GlobeStatsState }) {
         >
           {GLOBE_MODE_IDS.map((mode) => (
             <option key={mode} value={mode}>
-              {
-                T[
-                  `mode${mode[0]?.toUpperCase()}${mode.slice(1)}` as keyof typeof T
-                ]
-              }
+              {modeLabel(mode)}
             </option>
           ))}
         </select>

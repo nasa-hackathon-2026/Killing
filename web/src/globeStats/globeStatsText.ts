@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import type { GlobeMode } from "./globeStatsMode";
 
 export const GLOBE_STATS_TEXT = {
   get controlLabel() {
@@ -223,3 +224,10 @@ export const GLOBE_STATS_TEXT = {
 } as const;
 
 export type GlobeStatsTextKey = keyof typeof GLOBE_STATS_TEXT;
+
+// The name of a mode in the active language ("Trend at every place").
+export function modeLabel(mode: GlobeMode): string {
+  const key =
+    `mode${mode[0]?.toUpperCase()}${mode.slice(1)}` as GlobeStatsTextKey;
+  return GLOBE_STATS_TEXT[key];
+}

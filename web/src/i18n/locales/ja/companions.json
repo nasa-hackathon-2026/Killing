@@ -5,13 +5,11 @@
   "collapse": "Collapse companions",
   "noLayer": "No layer on",
   "empty": "Turn on a layer to meet its companion",
-  "foot": "Click a companion for its numbers.",
+  "foot": "Click a companion for its numbers; interactions are illustrative, not cause and effect.",
   "interactionNote": "Interactions are illustrative; they do not show cause and effect.",
   "voiceOn": "Voice on",
   "voiceOff": "Voice off",
   "voiceTitle": "Read the selected companion's words aloud (browser voice)",
-  "narrateOn": "Guide on",
-  "narrateOff": "Guide off",
   "narrateTitle": "When on, a companion speaks up when you turn on a layer, change place or pause",
   "sayAria": "{{name}}: say the numbers",
   "cautionAria": "{{name}}: known problem, show the caution",
@@ -79,7 +77,8 @@
     "open": "Gather",
     "aria": "Gather: all companions",
     "foot": "In the middle, a form of the sky or air points up and a form of the surface or ground holds a palm down; higher forms stand on the upper steps. The arrangement is illustrative and shows no cause and effect.",
-    "credit": "Composition inspired by Raphael, The School of Athens (1509–1511), public domain."
+    "credit": "Composition inspired by Raphael, The School of Athens (1509–1511), public domain.",
+    "title": "Group view"
   },
   "interactions": {
     "vaporRain": "Vapor above Rain: a drop passes down.",
@@ -89,5 +88,7 @@
     "soilEvaporation": "Soil below Evaporation: beads pass up.",
     "glowBelow": "A temperature companion's light falls on the one below.",
     "glowAbove": "A temperature companion's light falls on the one above."
-  }
+  },
+  "voice": "Voice",
+  "narrate": "Guide"
 }

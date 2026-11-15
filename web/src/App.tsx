@@ -79,8 +79,9 @@ import {
   trendMapVariable,
 } from "./trendmap/trendMapConfig";
 import { TrendMapLegend } from "./trendmap/TrendMapLegend";
-import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
-import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
+import { GlobeStatsSection } from "./globeStats/GlobeStatsSection";
+import { RightDrawer } from "./drawer/RightDrawer";
+import { useRightDrawer } from "./drawer/useRightDrawer";
 import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
 import { useGlobeStats } from "./globeStats/useGlobeStats";
 import {
@@ -398,6 +399,7 @@ function AppView({
     timeline.selectedVariableId ??
     controls.find((layer) => layer.visible)?.id ??
     null;
+  const drawer = useRightDrawer();
   const globeStats = useGlobeStats({
     hidden: strata.phase !== "off" || closeUpId !== null,
     places: globePlaces,
@@ -653,51 +655,57 @@ function AppView({
           onEnd={endTour}
         />
       ) : null}
-      <LayerPanel
-        layers={layerRegistry}
-        controls={controls}
-        readings={readings}
-        trends={trends}
-        signals={signals}
-        locationName={placeName}
-        // The layer view needs a point, so the global mean is not offered
-        // while it is open.
-        places={strata.phase === "off" ? places : places.filter(hasCoordinates)}
-        locationId={locationId}
-        onLocation={(id) => selectPlace(id, true)}
-        placeNote={placeNote(place, voice)}
-        onHowTo={() => {
-          setHowToOpen(true);
-          setGuideOpen(true);
-        }}
-        compareLinks={compareLinks}
-        months={months}
-        month={activeMonth}
-        onMonth={timeline.setMonth}
-        onToggle={(id) =>
-          setControls((current) =>
-            current.map((layer) =>
-              layer.id === id ? { ...layer, visible: !layer.visible } : layer,
-            ),
-          )
-        }
-        onOpacity={(id, opacity) =>
-          setControls((current) =>
-            current.map((layer) =>
-              layer.id === id ? { ...layer, opacity } : layer,
-            ),
-          )
-        }
-        onCloseUp={(id) => {
-          setGuideOpen(false);
-          setCloseUpId(id);
-        }}
-        chartId={timeline.selectedVariableId}
-        onChart={(id) => {
-          setGuideOpen(false);
-          timeline.setSelectedVariableId(id);
-        }}
-      />
+      <RightDrawer open={drawer.open} onOpenChange={drawer.setOpen}>
+        <LayerPanel
+          layers={layerRegistry}
+          controls={controls}
+          readings={readings}
+          trends={trends}
+          signals={signals}
+          locationName={placeName}
+          // The layer view needs a point, so the global mean is not offered
+          // while it is open.
+          places={
+            strata.phase === "off" ? places : places.filter(hasCoordinates)
+          }
+          locationId={locationId}
+          onLocation={(id) => selectPlace(id, true)}
+          placeNote={placeNote(place, voice)}
+          onHowTo={() => {
+            setHowToOpen(true);
+            setGuideOpen(true);
+          }}
+          compareLinks={compareLinks}
+          months={months}
+          month={activeMonth}
+          onMonth={timeline.setMonth}
+          onToggle={(id) =>
+            setControls((current) =>
+              current.map((layer) =>
+                layer.id === id ? { ...layer, visible: !layer.visible } : layer,
+              ),
+            )
+          }
+          onOpacity={(id, opacity) =>
+            setControls((current) =>
+              current.map((layer) =>
+                layer.id === id ? { ...layer, opacity } : layer,
+              ),
+            )
+          }
+          onCloseUp={(id) => {
+            setGuideOpen(false);
+            setCloseUpId(id);
+          }}
+          chartId={timeline.selectedVariableId}
+          onChart={(id) => {
+            setGuideOpen(false);
+            timeline.setSelectedVariableId(id);
+          }}
+          onNarrowOpen={drawer.close}
+        />
+        <GlobeStatsSection state={globeStats} />
+      </RightDrawer>
       <TimelineDock
         series={here}
         variables={layerRegistry}
@@ -720,10 +728,6 @@ function AppView({
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
       <div className="map-legends" hidden={globeStats.hidden}>
-        <div className="globe-stats-selectors">
-          <GlobeStatsControls state={globeStats} />
-        </div>
-        <GlobeStatsPanel state={globeStats} />
         <TrendMapLegend
           state={trendMap}
           opacity={trendMapOpacity}

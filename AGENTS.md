@@ -191,7 +191,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **鏡頭**：`web/src/scene/FlyCamera.tsx` 收一個 `FlyTarget`（緯度、經度、距離），沿大圓弧轉過去（重用 `strataCamera.ts` 的 `approachPosition`，不會穿過地球）；「減少動態效果」或 `instant` 時直接到位。從選單選地點會飛；點台灣的標記不飛。12 個世界城市（選單、城市標記、或網址 `?at=`）沿大圓弧滑到該城市，城市在視線軸上、距離用選地點的距離（`web/src/scene/worldCityFrame.ts`）；減少動態效果時直接到位。全球平均沒有座標：沒有標記、不飛、不能進分層視圖（Layer view 鈕停用，分層視圖開著時選單不列 Global）。拖曳旋轉在比預設觀看距離更近時依「目前距離 ÷ 預設距離」變慢（`web/src/scene/orbitSpeed.ts`）；滾輪縮放、飛行動畫與分層視圖的拖曳不走這個係數。
 - **Compare 連結**：`analysis/modelVsObs.ts` 的 `compareLinksFor` 依 `model_vs_obs.json` 找出該地點（或台灣的 `<地點>_station`）有配對的模式變數，圖層面板在該變數旁顯示 "Compare with station"（觀測是 GISTEMP 格點時寫 "Compare with observations"）。
 - **不畫國界、不標示國家歸屬**；城市清單照 `data/seed/locations.world.json`，顯示名稱用它的 `name_en`。
-- 已知限制：世界地點沒有 MODIS 兩個圖層（顯示 "No data at this place"）；城市的值是該產品一個格點的值，不是都市範圍；全球平均含海面、沒有陸地遮罩，起始月有的比點位早（格點立方體從產品第一個月開始）；手機寬度時地點選單在收合的 Layers 面板裡。
+- 已知限制：世界地點沒有 MODIS 兩個圖層（顯示 "No data at this place"）；城市的值是該產品一個格點的值，不是都市範圍；全球平均含海面、沒有陸地遮罩，起始月有的比點位早（格點立方體從產品第一個月開始）；手機寬度時地點選單在預設收合的右側抽屜裡。
 
 ## 前端形態與近看檢視（#60）
 地球上每個圖層「遠看」是一種形態（粒子），從圖層面板的 Close-up 按鈕「近看」是分子結構與過程示意。展示實驗場 `web/lab/`（`/lab/`）可以逐一檢視，網址參數 `?variable=<變數 id>&value=0.6&trend=1&closeup=1` 可指定起始畫面；主畫面支援 `?layers=<id,id>&closeup=<變數 id>`。
@@ -224,7 +224,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **開場鏡頭與地點標記（#126）**：頁面載入時鏡頭直接對準選定的地點（`App.tsx` 的 `useStartFlight`，與 `?at=` 的世界城市同一條路徑；台灣地點用整顆地球看得到的 `START_DISTANCE`，全球平均沒有座標就維持預設朝向）。選定地點在 `scene/Markers.tsx` 有白色外圈、脈動環（`prefers-reduced-motion` 時不畫）與名稱標籤（drei 的 `<Html>`，轉到背面時隱藏）。時間軸列下方的一行字（`guide/particleNote.ts`，純函式，有測試）說明粒子只代表選定地點該月的一個數值、不是地圖；趨勢地圖開著時補一句它才是地圖。
 - **卡片文字**在 `GuideCard.tsx`：一句話說明與三個步驟只描述工具做什麼，「How to read this」只講怎麼讀圖（粒子、▲▼◇、Not significant、資料性質、警語），措辭沿用圖層面板；**不寫科學結論**。開圖表、近看、趨勢地圖或進分層視圖時卡片會自動收起（它們用同一個左側位置），不算關閉。
 - **HUD 只有一列、不換行**（`index.css` 的 `.hud`）：? Guide、Layer view、Global trend map、Fly to Taiwan、More。次要連結（Model vs observation、Data mining、Form lab）與除錯資訊（Renderer、FPS、Force WebGL）在 More 的 `<details>` 裡。所有面板從 `top: 64px` 開始，所以 HUD 不能長到第二列；要加按鈕就放進 More，或在窄螢幕的 media query 裡把別的收掉。
-- **面板的位置（主畫面）**：左側是開始卡片／趨勢地圖圖例（290 px）／時間序列圖（440 px，圖例開著時排在它右邊並視窗寬度縮窄）；右側是 Layers 面板（306 px，`border-box`，可收合）與它左邊的 Companions（`right: 326px`）；下方中央是時間軸列。夥伴的那句話開在 Companions 面板裡面（不再浮在面板左邊），所以不會蓋到圖。1180 px 以下時間軸列與圖改靠左、圖是時間軸列上方的抽屜（寬度留給 Companions；圖例同時開著時圖例縮成 150 px 高、可捲動）；900 px 以下圖開著時 Companions 讓位；近看檢視（`.closeup`）是蓋在左側的一張，會蓋住時間序列圖，高度停在時間軸列上方，1180 px 以下開著時 Companions 讓位；700 px 以下 Layers 與 Companions 預設收合成 HUD 下方左右兩個小方塊，Layers 展開時是蓋住畫面的一張，按 Chart 或 Close-up 會自動收起。
+- **面板的位置（主畫面）**：左側是開始卡片／趨勢地圖圖例（290 px）／時間序列圖（440 px，圖例開著時排在它右邊並視窗寬度縮窄）；右側是抽屜（306 px，Layers 與地球上的統計，見「前端的右側抽屜」）；Companions 在左上角（開始卡片、時間序列圖、近看開著時移到它們右邊，寬度用 `.app` 上的 `--guide-card-width`、`--chart-left`／`--chart-width`、`--closeup-width`；左上角的面板都停在 `--left-floor`，也就是左下的說明句與圖例上方）；下方中央是時間軸列。夥伴的那句話開在 Companions 面板裡面（不再浮在面板左邊），所以不會蓋到圖。1180 px 以下時間軸列與圖改靠左、圖是時間軸列上方的抽屜（寬度留給 Companions；圖例同時開著時圖例縮成 150 px 高、可捲動）；900 px 以下圖開著時 Companions 讓位；近看檢視（`.closeup`）是蓋在左側的一張，會蓋住時間序列圖，高度停在時間軸列上方，1180 px 以下開著時 Companions 讓位；700 px 以下 Companions 預設收合成 HUD 下方左側的小方塊，抽屜預設收合、展開時是 HUD 下方蓋住畫面的一張，從抽屜按 Chart 或 Close-up 會自動收起。
 - **分層視圖開著時的停靠規則**（CSS 在 `strata.css` 的「Docking」一段，鏡頭留白在 `strataCamera.ts` 的 `viewInsets`，兩邊的數字要對得上：`LABEL_COLUMN`、`PANEL_COLUMN`、`CHART_COLUMN`、`HUD_RESERVE`、`TIMELINE_RESERVE`）：
 
   | 視窗寬度 | 左欄 | 中間 | 右側 |
@@ -262,6 +262,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **台詞的限制（不可放寬）**：只能是資料事實——變數、地點、月份、數值與單位、與同月份平均的差、每十年變化量與顯著性、已知問題的警語、資料性質。**不寫原因、不下結論、不寫情緒性的判斷**；官方規定點子不能由 AI 產生，詮釋留給隊伍。表情只有姿態三級，不做哭笑臉。
 - **角色必須原創**：不重現任何既有動漫、遊戲、品牌角色的外形、名字、配色或招牌表情；名字用形態本身的英文。全部用程式畫，不加外部圖片、字型、音檔；語音只用瀏覽器的 `speechSynthesis`（`speech.ts`），預設關閉，只在使用者點擊或播放暫停時念。
 - **並存與互動**：面板依 `altitudeOrder` 由上而下排，5 隻以上改兩欄（`ONE_COLUMN_MAX`，為了不蓋到下方的時間軸列）。相鄰兩隻的互動規則是資料（`interactions.ts` 的 `INTERACTION_RULES`：滴水、上升的小珠、氣溫角色的暖光），只是示意，不代表因果，面板底部有註明；兩欄時不顯示互動。
+- **面板的內容**（`CompanionControls.tsx`，有測試）：最上面三個固定名稱的開關「語音／解說／合影」（`CompanionToolbar`，圖示加文字，開著時亮起並 `aria-pressed`，狀態不寫在字裡；沒有語音合成的瀏覽器沒有語音那顆；合影那顆本身就是開關，點亮時再點一次收回）；每隻夥伴名稱下方是當月數值與單位（`formatMeasurement`，和圖層面板同一個函式）與資料來源小標籤（衛星／模式／測站，`common.dataKind.*.short`；`CompanionCaption`）；底部只有一句 `companions.foot`。頭上 ◇▲▼ 的 tooltip 是 `Companion.tsx` 的 `TrendGlyph` 的 `<title>`，用 `trendMark` 的 label（與圖層面板 `TrendMarkIcon` 同一個來源），另有透明感應區（空心標記只有線條會吃滑鼠）。面板寬 240 px（雙欄 264 px）。
 - **Gather**：`gather.ts` 的 `gatherLayout` 把 12 隻排成借用拉斐爾〈雅典學院〉構圖意象的畫面（中央一隻 `sky`／`air` 指上、一隻 `surface`／`ground` 手掌向下，優先選已開啟的圖層；其餘依高度站兩側台階），背景只有幾條拱門與台階線，畫面上註明出處。不貼原畫。
 - **分層視圖開著時**（`compact`）面板自動收合（同一批角色已站在各層上；頭像列由 `strata.css` 隱藏，只留標題），仍可按 + 展開。
 - **目前月份**：`useCurrentMonth.ts` 是唯一的轉接點，讀時間軸的 `useTimeline()`（`month`、`playing`），所以 `<CompanionDock />` 要放在 `TimelineProvider` 裡面。播放中只更新外形，不念語音；暫停時才念選取角色的那句話。
@@ -291,6 +292,14 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
 - **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES` 提供趨勢圖與全球分布需要的 metadata、趨勢斜率、顯著性、月氣候值；逐年平均不進 `dist`。新增前端圖層時才擴充這個清單。
 - 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77），顏色強度再隨變化量調淡（#81，見上）；之後 MERRA-2、AIRS 看得出海岸線與陸地，MERRA-2 顯著升溫的區域仍有一層淡紅，要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
+
+## 前端的右側抽屜（#185）
+主畫面右側的「圖層」與「地球上的統計」合在一個抽屜裡，右緣垂直置中的把手（`<`／`>`）開關它。程式在 `web/src/drawer/`，樣式在同目錄的 `drawer.css`（類別 `drawer-` 與 `right-drawer`）；`App.tsx` 只掛一個 `<RightDrawer>`，裡面放 `LayerPanel` 與 `GlobeStatsSection`。
+
+- **開關的規則是純函式**（`drawerState.ts`，有測試）：`drawerOpenAtStart` 依序看網址有沒有檢視參數（`guide/firstVisit.ts` 的 `hasViewParams`，有就展開）、存過的選擇（`localStorage` 的 `estd.drawer.open`，讀寫都包 try/catch）、視窗寬度（> 1180 展開）。`useRightDrawer` 的 `setOpen` 是使用者的選擇（把手、Esc）會記住；`close` 是頁面自己讓位（窄螢幕從 Layers 開圖表或近看，`LayerPanel` 的 `onNarrowOpen`）不記住。
+- **鍵盤**：Esc 只在焦點位於抽屜或把手時收合，並把焦點移回把手（導覽與 Gather 各自用 Esc）；收合時抽屜是 `inert`，Tab 不會進去。
+- **版面**：外框 `.drawer-shell` 是 `position: fixed`、貼右緣上下到底、沒有背景，收合時整個 `translateX(100%)` 移出畫面，所以不會撐寬頁面；把手在外框裡、緊貼面板左緣外側，跟著一起移動。面板寬度與右邊距和原本的 Layers 面板相同（306 px、12 px），所以分層視圖的 `PANEL_COLUMN` 不用改；最高到時間軸列上緣，內容過長在抽屜內捲動。滑動 250 ms，`prefers-reduced-motion` 時不動畫。`html` 有 `overflow-x: hidden`（不放在 `.app`：那會讓 `.app` 變成可捲動的容器）。分層視圖的停靠規則（`strata.css`）改針對 `.right-drawer`／`.drawer-root`。
+- **統計區塊**（`globeStats/GlobeStatsSection.tsx`）：標題加收合鈕，收合時標題寫目前模式（`globeStats.sectionFolded`）；內容是原本的 `GlobeStatsControls` 與 `GlobeStatsPanel`。模式名稱一律用 `globeStatsText.ts` 的 `modeLabel`。左側的 `.map-legends` 仍放趨勢地圖圖例、全球分布圖例（`FieldToggle` 會找它）與粒子說明。
 
 ## 前端的全球分布（#134）
 

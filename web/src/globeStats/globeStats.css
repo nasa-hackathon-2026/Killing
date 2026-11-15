@@ -37,8 +37,7 @@
 }
 
 .app .map-legends > .trendmap,
-.app .map-legends > .field-legend,
-.app .map-legends > .globe-stats-panel {
+.app .map-legends > .field-legend {
   position: static;
   flex: none;
   box-sizing: border-box;
@@ -46,16 +45,25 @@
   max-height: none;
 }
 
+/* The statistics sit in the right drawer (drawer/drawer.css), which gives
+   them their box: the menus, then the panel with the result's sentence,
+   legend and table. */
 .globe-stats-selectors {
   display: grid;
   gap: 8px;
-  padding: 8px 12px;
-  background: #101a2b;
-  border: 1px solid #63768f;
-  border-radius: 8px;
   font:
     12px/1.4 system-ui,
     sans-serif;
+}
+
+/* The section title above already names the mode menu. */
+.globe-stats-control > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .globe-stats-selectors label {
@@ -72,25 +80,11 @@
 }
 
 .globe-stats-panel {
-  position: absolute;
-  bottom: calc(
-    var(--timeline-bottom, 72px) + var(--timeline-height, 108px) + 8px
-  );
-  left: 12px;
-  z-index: 2;
-  box-sizing: border-box;
-  width: min(360px, calc(100% - 24px));
-  max-height: min(38vh, calc(100% - 88px));
-  overflow: auto;
-  padding: 10px 12px;
+  margin-top: 8px;
   color: #e8eef7;
-  background: rgba(8, 14, 28, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
   font:
     12px/1.4 system-ui,
     sans-serif;
-  touch-action: auto;
 }
 
 .globe-stats-panel p {
@@ -312,13 +306,6 @@
 @media (max-width: 700px) {
   .map-legends {
     max-height: 28vh;
-  }
-
-  .globe-stats-panel {
-    bottom: calc(
-      var(--timeline-bottom, 92px) + var(--timeline-height, 112px) + 8px
-    );
-    max-height: 24vh;
   }
 
   .globe-stats-table {
