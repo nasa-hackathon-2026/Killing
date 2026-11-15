@@ -12,6 +12,7 @@ import { monthYear, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
 import type { LayerControl } from "../layers/LayerPanel";
 import { layerRegistry } from "../layers/registry";
+import { UnitText } from "../snapshot/UnitText";
 import { CompanionSlot } from "./companionSlot";
 import "./strata.css";
 import {
@@ -237,7 +238,9 @@ export function StrataView({
                 }
               >
                 <span className="strata-value-name">{nameOf(variableId)}</span>
-                <b>{readings[variableId] ?? ""}</b>
+                <b>
+                  <UnitText text={readings[variableId] ?? ""} />
+                </b>
               </span>
             ))}
           </button>
@@ -332,7 +335,9 @@ export function StrataView({
                   <p className="strata-detail-name">
                     <span>{nameOf(variableId)}</span>
                     {signal ? <TrendMarkIcon signal={signal} /> : null}
-                    <b>{readings[variableId] ?? ""}</b>
+                    <b>
+                      <UnitText text={readings[variableId] ?? ""} />
+                    </b>
                   </p>
                   <TrendBlock
                     variableId={variableId}

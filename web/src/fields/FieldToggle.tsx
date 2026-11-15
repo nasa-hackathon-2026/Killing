@@ -7,6 +7,7 @@ import { formColor } from "../forms/formColor";
 import { localNumber, monthName, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
 import { layerRegistry } from "../layers/registry";
+import { UnitText } from "../snapshot/UnitText";
 import { useTimeline } from "../timeline/TimelineContext";
 import { fieldVariable } from "./fieldConfig";
 import { seededRandom } from "./fieldGrid";
@@ -184,7 +185,7 @@ function FieldLegend({
         </span>
       </summary>
       <p className="field-legend-caption">
-        {fieldText.densityCaption} ({display.unit})
+        <UnitText text={`${fieldText.densityCaption} (${display.unit})`} />
       </p>
       <DensityStrip color={color} />
       <p
