@@ -81,7 +81,7 @@ export function LayerPanel({
   onChart,
   onHowTo,
 }: LayerPanelProps) {
-  const { t, settings } = useI18n();
+  const { t } = useI18n();
   const monthIndex = month ? months.indexOf(month) : -1;
   const [collapsed, setCollapsed] = useState(isNarrow);
   // The one layer whose details are open (layerAccordion.ts); none at first.
@@ -164,9 +164,6 @@ export function LayerPanel({
             {t("common.action.howToRead")}
           </button>
         </p>
-      ) : null}
-      {trends && settings.readingAid ? (
-        <p className="layers-note">{t("layers.trendNote")}</p>
       ) : null}
       <ul>
         {layers.map((layer) => {

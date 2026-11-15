@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { setRole } from "../i18n";
 import { LayerPanel } from "./LayerPanel";
 import { LayerRow, type LayerRowProps } from "./LayerRow";
 import { layerRegistry } from "./registry";
@@ -94,6 +95,7 @@ describe("the Layers panel", () => {
         ],
         readings: { imerg_precip: "0.32 mm/hr", gldas_tair: "28.0 °C" },
         locationName: "Taichung",
+        trends: { gldas_tair: base.trend ?? null },
         months: ["2025-06-01"],
         month: "2025-06-01",
         onMonth: noop,
@@ -115,6 +117,17 @@ describe("the Layers panel", () => {
       html.match(/class="layer-row-toggle" aria-expanded="false"/g)?.length,
     ).toBe(2);
     expect(html).not.toContain('type="range" min="0.15"');
+  });
+
+  it("keeps only the how-to link above the rows in researcher mode", () => {
+    setRole("researcher");
+    try {
+      const html = panel();
+      expect(html).toContain("How to read this");
+      expect(html).not.toContain("Trend: linear change");
+    } finally {
+      setRole("everyone");
+    }
   });
 });
 
