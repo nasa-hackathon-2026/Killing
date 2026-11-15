@@ -403,7 +403,6 @@ function AppView({
   };
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
-  const months = timeline.months;
   const activeMonth = timeline.month;
   const intensities: Record<string, number> = {};
   const available: Record<string, boolean> = {};
@@ -792,9 +791,6 @@ function AppView({
           setGuideOpen(true);
         }}
         compareLinks={compareLinks}
-        months={months}
-        month={activeMonth}
-        onMonth={timeline.setMonth}
         onToggle={(id) =>
           setControls((current) =>
             current.map((layer) =>

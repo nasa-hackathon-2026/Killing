@@ -1,0 +1,30 @@
+/* Tailwind CSS v4 (#201), without its preflight reset: the existing
+   stylesheets (index.css, theme/controls.css, …) stay as they are, and
+   components move to utilities one at a time. Cascade layers: the existing
+   unlayered CSS beats every utility, so a component that moves to Tailwind
+   must drop its old rules first; that also keeps a stray old rule from
+   quietly changing a new component. Each entry imports this file once, after
+   controls.css. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Design tokens: the colours the page already used (controls.css --ctl-*
+   and the panel backgrounds in index.css), as Tailwind theme values, so
+   `bg-panel`, `text-muted`, `border-line` and so on read from one place. */
+@theme {
+  --color-panel: rgba(8, 14, 28, 0.78);
+  --color-panel-solid: #0f1a2e;
+  --color-ink: #e8eef7;
+  --color-muted: #b7c6da;
+  --color-soft: #d5e4f5;
+  --color-line: rgba(255, 255, 255, 0.22);
+  --color-line-strong: #8fa3bd;
+  --color-accent: #8ec8ff;
+  --color-accent-strong: #cfe3ff;
+  --color-on-accent: #0b1220;
+  --color-focus: #ffd166;
+  --color-hover: rgba(255, 255, 255, 0.07);
+  --radius-panel: 8px;
+  --font-sans: system-ui, sans-serif;
+}

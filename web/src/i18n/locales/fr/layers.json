@@ -16,5 +16,7 @@
   "compareStation": "Comparer avec la station",
   "compareObservations": "Comparer avec les observations",
   "cautionHint": "Problème de données connu : ouvre cette couche pour lire la mise en garde.",
-  "showAria": "Afficher {{name}}"
+  "showAria": "Afficher {{name}}",
+  "display": "Affichage",
+  "opacity": "Opacité"
 }

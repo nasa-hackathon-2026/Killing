@@ -418,204 +418,9 @@ body,
     sans-serif;
 }
 
-.layers-title,
-.layers-note {
-  margin: 0 0 8px;
-}
-
-.layers-title {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.layers-title button {
-  padding: 1px 8px;
-  color: inherit;
-  font: inherit;
-  background: rgba(8, 14, 28, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 6px;
-  cursor: pointer;
-}
-
 .layers.layers-collapsed {
   width: auto;
   padding: 8px 12px;
-}
-
-.layers-collapsed .layers-title {
-  margin: 0;
-}
-
-.layers-note {
-  color: #b7c6da;
-}
-
-.layers ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.layers li {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* One layer (layers/LayerRow.tsx). Folded: one line with the on/off box and
-   a button holding the name, the trend mark, the caution mark, the value and
-   a chevron. The button opens the details below; one row is open at a time. */
-.layers ul:has(> .layer-row) {
-  gap: 0;
-}
-
-.layer-row + .layer-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.layer-row-head {
-  position: relative;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.layer-row-head input[type="checkbox"] {
-  flex: none;
-  margin: 0;
-}
-
-.layer-row-toggle {
-  display: flex;
-  flex: 1;
-  gap: 6px;
-  align-items: center;
-  min-width: 0;
-  min-height: 30px;
-  padding: 4px;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  background: none;
-  border: 0;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.layer-row-toggle:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* A long name and a long value share the line: the name keeps about three
-   characters and is cut first (its full text is the title and the box's
-   label); the value, with its unit, is cut only when it alone is too long
-   for the row. */
-.layer-row-name {
-  flex: 0 1 auto;
-  min-width: 3em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-row-toggle .reading {
-  flex: none;
-  max-width: 62%;
-  overflow: hidden;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.layer-caution {
-  flex: none;
-  color: #ffb84d;
-  font-size: 12px;
-}
-
-.layer-row-chevron {
-  flex: none;
-  color: #b7c6da;
-  line-height: 1;
-  transition: transform 0.15s ease;
-}
-
-.layer-row-open .layer-row-chevron {
-  transform: rotate(180deg);
-}
-
-/* The caution hint of a folded row: while the mark is hovered or the row's
-   button has keyboard focus. An open row shows the whole caution instead. */
-.layer-caution-tip {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  left: 22px;
-  z-index: 2;
-  padding: 4px 8px;
-  color: #ffe2b0;
-  font-size: 12px;
-  background: rgba(20, 24, 36, 0.97);
-  border: 1px solid rgba(255, 184, 77, 0.6);
-  border-radius: 6px;
-}
-
-.layer-row:not(.layer-row-open)
-  .layer-row-head:has(.layer-caution:hover)
-  .layer-caution-tip,
-.layer-row:not(.layer-row-open)
-  .layer-row-toggle:focus-visible
-  ~ .layer-caution-tip {
-  display: block;
-}
-
-.layer-row-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 2px 0 8px 22px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .layer-row-chevron {
-    transition: none;
-  }
-}
-
-.layers label,
-.month {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.month {
-  margin: 0 0 8px;
-  /* The word "Month" never breaks, whatever the language; the slider is the
-     part that gives way. */
-  white-space: nowrap;
-}
-
-.month input[type="range"] {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.month span {
-  white-space: nowrap;
-}
-
-.reading {
-  margin-left: auto;
-  color: #d5e4f5;
-  text-align: right;
 }
 
 .trend {
@@ -660,10 +465,6 @@ body,
 
 .trend-caveat .trend-caveat-sources {
   color: #b7c6da;
-}
-
-.layers input[type="range"] {
-  width: 100%;
 }
 
 .credit {
@@ -862,30 +663,6 @@ body,
 .closeup-open {
   align-self: flex-start;
   font-size: 12px;
-}
-
-.layers-compare {
-  text-decoration: none;
-}
-
-/* Place menu at the top of the Layers panel. */
-.layers-place {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 0 0 8px;
-  color: #b7c6da;
-}
-
-.layers-place select {
-  flex: 1;
-  min-width: 0;
-  padding: 3px 6px;
-  color: #e8eef7;
-  background: rgba(8, 14, 28, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 6px;
-  font: inherit;
 }
 
 .closeup-canvas {
@@ -1685,16 +1462,6 @@ body,
 
 .trend-details > * + * {
   margin-top: 4px;
-}
-
-.layers-howto {
-  padding: 0;
-  color: #cfe3ff;
-  font: inherit;
-  text-decoration: underline;
-  background: none;
-  border: 0;
-  cursor: pointer;
 }
 
 .timeline-details {

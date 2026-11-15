@@ -16,5 +16,7 @@
   "compareStation": "Mit Station vergleichen",
   "compareObservations": "Mit Beobachtungen vergleichen",
   "cautionHint": "Bekanntes Datenproblem: Öffne diese Ebene und lies den Hinweis.",
-  "showAria": "{{name}} anzeigen"
+  "showAria": "{{name}} anzeigen",
+  "display": "Anzeige",
+  "opacity": "Deckkraft"
 }

@@ -4,6 +4,7 @@ import { App } from "./App";
 import { initI18n } from "./i18n";
 import "./index.css";
 import "./theme/controls.css";
+import "./theme/tailwind.css";
 
 const root = document.getElementById("root");
 if (!root) {

@@ -1,3 +1,4 @@
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { useState } from "react";
 import type { CompareLink } from "../analysis/modelVsObs";
 import type { TrendSummary } from "../analysis/trends";
@@ -10,7 +11,9 @@ import {
   placeGroupLabel,
   type Place,
 } from "../snapshot/places";
-import { nextExpanded } from "./layerAccordion";
+import { stratumName } from "../strata/strataSpec";
+import { toggleExpanded } from "./layerAccordion";
+import { groupLayers } from "./layerGroups";
 import { LayerRow } from "./LayerRow";
 import type { LayerDefinition } from "./registry";
 
@@ -36,9 +39,6 @@ type LayerPanelProps = {
   placeNote?: string | null;
   // Per layer: a link to the model vs observation page for this place.
   compareLinks?: Record<string, CompareLink>;
-  months: string[];
-  month: string | null;
-  onMonth: (month: string) => void;
   onToggle: (id: string) => void;
   onOpacity: (id: string, opacity: number) => void;
   // Opens the close-up view of a layer; the button is hidden without it.
@@ -59,6 +59,8 @@ function isNarrow(): boolean {
   return typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH;
 }
 
+// The month is chosen on the timeline at the bottom (the panel used to have a
+// second slider for it; two controls for one value were confusing).
 export function LayerPanel({
   layers,
   controls,
@@ -71,9 +73,6 @@ export function LayerPanel({
   onLocation,
   placeNote,
   compareLinks,
-  months,
-  month,
-  onMonth,
   onToggle,
   onOpacity,
   onCloseUp,
@@ -82,26 +81,40 @@ export function LayerPanel({
   onHowTo,
 }: LayerPanelProps) {
   const { t } = useI18n();
-  const monthIndex = month ? months.indexOf(month) : -1;
   const [collapsed, setCollapsed] = useState(isNarrow);
-  // The one layer whose details are open (layerAccordion.ts); none at first.
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // The layers whose details are open (layerAccordion.ts); none at first.
+  const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const onCount = controls.filter((control) => control.visible).length;
   const head = (
-    <p className="layers-title">
-      <span>
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="m-0 text-[13px] font-semibold text-ink">
         {t("layers.title")}
-        {collapsed ? ` · ${t("layers.onCount", { count: onCount })}` : ""}
-      </span>
+        <span className="ml-1.5 font-normal text-muted">
+          {onCount > 0 ? `· ${t("layers.onCount", { count: onCount })}` : ""}
+        </span>
+      </h2>
       <button
         type="button"
         aria-expanded={!collapsed}
         aria-label={t(collapsed ? "layers.expand" : "layers.collapse")}
         onClick={() => setCollapsed(!collapsed)}
+        className="inline-flex size-6 cursor-pointer items-center justify-center rounded-md border border-line bg-panel text-ink"
       >
-        {collapsed ? "+" : "–"}
+        <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+          <polyline
+            points="2.5,4.5 6,8 9.5,4.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            transform={collapsed ? undefined : "rotate(180 6 6)"}
+          />
+        </svg>
       </button>
-    </p>
+    </div>
   );
   if (collapsed) {
     return (
@@ -113,85 +126,115 @@ export function LayerPanel({
 
   return (
     <aside className="layers" aria-label={t("layers.title")}>
-      {head}
-      <ParticleStyleToggle />
-      {places && places.length > 0 && onLocation ? (
-        <label className="layers-place">
-          <span>{t("layers.valuesAt")}</span>
-          <select
-            value={locationId}
-            aria-label={t("layers.place")}
-            onChange={(event) => onLocation(event.target.value)}
-          >
-            {groupedPlaces(places).map((group) => (
-              <optgroup key={group.id} label={placeGroupLabel(group.id)}>
-                {group.places.map((place) => (
-                  <option key={place.id} value={place.id}>
-                    {displayPlaceName(place)}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-      ) : (
-        <p className="layers-note">
-          {t("layers.valuesAtPlace", { place: locationName })}
-        </p>
-      )}
-      {placeNote ? <p className="layers-note">{placeNote}</p> : null}
-      {monthIndex >= 0 ? (
-        <label className="month">
-          {t("layers.month")}
-          <input
-            type="range"
-            min={0}
-            max={months.length - 1}
-            step={1}
-            value={monthIndex}
-            aria-label={t("layers.month")}
-            onChange={(event) => {
-              const next = months[Number(event.target.value)];
-              if (next) onMonth(next);
-            }}
-          />
-          <span>{month?.slice(0, 7)}</span>
-        </label>
-      ) : null}
-      {onHowTo ? (
-        <p className="layers-note">
-          <button type="button" className="layers-howto" onClick={onHowTo}>
-            {t("common.action.howToRead")}
-          </button>
-        </p>
-      ) : null}
-      <ul>
-        {layers.map((layer) => {
-          const control = controls.find((item) => item.id === layer.id);
-          if (!control) return null;
-          return (
-            <LayerRow
-              key={layer.id}
-              layer={layer}
-              control={control}
-              reading={readings[layer.id]}
-              trend={trends?.[layer.id]}
-              signal={signals?.[layer.id]}
-              expanded={expandedId === layer.id}
-              onExpand={(id) => setExpandedId(nextExpanded(expandedId, id))}
-              onToggle={onToggle}
-              onOpacity={onOpacity}
-              onCloseUp={onCloseUp}
-              chartId={chartId}
-              onChart={onChart}
-              compareLink={compareLinks?.[layer.id]}
-              onBeforeOpen={() => {
-                if (isNarrow()) setCollapsed(true);
-              }}
-            />
-          );
-        })}
-      </ul>
+      <>
+        {head}
+        {places && places.length > 0 && onLocation ? (
+          <label className="mt-3 flex items-center gap-2 text-muted">
+            <span className="shrink-0">{t("layers.valuesAt")}</span>
+            <select
+              value={locationId}
+              aria-label={t("layers.place")}
+              onChange={(event) => onLocation(event.target.value)}
+              className="h-7 min-w-0 flex-1 rounded-md border border-line bg-panel-solid px-1.5 text-ink"
+            >
+              {groupedPlaces(places).map((group) => (
+                <optgroup key={group.id} label={placeGroupLabel(group.id)}>
+                  {group.places.map((place) => (
+                    <option key={place.id} value={place.id}>
+                      {displayPlaceName(place)}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <p className="mt-3 mb-0 text-muted">
+            {t("layers.valuesAtPlace", { place: locationName })}
+          </p>
+        )}
+        {placeNote ? (
+          <p className="mt-2 mb-0 text-xs text-muted">{placeNote}</p>
+        ) : null}
+        <Collapsible.Root className="mt-2">
+          <Collapsible.Trigger className="group flex w-full cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 py-1 text-left text-muted hover:text-ink">
+            <svg
+              viewBox="0 0 12 12"
+              width="10"
+              height="10"
+              aria-hidden="true"
+              className="-rotate-90 transition-transform group-data-[state=open]:rotate-0 motion-reduce:transition-none"
+            >
+              <polyline
+                points="2.5,4.5 6,8 9.5,4.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {t("layers.display")}
+          </Collapsible.Trigger>
+          <Collapsible.Content className="pt-1">
+            <ParticleStyleToggle />
+          </Collapsible.Content>
+        </Collapsible.Root>
+        {onHowTo ? (
+          <p className="mt-1 mb-0">
+            <button
+              type="button"
+              onClick={onHowTo}
+              className="cursor-pointer border-0 bg-transparent p-0 text-accent-strong underline"
+            >
+              {t("common.action.howToRead")}
+            </button>
+          </p>
+        ) : null}
+        <div className="mt-3 space-y-3">
+          {groupLayers(layers).map((group) => (
+            <section key={group.id} aria-labelledby={`layer-group-${group.id}`}>
+              <h3
+                id={`layer-group-${group.id}`}
+                className="m-0 mb-0.5 text-[11px] font-medium tracking-wide text-muted uppercase"
+              >
+                {group.id === "other"
+                  ? t("layers.title")
+                  : stratumName(group.id)}
+              </h3>
+              <ul className="m-0 list-none p-0">
+                {group.layers.map((layer) => {
+                  const control = controls.find((item) => item.id === layer.id);
+                  if (!control) return null;
+                  return (
+                    <LayerRow
+                      key={layer.id}
+                      layer={layer}
+                      control={control}
+                      reading={readings[layer.id]}
+                      trend={trends?.[layer.id]}
+                      signal={signals?.[layer.id]}
+                      expanded={expandedIds.has(layer.id)}
+                      onExpand={(id) =>
+                        setExpandedIds(toggleExpanded(expandedIds, id))
+                      }
+                      onToggle={onToggle}
+                      onOpacity={onOpacity}
+                      onCloseUp={onCloseUp}
+                      chartId={chartId}
+                      onChart={onChart}
+                      compareLink={compareLinks?.[layer.id]}
+                      onBeforeOpen={() => {
+                        if (isNarrow()) setCollapsed(true);
+                      }}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </>
     </aside>
   );
 }

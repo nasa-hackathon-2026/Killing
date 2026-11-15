@@ -1,9 +1,12 @@
-// The Layers panel opens one layer's details at a time. Choosing a layer
-// opens it and closes the one that was open; choosing the open layer again
-// closes it.
-export function nextExpanded(
-  current: string | null,
+// The Layers panel lets any number of layers have their details open, so two
+// layers can be compared side by side. Choosing a layer opens it if it is
+// closed and closes it if it is open; the other layers are left as they are.
+export function toggleExpanded(
+  current: ReadonlySet<string>,
   chosen: string,
-): string | null {
-  return current === chosen ? null : chosen;
+): Set<string> {
+  const next = new Set(current);
+  if (next.has(chosen)) next.delete(chosen);
+  else next.add(chosen);
+  return next;
 }
