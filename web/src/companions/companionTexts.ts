@@ -1,7 +1,7 @@
 // Each companion's reading of the month and its sentence of data facts, for
 // the companion panel and the layer view alike (one source for both).
 import { trendKey, type TrendsFile } from "../analysis/trends";
-import { t, type Voice } from "../i18n";
+import { t, type Locale, type Voice } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { companionReading, type CompanionReading } from "./companionData";
@@ -19,7 +19,7 @@ export type CompanionTextsInput = {
   // Locale for the numbers in the spoken sentence (the language of the
   // companion text that is actually shown); the displayed parts use the
   // interface's own formatting.
-  speechLocale?: string;
+  speechLocale?: Locale;
 };
 
 export type CompanionTexts = {

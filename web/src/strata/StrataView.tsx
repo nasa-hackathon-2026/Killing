@@ -385,7 +385,9 @@ export function StrataView({
               {beside ? (
                 <span className="strata-companion-caption" aria-hidden="true">
                   <span>{info.name}</span>
-                  <b>{readings[variableId] ?? ""}</b>
+                  <b>
+                    <UnitText text={readings[variableId] ?? ""} />
+                  </b>
                 </span>
               ) : (
                 // On a platform the name shows on hover or keyboard focus
