@@ -4,6 +4,8 @@ A web globe that shows NASA Earth-observation time series for Taiwan, twelve wor
 
 **Live site: <https://nasa-hackathon-2026.github.io/earth-system-trend-detective/>** (static, no login, no server)
 
+**Demo slides (7 pages): [docs/submission/demo-slides.pdf](docs/submission/demo-slides.pdf)**. Project name: Keeling — an Earth System Trend Detective; team 超微今年不一樣了 (NCUE, Taiwan). The slides were laid out with an AI tool (see the disclosure below).
+
 **Stable version: <https://nasa-hackathon-2026.github.io/earth-system-trend-detective/stable/>**, the site as pinned by the release [`submission-2026-11-15`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/submission-2026-11-15). The live site above follows `main` and may have changed since; the stable version does not change.
 
 ![The globe with six layers switched on: the time series chart of 2 m air temperature at Taichung with its trend line and test results on the left, the timeline at the bottom, the data companions and the layer panel with each variable's change per decade, confidence interval and significance on the right](docs/images/globe-six-layers.jpg)
