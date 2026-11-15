@@ -28,7 +28,11 @@ import {
   type CompanionSpec,
 } from "./companionSpec";
 import { gatherLayout } from "./gather";
-import { nextNarration, type NarrationState } from "./narration";
+import {
+  clickSelection,
+  nextNarration,
+  type NarrationState,
+} from "./narration";
 import { interactionsFor } from "./interactions";
 import { shouldSpeakLine } from "./speechPolicy";
 import { voiceForLocale } from "./speechVoice";
@@ -52,6 +56,9 @@ export type CompanionDockProps = {
   compact?: boolean;
   // Turns a layer on: the small figures of the layers that are off call it.
   onTurnOn?: (variableId: string) => void;
+  // False while the guided tour is open: the panel then does not speak up by
+  // itself (a click on a companion still opens its bubble).
+  autoIntro?: boolean;
 };
 
 // Whether companions speak up by themselves (the "Guide on/off" button); a
@@ -148,6 +155,7 @@ export function CompanionDock({
   trends,
   compact = false,
   onTurnOn,
+  autoIntro = true,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
   const { t, voice, settings, locale } = useI18n();
@@ -245,7 +253,7 @@ export function CompanionDock({
   ) {
     const next = { visibleIds, locationId, playing };
     const speaker =
-      narrate && !collapsed && !gathered && !gallery
+      narrate && autoIntro && !collapsed && !gathered && !gallery
         ? nextNarration(
             narration,
             next,
@@ -321,10 +329,14 @@ export function CompanionDock({
   }, [gathered]);
 
   function select(id: string, withCaveat = false) {
-    const closing = selectedId === id && caveatOpen === withCaveat;
-    setSelectedId(closing ? null : id);
-    setCaveatOpen(withCaveat);
-    if (closing) {
+    const next = clickSelection(
+      { id: selectedId, caveat: caveatOpen },
+      id,
+      withCaveat,
+    );
+    setSelectedId(next.id);
+    setCaveatOpen(next.caveat);
+    if (next.id === null) {
       spokenFor.current = null;
       stopSpeaking();
     }

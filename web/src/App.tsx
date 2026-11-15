@@ -843,6 +843,7 @@ function AppView({
         aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
         onTurnOn={showLayer}
+        autoIntro={tourStep === null}
       />
       <div className="map-legends" hidden={legendsHidden}>
         {trendMapOn && !chartOpen && !guideShown ? (
