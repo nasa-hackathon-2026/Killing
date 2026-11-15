@@ -81,7 +81,7 @@
     "aria": "集合：すべての仲間",
     "foot": "中央では、空や大気の形が上を指し、地表や地面の形が手のひらを下に向けています。高い所の形は、上の段に立ちます。配置はイメージを示すためのもので、原因と結果を示すものではありません。",
     "credit": "構図は、ラファエロ『アテネの学堂』（1509〜1511年、パブリックドメイン）に着想を得ています。",
-    "button": "All {{count}} together"
+    "button": "{{count}}体そろって"
   },
   "interactions": {
     "vaporRain": "水蒸気が雨の上：しずくが下へ渡ります。",
@@ -92,10 +92,10 @@
     "glowBelow": "気温の仲間の光が、下の仲間に届きます。",
     "glowAbove": "気温の仲間の光が、上の仲間に届きます。"
   },
-  "headingCount": "Companions · {{shown}} of {{total}}",
-  "restLabel": "Not on yet: pick one to turn its layer on",
-  "turnOnAria": "{{name}}: turn on {{layer}}",
-  "turnOnNoDataAria": "{{name}}: turn on {{layer}} (no data at {{place}})",
-  "turnOnTitle": "Turn on {{layer}}",
-  "turnOnNoDataTitle": "Turn on {{layer}}: no data at {{place}}"
+  "headingCount": "データの仲間 · {{shown}} / {{total}}",
+  "restLabel": "まだオフ：選ぶと、そのレイヤーをオンにします",
+  "turnOnAria": "{{name}}：{{layer}}をオンにする",
+  "turnOnNoDataAria": "{{name}}：{{layer}}をオンにする（{{place}}にはデータなし）",
+  "turnOnTitle": "{{layer}}をオンにする",
+  "turnOnNoDataTitle": "{{layer}}をオンにする：{{place}}にはデータなし"
 }

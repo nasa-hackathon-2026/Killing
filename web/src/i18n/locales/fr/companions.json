@@ -81,7 +81,7 @@
     "aria": "Rassembler : tous les compagnons",
     "foot": "Au milieu, une forme du ciel ou de l’air pointe vers le haut et une forme de la surface ou du sol tient la paume vers le bas ; les formes plus hautes se tiennent sur les marches supérieures. La disposition est illustrative et ne montre aucune relation de cause à effet.",
     "credit": "Composition inspirée de Raphaël, L’École d’Athènes (1509–1511), domaine public.",
-    "button": "All {{count}} together"
+    "button": "Les {{count}} ensemble"
   },
   "interactions": {
     "vaporRain": "Vapeur au-dessus de Pluie : une goutte descend.",
@@ -92,10 +92,10 @@
     "glowBelow": "La lumière d’un compagnon de température tombe sur celui du dessous.",
     "glowAbove": "La lumière d’un compagnon de température tombe sur celui du dessus."
   },
-  "headingCount": "Companions · {{shown}} of {{total}}",
-  "restLabel": "Not on yet: pick one to turn its layer on",
-  "turnOnAria": "{{name}}: turn on {{layer}}",
-  "turnOnNoDataAria": "{{name}}: turn on {{layer}} (no data at {{place}})",
-  "turnOnTitle": "Turn on {{layer}}",
-  "turnOnNoDataTitle": "Turn on {{layer}}: no data at {{place}}"
+  "headingCount": "Compagnons · {{shown}} sur {{total}}",
+  "restLabel": "Pas encore actifs : choisis-en un pour activer sa couche",
+  "turnOnAria": "{{name}} : activer {{layer}}",
+  "turnOnNoDataAria": "{{name}} : activer {{layer}} (pas de données pour {{place}})",
+  "turnOnTitle": "Activer {{layer}}",
+  "turnOnNoDataTitle": "Activer {{layer}} : pas de données pour {{place}}"
 }

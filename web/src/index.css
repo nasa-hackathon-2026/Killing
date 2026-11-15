@@ -317,6 +317,13 @@ body,
   }
 }
 
+/* Below 1440px only the chosen reader keeps its name. */
+@media (max-width: 1439px) {
+  .hud-main .hud-choices .choice-mode button[aria-pressed="false"] span {
+    display: none;
+  }
+}
+
 /* Below 1100px the two buttons and the role switch lose their words too. */
 @media (max-width: 1099px) {
   .hud-main .hud-text,
@@ -368,7 +375,7 @@ body,
     padding: 8px;
   }
 
-  .hud-fly {
+  .hud-main > .hud-fly {
     display: none;
   }
 
