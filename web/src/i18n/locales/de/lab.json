@@ -1,25 +1,25 @@
 {
-  "title": "Form lab",
-  "intro": "Try each particle form by itself. Lab values are not measurements.",
-  "back": "Earth",
+  "title": "Formenlabor",
+  "intro": "Probiere jede Teilchenform einzeln aus. Die Laborwerte sind keine Messwerte.",
+  "back": "Erde",
   "renderer": "Renderer: {{name}}",
   "control": {
     "variable": "Variable",
-    "value": "Value",
-    "valueAria": "Form value",
+    "value": "Wert",
+    "valueAria": "Formwert",
     "trend": "Trend",
-    "play": "Play",
+    "play": "Abspielen",
     "pause": "Pause",
-    "closeUp": "Close-up",
-    "hideCloseUp": "Hide close-up"
+    "closeUp": "Nahansicht",
+    "hideCloseUp": "Nahansicht ausblenden"
   },
   "trend": {
-    "notSignificant": "Not significant",
-    "rising": "Rising, significant",
-    "falling": "Falling, significant",
-    "insufficient": "Insufficient data"
+    "notSignificant": "Nicht signifikant",
+    "rising": "Steigend, signifikant",
+    "falling": "Fallend, signifikant",
+    "insufficient": "Unzureichende Datenlage"
   },
-  "labSuffix": "{{name}} (lab)",
-  "labValue": "lab value {{value}}",
-  "footer": "Flow direction is illustrative; no wind data. Lab values are not measurements."
+  "labSuffix": "{{name}} (Labor)",
+  "labValue": "Laborwert {{value}}",
+  "footer": "Die Flussrichtung ist nur anschaulich; es gibt keine Winddaten. Die Laborwerte sind keine Messwerte."
 }

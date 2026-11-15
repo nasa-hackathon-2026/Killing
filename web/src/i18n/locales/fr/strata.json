@@ -1,37 +1,37 @@
 {
-  "title": "Layer view",
-  "back": "Back to the globe",
-  "hint": "Enter layer view at {{place}}",
-  "noLayer": "No layer is on. Tick one in the Layers panel to see it here.",
-  "about": "About this view",
-  "controls": "Drag to turn, scroll to zoom, click a layer for its numbers.",
+  "title": "Vue en couches",
+  "back": "Retour au globe",
+  "hint": "Entrer dans la vue en couches : {{place}}",
+  "noLayer": "Aucune couche n’est active. Coche-en une dans le panneau Couches pour la voir ici.",
+  "about": "À propos de cette vue",
+  "controls": "Glisse pour tourner, fais défiler pour zoomer, clique sur une couche pour ses chiffres.",
   "names": {
-    "stratosphere": "Stratosphere",
-    "troposphere-air": "Troposphere: gases and aerosols",
-    "troposphere-water": "Troposphere: water vapor and rain",
-    "near-surface": "Near-surface air",
-    "land-surface": "Land surface",
-    "top-soil": "Top soil"
+    "stratosphere": "Stratosphère",
+    "troposphere-air": "Troposphère : gaz et aérosols",
+    "troposphere-water": "Troposphère : vapeur d’eau et pluie",
+    "near-surface": "Air près de la surface",
+    "land-surface": "Surface terrestre",
+    "top-soil": "Sol superficiel"
   },
   "heights": {
-    "stratosphere": "roughly 15–50 km up",
-    "troposphere-air": "ground to roughly 10–15 km",
-    "troposphere-water": "ground to roughly 10–15 km",
-    "near-surface": "about 2 m above the ground",
-    "top-soil": "0–10 cm below the ground"
+    "stratosphere": "environ 15–50 km d’altitude",
+    "troposphere-air": "du sol jusqu’à environ 10–15 km",
+    "troposphere-water": "du sol jusqu’à environ 10–15 km",
+    "near-surface": "environ 2 m au-dessus du sol",
+    "top-soil": "0–10 cm sous le sol"
   },
   "notes": {
-    "scale": "Heights are not to scale.",
-    "columnTotals": "Column totals are shown in the layer where most of the gas sits.",
-    "flow": "Flow directions are illustrative; there is no wind data."
+    "scale": "Les hauteurs ne sont pas à l’échelle.",
+    "columnTotals": "Les totaux de colonne sont affichés dans la couche où se trouve l’essentiel du gaz.",
+    "flow": "Les sens d’écoulement sont illustratifs ; il n’y a pas de données de vent."
   },
   "columnTotal": {
-    "general": "This counts the gas in the whole column of air above the place. It is drawn in the layer that holds most of it.",
-    "expert": "A total over the whole air column, shown in the layer where most of the gas sits."
+    "general": "Cela compte le gaz dans toute la colonne d’air au-dessus du lieu. Il est dessiné dans la couche qui en contient le plus.",
+    "expert": "Total sur toute la colonne d’air, affiché dans la couche où se trouve l’essentiel du gaz."
   },
-  "flow": "Particles travel from “{{from}}” to “{{to}}”; the path is illustrative.",
-  "valuesAria": "{{name}}: values",
-  "valuesAt": "Values at {{where}}.",
-  "off": "Switched off in the Layers panel; no particles drawn.",
-  "listedUnder": "{{name}} is listed under “{{stratum}}”."
+  "flow": "Les particules vont de « {{from}} » à « {{to}} » ; le trajet est illustratif.",
+  "valuesAria": "{{name}} : valeurs",
+  "valuesAt": "Valeurs pour : {{where}}.",
+  "off": "Désactivée dans le panneau Couches ; aucune particule dessinée.",
+  "listedUnder": "{{name}} est classé sous « {{stratum}} »."
 }

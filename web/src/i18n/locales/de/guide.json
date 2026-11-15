@@ -1,86 +1,86 @@
 {
   "card": {
-    "aria": "Guide",
-    "close": "Close the guide",
+    "aria": "Anleitung",
+    "close": "Anleitung schließen",
     "tagline": {
-      "general": "Pick a measurement of the Earth, watch up to 25 years of it at one place, and see whether it has changed.",
-      "expert": "Pick an Earth-system variable, follow up to 25 years of it at one place, and see whether its trend is statistically significant."
+      "general": "Wähle eine Messgröße der Erde, verfolge bis zu 25 Jahre davon an einem Ort und sieh nach, ob sie sich verändert hat.",
+      "expert": "Wähle eine Erdsystemvariable, verfolge bis zu 25 Jahre davon an einem Ort und prüfe, ob ihr Trend statistisch signifikant ist."
     },
-    "tour": "Take the tour",
-    "tourHint": "A data companion walks you through the layers, top to bottom.",
-    "examples": "Try an example",
-    "opens": "Opens: {{what}}",
-    "start": "Start exploring",
-    "reopen": "Reopen this any time with the ? Guide button."
+    "tour": "Rundgang starten",
+    "tourHint": "Ein Datenbegleiter führt dich von oben nach unten durch die Ebenen.",
+    "examples": "Beispiel ausprobieren",
+    "opens": "Öffnet: {{what}}",
+    "start": "Loslegen",
+    "reopen": "Du kannst das jederzeit über die Schaltfläche ? Anleitung wieder öffnen."
   },
   "examples": {
     "rainfall-taichung": {
-      "question": "Has rainfall at Taichung changed since 2001?",
-      "opens": "Precipitation layer and its time series chart"
+      "question": "Hat sich der Niederschlag in Taichung seit 2001 verändert?",
+      "opens": "Niederschlagsebene und ihr Zeitreihendiagramm"
     },
     "no2-los-angeles": {
-      "question": "Has tropospheric NO₂ over Los Angeles changed since 2005?",
-      "opens": "Tropospheric NO₂ layer and its chart at a world city"
+      "question": "Hat sich das troposphärische NO₂ über Los Angeles seit 2005 verändert?",
+      "opens": "Ebene Troposphärisches NO₂ und ihr Diagramm für eine Weltstadt"
     },
     "layers-of-the-air": {
-      "question": "Which layer of the atmosphere or ground does each variable belong to?",
-      "opens": "Layer view with six layers on"
+      "question": "Zu welcher Schicht der Atmosphäre oder des Bodens gehört jede Variable?",
+      "opens": "Schichtansicht mit sechs Schichten"
     },
     "model-vs-station": {
-      "question": "Do a model and a station agree on temperature?",
-      "opens": "Model vs observation page, MERRA-2 and the Taichung station"
+      "question": "Stimmen ein Modell und eine Station bei der Temperatur überein?",
+      "opens": "Seite Modell und Beobachtung, MERRA-2 und die Station Taichung"
     },
     "global-trend-map": {
-      "question": "Where on Earth has 2 m air temperature changed, and where is that change significant?",
-      "opens": "Global trend map of MERRA-2 2 m air temperature"
+      "question": "Wo auf der Erde hat sich die Lufttemperatur in 2 m Höhe verändert, und wo ist diese Veränderung signifikant?",
+      "opens": "Globale Trendkarte der Lufttemperatur in 2 m Höhe (MERRA-2)"
     }
   },
   "howto": {
     "particles": {
-      "term": "Particles",
-      "text": "The particles of a layer show one value: the selected place, in the month shown. More, larger or faster particles mean a higher value for that place. They are not a map, and their flow direction is only illustrative."
+      "term": "Teilchen",
+      "text": "Die Teilchen einer Ebene zeigen einen Wert: den des gewählten Ortes im angezeigten Monat. Mehr, größere oder schnellere Teilchen bedeuten für diesen Ort einen höheren Wert. Sie sind keine Karte, und ihre Flussrichtung ist nur anschaulich."
     },
     "trend": {
       "term": "Trend",
-      "text": "How much the value changes per decade, after removing the normal seasonal cycle. Research mode adds the 95% confidence interval."
+      "text": "Wie stark sich der Wert pro Jahrzehnt ändert, nachdem der normale Jahresgang herausgerechnet wurde. Der Forschungsmodus zeigt zusätzlich das 95-%-Konfidenzintervall."
     },
     "marks": {
       "term": "▲ ▼ △ ▽ ◇",
-      "text": "▲ rising and ▼ falling: the change holds up in the statistical tests. Hollow △ ▽: weak evidence (it passes the basic test, not the stricter one). ◇: no clear change in this record."
+      "text": "▲ steigend und ▼ fallend: Die Veränderung besteht die statistischen Tests. Hohle △ ▽: schwache Belege (einfacher Test bestanden, strengerer nicht). ◇: In dieser Datenreihe ist keine eindeutige Veränderung erkennbar."
     },
     "unreliable": {
-      "term": "Crossed-out triangle",
-      "text": "The test finds a change, but the data itself has a documented problem, such as a jump when the product changed. Do not read it as a climate signal; open its caution note."
+      "term": "Durchgestrichenes Dreieck",
+      "text": "Der Test findet eine Veränderung, aber die Daten selbst haben ein dokumentiertes Problem, etwa einen Sprung, als sich das Produkt änderte. Lies das nicht als Klimasignal; öffne den Hinweis dazu."
     },
     "notSignificant": {
-      "term": "No clear change",
-      "text": "No clear change (not significant) is not the same as no change. The record may be too short or too noisy to tell."
+      "term": "Keine eindeutige Veränderung",
+      "text": "Keine eindeutige Veränderung (nicht signifikant) ist nicht dasselbe wie keine Veränderung. Die Datenreihe kann zu kurz oder zu verrauscht sein, um das zu erkennen."
     },
     "dataKinds": {
-      "term": "In situ · Satellite · Model",
-      "text": "In situ: measured by an instrument at the place. Satellite: worked out from what a sensor in orbit sees. Model: computed by a model that combines observations with physics. They are different kinds of evidence."
+      "term": "Vor Ort · Satellit · Modell",
+      "text": "Vor Ort: von einem Messgerät am Ort gemessen. Satellit: aus den Beobachtungen eines Sensors im Orbit abgeleitet. Modell: von einem Modell berechnet, das Beobachtungen mit Physik verbindet. Das sind verschiedene Arten von Belegen."
     },
     "cautions": {
-      "term": "Caution notes",
-      "text": "An orange note marks a documented problem with a record. Open Details for the numbers and sources."
+      "term": "Warnhinweise",
+      "text": "Ein orangefarbener Hinweis markiert ein dokumentiertes Problem einer Datenreihe. Unter Details findest du die Zahlen und Quellen."
     },
     "roles": {
-      "term": "Everyone · Student · Researcher",
-      "text": "Everyone and Student use plain words; Student adds definitions and reading tips. Researcher shows every statistic and its term. All three show the same numbers."
+      "term": "Alle · Lernende · Forschende",
+      "text": "Alle und Lernende bekommen einfache Worte; Lernende zusätzlich Definitionen und Lesetipps. Forschende sehen jede Statistik mit ihrem Fachbegriff. Alle drei zeigen dieselben Zahlen."
     }
   },
   "tour": {
-    "aria": "Guided tour",
+    "aria": "Geführter Rundgang",
     "progress": "{{current}} / {{total}}",
-    "finish": "Start exploring",
-    "keys": "Enter or → next · ← back · Esc skip",
-    "noPlace": "The tour needs a single place. Pick one in the Layers panel.",
-    "welcome": "Hi, I'm Rain, one of the data companions. This site shows up to 25 years of NASA Earth data at one place, and whether each measurement has changed.",
-    "place": "Right now you are looking at {{place}} in {{month}}. You can pick another place in the Layers panel and another month on the timeline.",
-    "particles": "The particles around the globe show one number per layer for this place and month. More or faster particles mean a higher value. They are not a map.",
+    "finish": "Loslegen",
+    "keys": "Eingabe oder → weiter · ← zurück · Esc überspringen",
+    "noPlace": "Der Rundgang braucht genau einen Ort. Wähle einen im Bereich „Ebenen“.",
+    "welcome": "Hallo, ich bin Regen, einer der Datenbegleiter. Diese Seite zeigt bis zu 25 Jahre NASA-Erddaten an einem Ort und ob sich jede Messung verändert hat.",
+    "place": "Gerade siehst du {{place}} im {{month}}. Im Bereich „Ebenen“ kannst du einen anderen Ort wählen und auf der Zeitleiste einen anderen Monat.",
+    "particles": "Die Teilchen um den Globus zeigen für diesen Ort und Monat eine Zahl je Ebene. Mehr oder schnellere Teilchen bedeuten einen höheren Wert. Sie sind keine Karte.",
     "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
-    "enter": "Each measurement belongs to a height, from the ozone layer down to the soil. Let's visit them from top to bottom.",
-    "trendMap": "That was one place. To see where on Earth a measurement is changing, open Global trend map at the top.",
-    "research": "For the full statistics, such as confidence intervals and test names, switch to Researcher at the top. Now it's your turn."
+    "enter": "Jede Messung gehört zu einer Höhe, von der Ozonschicht bis zum Boden. Besuchen wir sie von oben nach unten.",
+    "trendMap": "Das war ein Ort. Willst du sehen, wo auf der Erde sich eine Messung verändert, öffne oben die Globale Trendkarte.",
+    "research": "Für die volle Statistik, etwa Konfidenzintervalle und Testnamen, wechsle oben zu Forschende. Jetzt bist du dran."
   }
 }

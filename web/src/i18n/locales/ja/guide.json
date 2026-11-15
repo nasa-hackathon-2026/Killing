@@ -1,86 +1,86 @@
 {
   "card": {
-    "aria": "Guide",
-    "close": "Close the guide",
+    "aria": "ガイド",
+    "close": "ガイドを閉じる",
     "tagline": {
-      "general": "Pick a measurement of the Earth, watch up to 25 years of it at one place, and see whether it has changed.",
-      "expert": "Pick an Earth-system variable, follow up to 25 years of it at one place, and see whether its trend is statistically significant."
+      "general": "地球の測定値を1つ選び、1か所での最大25年分の動きを見て、変わってきたかどうかを確かめましょう。",
+      "expert": "地球システムの変数を1つ選び、1地点での最大25年分の推移を追って、そのトレンドが統計的に有意かどうかを確かめます。"
     },
-    "tour": "Take the tour",
-    "tourHint": "A data companion walks you through the layers, top to bottom.",
-    "examples": "Try an example",
-    "opens": "Opens: {{what}}",
-    "start": "Start exploring",
-    "reopen": "Reopen this any time with the ? Guide button."
+    "tour": "ツアーに参加",
+    "tourHint": "データの仲間が、上の層から順にレイヤーを案内します。",
+    "examples": "例を試す",
+    "opens": "開く内容：{{what}}",
+    "start": "探索をはじめる",
+    "reopen": "「？ ガイド」ボタンで、いつでもここを開き直せます。"
   },
   "examples": {
     "rainfall-taichung": {
-      "question": "Has rainfall at Taichung changed since 2001?",
-      "opens": "Precipitation layer and its time series chart"
+      "question": "台中の降水量は、2001年以降に変わったでしょうか？",
+      "opens": "降水量レイヤーと、その時系列グラフ"
     },
     "no2-los-angeles": {
-      "question": "Has tropospheric NO₂ over Los Angeles changed since 2005?",
-      "opens": "Tropospheric NO₂ layer and its chart at a world city"
+      "question": "ロサンゼルス上空の対流圏NO₂は、2005年以降に変わったでしょうか？",
+      "opens": "対流圏NO₂レイヤーと、世界の都市でのグラフ"
     },
     "layers-of-the-air": {
-      "question": "Which layer of the atmosphere or ground does each variable belong to?",
-      "opens": "Layer view with six layers on"
+      "question": "それぞれの変数は、大気や地面のどの層に属しているでしょうか？",
+      "opens": "6つの層をオンにした層別ビュー"
     },
     "model-vs-station": {
-      "question": "Do a model and a station agree on temperature?",
-      "opens": "Model vs observation page, MERRA-2 and the Taichung station"
+      "question": "気温について、モデルと観測所の値は一致するでしょうか？",
+      "opens": "モデルと観測の比較ページ（MERRA-2と台中観測所）"
     },
     "global-trend-map": {
-      "question": "Where on Earth has 2 m air temperature changed, and where is that change significant?",
-      "opens": "Global trend map of MERRA-2 2 m air temperature"
+      "question": "2 m気温は地球上のどこで変わっていて、その変化はどこで有意でしょうか？",
+      "opens": "MERRA-2 2 m気温の全球トレンドマップ"
     }
   },
   "howto": {
     "particles": {
-      "term": "Particles",
-      "text": "The particles of a layer show one value: the selected place, in the month shown. More, larger or faster particles mean a higher value for that place. They are not a map, and their flow direction is only illustrative."
+      "term": "粒子",
+      "text": "レイヤーの粒子が示すのは1つの値で、選んだ場所の、表示中の月の値です。粒子が多い・大きい・速いほど、その場所の値が高いことを表します。地図ではなく、流れの向きはイメージです。"
     },
     "trend": {
-      "term": "Trend",
-      "text": "How much the value changes per decade, after removing the normal seasonal cycle. Research mode adds the 95% confidence interval."
+      "term": "トレンド",
+      "text": "季節ごとの周期を取り除いたうえで、10年あたりに値がどれだけ変わるかを表します。研究者モードでは、95%信頼区間も表示します。"
     },
     "marks": {
       "term": "▲ ▼ △ ▽ ◇",
-      "text": "▲ rising and ▼ falling: the change holds up in the statistical tests. Hollow △ ▽: weak evidence (it passes the basic test, not the stricter one). ◇: no clear change in this record."
+      "text": "▲ 上昇、▼ 下降：その変化は統計的な検定でも裏づけられています。白抜きの △ ▽：根拠は弱い（基本の検定は通るが、より厳しい検定は通らない）。◇：この記録の範囲では、はっきりした変化は読み取れません。"
     },
     "unreliable": {
-      "term": "Crossed-out triangle",
-      "text": "The test finds a change, but the data itself has a documented problem, such as a jump when the product changed. Do not read it as a climate signal; open its caution note."
+      "term": "斜線で消した三角",
+      "text": "検定では変化が見つかっていますが、製品が切り替わったときの段差など、データ自体に記録された問題があります。気候シグナルとして読まないでください。注意書きを開いて確認してください。"
     },
     "notSignificant": {
-      "term": "No clear change",
-      "text": "No clear change (not significant) is not the same as no change. The record may be too short or too noisy to tell."
+      "term": "はっきりした変化は読み取れない",
+      "text": "はっきりした変化が読み取れない（有意でない）ことは、変化がないこととは違います。記録が短すぎたり、ばらつきが大きすぎたりして、判断できないだけかもしれません。"
     },
     "dataKinds": {
-      "term": "In situ · Satellite · Model",
-      "text": "In situ: measured by an instrument at the place. Satellite: worked out from what a sensor in orbit sees. Model: computed by a model that combines observations with physics. They are different kinds of evidence."
+      "term": "現地観測 · 衛星 · モデル",
+      "text": "現地観測：その場所で機器が測った値。衛星：軌道上のセンサーが捉えた情報から割り出した値。モデル：観測と物理法則を組み合わせたモデルで計算した値。それぞれ性質の違う証拠です。"
     },
     "cautions": {
-      "term": "Caution notes",
-      "text": "An orange note marks a documented problem with a record. Open Details for the numbers and sources."
+      "term": "注意書き",
+      "text": "オレンジ色の注意書きは、その記録に、記録されたデータ上の問題があることを示します。数値と出典は「詳細」で確認できます。"
     },
     "roles": {
-      "term": "Everyone · Student · Researcher",
-      "text": "Everyone and Student use plain words; Student adds definitions and reading tips. Researcher shows every statistic and its term. All three show the same numbers."
+      "term": "みんな · 学生 · 研究者",
+      "text": "「みんな」と「学生」はやさしい言葉を使い、「学生」には用語の説明と読み方のヒントが加わります。「研究者」は、すべての統計量とその用語を表示します。3つとも、数値は同じです。"
     }
   },
   "tour": {
-    "aria": "Guided tour",
+    "aria": "ガイドツアー",
     "progress": "{{current}} / {{total}}",
-    "finish": "Start exploring",
-    "keys": "Enter or → next · ← back · Esc skip",
-    "noPlace": "The tour needs a single place. Pick one in the Layers panel.",
-    "welcome": "Hi, I'm Rain, one of the data companions. This site shows up to 25 years of NASA Earth data at one place, and whether each measurement has changed.",
-    "place": "Right now you are looking at {{place}} in {{month}}. You can pick another place in the Layers panel and another month on the timeline.",
-    "particles": "The particles around the globe show one number per layer for this place and month. More or faster particles mean a higher value. They are not a map.",
+    "finish": "探索をはじめる",
+    "keys": "Enter または → で次へ · ← で戻る · Esc でスキップ",
+    "noPlace": "ツアーには、場所を1つ選ぶ必要があります。レイヤーパネルで選んでください。",
+    "welcome": "こんにちは、データの仲間の「雨」です。このサイトでは、1か所での最大25年分のNASA地球データを見て、それぞれの測定値が変わってきたかどうかを確かめられます。",
+    "place": "いま見ているのは、{{month}}の{{place}}です。別の場所はレイヤーパネルで、別の月はタイムラインで選べます。",
+    "particles": "地球のまわりの粒子は、この場所とこの月の、レイヤーごとの数値を1つずつ表しています。粒子が多い・速いほど、値は高くなります。地図ではありません。",
     "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
-    "enter": "Each measurement belongs to a height, from the ozone layer down to the soil. Let's visit them from top to bottom.",
-    "trendMap": "That was one place. To see where on Earth a measurement is changing, open Global trend map at the top.",
-    "research": "For the full statistics, such as confidence intervals and test names, switch to Researcher at the top. Now it's your turn."
+    "enter": "どの測定値にも、オゾン層から土の中まで、それぞれ高さがあります。上から順に訪ねてみましょう。",
+    "trendMap": "ここまでは1か所の話でした。地球のどこで測定値が変わっているかは、上の「全球トレンドマップ」を開くと見られます。",
+    "research": "信頼区間や検定名などの統計量をすべて見たいときは、上で「研究者」に切り替えてください。ここからは、あなたの番です。"
   }
 }

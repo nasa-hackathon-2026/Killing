@@ -1,63 +1,63 @@
 {
   "appName": "Earth System Trend Detective",
   "language": {
-    "label": "Language"
+    "label": "Langue"
   },
   "role": {
-    "label": "Who is reading",
+    "label": "Qui lit ?",
     "everyone": {
-      "name": "Everyone",
-      "hint": "Everyone: the fewest words, with a companion to guide you."
+      "name": "Tout le monde",
+      "hint": "Tout le monde : le moins de mots possible, avec un compagnon pour te guider."
     },
     "student": {
-      "name": "Student",
-      "hint": "Student: plain words plus definitions and reading tips."
+      "name": "Étudiant",
+      "hint": "Étudiant : des mots simples, avec des définitions et des conseils de lecture."
     },
     "researcher": {
-      "name": "Researcher",
-      "hint": "Researcher: full statistics and their terms."
+      "name": "Chercheur",
+      "hint": "Chercheur : toutes les statistiques, avec leur vocabulaire."
     }
   },
   "action": {
-    "close": "Close",
-    "details": "Details",
-    "howToRead": "How to read this",
-    "next": "Next",
-    "back": "Back",
-    "skip": "Skip"
+    "close": "Fermer",
+    "details": "Détails",
+    "howToRead": "Comment lire ceci",
+    "next": "Suivant",
+    "back": "Retour",
+    "skip": "Passer"
   },
   "status": {
-    "loading": "Loading…",
-    "noData": "No data",
-    "noDataAtPlace": "No data at this place",
-    "snapshotError": "Could not read the data",
-    "notAvailable": "not available"
+    "loading": "Chargement…",
+    "noData": "Aucune donnée",
+    "noDataAtPlace": "Aucune donnée pour ce lieu",
+    "snapshotError": "Impossible de lire les données",
+    "notAvailable": "non disponible"
   },
   "dataKind": {
     "in_situ": {
       "label": "In situ",
       "short": "In situ",
-      "general": "Measured by an instrument at the place.",
-      "expert": "Data kind: in situ."
+      "general": "Mesuré sur place par un instrument.",
+      "expert": "Type de données : mesure in situ."
     },
     "satellite_retrieval": {
-      "label": "Satellite retrieval",
+      "label": "Estimation par satellite",
       "short": "Satellite",
-      "general": "Worked out from what a satellite sensor sees, not measured on the ground.",
-      "expert": "Data kind: satellite retrieval."
+      "general": "Calculé à partir de ce que voit un capteur de satellite, et non mesuré au sol.",
+      "expert": "Type de données : estimation par satellite."
     },
     "model": {
-      "label": "Model",
-      "short": "Model",
-      "general": "Computed by a computer model, not measured directly.",
-      "expert": "Data kind: model."
+      "label": "Modèle",
+      "short": "Modèle",
+      "general": "Calculé par un modèle informatique, et non mesuré directement.",
+      "expert": "Type de données : modèle."
     },
     "unknown": {
-      "label": "Unclassified",
-      "short": "Unclassified",
-      "general": "The kind of data is not classified.",
-      "expert": "Data kind: unclassified."
+      "label": "Non classé",
+      "short": "Non classé",
+      "general": "Le type de ces données n’est pas classé.",
+      "expert": "Type de données : non classé."
     }
   },
-  "partial": "This page is only partly translated; technical text stays in English."
+  "partial": "Cette page n’est que partiellement traduite ; le texte technique reste en anglais."
 }

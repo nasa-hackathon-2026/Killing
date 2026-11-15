@@ -1,81 +1,81 @@
 {
-  "aria": "Time series of {{name}}",
-  "at": "at {{place}}",
-  "show": "Show chart",
-  "hide": "Hide chart",
-  "close": "Close chart",
-  "noSeries": "This variable has no data at {{place}}.",
-  "noValues": "No values to draw.",
-  "modesAria": "Chart mode",
+  "aria": "Zeitreihe von {{name}}",
+  "at": "bei {{place}}",
+  "show": "Diagramm zeigen",
+  "hide": "Diagramm ausblenden",
+  "close": "Diagramm schließen",
+  "noSeries": "Für diese Variable gibt es bei {{place}} keine Daten.",
+  "noValues": "Keine Werte zum Zeichnen.",
+  "modesAria": "Diagrammmodus",
   "modes": {
-    "values": "Monthly values",
+    "values": "Monatswerte",
     "anomalies": {
-      "general": "Difference from usual",
-      "expert": "Anomalies"
+      "general": "Abweichung vom Üblichen",
+      "expert": "Anomalien"
     },
     "running": {
-      "general": "12-month average",
-      "expert": "12-month running mean"
+      "general": "12-Monats-Mittel",
+      "expert": "gleitendes 12-Monats-Mittel"
     }
   },
-  "plotAria": "{{mode}} of {{name}} at {{place}}, {{first}} to {{last}}",
+  "plotAria": "{{mode}} von {{name}} bei {{place}}, {{first}} bis {{last}}",
   "readout": {
-    "general": "value {{value}} · {{anomaly}} from the usual for that month",
-    "expert": "value {{value}} · anomaly {{anomaly}} · coverage {{coverage}}",
-    "timelineMonth": "(timeline month)"
+    "general": "Wert {{value}} · {{anomaly}} vom Üblichen für diesen Monat",
+    "expert": "Wert {{value}} · Anomalie {{anomaly}} · Abdeckung {{coverage}}",
+    "timelineMonth": "(Monat der Zeitleiste)"
   },
   "key": {
-    "values": "Monthly values{{unit}}",
+    "values": "Monatswerte{{unit}}",
     "anomalies": {
-      "general": "Each month minus the usual value for that calendar month{{unit}}",
-      "expert": "Anomalies{{unit}}: value minus the mean of the same calendar month"
+      "general": "Jeder Monat minus der übliche Wert für diesen Kalendermonat{{unit}}",
+      "expert": "Anomalien{{unit}}: Wert minus Mittelwert desselben Kalendermonats"
     },
     "running": {
-      "general": "Average of 12 months around each month{{unit}}",
-      "expert": "Centred 12-month mean{{unit}}; needs all 12 months, so gaps stay gaps"
+      "general": "Mittel über 12 Monate um jeden Monat{{unit}}",
+      "expert": "Zentriertes 12-Monats-Mittel{{unit}}; benötigt alle 12 Monate, Lücken bleiben Lücken"
     },
     "trend": {
-      "general": "Trend line.",
-      "expert": "Linear trend of the monthly anomalies (slope from the analysis, drawn through the mean of the analysed months)."
+      "general": "Trendlinie.",
+      "expert": "Linearer Trend der Monatsanomalien (Steigung aus der Analyse, durch den Mittelwert der analysierten Monate gelegt)."
     },
     "band": {
-      "general": "Shaded: how uncertain the slope is. It is not a forecast.",
-      "expert": "{{level}}% CI of the slope, not a prediction interval."
+      "general": "Schattiert: wie unsicher die Steigung ist. Das ist keine Prognose.",
+      "expert": "{{level}}-%-KI der Steigung, kein Prognoseintervall."
     },
     "break": {
-      "general": "Dashed: a month when the data product changed ({{months}}).",
-      "expert": "Documented step month ({{months}})."
+      "general": "Gestrichelt: ein Monat, in dem sich das Datenprodukt geändert hat ({{months}}).",
+      "expert": "Dokumentierter Sprungmonat ({{months}})."
     },
-    "cursor": "Timeline month; click the chart to jump."
+    "cursor": "Monat der Zeitleiste; Klick ins Diagramm springt dorthin."
   },
   "plain": {
-    "change": "Change per decade",
-    "holds": "Does it hold up?",
-    "reliable": "Can the data be trusted?"
+    "change": "Änderung pro Jahrzehnt",
+    "holds": "Hält das stand?",
+    "reliable": "Sind die Daten verlässlich?"
   },
   "stats": {
-    "change": "Change per decade",
-    "ttest": "t-test of the slope",
+    "change": "Änderung pro Jahrzehnt",
+    "ttest": "t-Test der Steigung",
     "p": "p {{p}}",
-    "pFdr": "p {{p}}, FDR-adjusted {{fdr}} ({{verdict}} at {{alpha}})",
-    "pNone": "p not available",
-    "significant": "significant",
-    "notSignificant": "not significant",
-    "neff": "Effective sample size {{n}} (lag-1 autocorrelation {{r}})",
-    "mk": "Mann-Kendall",
-    "mkLine": "Hamed-Rao: {{hamedRao}}. Seasonal: {{seasonal}}",
-    "sen": "Sen slope",
-    "period": "Period",
-    "periodLine": "{{first}} to {{last}}, {{count}} valid months",
-    "notAnalyzed": "Trend not analyzed: {{reason}}",
-    "none": "No trend statistics for this series.",
-    "method": "Method: least-squares slope of monthly anomalies. The t-test and CI use an effective sample size from the lag-1 autocorrelation of the residuals. FDR is Benjamini-Hochberg across the analysed series of one family (Taiwan's series are one family, the world cities and the global mean another). The Sen slope CI has no autocorrelation correction."
+    "pFdr": "p {{p}}, FDR-adjustiert {{fdr}} ({{verdict}} bei {{alpha}})",
+    "pNone": "p nicht verfügbar",
+    "significant": "signifikant",
+    "notSignificant": "nicht signifikant",
+    "neff": "Effektive Stichprobengröße {{n}} (Autokorrelation bei Lag 1: {{r}})",
+    "mk": "Mann-Kendall-Test",
+    "mkLine": "Hamed-Rao: {{hamedRao}}. Saisonal: {{seasonal}}",
+    "sen": "Sen-Steigung",
+    "period": "Zeitraum",
+    "periodLine": "{{first}} bis {{last}}, {{count}} gültige Monate",
+    "notAnalyzed": "Trend nicht analysiert: {{reason}}",
+    "none": "Keine Trendstatistik für diese Datenreihe.",
+    "method": "Methode: Kleinste-Quadrate-Steigung der Monatsanomalien. Der t-Test und das KI verwenden eine effektive Stichprobengröße aus der Autokorrelation der Residuen bei Lag 1. Die FDR ist die von Benjamini-Hochberg über die analysierten Datenreihen einer Familie (die Reihen Taiwans bilden eine Familie, die Weltstädte und der globale Mittelwert eine andere). Das KI der Sen-Steigung hat keine Autokorrelationskorrektur. KI = Konfidenzintervall."
   },
   "similar": {
-    "link": "Similar series",
+    "link": "Ähnliche Datenreihen",
     "text": {
-      "general": "(exploratory): other measurements that ran high and low in the same months.",
-      "expert": "(exploratory): which other variables went above and below normal in the same months."
+      "general": "(explorativ): andere Messungen, die in denselben Monaten hoch und niedrig lagen.",
+      "expert": "(explorativ): welche anderen Variablen in denselben Monaten über und unter dem Normalwert lagen."
     }
   }
 }
