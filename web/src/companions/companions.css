@@ -470,6 +470,10 @@
   font-size: 12px;
 }
 
+.companion-dock:not(.companion-gather) > .companion-bubble {
+  height: min(25vh, 180px);
+}
+
 /* Room for the sentence: the panel takes its two-column width. */
 .companion-dock:has(.companion-bubble):not(
     .companion-gather,
