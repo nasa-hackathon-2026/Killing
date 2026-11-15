@@ -82,7 +82,7 @@ export function RightSidebar({ children }: { children: ReactNode }) {
         <div
           className={cn(
             "flex min-h-0 flex-1 flex-col gap-3",
-            "[&>*+*]:shrink-0 [&>*+*]:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-line/40 [&>*+*]:pt-3 [&>*+*]:max-h-[55%]",
+            "[&>*+*]:shrink-0 [&>*+*]:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-line/40 [&>*+*]:pt-3 [&>*+*]:max-h-[45%]",
             "[&>:first-child]:min-h-0 [&>:first-child]:flex-1 [&>:first-child]:overflow-y-auto [&>:first-child]:[scrollbar-gutter:stable]",
           )}
         >

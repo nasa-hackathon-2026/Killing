@@ -35,19 +35,6 @@
   color-scheme: dark;
 }
 
-/* The companion speech bubble is a light card. */
-.companion-bubble {
-  --ctl-border-strong: #4c5d70;
-  --ctl-accent: #1f5f99;
-  --ctl-accent-strong: #10202e;
-  --ctl-on-accent: #f4f8fd;
-  --ctl-focus: #10202e;
-  --ctl-track: rgba(16, 32, 46, 0.3);
-  --ctl-scroll-thumb: rgba(16, 32, 46, 0.45);
-  --ctl-scroll-thumb-hover: rgba(16, 32, 46, 0.65);
-  --ctl-scroll-thumb-active: rgba(16, 32, 46, 0.85);
-}
-
 /* ---- Scrollbars ---------------------------------------------------------
    Chromium 121+ ignores every ::-webkit-scrollbar rule on an element whose
    scrollbar-width or scrollbar-color is not `auto`. The standard properties
@@ -56,10 +43,6 @@
    the pseudo-elements below. Checked in Chromium, Firefox and WebKit. */
 @supports not selector(::-webkit-scrollbar) {
   html {
-    scrollbar-color: var(--ctl-scroll-thumb) var(--ctl-scroll-track);
-  }
-
-  .companion-bubble {
     scrollbar-color: var(--ctl-scroll-thumb) var(--ctl-scroll-track);
   }
 
@@ -503,10 +486,6 @@ details > summary:focus-visible {
   }
 
   html,
-  .companion-bubble {
-    scrollbar-color: auto;
-  }
-
   ::-webkit-scrollbar-thumb {
     background-color: ButtonText;
   }
