@@ -296,3 +296,35 @@ export function seriesCsv(rows: {
   });
   return `${lines.join("\n")}\n`;
 }
+
+// Position of a p value on the evidence chart: −log10(p), so smaller p is
+// further right, capped at `cap` (p below 10^−cap sits at the cap). Null
+// for a missing p.
+export function pStrength(
+  p: number | null | undefined,
+  cap = 6,
+): number | null {
+  if (p === null || p === undefined || !Number.isFinite(p)) return null;
+  if (p <= 0) return cap;
+  return Math.min(cap, Math.max(0, -Math.log10(p)));
+}
+
+// The shared y range of the small multiples: ± the `quantile` of the
+// absolute values of every cell, so a few extreme months at one place do
+// not flatten all the others (they are clipped at the edge). Null when
+// there is nothing to draw.
+export function sharedLimit(
+  groups: (number | null)[][],
+  quantile = 0.98,
+): [number, number] | null {
+  const sizes = groups
+    .flatMap((values) => finite(values))
+    .map((value) => Math.abs(value))
+    .sort((a, b) => a - b);
+  if (sizes.length === 0) return null;
+  const limit =
+    sizes[Math.min(sizes.length - 1, Math.floor(quantile * sizes.length))] ||
+    sizes.at(-1) ||
+    1;
+  return [-limit, limit];
+}

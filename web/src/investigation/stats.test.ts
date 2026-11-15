@@ -8,10 +8,12 @@ import {
   latestYear,
   outlierIndices,
   periodMonths,
+  pStrength,
   residuals,
   robustSd,
   seasonalCycle,
   seriesCsv,
+  sharedLimit,
   whiteNoiseBound,
 } from "./stats";
 
@@ -151,5 +153,24 @@ describe("CSV", () => {
         "2001-01,1.5,0.1,1,true\n" +
         "2001-03,2,,0.2,false\n",
     );
+  });
+});
+
+describe("p value positions", () => {
+  it("is −log10(p) capped, null when missing", () => {
+    expect(pStrength(0.01)).toBeCloseTo(2, 12);
+    expect(pStrength(1)).toBe(0);
+    expect(pStrength(1e-12)).toBe(6);
+    expect(pStrength(0)).toBe(6);
+    expect(pStrength(null)).toBeNull();
+  });
+});
+
+describe("shared small-multiple range", () => {
+  it("is symmetric at the 98th percentile of the absolute values", () => {
+    const values = Array.from({ length: 100 }, (_, at) => at - 50);
+    values.push(1000);
+    expect(sharedLimit([values, [null]])).toEqual([-49, 49]);
+    expect(sharedLimit([[null]])).toBeNull();
   });
 });

@@ -262,6 +262,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **FDR 家族**由 `data.ts` 讀兩份結果檔判斷（世界子集的鍵自成一族），家族大小用各檔的 `summary.n_analyzed`。
 - **三種身分**：Everyone 只有主圖與答案、其餘收在 Details；Student 另展開季節循環、定義與「為什麼」；Researcher 全部展開並多出殘差、ACF、直方圖、逐年平均、下載與方法（`Fold.tsx` 依 `fullStatistics`、`readingAid` 決定）。
 - 選地點用 `App.tsx` 傳進 `TimelineDock` 的 `onSelectLocation`（與地點選單同一個 `selectPlace`，世界城市鏡頭會飛過去）。
+- **②的小倍數圖不讀序列檔**：每格只用 `anomalies.json` 與 `trends.json`（啟動時已讀、含核心的台灣點位與區域 `area_mean`、世界子集），所以台灣區域、世界城市不必按需載入；沒有該鍵的地點（例如北區的 AIRS 與 OMI 臭氧、氣膠）顯示 No data。同一比例尺是全部格子絕對距平的第 98 百分位數（`sharedLimit`），超出的月份被裁掉。
 
 ## 資料夥伴（#100）
 主畫面 Layers 面板左邊的「Companions」面板：每個開啟的圖層一隻原創角色，外形由該地點、該月份的資料決定，點一下用一句話說出數字。程式都在 `web/src/companions/`，CSS 在同目錄的 `companions.css`（類別一律 `companion-` 開頭），`App.tsx` 只掛一個 `<CompanionDock />`。網址參數 `?companions=gallery`（12 隻總覽）、`gather`（直接開 Gather）、`collapsed`（收合）。

@@ -593,3 +593,118 @@ export function Sparkline({
     </svg>
   );
 }
+
+export type EvidenceRow = {
+  label: string;
+  // −log10 of p and of the FDR-adjusted q (null = not computed).
+  p: number | null;
+  q: number | null;
+};
+
+// The tests as dots on one −log10(p) axis: filled dot p, ring q (FDR), a
+// line between them; right of the dashed alpha line is significant.
+export function EvidenceChart({
+  rows,
+  alpha,
+  cap,
+  ariaLabel,
+  alphaLabel,
+}: {
+  rows: EvidenceRow[];
+  alpha: number;
+  cap: number;
+  ariaLabel: string;
+  alphaLabel: string;
+}) {
+  const left = 112;
+  const right = CHART_WIDTH - 12;
+  const rowHeight = 22;
+  const top = 16;
+  const height = top + rows.length * rowHeight + 18;
+  const x = linearScale([0, cap], [left, right]);
+  const threshold = x(-Math.log10(alpha));
+  const ticks = Array.from({ length: cap + 1 }, (_, at) => at);
+  return (
+    <svg
+      className="timeline-plot investigation-static"
+      viewBox={`0 0 ${CHART_WIDTH} ${height}`}
+      role="img"
+      aria-label={ariaLabel}
+    >
+      <rect
+        className="investigation-significant-zone"
+        x={threshold}
+        y={top - 4}
+        width={right - threshold}
+        height={rows.length * rowHeight + 4}
+      />
+      {ticks.map((tick) => (
+        <text
+          key={tick}
+          className="timeline-axis"
+          x={x(tick)}
+          y={height - 5}
+          textAnchor="middle"
+        >
+          {tick === 0 ? "1" : `1e-${tick}`}
+        </text>
+      ))}
+      <line
+        className="investigation-limit"
+        x1={threshold}
+        x2={threshold}
+        y1={top - 8}
+        y2={height - 18}
+      />
+      <text className="timeline-axis" x={threshold + 3} y={top - 6}>
+        {alphaLabel}
+      </text>
+      {rows.map((row, at) => {
+        const middle = top + at * rowHeight + rowHeight / 2;
+        return (
+          <g key={row.label}>
+            <text
+              className="timeline-axis investigation-interval-label"
+              x={4}
+              y={middle + 4}
+            >
+              {row.label}
+            </text>
+            <line
+              className="timeline-grid"
+              x1={left}
+              x2={right}
+              y1={middle}
+              y2={middle}
+            />
+            {row.p !== null && row.q !== null ? (
+              <line
+                className="investigation-interval"
+                x1={x(row.p)}
+                x2={x(row.q)}
+                y1={middle}
+                y2={middle}
+              />
+            ) : null}
+            {row.q !== null ? (
+              <circle
+                className="investigation-q"
+                cx={x(row.q)}
+                cy={middle}
+                r={5}
+              />
+            ) : null}
+            {row.p !== null ? (
+              <circle
+                className="investigation-estimate"
+                cx={x(row.p)}
+                cy={middle}
+                r={4}
+              />
+            ) : null}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}

@@ -193,6 +193,10 @@
 
 .investigation-interval-label {
   fill: #e8eef7;
+  paint-order: stroke;
+  stroke: #08101e;
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .investigation-key-season {
@@ -316,6 +320,10 @@
   stroke: #9cc8ff;
   stroke-width: 0.9;
   vector-effect: non-scaling-stroke;
+}
+
+.investigation-spark .timeline-trend {
+  stroke-width: 2.4;
 }
 
 .investigation-spark .timeline-trend,
@@ -486,4 +494,29 @@
   .investigation-tab-number {
     display: none;
   }
+}
+
+.investigation-significant-zone {
+  fill: rgba(255, 209, 102, 0.1);
+}
+
+.investigation-q {
+  fill: #0b1220;
+  stroke: #ffd166;
+  stroke-width: 2;
+}
+
+.investigation-key-p {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #9cc8ff;
+}
+
+.investigation-key-q {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #ffd166;
+  border-radius: 50%;
+  box-sizing: border-box;
 }

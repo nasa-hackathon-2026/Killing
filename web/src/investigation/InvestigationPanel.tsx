@@ -6,6 +6,7 @@
 import { useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { trendSignal, type TrendSignal } from "../forms/encoding";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
+import { trendCaveat } from "../analysis/trendCaveats";
 import { trendUnreliable } from "../analysis/trendReliability";
 import { trendKey, type TrendEntry, type TrendsFile } from "../analysis/trends";
 import { useAnalysisFile } from "../analysis/useAnalysisFile";
@@ -150,6 +151,7 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
   };
 
   const definition = variableDefinition(variableId, voice);
+  const caveat = trendCaveat(variableId, voice);
   const signal = trendSignal(trend, trends?.known_issues);
   let body: ReactNode;
   if (tab === "where") {
@@ -303,6 +305,11 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
             >
               {answer}
             </p>
+            {caveat && tab !== "significant" ? (
+              <p className="trend-caveat-line" role="note">
+                {caveat.summary}
+              </p>
+            ) : null}
             {body}
             {compare || props.similarHref ? (
               <p className="timeline-chart-note investigation-links">

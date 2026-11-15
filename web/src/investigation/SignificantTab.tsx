@@ -9,7 +9,7 @@ import { formatChangePerDecade, type AnalyzedTrend } from "../analysis/trends";
 import { formatCount, localNumber, t, useI18n } from "../i18n";
 import { UnitText } from "../snapshot/UnitText";
 import { formatP } from "../timeline/seriesMath";
-import { BarChart, TimeChart } from "./charts";
+import { BarChart, EvidenceChart, TimeChart } from "./charts";
 import { Fold, ReadingNote } from "./Fold";
 import { recordYears } from "./format";
 import type { SeriesModel } from "./InvestigationPanel";
@@ -17,11 +17,14 @@ import { agreement, verdictOf, type FdrFamily, type Verdict } from "./logic";
 import {
   autocorrelation,
   outlierIndices,
+  pStrength,
   residuals,
   robustSd,
   seriesCsv,
   whiteNoiseBound,
 } from "./stats";
+
+const P_CAP = 6;
 
 const REPO =
   "https://github.com/nasa-hackathon-2026/earth-system-trend-detective";
@@ -126,6 +129,38 @@ export function SignificantTab({
   return (
     <>
       {model.unreliable && caveat ? <TrendCaveatNote caveat={caveat} /> : null}
+      <EvidenceChart
+        cap={P_CAP}
+        alpha={model.alpha}
+        alphaLabel={`p = ${localNumber(String(model.alpha))}`}
+        rows={(
+          [
+            ["ttest", ols],
+            ["original", mk.original],
+            ["hamedRao", mk.hamed_rao],
+            ["seasonal", mk.seasonal],
+          ] as const
+        ).map(([id, test]) => ({
+          label: t(`investigation.significant.rows.${id}`),
+          p: pStrength(test.p, P_CAP),
+          q: pStrength(test.p_fdr, P_CAP),
+        }))}
+        ariaLabel={t("investigation.significant.chartAria", {
+          ols: formatP(ols.p),
+          original: formatP(mk.original.p),
+          hamedRao: formatP(mk.hamed_rao.p),
+          seasonal: formatP(mk.seasonal.p),
+        })}
+      />
+      <p className="timeline-chart-note">
+        <i className="timeline-key investigation-key-p" />
+        {t("investigation.significant.chartKeyP")}{" "}
+        <i className="timeline-key investigation-key-q" />
+        {t("investigation.significant.chartKeyQ")}{" "}
+        {t("investigation.significant.chartKeyZone", {
+          alpha: localNumber(String(model.alpha)),
+        })}
+      </p>
       <div
         className="investigation-evidence"
         role="group"

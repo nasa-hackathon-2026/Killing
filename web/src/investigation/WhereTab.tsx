@@ -13,11 +13,11 @@ import {
   placeGroupLabel,
   type Place,
 } from "../snapshot/places";
-import { paddedExtent } from "../timeline/chartGeometry";
 import { trendLine, type AnomalySeries } from "../timeline/seriesMath";
 import { monthNumber } from "../timeline/timelineMath";
 import { TREND_MAP_VARIABLES } from "../trendmap/trendMapConfig";
 import { Sparkline } from "./charts";
+import { sharedLimit } from "./stats";
 
 function monthsOf(series: AnomalySeries): string[] {
   const first = monthNumber(series.first_month);
@@ -73,7 +73,7 @@ export function WhereTab({
     Math.min(...withData.map((cell) => monthNumber(cell.months[0] ?? ""))),
     Math.max(...withData.map((cell) => monthNumber(cell.months.at(-1) ?? ""))),
   ];
-  const shared = paddedExtent(withData.map((cell) => cell.values));
+  const shared = sharedLimit(withData.map((cell) => cell.values));
   const hasMap = TREND_MAP_VARIABLES.some((item) => item.id === variableId);
 
   return (

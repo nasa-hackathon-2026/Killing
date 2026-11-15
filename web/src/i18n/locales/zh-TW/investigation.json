@@ -160,7 +160,11 @@
       "world": "世界子集（世界城市與全球平均）"
     },
     "pSource": "所有 p 與 q 都直接讀自分析結果檔，瀏覽器裡不重做任何檢定。",
-    "evidenceAria": "檢定結果"
+    "evidenceAria": "檢定結果",
+    "chartAria": "四種檢定的 p 值畫在對數軸上：t 檢定 {{ols}}、Mann-Kendall 原始 {{original}}、Hamed-Rao {{hamedRao}}、Seasonal {{seasonal}}。",
+    "chartKeyP": "p",
+    "chartKeyQ": "q（FDR 校正後）",
+    "chartKeyZone": "越右邊 p 越小；虛線右側的底色區是 p < {{alpha}}。小於 1e-6 的值畫在邊緣。"
   },
   "diag": {
     "more": "給研究者的更多內容",

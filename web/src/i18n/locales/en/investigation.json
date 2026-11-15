@@ -160,7 +160,11 @@
       "world": "world subset (world cities and global mean)"
     },
     "pSource": "All p and q values are read from the analysis results file; nothing is re-tested in the browser.",
-    "evidenceAria": "Test results"
+    "evidenceAria": "Test results",
+    "chartAria": "p values of the four tests on a logarithmic axis: t-test {{ols}}, Mann-Kendall original {{original}}, Hamed-Rao {{hamedRao}}, seasonal {{seasonal}}.",
+    "chartKeyP": "p",
+    "chartKeyQ": "q (after FDR)",
+    "chartKeyZone": "Further right = smaller p; the shaded side of the dashed line is p < {{alpha}}. Values below 1e-6 sit at the edge."
   },
   "diag": {
     "more": "More for researchers",
