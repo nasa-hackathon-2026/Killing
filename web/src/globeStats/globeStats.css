@@ -222,6 +222,10 @@
   font-size: 14px;
 }
 
+.globe-trend-unreliable {
+  opacity: 0.62;
+}
+
 .globe-gap-marker {
   position: relative;
   width: 32px;
