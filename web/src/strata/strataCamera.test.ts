@@ -8,8 +8,15 @@ import {
   ENTRY_DISTANCE,
   entryPose,
   entrySpread,
+  CHART_COLUMN,
+  CREDIT_RESERVE,
   fitDistance,
+  HUD_RESERVE,
   insetView,
+  LABEL_COLUMN,
+  labelCeiling,
+  MEDIUM_WIDTH,
+  PANEL_COLUMN,
   MAX_DEPRESSION,
   MIN_DEPRESSION,
   MIN_ZOOM,
@@ -110,15 +117,37 @@ describe("fitDistance and insets", () => {
     expect(Number.isFinite(fitDistance(0))).toBe(true);
   });
 
-  it("reserves the top and the timeline bar on a wide screen, and also the left on a narrow one", () => {
+  it("reserves the HUD row, both side columns and the timeline bar on a wide screen", () => {
     const wide = viewInsets(1400, 900);
-    expect(wide.top).toBeGreaterThan(0);
+    expect(wide.top).toBe(HUD_RESERVE);
     expect(wide.bottom).toBe(TIMELINE_RESERVE);
-    expect(wide.left + wide.right).toBe(0);
+    expect(wide.left).toBe(LABEL_COLUMN);
+    expect(wide.right).toBe(PANEL_COLUMN);
+    // The free area is wider than the stack needs, so the stack is limited
+    // by height and sits in the middle of that area.
+    expect(1400 - wide.left - wide.right).toBeGreaterThan(600);
     const narrow = viewInsets(NARROW_WIDTH - 1, 844);
     expect(narrow.left).toBeGreaterThan(0);
     expect(narrow.bottom).toBeGreaterThan(narrow.top);
     expect(viewInsets(0, 0)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  });
+
+  it("makes room for the chart beside the Layers panel only on a wide screen", () => {
+    expect(viewInsets(1400, 900, true).right).toBe(PANEL_COLUMN + CHART_COLUMN);
+    // Medium widths: the chart takes the place of the Layers panel.
+    expect(viewInsets(MEDIUM_WIDTH, 768, true)).toEqual(
+      viewInsets(MEDIUM_WIDTH, 768),
+    );
+    for (const width of [1181, 1280, 1400]) {
+      const insets = viewInsets(width, 720, true);
+      expect(width - insets.left - insets.right).toBeGreaterThan(150);
+    }
+  });
+
+  it("stops the label column above the credit, or above the timeline bar where the bar is under it", () => {
+    expect(labelCeiling(1400, 900)).toBe(900 - CREDIT_RESERVE);
+    expect(labelCeiling(1024, 768)).toBe(768 - TIMELINE_RESERVE);
+    expect(labelCeiling(390, 844)).toBeLessThan(844 - TIMELINE_RESERVE);
   });
 
   it("centers the picture in the free area", () => {

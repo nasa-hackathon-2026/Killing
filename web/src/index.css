@@ -12,11 +12,18 @@ body,
   touch-action: none;
 }
 
+/* Keyboard focus is always visible, on every panel. */
+:focus-visible {
+  outline: 2px solid #ffd166;
+  outline-offset: 2px;
+}
+
+/* The row of controls at the top left (main page and form lab). */
 .hud {
   position: absolute;
   top: 12px;
   left: 12px;
-  z-index: 1;
+  z-index: 4;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -31,7 +38,8 @@ body,
 .badge,
 .hud a,
 .hud button,
-.hud select {
+.hud select,
+.hud summary {
   margin: 0;
   padding: 8px 12px;
   color: inherit;
@@ -44,10 +52,35 @@ body,
   text-decoration: none;
 }
 
+/* Main page: the guide, the two views, and a "More" menu with the secondary
+   pages and the renderer diagnostics. Panels start at 64px, so this row must
+   not wrap; narrow screens drop labels instead. */
+.hud-main {
+  flex-wrap: nowrap;
+}
+
+.hud-main a,
+.hud-main button,
+.hud-main select,
+.hud-main summary {
+  font: inherit;
+  white-space: nowrap;
+}
+
 .hud label {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.hud-main label {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.hud-main select {
+  min-width: 0;
+  max-width: 300px;
 }
 
 .hud input[type="range"] {
@@ -56,7 +89,8 @@ body,
 
 .hud a,
 .hud button,
-.hud select {
+.hud select,
+.hud summary {
   cursor: pointer;
 }
 
@@ -65,13 +99,114 @@ body,
   opacity: 0.7;
 }
 
+.hud button[aria-pressed="true"] {
+  border-color: #cfe3ff;
+}
+
+.hud-guide {
+  font-weight: 700;
+}
+
+.hud-guide span {
+  font-weight: 400;
+}
+
+.hud-more {
+  position: relative;
+  flex: none;
+}
+
+.hud-more summary {
+  list-style: none;
+}
+
+.hud-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.hud-more summary::after {
+  content: " ▾";
+}
+
+.hud-more[open] summary {
+  border-color: #cfe3ff;
+}
+
+.hud-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 210px;
+  padding: 8px;
+  background: rgba(8, 14, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+}
+
+/* Renderer diagnostics: kept, but small and out of the first glance. */
+.hud-debug {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  color: #b7c6da;
+  font-size: 11px;
+}
+
+.hud-debug .badge,
+.hud-debug button {
+  padding: 3px 6px;
+}
+
+@media (max-width: 1180px) {
+  .hud-main label > span {
+    display: none;
+  }
+
+  .hud-main select {
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 700px) {
+  .hud-main {
+    gap: 6px;
+  }
+
+  .hud-main a,
+  .hud-main button,
+  .hud-main select,
+  .hud-main summary {
+    padding: 8px;
+  }
+
+  .hud-guide span,
+  .hud-fly {
+    display: none;
+  }
+
+  .hud-main select {
+    max-width: 132px;
+  }
+
+  .hud-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
 .layers {
   position: absolute;
   top: 64px;
   right: 12px;
   z-index: 1;
-  width: min(280px, calc(100% - 24px));
-  max-height: calc(100% - 120px);
+  box-sizing: border-box;
+  width: min(306px, calc(100% - 24px));
+  max-height: calc(100% - 76px);
   overflow: auto;
   margin: 0;
   padding: 12px;
@@ -87,6 +222,32 @@ body,
 .layers-title,
 .layers-note {
   margin: 0 0 8px;
+}
+
+.layers-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layers-title button {
+  padding: 1px 8px;
+  color: inherit;
+  font: inherit;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.layers.layers-collapsed {
+  width: auto;
+  padding: 8px 12px;
+}
+
+.layers-collapsed .layers-title {
+  margin: 0;
 }
 
 .layers-note {
@@ -249,6 +410,14 @@ body,
   max-height: calc(100% - 64px - 124px);
 }
 
+/* On the main page the panel also stops above the timeline bar, which stays
+   usable while a close-up is open. */
+.app:has(.timeline-bar) .closeup {
+  max-height: calc(
+    100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 16px
+  );
+}
+
 @media (max-width: 460px) {
   .closeup:has(~ .credit) {
     max-height: calc(100% - 64px - 106px);
@@ -402,6 +571,13 @@ body,
     13px/1.35 system-ui,
     sans-serif;
   touch-action: auto;
+}
+
+/* On the main page the legend stops above the timeline bar. */
+.app:has(.timeline-bar) .trendmap {
+  max-height: calc(
+    100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 16px
+  );
 }
 
 .trendmap p {
@@ -646,9 +822,12 @@ body,
   background: rgba(8, 14, 28, 0.94);
 }
 
-/* Beside the trend map legend when both are open. */
+/* Beside the trend map legend when both are open; narrower when the window
+   has no room for the legend, the chart, the companions and the Layers
+   panel side by side (314px legend + 574px companions and Layers). */
 .app:has(.trendmap) .timeline-chart {
   left: 314px;
+  width: min(440px, calc(100% - 314px - 574px));
 }
 
 .timeline-chart header {
@@ -799,12 +978,51 @@ body,
     transform: none;
   }
 
+  .timeline-bar {
+    width: calc(100% - 306px - 36px);
+  }
+
+  /* The drawer stops left of the companion panel (236px at its widest). */
   .timeline-chart,
   .app:has(.trendmap) .timeline-chart {
     top: auto;
     left: 12px;
     bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
-    width: calc(100% - 280px - 36px);
+    width: calc(100% - 306px - 36px - 248px);
+  }
+
+  /* Legend and chart share the left side: the legend keeps a short,
+     scrollable window above the drawer. */
+  .app:has(.timeline-chart) .trendmap {
+    max-height: 150px;
+  }
+
+  /* A close-up is as wide as the room left of the Layers panel; the
+     companions give way to it until it is closed. */
+  .app:has(.closeup)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
+
+  .app:has(.trendmap) .timeline-chart {
+    max-height: calc(
+      100% - 64px - 158px - var(--timeline-bottom) - var(--timeline-height) -
+        16px
+    );
+  }
+}
+
+/* Too narrow for the drawer and the companion panel side by side: the
+   drawer takes the width and the companions give way until it is closed. */
+@media (max-width: 900px) {
+  .timeline-chart,
+  .app:has(.trendmap) .timeline-chart {
+    width: calc(100% - 306px - 36px);
+  }
+
+  .app:has(.timeline-chart)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
   }
 }
 
@@ -822,8 +1040,48 @@ body,
     width: calc(100% - 24px);
   }
 
+  /* The drawer and the legend start below the two chips under the HUD. */
   .timeline-chart {
-    z-index: 2;
+    z-index: 3;
+    max-height: calc(
+      100% - 104px - var(--timeline-bottom) - var(--timeline-height) - 16px
+    );
+  }
+
+  .app:has(.timeline-bar) .trendmap {
+    top: 148px;
+    max-height: calc(
+      100% - 148px - var(--timeline-bottom) - var(--timeline-height) - 16px
+    );
+  }
+
+  .app:has(.timeline-bar) .closeup {
+    top: 104px;
+    max-height: calc(
+      100% - 104px - var(--timeline-bottom) - var(--timeline-height) - 16px
+    );
+  }
+
+  .app:has(.timeline-chart) .trendmap {
+    max-height: 150px;
+  }
+
+  .app:has(.trendmap) .timeline-chart {
+    max-height: calc(
+      100% - 148px - 158px - var(--timeline-bottom) - var(--timeline-height) -
+        16px
+    );
+  }
+
+  /* Folded: a chip in the top-right corner, beside the companions' chip.
+     Unfolded: a sheet over the page, down to the timeline bar. */
+  .layers {
+    top: 60px;
+    z-index: 4;
+  }
+
+  .layers.layers-collapsed {
+    z-index: 1;
   }
 
   .timeline-now {
@@ -835,9 +1093,8 @@ body,
   }
 
   .app:has(.timeline-bar) .layers {
-    /* 26px: the panel's own padding and border (it is not border-box). */
     max-height: calc(
-      100% - 64px - var(--timeline-bottom) - var(--timeline-height) - 8px - 26px
+      100% - 60px - var(--timeline-bottom) - var(--timeline-height) - 8px
     );
   }
 }

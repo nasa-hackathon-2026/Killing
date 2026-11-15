@@ -15,6 +15,13 @@ import {
   trendSignal,
   type TrendSignal,
 } from "./forms/encoding";
+import {
+  guideDismissed,
+  rememberGuideDismissed,
+  showGuideAtStart,
+  startingLayers,
+} from "./guide/firstVisit";
+import { GuideCard } from "./guide/GuideCard";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations } from "./mock/snapshot";
@@ -46,13 +53,15 @@ import {
 import { TrendMapLegend } from "./trendmap/TrendMapLegend";
 import {
   requestedCloseUp,
-  requestedLayers,
   requestedPlace,
   requestedStrata,
   requestedTrendMap,
 } from "./urlParams";
 
-const askedLayers = requestedLayers();
+const search = typeof window === "undefined" ? "" : window.location.search;
+// The layers the address lists, or the first-visit defaults when it sets
+// nothing (web/src/guide/firstVisit.ts).
+const askedLayers = startingLayers(search);
 const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
   id: layer.id,
   visible: askedLayers
@@ -119,6 +128,19 @@ function AppView({
     DEFAULT_OVERLAY_OPACITY,
   );
   const trendMap = useTrendMap(trendMapId);
+  // Start card (web/src/guide): opens by itself on a first visit, and from
+  // the "? Guide" button. Opening another left-hand panel puts it away.
+  const [guideOpen, setGuideOpen] = useState(() =>
+    showGuideAtStart(search, guideDismissed()),
+  );
+  const closeGuide = () => {
+    rememberGuideDismissed();
+    setGuideOpen(false);
+  };
+  const enterStrata = () => {
+    setGuideOpen(false);
+    strata.enter();
+  };
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const location =
     data?.places.find((item) => item.id === locationId) ??
@@ -229,36 +251,37 @@ function AppView({
         />
       ) : null}
       {strata.phase === "off" && nearGround && location ? (
-        <StrataHint placeName={location.nameEn} onEnter={strata.enter} />
+        <StrataHint placeName={location.nameEn} onEnter={enterStrata} />
       ) : null}
-      <div className="hud">
-        <p className="badge">Renderer: {rendererLabel(kind)}</p>
-        <FpsReadout />
-        <button type="button" onClick={() => setForceWebGL((value) => !value)}>
-          {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
-        </button>
+      <div className="hud hud-main">
         <button
           type="button"
-          onClick={() => setFlying(true)}
-          disabled={flying || strata.phase !== "off"}
+          className="hud-guide"
+          aria-pressed={guideOpen}
+          aria-label="Guide: how to start and how to read this"
+          onClick={() => (guideOpen ? closeGuide() : setGuideOpen(true))}
         >
-          Fly to Taiwan
+          ? <span>Guide</span>
         </button>
         <button
           type="button"
-          onClick={strata.phase === "off" ? strata.enter : strata.exit}
+          onClick={strata.phase === "off" ? enterStrata : strata.exit}
           disabled={strata.phase === "closing" || strata.phase === "return"}
           aria-pressed={strata.phase !== "off"}
         >
           {strata.phase === "off" ? "Layer view" : "Back to the globe"}
         </button>
         <label>
-          Global trend map
+          <span>Global trend map</span>
           <select
             value={trendMapId ?? ""}
-            onChange={(event) => setTrendMapId(event.target.value || null)}
+            aria-label="Global trend map"
+            onChange={(event) => {
+              setGuideOpen(false);
+              setTrendMapId(event.target.value || null);
+            }}
           >
-            <option value="">Off</option>
+            <option value="">{"Trend map: off"}</option>
             {TREND_MAP_VARIABLES.map((variable) => (
               <option key={variable.id} value={variable.id}>
                 {variable.label}
@@ -266,10 +289,37 @@ function AppView({
             ))}
           </select>
         </label>
-        <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
-        <a href={`${import.meta.env.BASE_URL}mining/`}>Data mining</a>
-        <a href={`${import.meta.env.BASE_URL}compare/`}>Model vs observation</a>
+        <button
+          type="button"
+          className="hud-fly"
+          onClick={() => setFlying(true)}
+          disabled={flying || strata.phase !== "off"}
+        >
+          Fly to Taiwan
+        </button>
+        {/* Secondary pages and the renderer diagnostics. */}
+        <details className="hud-more">
+          <summary>More</summary>
+          <div className="hud-menu">
+            <a href={`${import.meta.env.BASE_URL}compare/`}>
+              Model vs observation
+            </a>
+            <a href={`${import.meta.env.BASE_URL}mining/`}>Data mining</a>
+            <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
+            <div className="hud-debug">
+              <p className="badge">Renderer: {rendererLabel(kind)}</p>
+              <FpsReadout />
+              <button
+                type="button"
+                onClick={() => setForceWebGL((value) => !value)}
+              >
+                {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
+              </button>
+            </div>
+          </div>
+        </details>
       </div>
+      {guideOpen ? <GuideCard onClose={closeGuide} /> : null}
       <LayerPanel
         layers={layerRegistry}
         controls={controls}
@@ -294,9 +344,15 @@ function AppView({
             ),
           )
         }
-        onCloseUp={setCloseUpId}
+        onCloseUp={(id) => {
+          setGuideOpen(false);
+          setCloseUpId(id);
+        }}
         chartId={timeline.selectedVariableId}
-        onChart={timeline.setSelectedVariableId}
+        onChart={(id) => {
+          setGuideOpen(false);
+          timeline.setSelectedVariableId(id);
+        }}
       />
       <TimelineDock
         series={here}

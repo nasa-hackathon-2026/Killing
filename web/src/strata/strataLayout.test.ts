@@ -6,6 +6,7 @@ import {
   particleRange,
   PLATFORM_DEPTH,
   PLATFORM_WIDTH,
+  stackLabelTops,
   SLAB_HEIGHT,
   stackExtent,
 } from "./strataLayout";
@@ -83,5 +84,42 @@ describe("companionSpot", () => {
     }
     expect(spots[1][0] - spots[0][0]).toBeGreaterThan(0.5);
     expect(companionSpot(0, 1)[0]).toBeCloseTo(0);
+  });
+});
+
+describe("stackLabelTops", () => {
+  const overlaps = (tops: number[], heights: number[]) =>
+    tops.some(
+      (top, index) =>
+        index > 0 && top < tops[index - 1] + heights[index - 1] - 1e-9,
+    );
+
+  it("centers each label on its stratum when there is room", () => {
+    expect(stackLabelTops([100, 300, 500], [40, 40, 40], 0, 800)).toEqual([
+      80, 280, 480,
+    ]);
+  });
+
+  it("keeps labels below the floor and apart from each other", () => {
+    const heights = [60, 60, 60];
+    const tops = stackLabelTops([50, 60, 70], heights, 100, 800);
+    expect(tops[0]).toBe(100);
+    expect(overlaps(tops, heights)).toBe(false);
+    expect(tops[1] - tops[0]).toBe(64);
+  });
+
+  it("pushes the column up so the last label ends above the ceiling", () => {
+    const heights = [80, 80, 80];
+    const tops = stackLabelTops([300, 500, 690], heights, 100, 700);
+    expect(tops[2] + heights[2]).toBeLessThanOrEqual(700);
+    expect(overlaps(tops, heights)).toBe(false);
+    expect(tops[0]).toBeGreaterThanOrEqual(100);
+  });
+
+  it("starts at the floor when the column cannot fit", () => {
+    const heights = [200, 200, 200];
+    const tops = stackLabelTops([100, 300, 500], heights, 100, 500);
+    expect(tops[0]).toBe(100);
+    expect(overlaps(tops, heights)).toBe(false);
   });
 });

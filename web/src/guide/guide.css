@@ -1,0 +1,163 @@
+/* Start card (web/src/guide). Every class starts with "guide-". It takes
+   the left-hand slot under the HUD, where the chart and the trend map legend
+   open; opening either of those puts the card away. */
+.guide-card {
+  position: absolute;
+  top: 64px;
+  left: 12px;
+  z-index: 3;
+  box-sizing: border-box;
+  width: min(380px, calc(100% - 24px));
+  max-height: calc(
+    100% - 64px - var(--timeline-bottom, 72px) - var(--timeline-height, 108px) -
+      16px
+  );
+  overflow: auto;
+  padding: 12px 14px;
+  color: #e8eef7;
+  background: rgba(8, 14, 28, 0.95);
+  border: 1px solid rgba(207, 227, 255, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font:
+    13px/1.45 system-ui,
+    sans-serif;
+  touch-action: auto;
+}
+
+.guide-card header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.guide-card h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.guide-card h2 {
+  margin: 10px 0 6px;
+  font-size: 13px;
+}
+
+.guide-card p {
+  margin: 6px 0 0;
+  color: #d5e4f5;
+}
+
+.guide-card ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.guide-card button,
+.guide-examples a {
+  color: inherit;
+  font: inherit;
+  background: rgba(20, 32, 56, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.guide-card button {
+  padding: 4px 10px;
+}
+
+.guide-examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guide-examples a {
+  display: block;
+  padding: 7px 10px;
+  text-decoration: none;
+}
+
+.guide-examples a:hover {
+  border-color: #cfe3ff;
+}
+
+.guide-examples a span {
+  display: block;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.guide-card details {
+  margin-top: 10px;
+}
+
+.guide-card summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.guide-card dl {
+  margin: 6px 0 0;
+}
+
+.guide-card dt {
+  margin-top: 6px;
+  color: #ffe9a8;
+}
+
+.guide-card dd {
+  margin: 0;
+  color: #d5e4f5;
+  font-size: 12px;
+}
+
+.guide-card footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.guide-card .guide-start {
+  flex: none;
+  padding: 6px 12px;
+  color: #0b1220;
+  background: #cfe3ff;
+  border-color: #cfe3ff;
+}
+
+/* Short windows (a 720px-high laptop): the card drops the "Opens" lines so
+   the steps, the four questions and the start button fit without scrolling. */
+@media (max-height: 800px) and (min-width: 701px) {
+  .guide-card {
+    width: min(420px, calc(100% - 24px));
+  }
+
+  .guide-examples a span {
+    display: none;
+  }
+
+  .guide-examples a {
+    padding: 5px 10px;
+  }
+}
+
+/* Phone widths: a sheet over the page, above every other panel. */
+@media (max-width: 700px) {
+  .guide-card {
+    position: fixed;
+    top: 60px;
+    right: 12px;
+    left: 12px;
+    z-index: 7;
+    width: auto;
+    max-height: calc(100% - 72px);
+  }
+}

@@ -62,6 +62,9 @@ export function posePosition(pose: OrbitPose): Vec3 {
   ];
 }
 
+// Free space kept around the stack when it is fitted (scene units).
+export const FIT_MARGIN = 0.5;
+
 // Distance at which the pulled-apart stack fits a viewport of this aspect
 // ratio (width / height) at the default depression.
 export function fitDistance(aspect: number): number {
@@ -71,7 +74,7 @@ export function fitDistance(aspect: number): number {
   const tall =
     (strata.length - 1) * LAYER_GAP * Math.cos(DEFAULT_DEPRESSION) +
     diagonal * Math.sin(DEFAULT_DEPRESSION) +
-    1;
+    FIT_MARGIN;
   const wide = diagonal + 0.6;
   return Math.max(tall / (2 * half), wide / (2 * half * safeAspect));
 }
@@ -163,9 +166,17 @@ export const APPROACH_SECONDS = 1.8;
 // Closer than this, the "Enter layer view" hint is offered.
 export const NEAR_HINT_DISTANCE = 1.9;
 
-// Screen space the HTML around the picture takes (pixels): the HUD and the
-// legend at the top, and on a narrow screen the labels on the left and the
-// layer panel at the bottom. The stack is fitted into what is left.
+// Screen space the HTML around the picture takes (pixels). The stack is
+// fitted into, and centered on, what is left. Docking rules of the layer
+// view (the CSS that places the panels is in strata.css and has to agree):
+//   wide (> 1180 px)   HUD row on top; the legend and the layer labels in a
+//                      left column; the Layers panel on the right, and the
+//                      time series chart, when open, to its left; the
+//                      timeline bar at the bottom.
+//   medium (≤ 1180 px) the same, but an open chart takes the place of the
+//                      Layers panel, so the free area does not change.
+//   narrow (≤ 700 px)  legend on top, labels on the left, the timeline bar
+//                      and the short sheet of the Layers panel at the bottom.
 export type ViewInsets = {
   top: number;
   right: number;
@@ -174,12 +185,28 @@ export type ViewInsets = {
 };
 
 export const NARROW_WIDTH = 700;
+export const MEDIUM_WIDTH = 1180;
 // Height kept free at the bottom for the timeline bar (index.css:
 // --timeline-bottom + --timeline-height, plus a gap).
 export const TIMELINE_RESERVE = 192;
 export const TIMELINE_RESERVE_NARROW = 216;
+// The HUD row (index.css: panels start at 64px).
+export const HUD_RESERVE = 64;
+// Left column: 12px margin + the 270px labels + a gap (strata.css).
+export const LABEL_COLUMN = 294;
+// Right column: the Layers panel (306px with its padding) + margins.
+export const PANEL_COLUMN = 326;
+// The chart docked left of the Layers panel: 380px + a gap (strata.css).
+export const CHART_COLUMN = 392;
+// Height of the credit in the bottom-left corner, which the label column
+// stops above on a wide screen.
+export const CREDIT_RESERVE = 78;
 
-export function viewInsets(width: number, height: number): ViewInsets {
+export function viewInsets(
+  width: number,
+  height: number,
+  chartOpen = false,
+): ViewInsets {
   if (!(width > 0) || !(height > 0)) {
     return { top: 0, right: 0, bottom: 0, left: 0 };
   }
@@ -193,12 +220,21 @@ export function viewInsets(width: number, height: number): ViewInsets {
       left: width * 0.34,
     };
   }
+  const chart = chartOpen && width > MEDIUM_WIDTH ? CHART_COLUMN : 0;
   return {
-    top: Math.min(150, height * 0.18),
-    right: 0,
+    top: HUD_RESERVE,
+    right: PANEL_COLUMN + chart,
     bottom: Math.min(TIMELINE_RESERVE, height * 0.3),
-    left: 0,
+    left: LABEL_COLUMN,
   };
+}
+
+// The lowest screen height (pixels from the top) the label column may reach:
+// the credit on a wide screen, the timeline bar where the bar sits under
+// the column.
+export function labelCeiling(width: number, height: number): number {
+  if (width > MEDIUM_WIDTH) return height - CREDIT_RESERVE;
+  return height - viewInsets(width, height).bottom;
 }
 
 // How far the picture's center moves from the middle of the viewport, and

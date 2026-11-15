@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
@@ -30,6 +31,14 @@ type LayerPanelProps = {
   onChart?: (id: string | null) => void;
 };
 
+// At or below this width the panel starts folded (the globe would be hidden
+// behind it) and folds again when it opens a chart or a close-up.
+const NARROW_WIDTH = 700;
+
+function isNarrow(): boolean {
+  return typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH;
+}
+
 export function LayerPanel({
   layers,
   controls,
@@ -47,10 +56,35 @@ export function LayerPanel({
   onChart,
 }: LayerPanelProps) {
   const monthIndex = month ? months.indexOf(month) : -1;
+  const [collapsed, setCollapsed] = useState(isNarrow);
+  const onCount = controls.filter((control) => control.visible).length;
+  const head = (
+    <p className="layers-title">
+      <span>
+        Layers
+        {collapsed ? ` · ${onCount} on` : ""}
+      </span>
+      <button
+        type="button"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand layers" : "Collapse layers"}
+        onClick={() => setCollapsed(!collapsed)}
+      >
+        {collapsed ? "+" : "–"}
+      </button>
+    </p>
+  );
+  if (collapsed) {
+    return (
+      <aside className="layers layers-collapsed" aria-label="Layers">
+        {head}
+      </aside>
+    );
+  }
 
   return (
-    <aside className="layers">
-      <p className="layers-title">Layers</p>
+    <aside className="layers" aria-label="Layers">
+      {head}
       <p className="layers-note">Values at {locationName}</p>
       {monthIndex >= 0 ? (
         <label className="month">
@@ -129,7 +163,10 @@ export function LayerPanel({
                     type="button"
                     className="closeup-open"
                     aria-label={`${layer.nameEn} close-up`}
-                    onClick={() => onCloseUp(layer.id)}
+                    onClick={() => {
+                      if (isNarrow()) setCollapsed(true);
+                      onCloseUp(layer.id);
+                    }}
                   >
                     Close-up
                   </button>
@@ -140,9 +177,10 @@ export function LayerPanel({
                     className="closeup-open"
                     aria-label={`${layer.nameEn} time series chart`}
                     aria-pressed={chartId === layer.id}
-                    onClick={() =>
-                      onChart(chartId === layer.id ? null : layer.id)
-                    }
+                    onClick={() => {
+                      if (isNarrow()) setCollapsed(true);
+                      onChart(chartId === layer.id ? null : layer.id);
+                    }}
                   >
                     Chart
                   </button>

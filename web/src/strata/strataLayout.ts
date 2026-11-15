@@ -8,7 +8,7 @@ export const PLATFORM_DEPTH = 1.3;
 // Height of the box of air (or soil) above one platform that particles use.
 export const SLAB_HEIGHT = 0.55;
 // Distance between two neighboring platforms when fully pulled apart.
-export const LAYER_GAP = 1.25;
+export const LAYER_GAP = 1.0;
 // The strata never collapse fully onto one plane (avoids z-fighting).
 export const MIN_SPREAD = 0.03;
 
@@ -50,6 +50,37 @@ export function stackExtent(boxes: StratumBox[]): {
   }
   if (boxes.length === 0) return { bottom: 0, top: 0 };
   return { bottom, top };
+}
+
+// Tops (pixels) of the labels of the left column. Each label wants to sit
+// centered on the screen height of its stratum (`centers`, top to bottom);
+// they are then kept below `floor` (the legend), above `ceiling` (the
+// credit or the timeline bar) and `gap` pixels apart. When there is not
+// enough room the column starts at `floor` and runs past `ceiling`.
+export function stackLabelTops(
+  centers: number[],
+  heights: number[],
+  floor: number,
+  ceiling: number,
+  gap = 4,
+): number[] {
+  const tops: number[] = [];
+  let next = floor;
+  centers.forEach((center, index) => {
+    const height = heights[index] ?? 0;
+    const top = Math.max(next, center - height / 2);
+    tops.push(top);
+    next = top + height + gap;
+  });
+  let limit = ceiling;
+  for (let index = tops.length - 1; index >= 0; index -= 1) {
+    const height = heights[index] ?? 0;
+    const top = Math.min(tops[index] ?? 0, limit - height);
+    tops[index] = top;
+    limit = top - gap;
+  }
+  const lift = floor - (tops[0] ?? floor);
+  return lift > 0 ? tops.map((top) => top + lift) : tops;
 }
 
 export type ParticleRange = {

@@ -46,8 +46,8 @@ export const INTERACTION_NOTE =
   "Interactions are illustrative; they do not show cause and effect.";
 export const EMPTY_NOTE = "Turn on a layer to meet its companion";
 
-// Below this width the panel starts collapsed and sits above the credit.
-const NARROW_WIDTH = 760;
+// At or below this width the panel starts collapsed, as a chip under the HUD.
+const NARROW_WIDTH = 700;
 
 function requestedMode(): string | null {
   if (typeof window === "undefined") return null;
@@ -147,7 +147,7 @@ export function CompanionDock({
   const [userCollapsed, setCollapsed] = useState(
     () =>
       mode === "collapsed" ||
-      (typeof window !== "undefined" && window.innerWidth < NARROW_WIDTH),
+      (typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH),
   );
   const collapsed = compact ? !compactOpen : userCollapsed;
   const [selectedId, setSelectedId] = useState<string | null>(null);

@@ -22,6 +22,7 @@ import {
   DEFAULT_AZIMUTH,
   DEFAULT_DEPRESSION,
   FOV_DEG,
+  MEDIUM_WIDTH,
 } from "./strataCamera";
 import { companionSpot } from "./strataLayout";
 import {
@@ -41,7 +42,7 @@ import {
   type StratumId,
 } from "./strataSpec";
 import { surfaceImage } from "./surfaceCrop";
-import { useCurrentMonth } from "./useCurrentMonth";
+import { useChartOpen, useCurrentMonth } from "./useCurrentMonth";
 
 type StrataViewProps = {
   closing: boolean;
@@ -81,6 +82,14 @@ export function StrataView({
   signals,
 }: StrataViewProps) {
   const month = useCurrentMonth(appMonth);
+  const chartOpen = useChartOpen();
+  // The three notes of the legend start open where there is room for them
+  // beside the six labels (a tall, wide window).
+  const [notesOpen] = useState(
+    () =>
+      typeof window === "undefined" ||
+      (window.innerWidth > MEDIUM_WIDTH && window.innerHeight >= 800),
+  );
   const [selected, setSelected] = useState<StratumId | null>(null);
   const orbit = useRef<StrataOrbit>({
     azimuth: DEFAULT_AZIMUTH,
@@ -182,6 +191,7 @@ export function StrataView({
             anchors={anchors}
             elements={elements}
             surface={surface}
+            chartOpen={chartOpen}
             onSelect={setSelected}
             onClosed={onClosed}
           />
@@ -198,10 +208,12 @@ export function StrataView({
             aria-pressed={selected === item.id}
             onClick={() => setSelected(selected === item.id ? null : item.id)}
           >
-            <strong>{item.nameEn}</strong>
-            {item.heightEn ? (
-              <span className="strata-height">{item.heightEn}</span>
-            ) : null}
+            <span className="strata-label-head">
+              <strong>{item.nameEn}</strong>
+              {item.heightEn ? (
+                <span className="strata-height">{item.heightEn}</span>
+              ) : null}
+            </span>
             {variablesOf(item.id).map((variableId) => (
               <span
                 key={variableId}
@@ -209,7 +221,7 @@ export function StrataView({
                   open(variableId) ? "strata-value" : "strata-value strata-off"
                 }
               >
-                {nameOf(variableId)}
+                <span className="strata-value-name">{nameOf(variableId)}</span>
                 <b>{readings[variableId] ?? ""}</b>
               </span>
             ))}
@@ -247,7 +259,9 @@ export function StrataView({
                 }
                 size={40}
               />
-              <span>{info.name}</span>
+              {/* The name shows on hover or keyboard focus only: the left
+                  column already lists every variable and its value. */}
+              <span className="strata-companion-name">{info.name}</span>
             </button>
           );
         })}
@@ -260,13 +274,19 @@ export function StrataView({
             Back to the globe
           </button>
         </p>
-        <p>
-          {STRATA_NOTES.join(" ")} Drag to turn, scroll to zoom, click a layer
-          for its numbers.
-          {openCount === 0
-            ? " No layer is switched on: tick one in the Layers panel to see it here."
-            : ""}
-        </p>
+        {openCount === 0 ? (
+          <p>
+            No layer is switched on: tick one in the Layers panel to see it
+            here.
+          </p>
+        ) : null}
+        <details open={notesOpen}>
+          <summary>{STRATA_NOTES[0]} About this view</summary>
+          <p>
+            {STRATA_NOTES.slice(1).join(" ")} Drag to turn, scroll to zoom,
+            click a layer for its numbers.
+          </p>
+        </details>
       </header>
       {chosen ? (
         <aside className="strata-detail" aria-label={`${chosen.nameEn} values`}>

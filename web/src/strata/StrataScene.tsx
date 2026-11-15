@@ -31,6 +31,7 @@ import {
   FOCUS_ZOOM,
   posePosition,
   insetView,
+  labelCeiling,
   viewInsets,
   zoomTargetY,
 } from "./strataCamera";
@@ -39,6 +40,7 @@ import {
   PLATFORM_DEPTH,
   PLATFORM_WIDTH,
   stackExtent,
+  stackLabelTops,
   type StratumBox,
 } from "./strataLayout";
 import { StrataParticles } from "./StrataParticles";
@@ -79,6 +81,9 @@ type StrataSceneProps = {
   anchors: StrataAnchor[];
   elements: RefObject<Map<string, HTMLElement>>;
   surface: SurfaceImage;
+  // True while the time series chart is open: on a wide screen it is docked
+  // beside the Layers panel and the stack moves over (strataCamera.ts).
+  chartOpen: boolean;
   onSelect: (id: StratumId | null) => void;
   onClosed: () => void;
 };
@@ -165,6 +170,7 @@ export function StrataScene({
   anchors,
   elements,
   surface,
+  chartOpen,
   onSelect,
   onClosed,
 }: StrataSceneProps) {
@@ -193,8 +199,12 @@ export function StrataScene({
   // panel take part of the screen; the picture is fitted into the rest.
   const view = useMemo(
     () =>
-      insetView(size.width, size.height, viewInsets(size.width, size.height)),
-    [size.width, size.height],
+      insetView(
+        size.width,
+        size.height,
+        viewInsets(size.width, size.height, chartOpen),
+      ),
+    [size.width, size.height, chartOpen],
   );
   useEffect(() => {
     camera.setViewOffset(
@@ -272,10 +282,12 @@ export function StrataScene({
       }
     });
 
-    // Labels stay in the left column at the height of their stratum, but
-    // never under the legend and never on top of each other.
+    // Companions stand on their platform; the labels stay in the left
+    // column at the height of their stratum, but never under the legend, on
+    // top of each other, or over the credit and the timeline bar.
     const header = elements.current?.get("header");
-    let floor = header ? header.offsetTop + header.offsetHeight + 6 : 0;
+    const floor = header ? header.offsetTop + header.offsetHeight + 6 : 0;
+    const labels: { element: HTMLElement; center: number }[] = [];
     for (const anchor of anchors) {
       const element = elements.current?.get(anchor.key);
       const box = layout.find((item) => item.id === anchor.stratum);
@@ -289,13 +301,19 @@ export function StrataScene({
       if (anchor.spot) {
         element.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) translate(-50%, -100%)`;
       } else {
-        const height = element.offsetHeight;
-        const top = Math.max(floor, py - height / 2);
-        floor = top + height + 4;
-        element.style.transform = `translate(0, ${top.toFixed(1)}px)`;
+        labels.push({ element, center: py });
       }
       element.style.visibility = point.z < 1 ? "visible" : "hidden";
     }
+    const tops = stackLabelTops(
+      labels.map((label) => label.center),
+      labels.map((label) => label.element.offsetHeight),
+      floor,
+      labelCeiling(size.width, size.height),
+    );
+    labels.forEach((label, index) => {
+      label.element.style.transform = `translate(0, ${(tops[index] ?? 0).toFixed(1)}px)`;
+    });
   });
 
   return (

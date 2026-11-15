@@ -76,7 +76,7 @@
   gap: 1px;
   width: min(270px, 40vw);
   box-sizing: border-box;
-  padding: 6px 8px;
+  padding: 5px 8px;
   background: rgba(8, 14, 28, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-left: 4px solid #b7c6da;
@@ -85,6 +85,13 @@
 
 .strata-label[aria-pressed="true"] {
   border-color: #ffe9a8;
+}
+
+.strata-label-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  align-items: baseline;
 }
 
 .strata-height {
@@ -139,12 +146,40 @@
     0 0 3px #0b1220;
 }
 
+/* Only the figure stands on the platform. Its name appears on hover or
+   keyboard focus, so twelve names never pile up over the picture. */
+.strata-companion-name {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 1;
+  display: none;
+  padding: 2px 6px;
+  white-space: nowrap;
+  background: rgba(8, 14, 28, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  transform: translateX(-50%);
+}
+
+.strata-companion:hover,
+.strata-companion:focus-visible {
+  z-index: 2;
+}
+
+.strata-companion:hover .strata-companion-name,
+.strata-companion:focus-visible .strata-companion-name {
+  display: block;
+}
+
+/* The legend heads the left column, above the six labels. */
 .strata-header {
   position: absolute;
-  top: 104px;
+  top: 64px;
   left: 12px;
-  width: min(560px, calc(100% - 320px));
-  padding: 8px 10px;
+  box-sizing: border-box;
+  width: min(270px, 40vw);
+  padding: 6px 8px;
   background: rgba(8, 14, 28, 0.78);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 6px;
@@ -154,6 +189,20 @@
   margin: 0;
   color: #b7c6da;
   font-size: 12px;
+}
+
+.strata-header summary {
+  cursor: pointer;
+}
+
+.strata-header details {
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+/* The HUD has the same button on wider screens. */
+.strata-header .strata-title button {
+  display: none;
 }
 
 .strata-header .strata-title {
@@ -183,7 +232,11 @@
   left: 12px;
   bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 12px);
   width: min(340px, calc(100% - 24px));
-  max-height: min(48%, 420px);
+  /* Ends below the legend (64px + its folded height) at any window height. */
+  max-height: min(
+    420px,
+    calc(100% - 180px - var(--timeline-bottom) - var(--timeline-height) - 12px)
+  );
   overflow: auto;
   padding: 10px 12px;
   background: rgba(8, 14, 28, 0.94);
@@ -249,6 +302,66 @@
   background: rgba(8, 14, 28, 0.86);
 }
 
+/* The trend map is drawn on the globe, which the layer view covers. */
+.app:has(.strata) .trendmap {
+  display: none;
+}
+
+/* Docking while the layer view is open (viewInsets in strataCamera.ts
+   reserves the same columns). Wide: the chart stands left of the Layers
+   panel, so the labels, the stack, the chart and the layer switches are all
+   visible; the folded companion row gives way to it (the same companions
+   stand on the platforms). */
+@media (min-width: 1181px) {
+  .app:has(.strata) .timeline-chart.timeline-chart {
+    right: 330px;
+    left: auto;
+    width: 380px;
+  }
+
+  .app:has(.strata):has(.timeline-chart)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
+}
+
+/* The folded companion panel keeps only its heading and the + button here:
+   the same figures stand on the platforms, and a row of them would sit on
+   the top platform. */
+.app:has(.strata) .companion-dock-collapsed .companion-avatars {
+  display: none;
+}
+
+/* Medium: no room for both, so the chart takes the place of the Layers
+   panel until it is closed. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .app:has(.strata):has(.timeline-chart) .layers {
+    display: none;
+  }
+
+  .app:has(.strata) .timeline-chart.timeline-chart {
+    top: 64px;
+    right: 12px;
+    bottom: auto;
+    left: auto;
+    z-index: 2;
+    width: 306px;
+    max-height: calc(100% - 76px);
+  }
+}
+
+/* Short or medium-width windows: the six labels need the room, so the
+   height text is left to the panel of an expanded layer. */
+@media (max-height: 800px), (max-width: 1180px) {
+  .strata-height {
+    display: none;
+  }
+
+  .strata-label {
+    padding: 3px 8px;
+  }
+}
+
 /* Narrow screens: the layer view keeps the screen for itself. The HUD is
    hidden (the legend has its own "Back to the globe"), and the layer panel
    becomes a short sheet above the timeline bar; the panel of an expanded
@@ -274,7 +387,10 @@
   .strata-header {
     top: 12px;
     width: calc(100% - 24px);
-    box-sizing: border-box;
+  }
+
+  .strata-header .strata-title button {
+    display: block;
   }
 
   .strata-label {
@@ -290,6 +406,34 @@
 
   .strata-off,
   .strata-height {
+    display: none;
+  }
+
+  /* Values only, in a row: the names are in the panel a tap opens. */
+  .strata-label {
+    display: block;
+  }
+
+  .strata-label-head {
+    display: block;
+  }
+
+  .strata-value:not(.strata-off) {
+    display: inline;
+  }
+
+  .strata-value-name {
+    display: none;
+  }
+
+  .strata-value b {
+    margin-right: 8px;
+    font-weight: 400;
+    white-space: normal;
+  }
+
+  /* The same companions stand on the platforms. */
+  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
     display: none;
   }
 
