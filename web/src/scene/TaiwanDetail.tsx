@@ -32,6 +32,7 @@ function DetailMesh({ region }: { region: DetailImage }) {
   const material = useRef<MeshBasicMaterial>(null);
   const texture = useRef<Texture | null>(null);
   const requested = useRef(false);
+  const ready = useRef(false);
   const rows = region.id === "taiwan" ? 64 : 24;
   const geometry = useMemo(() => {
     const patch = surfacePatch(region, DETAIL_RADIUS, rows, rows);
@@ -61,19 +62,24 @@ function DetailMesh({ region }: { region: DetailImage }) {
       requested.current = true;
       const loader = new TextureLoader();
       loader.setCrossOrigin("anonymous");
-      const map = loader.load(textureUrl(region.file));
+      // The patch is shown only after its image has loaded. A failed
+      // download (offline, GIBS unavailable) leaves the globe's own surface
+      // instead of an empty, black square.
+      const map = loader.load(textureUrl(region.file), () => {
+        ready.current = true;
+        if (material.current) {
+          material.current.map = map;
+          material.current.needsUpdate = true;
+        }
+      });
       map.colorSpace = SRGBColorSpace;
       map.anisotropy = 8;
       texture.current = map;
-      if (material.current) {
-        material.current.map = map;
-        material.current.needsUpdate = true;
-      }
     }
     const amount = inside ? detailOpacity(distance) : 0;
     if (material.current) material.current.opacity = amount;
     if (mesh.current) {
-      mesh.current.visible = amount > 0.02 && texture.current !== null;
+      mesh.current.visible = amount > 0.02 && ready.current;
     }
   });
 
