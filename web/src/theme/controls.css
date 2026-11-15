@@ -8,7 +8,7 @@
    already used. A light surface (the companion speech bubble) overrides them
    locally. Contrast on the page background #0b1220 (WCAG): text 16.0,
    muted 10.8, accent 10.6, control border 7.3, focus ring 13.0, scrollbar
-   thumb 3.4 (idle) to 8.7 (dragging). */
+   thumb 4.5 (idle) to 8.7 (dragging). */
 :root {
   --ctl-bg: #0b1220;
   --ctl-surface: rgba(8, 14, 28, 0.72);
@@ -23,7 +23,7 @@
   --ctl-focus: #ffd166;
   --ctl-track: rgba(255, 255, 255, 0.26);
   --ctl-scroll-size: 10px;
-  --ctl-scroll-thumb: rgba(142, 200, 255, 0.5);
+  --ctl-scroll-thumb: rgba(142, 200, 255, 0.6);
   --ctl-scroll-thumb-hover: rgba(142, 200, 255, 0.7);
   --ctl-scroll-thumb-active: rgba(142, 200, 255, 0.9);
   --ctl-scroll-track: transparent;
@@ -485,9 +485,15 @@ details > summary:focus-visible {
   input[type="radio"],
   input[type="checkbox"]::before,
   input[type="radio"]::before,
-  input[type="range"]::-webkit-slider-thumb,
-  input[type="range"]::-moz-range-thumb,
   details:not(.hud-more) > summary::before {
+    transition: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    transition: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
     transition: none;
   }
 }
