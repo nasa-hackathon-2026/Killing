@@ -248,12 +248,12 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **資料怎麼變成外形**（`companionData.ts`，純函式，有測試）：大小 ← 正規化數值（`BODY_SCALE`）；呼吸速度 ← 該變數在 `formMapping.ts` 的速度對應（含氣溫的平方根律），取對數後落在 `BREATH_LIMITS`；姿態 ← 當月值與「同一個月份在整段紀錄的平均」相比的標準化距平，只分三級（`MOOD_THRESHOLD_Z`，預設 0.5 個標準差；同月份有值的年數少於 `MIN_CLIMATOLOGY_YEARS` 就不算）；頭頂標記 ← `trendSignal`，符號與圖層面板相同；警示標記 ← `trendCaveats.ts`。氣溫角色的身體顏色用趨勢地圖的藍—白—紅色階讀距平（`anomalyTint`）。葉片數、土壤水透鏡數、雨滴數、氣膠顆粒數都隨正規化數值（`detailCount`）。
 - **外形的畫法**在 `companionShape.ts`（一圈控制點的平滑閉合曲線，`bodyOutline` 依形態與姿態變形）與 `Companion.tsx`（各形態的細節）。氣體角色體內的分子用 `chemistry/molecules.ts` 的 `atomPositions` 與 CPK 配色，不另畫一套。
 - **台詞的限制（不可放寬）**：只能是資料事實——變數、地點、月份、數值與單位、與同月份平均的差、每十年變化量與顯著性、已知問題的警語、資料性質。**不寫原因、不下結論、不寫情緒性的判斷**；官方規定點子不能由 AI 產生，詮釋留給隊伍。表情只有姿態三級，不做哭笑臉。
-- **角色必須原創**：不重現任何既有動漫、遊戲、品牌角色的外形、名字、配色或招牌表情；名字用形態本身的英文。全部用程式畫，不加外部圖片、字型、音檔；語音只用瀏覽器的 `speechSynthesis`（`speech.ts`），預設關閉，只在使用者點擊或播放暫停時念。
+- **角色必須原創**：不重現任何既有動漫、遊戲、品牌角色的外形、名字、配色或招牌表情；名字用形態本身的英文。全部用程式畫，不加外部圖片、字型、音檔；語音只用瀏覽器的 `speechSynthesis`（`speech.ts`），預設關閉，只在使用者點擊或播放暫停時念。聲線跟介面語言走（`en`、`zh-TW`、`ja`、`de`、`fr`；`?lang=` 優先於 `localStorage` 的 `estd.lang`，沒有就英文），同一語言裡優先 Natural、Neural、Premium、Google，避開 eSpeak 與會改音調的趣味語音。瀏覽器沒有該語言的語音時改用英文語音，避免作業系統的預設語音（常常是另一種語言）把英文念成別的音調。音調固定 1。
 - **並存與互動**：面板依 `altitudeOrder` 由上而下排，5 隻以上改兩欄（`ONE_COLUMN_MAX`，為了不蓋到下方的時間軸列）。相鄰兩隻的互動規則是資料（`interactions.ts` 的 `INTERACTION_RULES`：滴水、上升的小珠、氣溫角色的暖光），只是示意，不代表因果，面板底部有註明；兩欄時不顯示互動。
 - **Gather**：`gather.ts` 的 `gatherLayout` 把 12 隻排成借用拉斐爾〈雅典學院〉構圖意象的畫面（中央一隻 `sky`／`air` 指上、一隻 `surface`／`ground` 手掌向下，優先選已開啟的圖層；其餘依高度站兩側台階），背景只有幾條拱門與台階線，畫面上註明出處。不貼原畫。
 - **分層視圖開著時**（`compact`）面板自動收合（同一批角色已站在各層上；頭像列由 `strata.css` 隱藏，只留標題），仍可按 + 展開。
 - **目前月份**：`useCurrentMonth.ts` 是唯一的轉接點，讀時間軸的 `useTimeline()`（`month`、`playing`），所以 `<CompanionDock />` 要放在 `TimelineProvider` 裡面。播放中只更新外形，不念語音；暫停時才念選取角色的那句話。
-- 已知限制：手機寬度時面板預設收合成 HUD 下方左側的小方塊（最多顯示放得下的幾個頭像），分層視圖開著時隱藏；那句話開在面板裡面，字多時要在泡泡內捲動；語音的聲線與是否可用取決於瀏覽器；角色的動畫在「減少動態效果」時全部停用。
+- 已知限制：手機寬度時面板預設收合成 HUD 下方左側的小方塊（最多顯示放得下的幾個頭像），分層視圖開著時隱藏；那句話開在面板裡面，字多時要在泡泡內捲動；語音是否可用、以及該語言有沒有自然語音，取決於瀏覽器；角色的動畫在「減少動態效果」時全部停用。
 
 ## 前端的分層視圖（#101）
 主畫面 HUD 的「Layer view」（或拉近到 `NEAR_HINT_DISTANCE` 以內出現的提示鈕「Enter layer view at <地點>」，或網址 `?strata=1&at=<地點 id>`，可和 `?layers=` 並用）：地球場景的鏡頭先飛到目前選定的地點上空，再換成分層視圖自己的 canvas（比照近看檢視，預設的 WebGL renderer；地球的 canvas 在底下 `frameloop="never"` 暫停），鏡頭由正上方傾斜成斜俯視、六個半透明平台上下拉開。離開時倒著播，地球鏡頭回到進入前的位置。程式全部在 `web/src/strata/`，樣式在 `strata.css`（類別一律 `strata-` 開頭）；`App.tsx`、`EarthCanvas.tsx` 各只有一段（`useStrataMode`、`paused`／`controlsLocked`／`children`）。只呈現數值、趨勢與方法說明，不寫解讀，不畫國界。

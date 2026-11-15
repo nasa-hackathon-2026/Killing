@@ -1,11 +1,13 @@
 // The companion panel of the main view: one companion per layer that is
 // switched on, highest form on top. Clicking one shows its sentence of data
 // facts (companionLine.ts); the browser reads it aloud only after the user
-// turns the voice on. "Gather" shows all twelve in one composition, and
-// ?companions=gallery lays them out for a screenshot.
+// turns the voice on, in the voice of the interface language (English when
+// that language is not installed). "Gather" shows all twelve in one
+// composition, and ?companions=gallery lays them out for a screenshot.
 import { useEffect, useRef, useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendKey, type TrendsFile } from "../analysis/trends";
+import { currentSpeechLocale, SPEECH_LOCALE_NAME } from "../i18n/locale";
 import { formatMeasurement } from "../snapshot/reading";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
@@ -25,7 +27,8 @@ import {
 } from "./companionSpec";
 import { GATHER_CREDIT, gatherLayout } from "./gather";
 import { interactionsFor } from "./interactions";
-import { speak, speechAvailable, stopSpeaking } from "./speech";
+import { resolvedSpeechLocale } from "./speechVoice";
+import { primeSpeech, speak, speechAvailable, stopSpeaking } from "./speech";
 import { useCurrentMonth } from "./useCurrentMonth";
 
 export type CompanionDockProps = {
@@ -157,6 +160,9 @@ export function CompanionDock({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [caveatOpen, setCaveatOpen] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
+  const [installedVoices, setInstalledVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
   const [gathered, setGathered] = useState(mode === "gather");
   const [gallery, setGallery] = useState(mode === "gallery");
   const canSpeak = speechAvailable();
@@ -207,11 +213,21 @@ export function CompanionDock({
   const wasPlaying = useRef(playing);
   useEffect(() => {
     if (wasPlaying.current && !playing && voiceOn && selectedLine) {
-      speak(spokenLine(selectedLine));
+      speak(spokenLine(selectedLine), currentSpeechLocale());
     }
     wasPlaying.current = playing;
   }, [playing, voiceOn, selectedLine]);
-  useEffect(() => stopSpeaking, []);
+  useEffect(() => {
+    primeSpeech();
+    if (!speechAvailable()) return stopSpeaking;
+    const take = () => setInstalledVoices(window.speechSynthesis.getVoices());
+    take();
+    window.speechSynthesis.addEventListener("voiceschanged", take);
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", take);
+      stopSpeaking();
+    };
+  }, []);
   // Esc closes the Gather composition, the same as its Close button.
   useEffect(() => {
     if (!gathered) return;
@@ -230,12 +246,14 @@ export function CompanionDock({
     setSelectedId(closing ? null : id);
     setCaveatOpen(withCaveat);
     if (closing) stopSpeaking();
-    else if (voiceOn && !playing) speak(spokenLine(lines[id] ?? ""));
+    else if (voiceOn && !playing)
+      speak(spokenLine(lines[id] ?? ""), currentSpeechLocale());
   }
 
   function toggleVoice() {
     if (voiceOn) stopSpeaking();
-    else if (selectedLine) speak(spokenLine(selectedLine));
+    else if (selectedLine)
+      speak(spokenLine(selectedLine), currentSpeechLocale());
     setVoiceOn(!voiceOn);
   }
 
@@ -272,6 +290,10 @@ export function CompanionDock({
     </div>
   ) : null;
 
+  const speechLocale = resolvedSpeechLocale(
+    installedVoices,
+    currentSpeechLocale(),
+  );
   const controls = (
     <>
       {canSpeak ? (
@@ -279,7 +301,12 @@ export function CompanionDock({
           type="button"
           className="companion-voice"
           aria-pressed={voiceOn}
-          title="Read the selected companion's sentence aloud (browser voice)"
+          aria-label={
+            voiceOn
+              ? `Turn the ${SPEECH_LOCALE_NAME[speechLocale]} voice off`
+              : `Read the selected companion aloud in ${SPEECH_LOCALE_NAME[speechLocale]}`
+          }
+          title={`Browser voice for ${SPEECH_LOCALE_NAME[speechLocale]}`}
           onClick={toggleVoice}
         >
           <svg viewBox="0 0 20 16" width="15" height="12" aria-hidden="true">
