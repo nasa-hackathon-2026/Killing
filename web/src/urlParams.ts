@@ -5,6 +5,8 @@
 // reads ?month=2015-07 (the month shown), ?play=1 (start playing) and
 // ?chart=gldas_tair (the variable in the time series chart).
 // ?strata=1&at=taipei opens the layer view at a place (`at` is optional).
+// ?field=imerg_precip (or auto, or off) turns on the global distribution
+// (web/src/fields).
 function param(name: string): string | null {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get(name);
@@ -36,4 +38,8 @@ export function requestedStrata(): boolean {
 
 export function requestedPlace(): string | null {
   return param("at");
+}
+
+export function requestedField(): string | null {
+  return param("field");
 }

@@ -6,10 +6,9 @@ import type { Plugin } from "vite";
 const cwd =
   (globalThis as { process?: { cwd?: () => string } }).process?.cwd?.() ??
   dirname(fileURLToPath((import.meta as { url: string }).url));
-// Of data/grid the site only reads the trend maps; the annual means and
-// monthly climatologies (1 to 3 MB per variable) are left out of dist.
 const GRID_FILES = [
   "meta.json",
+  "monthly_climatology.i16",
   "trend_slope_per_decade.i16",
   "trend_significance.u8",
 ];
