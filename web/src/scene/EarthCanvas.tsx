@@ -48,7 +48,7 @@ type EarthCanvasProps = {
   locationId: string;
   onKind: (kind: RendererKind) => void;
   onFlyDone: () => void;
-  onSelectLocation: (id: string) => void;
+  onSelectLocation: (id: string, close?: boolean) => void;
   // Layer view (web/src/strata): stop drawing while it covers the globe,
   // keep the orbit controls off while its camera flight runs, and let it
   // put its camera flight inside this canvas.
@@ -90,7 +90,7 @@ function Scene({
   places: MockLocation[];
   locationId: string;
   onFlyDone: () => void;
-  onSelectLocation: (id: string) => void;
+  onSelectLocation: (id: string, close?: boolean) => void;
 }) {
   const [controlEpoch, setControlEpoch] = useState(0);
   const openLayers = layers.filter((layer) => layer.visible).length;

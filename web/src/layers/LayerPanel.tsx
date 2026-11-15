@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CompareLink } from "../analysis/modelVsObs";
 import type { TrendSummary } from "../analysis/trends";
 import { ParticleStyleToggle } from "../forms/calm/ParticleStyleToggle";
@@ -31,6 +31,8 @@ type LayerPanelProps = {
   // handler for picking another. Without `places` the name is plain text.
   places?: Place[];
   locationId?: string;
+  // Increments when the reader picks a place, including the same place again.
+  expandRequest?: number;
   onLocation?: (id: string) => void;
   // A sentence about how this place's numbers are made (places.ts).
   placeNote?: string | null;
@@ -68,6 +70,7 @@ export function LayerPanel({
   locationName,
   places,
   locationId,
+  expandRequest = 0,
   onLocation,
   placeNote,
   compareLinks,
@@ -84,6 +87,14 @@ export function LayerPanel({
   const { t } = useI18n();
   const monthIndex = month ? months.indexOf(month) : -1;
   const [collapsed, setCollapsed] = useState(isNarrow);
+  const skipExpand = useRef(true);
+  useEffect(() => {
+    if (skipExpand.current) {
+      skipExpand.current = false;
+      return;
+    }
+    setCollapsed(false);
+  }, [expandRequest]);
   // The one layer whose details are open (layerAccordion.ts); none at first.
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const onCount = controls.filter((control) => control.visible).length;

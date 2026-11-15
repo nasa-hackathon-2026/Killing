@@ -19,6 +19,7 @@ import {
 } from "../geo/detailCoverage";
 import { surfacePatch } from "../geo/detailPatch";
 import { vectorToLatLon } from "../geo/latLon";
+import { stitchedTexture } from "../geo/stitchTiles";
 
 const DETAIL_RADIUS = 1.004;
 
@@ -59,15 +60,22 @@ function DetailMesh({ region }: { region: DetailImage }) {
     const inside = contains(region, ground.lat, ground.lon);
     if (!requested.current && shouldLoadDetail(distance, inside)) {
       requested.current = true;
-      const loader = new TextureLoader();
-      loader.setCrossOrigin("anonymous");
-      const map = loader.load(textureUrl(region.file));
-      map.colorSpace = SRGBColorSpace;
-      map.anisotropy = 8;
-      texture.current = map;
-      if (material.current) {
-        material.current.map = map;
-        material.current.needsUpdate = true;
+      const apply = (map: Texture) => {
+        map.anisotropy = 8;
+        texture.current = map;
+        if (material.current) {
+          material.current.map = map;
+          material.current.needsUpdate = true;
+        }
+      };
+      if (region.tiles && region.tiles.length > 0) {
+        void stitchedTexture(region, region.tiles).then(apply);
+      } else {
+        const loader = new TextureLoader();
+        loader.setCrossOrigin("anonymous");
+        const map = loader.load(textureUrl(region.file));
+        map.colorSpace = SRGBColorSpace;
+        apply(map);
       }
     }
     const amount = inside ? detailOpacity(distance) : 0;

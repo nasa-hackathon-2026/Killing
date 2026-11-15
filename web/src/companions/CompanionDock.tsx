@@ -39,6 +39,8 @@ export type CompanionDockProps = {
   // The series of the selected place.
   series: LoadedSeries[];
   locationId: string;
+  // Increments when the reader picks a place, including the same place again.
+  expandRequest?: number;
   locationName: string;
   // Aggregation of the place's series in the trend keys ("point" except
   // for the global mean).
@@ -143,6 +145,7 @@ export function CompanionDock({
   aggregation = "point",
   trends,
   compact = false,
+  expandRequest = 0,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
   const { t, voice, settings, locale } = useI18n();
@@ -157,6 +160,15 @@ export function CompanionDock({
       mode === "collapsed" ||
       (typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH),
   );
+  const skipExpand = useRef(true);
+  useEffect(() => {
+    if (skipExpand.current) {
+      skipExpand.current = false;
+      return;
+    }
+    setCollapsed(false);
+    setCompactOpen(true);
+  }, [expandRequest]);
   const collapsed = compact ? !compactOpen : userCollapsed;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [caveatOpen, setCaveatOpen] = useState(false);

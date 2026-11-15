@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   CITY_IMAGES,
+  CLEAR_DISTANCE,
   TAIWAN_DETAIL,
   WORLD_CITIES,
+  blitRect,
+  centeredWindow,
   contains,
   detailCovers,
   detailImageAt,
@@ -35,6 +38,10 @@ describe("Taiwan detail coverage", () => {
     expect(mid).toBeLessThan(1);
     expect(detailOpacity(1.5)).toBeLessThan(mid);
   });
+
+  it("has the double-click stop inside the fully faded close-up", () => {
+    expect(detailOpacity(CLEAR_DISTANCE)).toBeGreaterThan(0.95);
+  });
 });
 
 describe("world city tiles", () => {
@@ -60,7 +67,20 @@ describe("world city tiles", () => {
       expect(contains(tile, city.lat, city.lon)).toBe(true);
       const image = detailImageAt(city.lat, city.lon);
       expect(image?.id).toBe(city.id);
-      expect(image?.file).toContain(`/${tile.row}/${tile.col}.jpg`);
+      const midLat = ((image?.south ?? 0) + (image?.north ?? 0)) / 2;
+      const midLon = ((image?.west ?? 0) + (image?.east ?? 0)) / 2;
+      expect(midLat).toBeCloseTo(city.lat);
+      expect(midLon).toBeCloseTo(city.lon);
+      expect(
+        image?.tiles?.some(
+          (item) => item.col === tile.col && item.row === tile.row,
+        ),
+      ).toBe(true);
+      const own = blitRect(tile, image ?? tile, 512);
+      const u = (city.lon - tile.west) / (tile.east - tile.west);
+      const v = (tile.north - city.lat) / (tile.north - tile.south);
+      expect(own.x + u * own.w).toBeCloseTo(256);
+      expect(own.y + v * own.h).toBeCloseTo(256);
     }
     expect(CITY_IMAGES).toHaveLength(12);
   });
@@ -70,6 +90,13 @@ describe("world city tiles", () => {
       "textures/taiwan-detail.png",
     );
     expect(detailImageAt(0, 0)).toBeNull();
+  });
+
+  it("covers London with more than the one tile the city sits in", () => {
+    const frame = centeredWindow(51.51, -0.13);
+    const image = detailImageAt(51.51, -0.13);
+    expect(image?.tiles?.length).toBeGreaterThan(1);
+    expect(contains(frame, 51.51, -0.13)).toBe(true);
   });
 
   it("loads a tile only when the camera is close and over it", () => {

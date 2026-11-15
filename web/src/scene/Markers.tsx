@@ -4,6 +4,7 @@ import { useMemo, useRef } from "react";
 import { DoubleSide, Quaternion, Vector3, type Mesh } from "three";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { latLonToVector3 } from "../geo/latLon";
+import { markerScale } from "./markerScale";
 import { useI18n } from "../i18n";
 import { placeName } from "../i18n/names";
 import type { MockLocation } from "../mock/snapshot";
@@ -11,12 +12,10 @@ import type { MockLocation } from "../mock/snapshot";
 type MarkersProps = {
   locations: MockLocation[];
   selectedId: string;
-  onSelect: (id: string) => void;
+  // `close` is a double-click: fly to the sharp close-up.
+  onSelect: (id: string, close?: boolean) => void;
 };
 
-// The ring is drawn for this camera distance and scaled with the distance to
-// the surface, so it stays about the same size on screen.
-const RING_REFERENCE_DISTANCE = 3.2;
 const PULSE_SECONDS = 2.4;
 const OUTWARD = new Vector3(0, 0, 1);
 
@@ -40,13 +39,7 @@ function SelectedPlace({ location }: { location: MockLocation }) {
   }, [location.lat, location.lon]);
 
   useFrame(({ camera, clock }) => {
-    const size = Math.min(
-      1.6,
-      Math.max(
-        0.12,
-        (camera.position.length() - 1) / (RING_REFERENCE_DISTANCE - 1),
-      ),
-    );
+    const size = markerScale(camera.position.length());
     ring.current?.scale.setScalar(size);
     if (pulse.current) {
       const phase = prefersReducedMotion()
@@ -94,27 +87,52 @@ function SelectedPlace({ location }: { location: MockLocation }) {
   );
 }
 
+function PlaceDot({
+  location,
+  selected,
+  onSelect,
+}: {
+  location: MockLocation;
+  selected: boolean;
+  onSelect: (id: string, close?: boolean) => void;
+}) {
+  const dot = useRef<Mesh>(null);
+  const position = latLonToVector3(location.lat, location.lon, 1.008);
+  useFrame(({ camera }) => {
+    const size = markerScale(camera.position.length());
+    dot.current?.scale.setScalar(size);
+  });
+  return (
+    <mesh
+      ref={dot}
+      position={[position.x, position.y, position.z]}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect(location.id, false);
+      }}
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        onSelect(location.id, true);
+      }}
+    >
+      <sphereGeometry args={[selected ? 0.012 : 0.007, 16, 16]} />
+      <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
+    </mesh>
+  );
+}
+
 export function Markers({ locations, selectedId, onSelect }: MarkersProps) {
   const chosen = locations.find((location) => location.id === selectedId);
   return (
     <>
-      {locations.map((location) => {
-        const position = latLonToVector3(location.lat, location.lon, 1.008);
-        const selected = location.id === selectedId;
-        return (
-          <mesh
-            key={location.id}
-            position={[position.x, position.y, position.z]}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(location.id);
-            }}
-          >
-            <sphereGeometry args={[selected ? 0.01 : 0.006, 12, 12]} />
-            <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
-          </mesh>
-        );
-      })}
+      {locations.map((location) => (
+        <PlaceDot
+          key={location.id}
+          location={location}
+          selected={location.id === selectedId}
+          onSelect={onSelect}
+        />
+      ))}
       {chosen ? <SelectedPlace key={chosen.id} location={chosen} /> : null}
     </>
   );

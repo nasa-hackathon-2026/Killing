@@ -50,6 +50,7 @@ import { useDismissOpenDetails } from "./hud/useDismissOnOutside";
 import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
+import { CITY_FLY_SECONDS, CLEAR_DISTANCE } from "./geo/detailCoverage";
 import { worldCityFrame } from "./scene/worldCityFrame";
 import {
   bestDefaultMonth,
@@ -111,7 +112,7 @@ const initialLocation = resolvePlaceId(askedPlace, []);
 // Camera distances from the Earth's center: the Taiwan overview, and the
 // wider view a place picked from the menu is shown at.
 const TAIWAN_FLY_DISTANCE = 1.85;
-const PLACE_FLY_DISTANCE = 2.3;
+const PLACE_FLY_DISTANCE = 2.05;
 // The whole globe in view: the distance the camera is created at
 // (EarthCanvas). A page that opens at a Taiwan place starts here.
 const START_DISTANCE = DEFAULT_ORBIT_DISTANCE;
@@ -211,6 +212,7 @@ function AppView({
   useDismissOpenDetails(moreMenuRef);
   const [forceWebGL, setForceWebGL] = useState(false);
   const [askedFlight, setFlyTarget] = useState<FlyTarget | null>(null);
+  const [placePick, setPlacePick] = useState(0);
   const [startDone, setStartDone] = useState(false);
   const [kind, setKind] = useState<RendererKind>("webgl");
   // Layer view (web/src/strata): one block of state, one block of JSX below.
@@ -306,22 +308,26 @@ function AppView({
   const aggregation = place?.aggregation ?? "point";
   // Series of a world place are read when it is picked.
   const placeLoading = !!data && !data.loaded.includes(locationId);
-  const selectPlace = (id: string, fly: boolean) => {
+  const selectPlace = (id: string, fly: boolean, close = false) => {
     setLocationId(id);
+    setPlacePick((count) => count + 1);
     const next = places.find((item) => item.id === id);
     if (!hasCoordinates(next) || strata.phase !== "off") return;
-    // A world city slides to the center and a little closer, whether it was
-    // chosen from the menu or by its marker. Taiwan markers do not fly.
-    const city = worldCityFrame(next, PLACE_FLY_DISTANCE);
+    // A world city slides to the center. A double-click goes in until the
+    // close-up is sharp. Taiwan markers fly only on that double-click.
+    const distance = close ? CLEAR_DISTANCE : PLACE_FLY_DISTANCE;
+    const flight = { seconds: CITY_FLY_SECONDS };
+    const city = worldCityFrame(next, distance);
     if (city) {
-      setFlyTarget(city);
+      setFlyTarget({ ...city, ...flight });
       return;
     }
-    if (fly) {
+    if (fly || close) {
       setFlyTarget({
         lat: next.lat,
         lon: next.lon,
-        distance: PLACE_FLY_DISTANCE,
+        distance,
+        ...flight,
       });
     }
   };
@@ -500,7 +506,7 @@ function AppView({
           setStartDone(true);
           setFlyTarget(null);
         }}
-        onSelectLocation={(id) => selectPlace(id, false)}
+        onSelectLocation={(id, close) => selectPlace(id, false, Boolean(close))}
         paused={strata.shown}
         controlsLocked={strata.phase !== "off"}
       >
@@ -691,6 +697,7 @@ function AppView({
         // while it is open.
         places={strata.phase === "off" ? places : places.filter(hasCoordinates)}
         locationId={locationId}
+        expandRequest={placePick}
         onLocation={(id) => selectPlace(id, true)}
         placeNote={placeNote(place, voice)}
         onHowTo={() => {
@@ -744,6 +751,7 @@ function AppView({
         locationId={locationId}
         locationName={placeName}
         aggregation={aggregation}
+        expandRequest={placePick}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
       <div className="map-legends" hidden={globeStats.hidden}>
