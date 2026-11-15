@@ -2,6 +2,7 @@ import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import { formatCount, localNumber, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
+import { UnitText } from "../snapshot/UnitText";
 import { formatSlope, slopeUnitLabel } from "./trendGrid";
 import {
   MIN_OVERLAY_OPACITY,
@@ -74,11 +75,12 @@ export function TrendMapLegend({
         })}
       </p>
       <p className="trendmap-note">
-        {t("trendmap.method", {
-          alpha: localNumber(String(parameters.alpha)),
-          quantile: Math.round(RANGE_QUANTILE * 100),
-        })}
-        {variable.display ? ` ${t("trendmap.evapUnit")}` : ""}
+        <UnitText
+          text={`${t("trendmap.method", {
+            alpha: localNumber(String(parameters.alpha)),
+            quantile: Math.round(RANGE_QUANTILE * 100),
+          })}${variable.display ? ` ${t("trendmap.evapUnit")}` : ""}`}
+        />
       </p>
       <p className="trendmap-note">{t("trendmap.warning.expert")}</p>
     </>
@@ -90,7 +92,9 @@ export function TrendMapLegend({
         {variableName(variable.id, meta.name_en)}
       </p>
       <p className="trendmap-note">
-        {t("trendmap.unitLine", { unit, product: meta.product })}
+        <UnitText
+          text={t("trendmap.unitLine", { unit, product: meta.product })}
+        />
       </p>
       {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
       <div

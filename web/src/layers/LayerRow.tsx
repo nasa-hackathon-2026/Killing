@@ -6,6 +6,7 @@ import { shownTrendCaveat } from "../analysis/trendCaveats";
 import type { TrendSignal } from "../forms/encoding";
 import { carryChoices, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
+import { UnitText } from "../snapshot/UnitText";
 import type { LayerControl } from "./LayerPanel";
 import type { LayerDefinition } from "./registry";
 
@@ -82,7 +83,7 @@ export function LayerRow({
             </span>
           ) : null}
           <span className="reading" title={reading}>
-            {reading}
+            <UnitText text={reading ?? ""} />
           </span>
           <svg
             className="layer-row-chevron"
