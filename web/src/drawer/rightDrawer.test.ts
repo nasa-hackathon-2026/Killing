@@ -26,12 +26,14 @@ describe("the right drawer's handle", () => {
     expect(button).toContain('aria-expanded="false"');
     expect(button).toContain(`aria-controls="${DRAWER_ID}"`);
     expect(button).toContain('title="Layers and statistics"');
+    expect(button).toContain('aria-label="Open layers and statistics"');
     expect(button).toContain("&lt;");
   });
 
   it("points back out and says the drawer is open while it is open", () => {
     const button = handle(render(true));
     expect(button).toContain('aria-expanded="true"');
+    expect(button).toContain('aria-label="Close layers and statistics"');
     expect(button).toContain("&gt;");
   });
 });

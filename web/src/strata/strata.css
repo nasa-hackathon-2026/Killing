@@ -377,6 +377,14 @@
     max-height: 15%;
   }
 
+  /* The handle sits at the sheet's lower left corner instead of halfway
+     down, where the stratum labels are. */
+  .app:has(.strata) .drawer-handle {
+    top: auto;
+    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
+    margin-top: 0;
+  }
+
   .app:has(.strata-detail) .drawer-root {
     display: none;
   }

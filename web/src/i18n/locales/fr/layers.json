@@ -17,5 +17,7 @@
   "compareObservations": "Compare with observations",
   "cautionHint": "Known data issue: open this layer to read the caution.",
   "showAria": "Show {{name}}",
-  "drawerHandle": "Layers and statistics"
+  "drawerHandle": "Layers and statistics",
+  "drawerOpen": "Open layers and statistics",
+  "drawerClose": "Close layers and statistics"
 }

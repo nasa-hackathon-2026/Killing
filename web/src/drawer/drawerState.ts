@@ -1,21 +1,12 @@
 // Whether the right drawer (Layers and the statistics on the globe) is open.
 // Pure functions; the drawer component reads the window and storage once.
+import { browserStore, type Store } from "../browserStore";
 import { hasViewParams } from "../guide/firstVisit";
 
 // Wider than this the drawer starts open (the same break as the panels'
 // docking rules).
 export const DRAWER_WIDE_WIDTH = 1180;
 export const DRAWER_STORAGE_KEY = "estd.drawer.open";
-
-type Store = Pick<Storage, "getItem" | "setItem">;
-
-function browserStore(): Store | null {
-  try {
-    return typeof window === "undefined" ? null : window.localStorage;
-  } catch {
-    return null;
-  }
-}
 
 // A link that sets the view opens the drawer, so its layers can be seen;
 // otherwise the visitor's last choice; otherwise open only on a wide screen.

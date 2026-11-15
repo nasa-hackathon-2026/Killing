@@ -6,6 +6,7 @@
    scrolls inside it. */
 .drawer-root {
   --drawer-width: 306px;
+  --drawer-handle-width: 28px;
   --drawer-gap: 12px;
   --drawer-top: 64px;
   --drawer-floor: calc(
@@ -64,7 +65,7 @@
   right: 0;
   z-index: 2;
   box-sizing: border-box;
-  width: 28px;
+  width: var(--drawer-handle-width);
   height: 64px;
   margin-top: -32px;
   padding: 0;
@@ -91,41 +92,14 @@
   background: rgba(30, 44, 70, 0.95);
 }
 
-/* The statistics section: the menus and the panel sit in the drawer's own
-   box instead of their floating cards on the left. */
-.right-drawer .globe-stats-selectors {
-  padding: 0;
-  background: none;
-  border: 0;
-}
-
-/* The section title already names the menu. */
-.right-drawer .globe-stats-control > span {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
-.right-drawer .globe-stats-panel {
-  position: static;
-  width: auto;
-  max-height: none;
-  margin-top: 8px;
-  padding: 0;
-  overflow: visible;
-  background: none;
-  border: 0;
-}
-
-/* With the drawer closed, the companion panel moves up to the handle on a
-   wide screen instead of leaving a gap where the drawer was. */
+/* With the drawer closed, the companion panel moves up to the handle (its
+   width plus the 12px gap) on a wide screen instead of leaving a gap where
+   the drawer was. Not in the layer view, whose docking keeps the panel's
+   column (strata/strata.css). */
 @media (min-width: 701px) {
   .app:not(:has(.strata)):has(.drawer-root[data-open="false"])
     .companion-dock:not(.companion-gather, .companion-gallery) {
-    right: 40px;
+    right: calc(28px + 12px);
   }
 }
 

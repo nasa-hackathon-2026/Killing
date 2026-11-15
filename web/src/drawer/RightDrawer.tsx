@@ -40,7 +40,7 @@ export function RightDrawer({
         className="drawer-handle"
         aria-expanded={open}
         aria-controls={DRAWER_ID}
-        aria-label={label}
+        aria-label={t(open ? "layers.drawerClose" : "layers.drawerOpen")}
         title={label}
         onClick={() => onOpenChange(!open)}
       >

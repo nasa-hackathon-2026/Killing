@@ -22,10 +22,7 @@ export function GlobeStatsSection({
   const [open, setOpen] = useState(defaultOpen);
   if (state.hidden) return null;
   return (
-    <section
-      className="drawer-section globe-stats-section"
-      aria-label={T.overlayLabel}
-    >
+    <section className="globe-stats-section" aria-label={T.overlayLabel}>
       <p className="drawer-section-title">
         <span>
           {open

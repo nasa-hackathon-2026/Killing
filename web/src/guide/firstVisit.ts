@@ -1,3 +1,5 @@
+import { browserStore, type Store } from "../browserStore";
+
 // What a visitor sees with no query parameters: a couple of layers already
 // on and the start card. A link that sets the view (?layers=, ?chart=, …)
 // gets exactly what it asks for instead, with no card over it.
@@ -35,16 +37,6 @@ export function startingLayers(search: string): string[] | null {
 }
 
 export const GUIDE_STORAGE_KEY = "estd.guide.dismissed";
-
-type Store = Pick<Storage, "getItem" | "setItem">;
-
-function browserStore(): Store | null {
-  try {
-    return typeof window === "undefined" ? null : window.localStorage;
-  } catch {
-    return null;
-  }
-}
 
 // Storage can be missing or blocked (private mode, embedded pages); the
 // card then simply shows again next time.
