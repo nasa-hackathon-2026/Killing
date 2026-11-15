@@ -1,0 +1,36 @@
+{
+  "groups": {
+    "taiwan": "臺灣",
+    "world_city": "世界城市",
+    "global": "全球"
+  },
+  "names": {
+    "taichung": "臺中",
+    "taipei": "臺北",
+    "kaohsiung": "高雄",
+    "hualien": "花蓮",
+    "yushan": "玉山",
+    "taichung_station": "臺中測站",
+    "taipei_station": "臺北測站",
+    "global": "全球平均",
+    "tokyo": "東京",
+    "delhi": "德里",
+    "beijing": "北京",
+    "jakarta": "雅加達",
+    "cairo": "開羅",
+    "lagos": "拉哥斯",
+    "london": "倫敦",
+    "moscow": "莫斯科",
+    "new_york": "紐約",
+    "los_angeles": "洛杉磯",
+    "sao_paulo": "聖保羅",
+    "sydney": "雪梨"
+  },
+  "note": {
+    "globalMean": {
+      "general": "這是整個地球的平均，不是某一個地點的數值。",
+      "expert": "全球網格的平均，以 cos(緯度) 加權；產品同時涵蓋陸地與海洋時兩者合併計算。不是單點數值。"
+    }
+  },
+  "placeMonth": "{{place}}，{{month}}"
+}

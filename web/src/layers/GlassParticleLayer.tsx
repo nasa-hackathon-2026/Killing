@@ -34,6 +34,9 @@ type GlassParticleLayerProps = {
   openLayers?: number;
   // +1, -1 or 0; see trendArrowDirection in forms/encoding.ts.
   trendDirection?: number;
+  // The Calm particle style (forms/calm) draws this layer instead: the
+  // shell, the particles and the arrows here fade out.
+  calm?: boolean;
 };
 
 function shellGeometry(radius: number, seed: number) {
@@ -91,6 +94,7 @@ export function GlassParticleLayer({
   hasData = true,
   openLayers = 1,
   trendDirection = 0,
+  calm = false,
 }: GlassParticleLayerProps) {
   const glass = useRef<MeshStandardMaterial>(null);
   const points = useRef<Points>(null);
@@ -119,7 +123,7 @@ export function GlassParticleLayer({
   }, [layer.id]);
 
   useFrame((_, delta) => {
-    const target = visible ? opacity : 0;
+    const target = visible && !calm ? opacity : 0;
     shown.current += (target - shown.current) * (1 - Math.exp(-5 * delta));
     time.current += delta * motionScale();
     const amount = shown.current;

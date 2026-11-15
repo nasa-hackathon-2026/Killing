@@ -3,8 +3,10 @@
 // sources only; the checks are written up in docs/data/gldas-tair-check.md and
 // docs/data/gldas-water-check.md.
 
+import { getVoice, t, type Voice } from "../i18n";
+
 export type TrendCaveat = {
-  // One sentence that is always shown; starts with "Caution:".
+  // One sentence that is always shown; starts with "Caution:" in English.
   summary: string;
   // The same fact as a clause, said after "This trend is not reliable as a
   // climate signal:" where a significant trend is put into a sentence.
@@ -15,48 +17,43 @@ export type TrendCaveat = {
   sources: string;
 };
 
-export const TREND_CAVEATS: Record<string, TrendCaveat> = {
-  gldas_tair: {
-    summary:
-      "Caution: this trend contains step changes and should not be read as a climate signal.",
-    reason: "it contains step changes.",
-    details:
-      "GLDAS-2.1 air temperature comes from the NOAA GDAS operational analysis used to force the model. " +
-      "Against MERRA-2 over the same land cells, its global land mean shifts by about +0.4 K in May 2011, " +
-      "+0.6 K in July 2017 and −0.6 K in June 2019, the months of GDAS/GFS upgrades in the NCEP change log. " +
-      "At Taichung it also steps by 1 K or more against the station record.",
-    sources:
-      "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3, §1.6; NCEP EMC GFS/GDAS change log; project check #74.",
-  },
-  gldas_evap: {
-    summary:
-      "Caution: this series contains a step that an independent product does not show.",
-    reason:
-      "the series contains a step that an independent product does not show.",
-    details:
-      "From July 2024 to May 2025 the GLDAS-2.1 downward shortwave forcing runs 15–32 W m⁻² above that of FLDAS " +
-      "(same Noah model family, MERRA-2 forcing) over the same land cells, and GLDAS global land evapotranspiration " +
-      "runs about 0.1–0.2 mm/day (1–2 × 10⁻⁶ kg m⁻² s⁻¹) above FLDAS; both differences are gone by July 2025. " +
-      "The GLDAS-2 README records that the cloud analysis behind its radiation input was decommissioned in summer 2024 " +
-      "and that radiation switched to GALWEM on 9 June 2025. " +
-      "Over 2001–2026 the GLDAS global land trend is +0.058 mm/day per decade against +0.012 for FLDAS.",
-    sources:
-      "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3; FLDAS README (GES DISC, rev. 2022-07-12) §1.1; project check #79.",
-  },
-  gldas_soilmoist: {
-    summary: "Caution: two model products disagree on the sign of this trend.",
-    reason: "two model products disagree on its sign.",
-    details:
-      "Over the same land cells and months (January 2001 to July 2026), the global land trend of 0–10 cm soil moisture " +
-      "is −0.43 kg m⁻² per decade in GLDAS-2.1 and +0.16 in FLDAS (same Noah model family, MERRA-2 and CHIRPS forcing), " +
-      "and the two global land series correlate at only 0.08. " +
-      "FLDAS is also a model simulation and the only product compared, so this check cannot tell which of the two is closer to the truth. " +
-      "No clear step was found at the GDAS/GFS upgrade months (May 2011, July 2017, June 2019).",
-    sources:
-      "GLDAS-2 README (GES DISC, rev. 2025-08-13); FLDAS README (GES DISC, rev. 2022-07-12) §1.1, §1.3; project check #79.",
-  },
+// The wording lives in the `caveats` namespace of the message files
+// (summary.general / summary.expert, reason, details per variable id); the
+// sources are citations and stay as written here. Adding a caveat: add the
+// id here with its sources, and its four messages in every language.
+export const CAVEAT_SOURCES: Record<string, string> = {
+  gldas_tair:
+    "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3, §1.6; NCEP EMC GFS/GDAS change log; project check #74.",
+  gldas_evap:
+    "GLDAS-2 README (GES DISC, rev. 2025-08-13) §1.2.3; FLDAS README (GES DISC, rev. 2022-07-12) §1.1; project check #79.",
+  gldas_soilmoist:
+    "GLDAS-2 README (GES DISC, rev. 2025-08-13); FLDAS README (GES DISC, rev. 2022-07-12) §1.1, §1.3; project check #79.",
 };
 
-export function trendCaveat(id: string): TrendCaveat | null {
-  return TREND_CAVEATS[id] ?? null;
+// The caveat of a variable in the active language. The summary follows the
+// active voice unless one is given.
+export function trendCaveat(
+  id: string,
+  voice: Voice = getVoice(),
+): TrendCaveat | null {
+  const sources = CAVEAT_SOURCES[id];
+  if (!sources) return null;
+  return {
+    summary: t(`caveats.${id}.summary.${voice}`),
+    reason: t(`caveats.${id}.reason`),
+    details: t(`caveats.${id}.details`),
+    sources,
+  };
+}
+
+// Every caveat, keyed by variable id.
+export function allTrendCaveats(
+  voice: Voice = getVoice(),
+): Record<string, TrendCaveat> {
+  return Object.fromEntries(
+    Object.keys(CAVEAT_SOURCES).flatMap((id) => {
+      const caveat = trendCaveat(id, voice);
+      return caveat ? [[id, caveat]] : [];
+    }),
+  );
 }

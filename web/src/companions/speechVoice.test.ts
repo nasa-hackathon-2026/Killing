@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   chooseVoice,
-  resolvedSpeechLocale,
   voiceForLocale,
   type VoiceCandidate,
 } from "./speechVoice";
@@ -28,6 +27,18 @@ describe("chooseVoice", () => {
     );
   });
 
+  it("prefers voice quality over a regional match within the same language", () => {
+    expect(
+      chooseVoice(
+        [
+          { name: "Standard English", lang: "en-US" },
+          { name: "Neural English", lang: "en-GB" },
+        ],
+        "en",
+      )?.name,
+    ).toBe("Neural English");
+  });
+
   it("does not use a Chinese voice when the only human English voice is British", () => {
     const voices = VOICES.filter(
       (voice) => voice.name !== "Microsoft Aria Online (Natural)",
@@ -35,15 +46,16 @@ describe("chooseVoice", () => {
     expect(chooseVoice(voices, "en")?.name).toBe("Google US English");
   });
 
-  it("keeps an English voice ahead of a Chinese one even when Chinese is listed first", () => {
-    const chosen = chooseVoice(
-      [
-        { name: "Google 國語（台灣）", lang: "zh-TW" },
-        { name: "eSpeak English", lang: "en-US" },
-      ],
-      "en",
-    );
-    expect(chosen?.name).toBe("eSpeak English");
+  it("stays silent rather than using a robotic English voice", () => {
+    expect(
+      chooseVoice(
+        [
+          { name: "Google 國語（台灣）", lang: "zh-TW" },
+          { name: "eSpeak English", lang: "en-US" },
+        ],
+        "en",
+      ),
+    ).toBeNull();
   });
 
   it("prefers Google English over eSpeak and a pitched novelty voice", () => {
@@ -84,23 +96,10 @@ describe("chooseVoice", () => {
 });
 
 describe("voiceForLocale", () => {
-  it("falls back to English when the language is not installed", () => {
+  it("stays silent when the requested language is not installed", () => {
     expect(
       voiceForLocale([{ name: "Google US English", lang: "en-US" }], "ja"),
-    ).toEqual({
-      voice: { name: "Google US English", lang: "en-US" },
-      lang: "en-US",
-    });
-  });
-
-  it("names English on the button when that language has no voice", () => {
-    expect(
-      resolvedSpeechLocale(
-        [{ name: "Google US English", lang: "en-US" }],
-        "ja",
-      ),
-    ).toBe("en");
-    expect(resolvedSpeechLocale([], "ja")).toBe("ja");
+    ).toBeNull();
   });
 
   it("does not replace a voice that matches the language", () => {
@@ -113,5 +112,14 @@ describe("voiceForLocale", () => {
         "zh-TW",
       )?.voice.name,
     ).toBe("Google 國語（台灣）");
+  });
+
+  it("uses the selected voice's own regional language tag", () => {
+    expect(
+      voiceForLocale([{ name: "Neural English", lang: "en-GB" }], "en"),
+    ).toEqual({
+      voice: { name: "Neural English", lang: "en-GB" },
+      lang: "en-GB",
+    });
   });
 });

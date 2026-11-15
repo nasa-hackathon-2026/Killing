@@ -161,3 +161,142 @@
     max-height: calc(100% - 72px);
   }
 }
+
+/* ---- The companion tour (Tour.tsx): a companion and its speech bubble,
+   top centre, clear of the Layers panel, the layer view's legend and the
+   panel of an expanded stratum. */
+.guide-tour-offer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.guide-tour {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  z-index: 8;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: min(520px, calc(100% - 24px));
+  transform: translateX(-50%);
+  color: #e8eef7;
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+  touch-action: auto;
+}
+
+.guide-tour-figure {
+  flex: none;
+  margin-top: 6px;
+}
+
+.guide-tour-bubble {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px 8px;
+  background: rgba(8, 14, 28, 0.96);
+  border: 1px solid #cfe3ff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.guide-tour-bubble::before {
+  position: absolute;
+  top: 26px;
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  background: rgba(8, 14, 28, 0.96);
+  border-bottom: 1px solid #cfe3ff;
+  border-left: 1px solid #cfe3ff;
+  transform: rotate(45deg);
+  content: "";
+}
+
+.guide-tour-bubble p {
+  margin: 0 0 6px;
+}
+
+.guide-tour-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  color: #ffe9a8;
+}
+
+.guide-tour-head span {
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.guide-tour-head .guide-tour-progress {
+  margin-left: auto;
+}
+
+.guide-tour footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 4px;
+  cursor: default;
+}
+
+.guide-tour button {
+  padding: 5px 12px;
+  color: inherit;
+  font: inherit;
+  background: rgba(20, 32, 56, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.guide-tour button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.guide-tour .guide-tour-skip {
+  margin-right: auto;
+}
+
+.guide-tour .guide-start {
+  color: #0b1220;
+  font-weight: 700;
+  background: #cfe3ff;
+  border-color: #cfe3ff;
+}
+
+.guide-tour .guide-tour-keys {
+  margin: 6px 0 0;
+  color: #8fa3bd;
+  font-size: 11px;
+  text-align: right;
+}
+
+@media (max-width: 700px) {
+  .guide-tour {
+    position: fixed;
+    top: 60px;
+  }
+
+  .guide-tour-figure,
+  .guide-tour .guide-tour-keys {
+    display: none;
+  }
+
+  .guide-tour-bubble::before {
+    display: none;
+  }
+}

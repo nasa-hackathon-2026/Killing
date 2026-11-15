@@ -1,6 +1,7 @@
 // Pure functions behind the time series chart and the timeline's anomaly
 // strip. They only rearrange numbers the pipeline already produced; no test
 // statistic is computed here.
+import { localNumber, t, tm } from "../i18n";
 import { monthNumber } from "./timelineMath";
 
 export type MonthlyPoint = {
@@ -23,6 +24,11 @@ export const CHART_MODES: { id: ChartMode; label: string }[] = [
   { id: "anomalies", label: "Anomalies" },
   { id: "running", label: "12-month running mean" },
 ];
+
+// The button text of a chart mode in the active language and voice.
+export function chartModeLabel(id: ChartMode): string {
+  return id === "values" ? t("chart.modes.values") : tm(`chart.modes.${id}`);
+}
 
 export const RUNNING_WINDOW = 12;
 
@@ -232,22 +238,23 @@ export function breakMonths(
 
 // p values the way the panel prints them.
 export function formatP(p: number | null | undefined): string {
-  if (p === null || p === undefined) return "not available";
-  if (p < 0.001) return "< 0.001";
-  return p.toFixed(3);
+  if (p === null || p === undefined) return t("common.status.notAvailable");
+  if (p < 0.001) return localNumber("< 0.001");
+  return localNumber(p.toFixed(3));
 }
 
 // "+0.42 °C", "−1.2e-6 kg m-2 s-1": an anomaly with its sign. A difference
 // in K equals a difference in °C, so no offset is applied.
 export function formatAnomaly(value: number | null, unit: string): string {
-  if (value === null) return "not available";
+  if (value === null) return t("common.status.notAvailable");
   const size = Math.abs(value);
-  const text =
+  const text = localNumber(
     displayUnit(unit) === "°C"
       ? size.toFixed(2)
       : size !== 0 && (size >= 1e5 || size < 0.01)
         ? size.toExponential(2)
-        : size.toFixed(size >= 100 ? 0 : size >= 10 ? 1 : 2);
+        : size.toFixed(size >= 100 ? 0 : size >= 10 ? 1 : 2),
+  );
   const sign = value > 0 ? "+" : value < 0 ? "−" : "";
   const suffix = displayUnit(unit) === "" ? "" : ` ${displayUnit(unit)}`;
   return `${sign}${text}${suffix}`;

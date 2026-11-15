@@ -1,5 +1,7 @@
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
+import { formatCount, localNumber, useI18n } from "../i18n";
+import { variableName } from "../i18n/names";
 import { formatSlope, slopeUnitLabel } from "./trendGrid";
 import {
   MIN_OVERLAY_OPACITY,
@@ -17,11 +19,11 @@ type TrendMapLegendProps = {
 
 // 0.9999084… (IMERG, from float32 coordinates) reads as 1.
 function degrees(step: number): string {
-  return `${Number(step.toFixed(2))}°`;
+  return `${localNumber(String(Number(step.toFixed(2))))}°`;
 }
 
 function percent(fraction: number): string {
-  return `${(fraction * 100).toFixed(1)}%`;
+  return `${localNumber((fraction * 100).toFixed(1))}%`;
 }
 
 // Legend of the global trend map: numbers and method only, no reading of
@@ -31,14 +33,15 @@ export function TrendMapLegend({
   opacity,
   onOpacity,
 }: TrendMapLegendProps) {
+  const { t, tm, settings, voice } = useI18n();
   if (state.status === "off") return null;
   if (state.status !== "ready") {
     return (
       <aside className="trendmap">
         <p className="trendmap-note">
-          {state.status === "loading"
-            ? "Loading the trend map…"
-            : "Could not read the trend map."}
+          {t(
+            state.status === "loading" ? "trendmap.loading" : "trendmap.error",
+          )}
         </p>
       </aside>
     );
@@ -47,26 +50,54 @@ export function TrendMapLegend({
   const stops = PALETTES[variable.palette];
   const factor = variable.display?.factor ?? 1;
   const unit = variable.display?.unit ?? slopeUnitLabel(spec.slope.unit);
-  const edge = formatSlope(limit * factor);
+  const edge = localNumber(formatSlope(limit * factor));
   const gradient = `linear-gradient(to right, ${stops
     .map((stop) => `rgb(${stop.join(",")})`)
     .join(", ")})`;
   const high = `rgb(${(stops.at(-1) ?? [0, 0, 0]).join(",")})`;
   const { period, parameters, significant } = meta.trend;
-  const caveat = trendCaveat(variable.id);
+  const caveat = trendCaveat(variable.id, voice);
+  // The method and the full numbers: shown as they are for a researcher,
+  // folded under "Details" otherwise.
+  const method = (
+    <>
+      <p className="trendmap-note">{t("trendmap.fadeNote")}</p>
+      <p className="trendmap-note">
+        {t("trendmap.periodLine", {
+          first: period.first_month,
+          last: period.last_month,
+          count: formatCount(period.n_months),
+          lat: degrees(spec.latStep),
+          lon: degrees(spec.lonStep),
+          fdr: percent(significant.fdr.area_fraction),
+          raw: percent(significant.uncorrected.area_fraction),
+        })}
+      </p>
+      <p className="trendmap-note">
+        {t("trendmap.method", {
+          alpha: localNumber(String(parameters.alpha)),
+          quantile: Math.round(RANGE_QUANTILE * 100),
+        })}
+        {variable.display ? ` ${t("trendmap.evapUnit")}` : ""}
+      </p>
+      <p className="trendmap-note">{t("trendmap.warning.expert")}</p>
+    </>
+  );
 
   return (
     <aside className="trendmap">
-      <p className="trendmap-title">{meta.name_en}</p>
+      <p className="trendmap-title">
+        {variableName(variable.id, meta.name_en)}
+      </p>
       <p className="trendmap-note">
-        Change per decade, {unit} per decade · {meta.product}
+        {t("trendmap.unitLine", { unit, product: meta.product })}
       </p>
       {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
       <div
         className="trendmap-ramp"
         style={{ background: gradient }}
         role="img"
-        aria-label={`Colour scale from −${edge} (falling) to +${edge} (rising) ${unit} per decade`}
+        aria-label={t("trendmap.rampAria", { edge, unit })}
       />
       <p className="trendmap-ticks">
         <span>−{edge}</span>
@@ -74,58 +105,53 @@ export function TrendMapLegend({
         <span>+{edge}</span>
       </p>
       <p className="trendmap-ticks trendmap-note">
-        <span>falling</span>
-        <span>rising</span>
+        <span>{t("trendmap.falling")}</span>
+        <span>{t("trendmap.rising")}</span>
       </p>
       <ul className="trendmap-key">
         <li>
           <i style={{ background: high }} />
-          Full colour: significant after FDR correction
+          {tm("trendmap.key.full")}
         </li>
         <li>
           <i style={{ background: high, opacity: NOT_SIGNIFICANT_ALPHA }} />
-          Faded: not significant, or significant only before correction
+          {tm("trendmap.key.faded")}
         </li>
         <li>
           <i className="trendmap-empty" />
-          No colour: no data, or not analysed
+          {t("trendmap.key.empty")}
         </li>
       </ul>
-      <p className="trendmap-note">
-        Colour strength also fades toward zero change (same colours, more
-        see-through), so the surface shows through small trends.
-      </p>
       <label className="trendmap-opacity">
-        Opacity
+        {t("trendmap.opacity")}
         <input
           type="range"
           min={MIN_OVERLAY_OPACITY}
           max={1}
           step={0.05}
           value={opacity}
-          aria-label="Trend map opacity"
+          aria-label={t("trendmap.opacityAria")}
           onChange={(event) => onOpacity(Number(event.target.value))}
         />
       </label>
-      <p className="trendmap-note">
-        Period {period.first_month} to {period.last_month} ({period.n_months}{" "}
-        months). Grid {degrees(spec.latStep)} × {degrees(spec.lonStep)}.
-        Significant after FDR correction:{" "}
-        {percent(significant.fdr.area_fraction)} of the analysed area (
-        {percent(significant.uncorrected.area_fraction)} before correction).
-      </p>
-      <p className="trendmap-note">
-        Method: linear trend of monthly anomalies in each grid cell; t-test
-        adjusted for lag-1 autocorrelation; Benjamini-Hochberg FDR across the
-        map at α = {parameters.alpha}. The colour range is ±the{" "}
-        {Math.round(RANGE_QUANTILE * 100)}th percentile of the absolute cell
-        trends; values beyond it take the end colours.
-        {variable.display ? ` ${variable.display.note}` : ""}
-      </p>
-      <p className="trendmap-note">
-        Not significant does not mean no change. Trends are computed on a ~1°
-        grid; sensor or product changes can cause artificial trends.
-      </p>
+      {settings.fullStatistics ? (
+        method
+      ) : (
+        <>
+          <p className="trendmap-note">
+            {t("trendmap.summary", {
+              share: percent(significant.fdr.area_fraction),
+              first: period.first_month,
+              last: period.last_month,
+            })}{" "}
+            {tm("trendmap.warning")}
+          </p>
+          <details className="trend-details">
+            <summary>{t("common.action.details")}</summary>
+            {method}
+          </details>
+        </>
+      )}
     </aside>
   );
 }

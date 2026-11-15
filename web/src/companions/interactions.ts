@@ -17,8 +17,10 @@ export type InteractionRule = {
   upper: Selector | "any";
   lower: Selector | "any";
   effect: InteractionEffect;
-  // What the animation shows, in plain words.
+  // What the animation shows, in plain words (English; the shown text is
+  // the message `companions.interactions.<key>`).
   note: string;
+  key: string;
 };
 
 export const INTERACTION_RULES: InteractionRule[] = [
@@ -27,42 +29,49 @@ export const INTERACTION_RULES: InteractionRule[] = [
     lower: { kind: "water" },
     effect: "drip",
     note: "Vapor above Rain: a drop passes down.",
+    key: "vaporRain",
   },
   {
     upper: { kind: "water" },
     lower: { kind: "soil" },
     effect: "drip",
     note: "Rain above Soil: a drop passes down.",
+    key: "rainSoil",
   },
   {
     upper: { kind: "water" },
     lower: { kind: "plant" },
     effect: "drip",
     note: "Rain above Leaf: a drop passes down.",
+    key: "rainLeaf",
   },
   {
     upper: { kind: "vapor" },
     lower: { kind: "vapor", variant: "rising" },
     effect: "rise",
     note: "Evaporation below Vapor: beads pass up.",
+    key: "evaporationVapor",
   },
   {
     upper: { kind: "vapor", variant: "rising" },
     lower: { kind: "soil" },
     effect: "rise",
     note: "Soil below Evaporation: beads pass up.",
+    key: "soilEvaporation",
   },
   {
     upper: { kind: "energy" },
     lower: "any",
     effect: "glow",
     note: "A temperature companion's light falls on the one below.",
+    key: "glowBelow",
   },
   {
     upper: "any",
     lower: { kind: "energy" },
     effect: "glow",
     note: "A temperature companion's light falls on the one above.",
+    key: "glowAbove",
   },
 ];
 
@@ -79,6 +88,8 @@ export type Interaction = {
   // For "glow": which of the two is lit.
   litId: string | null;
   note: string;
+  // Message key of the note: companions.interactions.<key>.
+  key: string;
 };
 
 // `ordered` is highest first (byAltitude). Each neighbouring pair gets the
@@ -105,6 +116,7 @@ export function interactionsFor(ordered: CompanionSpec[]): Interaction[] {
             : upper.id
           : null,
       note: rule.note,
+      key: rule.key,
     });
   }
   return result;

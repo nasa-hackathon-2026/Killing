@@ -1,0 +1,22 @@
+{
+  "common": "Shared site title, controls, status messages and data-kind labels.",
+  "hud": "Main globe controls and status bar.",
+  "guide": "First-visit guide, examples, reading help and companion tour.",
+  "layers": "Variable and place selection in the Layers panel.",
+  "variables": "Names and definitions of the twelve visible Earth-system variables.",
+  "places": "Place names shown across the site.",
+  "timeline": "Timeline controls and labels.",
+  "chart": "Time-series chart labels and reading hints.",
+  "trend": "Trend summaries: no clear change never means no change.",
+  "caveats": "Documented data limitations and climate-signal cautions.",
+  "strata": "The ordered layers of the atmosphere and ground.",
+  "trendmap": "Global trend-map controls, legend and methodology.",
+  "fields": "Global monthly-climatology distribution controls, legend, methodology and particle note; the moving dots are not wind transport.",
+  "calm": "Calm particle style controls, legend and selected-place notes.",
+  "globeStats": "Existing trend, model-station and similarity results drawn on the globe, with accessible tables; similarity does not imply causation.",
+  "closeup": "Close-up visual descriptions and scientific context.",
+  "companions": "Data companion names and factual speech templates.",
+  "compare": "Model and observation comparison page.",
+  "mining": "Exploratory data-mining page and statistical terms.",
+  "lab": "Form laboratory labels and controls."
+}

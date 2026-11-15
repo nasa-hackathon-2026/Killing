@@ -1,0 +1,88 @@
+{
+  "title": "模式與觀測比較",
+  "back": "← 回到地球",
+  "intro": {
+    "general": "這一頁把電腦模式推算的氣溫，和同一個地點實際量到的氣溫放在一起看。每條線畫的是該月比「同一個月份的平常值」高或低多少（{{start}} 到 {{end}}）。",
+    "expert": "模式與再分析的近地面氣溫，對照同一地點、同一物理量的觀測。兩條序列都是共同月份（{{start}} 到 {{end}}）內的距平：每個值減去該序列自己同一日曆月的平均，所以基準與單位不同也能比較。"
+  },
+  "verdict": {
+    "general": "模式和量測有差距，並不能說明哪一個才對。測站量的是一個點；模式的數值代表一整個網格。",
+    "expert": "模式與觀測有差異，本身不能說明哪一個正確。測站是一個點，模式值是一個網格；GISTEMP 是測站與船舶觀測的 2° 網格分析。"
+  },
+  "error": "讀不到比較結果。",
+  "group": {
+    "label": "群組",
+    "option": "{{name}}（{{count}}）",
+    "taiwan_station": "臺灣測站",
+    "taiwan_gistemp": "臺灣，GISTEMP 網格",
+    "world_city": "世界城市",
+    "global": "全球平均"
+  },
+  "tableNote": {
+    "general": "趨勢的單位是每十年 °C。點一個地點就會畫出它的圖。",
+    "expert": "趨勢為共同月份內每十年的 °C 變化。點選地點即可畫出該組配對。"
+  },
+  "table": {
+    "location": "地點",
+    "model": "模式產品",
+    "obs": "觀測來源",
+    "months": "月數",
+    "r": "r",
+    "modelTrend": "模式趨勢",
+    "obsTrend": "觀測趨勢",
+    "difference": "差值",
+    "largestStep": "最大階梯",
+    "knownIssues": "已知問題"
+  },
+  "modelPlace": {
+    "containingCell": "包含測站的網格",
+    "nearestCell": "最近的有值網格",
+    "cellDistance": "{{where}}，中心相距 {{km}} km",
+    "pointSeries": "{{place}} 的單點序列",
+    "pointSeriesDistance": "{{place}} 的單點序列，相距 {{km}} km",
+    "sameLocation": "同一地點的序列"
+  },
+  "chart": {
+    "aria": "{{place}} 的 {{model}} 與 {{obs}} 距平，以及兩者的差",
+    "empty": "這組配對沒有可畫的序列。",
+    "keyModel": "模式距平",
+    "keyObs": "觀測距平",
+    "keyDifference": "差值（模式 − 觀測）",
+    "keyBreak": "已知的階梯月份（{{months}}）",
+    "keyStep": "差值的最大階梯（{{month}}）",
+    "monthly": "月距平，°C。",
+    "annual": "月距平的年平均，°C（這個群組在檔案裡沒有月值）。",
+    "baseline": {
+      "general": "0 代表每條線自己在該月份的平常值。",
+      "expert": "每條序列都相對於它自己在共同月份內同一日曆月的平均。"
+    }
+  },
+  "stats": {
+    "commonMonths": "共同月份",
+    "commonMonthsValue": "{{count}}（{{first}} 到 {{last}}）",
+    "modelTrend": "模式趨勢",
+    "obsTrend": "觀測趨勢",
+    "differenceTrend": "差值的趨勢",
+    "trendValue": "每十年 {{slope}} °C（95% CI {{low}} 到 {{high}}）",
+    "trendValuePlain": "每十年大約 {{slope}} °C",
+    "differenceTrendValue": "每十年 {{slope}} °C（95% CI {{low}} 到 {{high}}；{{p}}）",
+    "pBelow": "p < {{alpha}}",
+    "pAtLeast": "p ≥ {{alpha}}",
+    "difference": "差值",
+    "differenceValue": "標準差 {{sd}} °C，RMSE {{rmse}} °C",
+    "largestStep": "最大階梯",
+    "largestStepValue": "{{month}} 有 {{step}} °C（該月起 6 個月的平均減去前 6 個月的平均）",
+    "gapChanging": "兩者的差距每十年大約改變 {{slope}} °C，這個變化通過了統計檢定。",
+    "gapUnclear": "這段紀錄裡看不出兩者的差距有明確的變化；這不等於沒有變。",
+    "tooFew": "共同月份太少（{{count}}），無法計算統計。"
+  },
+  "notPaired": "未配對：{{list}}。",
+  "caveat": {
+    "model": "模式",
+    "observation": "觀測",
+    "both": "模式與觀測",
+    "paired": "配對",
+    "one": "注意：{{side}}序列有一個已知資料問題。",
+    "many": "注意：{{side}}序列有 {{count}} 個已知資料問題。"
+  }
+}

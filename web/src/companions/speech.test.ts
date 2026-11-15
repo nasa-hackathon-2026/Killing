@@ -102,24 +102,16 @@ describe("speak", () => {
     ]);
   });
 
-  it("uses an English voice when that language is not installed", () => {
+  it("stays silent instead of reading a different language", () => {
     const { heard } = install(voices);
     speak("Bonjour", "fr");
-    expect(heard[0]).toMatchObject({
-      lang: "en-US",
-      voiceName: "Google US English",
-      pitch: 1,
-    });
+    expect(heard).toEqual([]);
   });
 
-  it("keeps the requested language when no English voice exists either", () => {
+  it("stays silent when only another language's voice is installed", () => {
     const { heard } = install([{ name: "Google 國語（台灣）", lang: "zh-TW" }]);
     speak("Bonjour", "fr");
-    expect(heard[0]).toMatchObject({
-      lang: "fr-FR",
-      voiceName: null,
-      pitch: 1,
-    });
+    expect(heard).toEqual([]);
   });
 
   it("says nothing for a blank line", () => {

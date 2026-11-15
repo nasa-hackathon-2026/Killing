@@ -1,0 +1,25 @@
+/* Title of the form lab and the language / reader-mode controls in its HUD. */
+.lab-title {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  margin: 0;
+  max-width: 300px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8eef7;
+  pointer-events: none;
+}
+.lab-title span {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+@media (max-width: 900px) {
+  .lab-title {
+    display: none;
+  }
+}

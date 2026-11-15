@@ -1,0 +1,22 @@
+{
+  "controlLabel": "全球分布",
+  "off": "分布：關閉",
+  "auto": "跟隨圖表／圖層",
+  "unavailable": "{{name}}（無全球格點）",
+  "unavailableReason": "本站沒有此變數的全球格點資料；只有 data/grid/ 中有檔案的 7 個變數能顯示分布。",
+  "autoNothing": "跟隨圖表／圖層：目前開啟的圖層或圖表變數沒有全球格點資料。",
+  "loading": "正在載入全球分布…",
+  "error": "無法讀取全球分布。",
+  "typical": "典型的 {{month}}",
+  "period": "{{start}}–{{end}} 年平均",
+  "legendToggle": "圖例",
+  "low": "低",
+  "high": "高",
+  "densityCaption": "光點密度與亮度",
+  "notThisMonth": "顯示的是典型月份，不是這個月份的實際值。",
+  "method": "每個曆月取 {{start}}–{{end}} 年同月份的平均值（月氣候平均）。光點密度與亮度依全部 12 個月數值的第 2 至第 98 百分位範圍變化；沒有資料的地方不顯示光點。",
+  "noWind": "沒有風場資料：光點的動態不代表輸送方向。",
+  "withTrendMap": "趨勢地圖仍在下層；分布光點會變暗。",
+  "dataKind": "資料類型：{{kind}}。",
+  "particleNote": "發光的點是一張分布圖：典型 {{month}}的{{variable}}。"
+}

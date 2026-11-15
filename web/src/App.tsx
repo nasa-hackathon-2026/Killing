@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   loadTrends,
   summarizeTrend,
@@ -7,11 +7,17 @@ import {
 } from "./analysis/trends";
 import { CloseUpPanel } from "./closeup/CloseUpPanel";
 import { CompanionDock } from "./companions/CompanionDock";
-import { monthlyAnomaly } from "./companions/companionData";
+import { companionReading, monthlyAnomaly } from "./companions/companionData";
+import { companionSentences } from "./companions/companionLine";
+import {
+  companionFor,
+  companionName,
+  companionVariable,
+} from "./companions/companionSpec";
 import { useAnalysisFile } from "./analysis/useAnalysisFile";
 import {
   trendArrowDirection,
-  trendMark,
+  trendLabel,
   trendSignal,
   type TrendSignal,
 } from "./forms/encoding";
@@ -22,16 +28,27 @@ import {
   startingLayers,
 } from "./guide/firstVisit";
 import { GuideCard } from "./guide/GuideCard";
+import { usualIntensity } from "./forms/calm/calmMath";
+import { useParticleStyle } from "./forms/calm/particleStyle";
 import { particleNote } from "./guide/particleNote";
+import { Tour } from "./guide/Tour";
+import { TOUR_STEPS, tourLayers } from "./guide/tourScript";
+import { carryChoices, monthYear, t, useI18n, type Locale } from "./i18n";
+import { LanguageMenu, RoleSwitch } from "./i18n/ChoiceControls";
+import { variableDefinition, variableName } from "./i18n/names";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations, taiwanOverview } from "./mock/snapshot";
 import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
 import { EarthCanvas } from "./scene/EarthCanvas";
+import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
+import { FieldToggle } from "./fields/FieldToggle";
+import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
+import { worldCityFrame } from "./scene/worldCityFrame";
 import {
   bestDefaultMonth,
   formatMeasurement,
@@ -40,8 +57,8 @@ import {
   valueAt,
 } from "./snapshot/reading";
 import {
+  displayPlaceName,
   hasCoordinates,
-  NO_DATA_AT_PLACE,
   placeNote,
   resolvePlaceId,
   type Place,
@@ -62,6 +79,10 @@ import {
   trendMapVariable,
 } from "./trendmap/trendMapConfig";
 import { TrendMapLegend } from "./trendmap/TrendMapLegend";
+import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
+import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
+import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
+import { useGlobeStats } from "./globeStats/useGlobeStats";
 import {
   requestedCloseUp,
   requestedPlace,
@@ -91,7 +112,7 @@ const TAIWAN_FLY_DISTANCE = 1.85;
 const PLACE_FLY_DISTANCE = 2.3;
 // The whole globe in view: the distance the camera is created at
 // (EarthCanvas). A page that opens at a Taiwan place starts here.
-const START_DISTANCE = 3.2;
+const START_DISTANCE = DEFAULT_ORBIT_DISTANCE;
 // Before the catalogs are read, the five Taiwan places stand in.
 const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   ...item,
@@ -99,33 +120,45 @@ const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   aggregation: "point",
 }));
 
-// One target object per place, so the camera jumps there once.
-function useStartFlight(
-  lat: number | undefined,
-  lon: number | undefined,
-  distance: number,
+// One target object per place. A world city slides to the center of the
+// globe, a little closer than the whole-Earth view. A Taiwan place is
+// already framed when the page opens (no slide), shifted east on medium
+// windows so it is not behind the Companions panel.
+function useOpeningFlight(
+  group: string | undefined,
+  lat: number | null,
+  lon: number | null,
+  strata: boolean,
 ): FlyTarget | null {
-  return useMemo(
-    () =>
-      lat !== undefined && lon !== undefined
-        ? {
-            lat,
-            // East of the place on medium windows, so the place shows left
-            // of the Companions panel (scene/startView.ts).
-            lon:
-              lon +
-              startLongitudeShift(
-                window.innerWidth,
-                window.innerHeight,
-                distance,
-                lat,
-              ),
-            distance,
-            instant: true,
-          }
-        : null,
-    [lat, lon, distance],
-  );
+  return useMemo(() => {
+    if (strata || group === undefined || lat === null || lon === null) {
+      return null;
+    }
+    const city = worldCityFrame({ group, lat, lon }, PLACE_FLY_DISTANCE);
+    if (city) return city;
+    if (group !== "taiwan") return null;
+    return {
+      lat,
+      lon:
+        lon +
+        startLongitudeShift(
+          window.innerWidth,
+          window.innerHeight,
+          START_DISTANCE,
+          lat,
+        ),
+      distance: START_DISTANCE,
+      instant: true,
+    };
+  }, [group, lat, lon, strata]);
+}
+
+// "Precipitation (GPM IMERG Final)": the variable's name in the active
+// language with the product name, which is not translated.
+function trendMapLabel(variable: { id: string; label: string }): string {
+  const product = /\(([^()]+)\)$/.exec(variable.label)?.[1];
+  const name = variableName(variable.id, variable.label);
+  return product && !name.includes(product) ? `${name} (${product})` : name;
 }
 
 // Loads the snapshot and owns the place; the month, playback and the charted
@@ -171,6 +204,7 @@ function AppView({
   setLocationId: (id: string) => void;
 }) {
   const timeline = useTimeline();
+  const { settings, voice } = useI18n();
   const [forceWebGL, setForceWebGL] = useState(false);
   const [askedFlight, setFlyTarget] = useState<FlyTarget | null>(null);
   const [startDone, setStartDone] = useState(false);
@@ -187,31 +221,99 @@ function AppView({
   const trendMap = useTrendMap(trendMapId);
   // Start card (web/src/guide): opens by itself on a first visit, and from
   // the "? Guide" button. Opening another left-hand panel puts it away.
-  const [guideOpen, setGuideOpen] = useState(() =>
+  // On a first visit a role with `autoTour` gets the companion tour, the
+  // others the guide card; "? Guide" reopens the card, which offers the tour.
+  const [firstVisit] = useState(() =>
     showGuideAtStart(search, guideDismissed()),
+  );
+  const [guideOpen, setGuideOpen] = useState(
+    () => firstVisit && !settings.autoTour,
+  );
+  const [howToOpen, setHowToOpen] = useState(false);
+  // Guided tour (web/src/guide/tourScript.ts): the step shown, or null. The
+  // layers the visitor had on are put back when it ends.
+  const [tourStep, setTourStep] = useState<number | null>(() =>
+    firstVisit && settings.autoTour ? 0 : null,
+  );
+  const [layersBeforeTour, setLayersBeforeTour] = useState<string[] | null>(
+    null,
   );
   const closeGuide = () => {
     rememberGuideDismissed();
     setGuideOpen(false);
+    setHowToOpen(false);
   };
   const enterStrata = () => {
     setGuideOpen(false);
     strata.enter();
   };
+  const goToStep = (index: number) => {
+    const visible = controls.filter((item) => item.visible).map((i) => i.id);
+    if (layersBeforeTour === null) setLayersBeforeTour(visible);
+    const needed = tourLayers(index);
+    setControls((current) =>
+      current.map((layer) =>
+        needed.includes(layer.id) && !layer.visible
+          ? { ...layer, visible: true }
+          : layer,
+      ),
+    );
+    setTourStep(index);
+  };
+  const startTour = () => {
+    setGuideOpen(false);
+    setHowToOpen(false);
+    setCloseUpId(null);
+    timeline.setPlaying(false);
+    timeline.setSelectedVariableId(null);
+    goToStep(0);
+  };
+  const endTour = () => {
+    rememberGuideDismissed();
+    setTourStep(null);
+    if (layersBeforeTour) {
+      setControls((current) =>
+        current.map((layer) => ({
+          ...layer,
+          visible: layersBeforeTour.includes(layer.id),
+        })),
+      );
+    }
+    setLayersBeforeTour(null);
+    // The examples and "How to read this" are offered next.
+    setGuideOpen(true);
+  };
+  const tour = tourStep === null ? null : (TOUR_STEPS[tourStep] ?? null);
+  // The tour's step decides whether the layer view is open; the state
+  // machine of the layer view does the moving.
+  const tourView = tour?.view ?? null;
+  const { phase: strataPhase, enter: strataEnter, exit: strataExit } = strata;
+  useEffect(() => {
+    if (tourView === "strata" && strataPhase === "off") strataEnter();
+    else if (tourView === "globe" && strataPhase === "on") strataExit();
+  }, [tourView, strataPhase, strataEnter, strataExit]);
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const places = data?.places ?? fallbackPlaces;
   const place = places.find((item) => item.id === locationId);
   // The place as a point on the globe; undefined for the global mean, which
   // has no marker, no camera flight and no layer view.
   const location = hasCoordinates(place) ? place : undefined;
-  const placeName = place?.nameEn ?? locationId;
+  const placeName = place ? displayPlaceName(place) : locationId;
   const aggregation = place?.aggregation ?? "point";
   // Series of a world place are read when it is picked.
   const placeLoading = !!data && !data.loaded.includes(locationId);
   const selectPlace = (id: string, fly: boolean) => {
     setLocationId(id);
     const next = places.find((item) => item.id === id);
-    if (fly && hasCoordinates(next) && strata.phase === "off") {
+    if (!hasCoordinates(next) || strata.phase !== "off") return;
+    // A world city slides to the center and a little closer, whether it was
+    // chosen from the menu or by its marker. Taiwan markers do not fly.
+    const city = worldCityFrame(next, PLACE_FLY_DISTANCE);
+    if (city) {
+      setFlyTarget(city);
+      return;
+    }
+    if (fly) {
       setFlyTarget({
         lat: next.lat,
         lon: next.lon,
@@ -221,18 +323,16 @@ function AppView({
   };
   // The page opens with the camera over the selected place (the default,
   // or the one ?at= names), so the globe shows what the panels talk about.
-  // The global mean has no point and keeps the default view; the layer view
-  // flies there by itself.
-  const startLat = location?.lat;
-  const startLon = location?.lon;
-  const startDistance =
-    place?.group === "taiwan" ? START_DISTANCE : PLACE_FLY_DISTANCE;
-  const startFlight = useStartFlight(
-    requestedStrata() ? undefined : startLat,
-    startLon,
-    startDistance,
+  // A world city slides there (city on the viewing axis, slightly closer).
+  // Taiwan is already there, with no slide. The global mean has no point
+  // and keeps the default view; the layer view flies there by itself.
+  const openingFlight = useOpeningFlight(
+    place?.group,
+    place?.lat ?? null,
+    place?.lon ?? null,
+    requestedStrata(),
   );
-  const flyTarget = askedFlight ?? (startDone ? null : startFlight);
+  const flyTarget = askedFlight ?? (startDone ? null : openingFlight);
   const flying = flyTarget !== null;
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
@@ -240,18 +340,19 @@ function AppView({
   const activeMonth = timeline.month;
   const intensities: Record<string, number> = {};
   const available: Record<string, boolean> = {};
+  const usual: Record<string, number | null> = {};
   const readings: Record<string, string> = {};
   const kelvins: Record<string, number | null> = {};
   for (const layer of layerRegistry) {
     const series = here.find((item) => item.variableId === layer.id);
     if (snapshot.status === "loading" || placeLoading) {
-      readings[layer.id] = "Loading…";
+      readings[layer.id] = t("common.status.loading");
       intensities[layer.id] = 0;
     } else if (!series || !activeMonth) {
       readings[layer.id] =
         snapshot.status === "error"
-          ? "Could not read the snapshot"
-          : NO_DATA_AT_PLACE;
+          ? t("common.status.snapshotError")
+          : t("common.status.noDataAtPlace");
       intensities[layer.id] = 0;
     } else {
       readings[layer.id] = formatMeasurement(
@@ -260,6 +361,7 @@ function AppView({
       );
       intensities[layer.id] = intensityAt(series.points, activeMonth);
       available[layer.id] = valueAt(series.points, activeMonth) !== null;
+      usual[layer.id] = usualIntensity(series.points, activeMonth);
       kelvins[layer.id] =
         series.unit === "K" ? valueAt(series.points, activeMonth) : null;
     }
@@ -288,6 +390,23 @@ function AppView({
   }
 
   const pairsFile = useAnalysisFile(loadModelVsObs);
+  const globePlaces = useMemo(
+    () => data?.places.filter(hasCoordinates) ?? [],
+    [data],
+  );
+  const selectedStatsVariableId =
+    timeline.selectedVariableId ??
+    controls.find((layer) => layer.visible)?.id ??
+    null;
+  const globeStats = useGlobeStats({
+    hidden: strata.phase !== "off" || closeUpId !== null,
+    places: globePlaces,
+    selectedLocationId: locationId,
+    selectedVariableId: selectedStatsVariableId,
+    trends: trendsFile,
+    modelVsObs: pairsFile,
+    onSelectLocation: (id) => selectPlace(id, true),
+  });
   const compareLinks =
     pairsFile.status === "ready"
       ? compareLinksFor(
@@ -298,16 +417,65 @@ function AppView({
       : undefined;
 
   // What the particles are, so they are not read as a global map.
+  const openIds = controls
+    .filter((control) => control.visible)
+    .map((control) => control.id);
+  const fieldNote = useFieldNote(openIds);
+  const particleStyle = useParticleStyle();
   const particleLine = particleNote({
+    style: location ? particleStyle : "lively",
     layerNames: layerRegistry
       .filter((layer) =>
         controls.some((item) => item.id === layer.id && item.visible),
       )
-      .map((layer) => layer.nameEn),
+      .map((layer) => variableName(layer.id, layer.nameEn)),
     place: placeName,
     month: activeMonth,
     trendMap: trendMap.status === "ready",
   });
+
+  // What a companion says and looks like in the tour: the same reading the
+  // Companions panel builds, as short template sentences.
+  const readingOf = (variableId: string) =>
+    companionReading(
+      variableId,
+      here.find((item) => item.variableId === variableId),
+      activeMonth,
+      trendsFile.status === "ready"
+        ? trendsFile.data.series[trendKey(variableId, locationId, aggregation)]
+        : undefined,
+      trendsFile.status === "ready" ? trendsFile.data.known_issues : undefined,
+    );
+  const tourSentences = (variableId: string, formatLocale?: Locale) => {
+    const spec = companionFor(variableId);
+    if (!spec) return null;
+    const reading = readingOf(variableId);
+    return companionSentences({
+      companionName: companionName(spec),
+      definition: variableDefinition(variableId, "general"),
+      variableName: companionVariable(spec),
+      place: placeName,
+      month: activeMonth,
+      formatLocale,
+      value: reading.raw,
+      unit: reading.unit,
+      anomaly: reading.anomaly,
+      trend: reading.trend,
+      unreliableReason: reading.signal.unreliable
+        ? (reading.caveat?.reason ?? t("caveats.genericReason"))
+        : null,
+      dataKind: spec.dataKind,
+    });
+  };
+  const closeUpName = closeUpLayer
+    ? variableName(closeUpLayer.id, closeUpLayer.nameEn)
+    : "";
+  const roleControls = (
+    <>
+      <RoleSwitch />
+      <LanguageMenu />
+    </>
+  );
 
   return (
     <div className="app">
@@ -318,6 +486,7 @@ function AppView({
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
+        usual={usual}
         trendMap={trendMap.status === "ready" ? trendMap.map : null}
         trendMapOpacity={trendMapOpacity}
         places={places.filter(hasCoordinates)}
@@ -331,6 +500,7 @@ function AppView({
         paused={strata.shown}
         controlsLocked={strata.phase !== "off"}
       >
+        <GlobeStatsScene state={globeStats} />
         {location ? (
           <StrataApproach
             phase={strata.phase}
@@ -347,7 +517,8 @@ function AppView({
           closing={strata.phase === "closing"}
           onClosed={strata.onClosed}
           onExit={strata.exit}
-          place={location}
+          place={{ ...location, nameEn: placeName }}
+          focus={tour ? tour.stratum : undefined}
           month={activeMonth}
           controls={controls}
           readings={readings}
@@ -366,17 +537,24 @@ function AppView({
         />
       ) : null}
       {strata.phase === "off" && nearGround && location ? (
-        <StrataHint placeName={location.nameEn} onEnter={enterStrata} />
+        <StrataHint placeName={placeName} onEnter={enterStrata} />
       ) : null}
       <div className="hud hud-main">
+        {strata.phase === "off" ? (
+          <FieldToggle
+            openIds={openIds}
+            trendMapOn={trendMap.status === "ready"}
+            legendHidden={Boolean(closeUpLayer)}
+          />
+        ) : null}
         <button
           type="button"
           className="hud-guide"
           aria-pressed={guideOpen}
-          aria-label="Guide: how to start and how to read this"
+          aria-label={t("hud.guideAria")}
           onClick={() => (guideOpen ? closeGuide() : setGuideOpen(true))}
         >
-          ? <span>Guide</span>
+          ? <span>{t("hud.guide")}</span>
         </button>
         <button
           type="button"
@@ -386,25 +564,25 @@ function AppView({
             strata.phase === "return" ||
             (strata.phase === "off" && !location)
           }
-          title={location ? undefined : "The layer view needs a single place"}
+          title={location ? undefined : t("hud.needsPlace")}
           aria-pressed={strata.phase !== "off"}
         >
-          {strata.phase === "off" ? "Layer view" : "Back to the globe"}
+          {t(strata.phase === "off" ? "hud.layerView" : "hud.backToGlobe")}
         </button>
         <label>
-          <span>Global trend map</span>
+          <span>{t("hud.trendMap")}</span>
           <select
             value={trendMapId ?? ""}
-            aria-label="Global trend map"
+            aria-label={t("hud.trendMap")}
             onChange={(event) => {
               setGuideOpen(false);
               setTrendMapId(event.target.value || null);
             }}
           >
-            <option value="">{"Trend map: off"}</option>
+            <option value="">{t("hud.trendMapOff")}</option>
             {TREND_MAP_VARIABLES.map((variable) => (
               <option key={variable.id} value={variable.id}>
-                {variable.label}
+                {trendMapLabel(variable)}
               </option>
             ))}
           </select>
@@ -417,31 +595,66 @@ function AppView({
           }
           disabled={flying || strata.phase !== "off"}
         >
-          Fly to Taiwan
+          {t("hud.flyTaiwan")}
         </button>
+        <div className="hud-choices">{roleControls}</div>
         {/* Secondary pages and the renderer diagnostics. */}
         <details className="hud-more">
-          <summary>More</summary>
+          <summary>{t("hud.more")}</summary>
           <div className="hud-menu">
-            <a href={`${import.meta.env.BASE_URL}compare/`}>
-              Model vs observation
+            <div className="hud-menu-choices">{roleControls}</div>
+            <a href={carryChoices(`${import.meta.env.BASE_URL}compare/`)}>
+              {t("hud.compare")}
             </a>
-            <a href={`${import.meta.env.BASE_URL}mining/`}>Data mining</a>
-            <a href={`${import.meta.env.BASE_URL}lab/`}>Form lab</a>
+            <a href={carryChoices(`${import.meta.env.BASE_URL}mining/`)}>
+              {t("hud.mining")}
+            </a>
+            <a href={carryChoices(`${import.meta.env.BASE_URL}lab/`)}>
+              {t("hud.lab")}
+            </a>
             <div className="hud-debug">
-              <p className="badge">Renderer: {rendererLabel(kind)}</p>
+              <p className="badge">
+                {t("hud.renderer", { name: rendererLabel(kind) })}
+              </p>
               <FpsReadout />
               <button
                 type="button"
                 onClick={() => setForceWebGL((value) => !value)}
               >
-                {forceWebGL ? "Use automatic renderer" : "Force WebGL"}
+                {t(forceWebGL ? "hud.autoRenderer" : "hud.forceWebgl")}
               </button>
             </div>
           </div>
         </details>
       </div>
-      {guideOpen ? <GuideCard onClose={closeGuide} /> : null}
+      {guideOpen && tourStep === null ? (
+        <GuideCard
+          onClose={closeGuide}
+          onTour={location ? startTour : undefined}
+          howToOpen={howToOpen}
+        />
+      ) : null}
+      {tourStep !== null ? (
+        <Tour
+          step={tourStep}
+          vars={{
+            place: placeName,
+            month: activeMonth ? monthYear(activeMonth) : "",
+          }}
+          month={activeMonth}
+          sentences={tourSentences}
+          figure={(variableId) => {
+            const reading = readingOf(variableId);
+            return {
+              value: reading.value,
+              anomalyZ: reading.anomaly?.z ?? null,
+              signal: reading.signal,
+            };
+          }}
+          onStep={goToStep}
+          onEnd={endTour}
+        />
+      ) : null}
       <LayerPanel
         layers={layerRegistry}
         controls={controls}
@@ -454,7 +667,11 @@ function AppView({
         places={strata.phase === "off" ? places : places.filter(hasCoordinates)}
         locationId={locationId}
         onLocation={(id) => selectPlace(id, true)}
-        placeNote={placeNote(place)}
+        placeNote={placeNote(place, voice)}
+        onHowTo={() => {
+          setHowToOpen(true);
+          setGuideOpen(true);
+        }}
         compareLinks={compareLinks}
         months={months}
         month={activeMonth}
@@ -504,40 +721,58 @@ function AppView({
         aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
-      <TrendMapLegend
-        state={trendMap}
-        opacity={trendMapOpacity}
-        onOpacity={setTrendMapOpacity}
-      />
+      <div className="map-legends" hidden={globeStats.hidden}>
+        <div className="globe-stats-selectors">
+          <GlobeStatsControls state={globeStats} />
+        </div>
+        <GlobeStatsPanel state={globeStats} />
+        <TrendMapLegend
+          state={trendMap}
+          opacity={trendMapOpacity}
+          onOpacity={setTrendMapOpacity}
+        />
+        {particleLine ? (
+          <aside className="particle-note" role="note">
+            <p>{particleLine}</p>
+            {fieldNote ? <p>{fieldNote}</p> : null}
+          </aside>
+        ) : null}
+      </div>
       {closeUpLayer ? (
         <CloseUpPanel
           variableId={closeUpLayer.id}
-          variableName={`${closeUpLayer.nameEn} at ${placeName}, ${activeMonth?.slice(0, 7) ?? ""}`}
+          variableName={t("closeup.kicker", {
+            name: closeUpName,
+            where: activeMonth
+              ? t("places.placeMonth", {
+                  place: placeName,
+                  month: activeMonth.slice(0, 7),
+                })
+              : placeName,
+          })}
+          hasData={available[closeUpLayer.id] ?? false}
           value={intensities[closeUpLayer.id] ?? 0}
           reading={readings[closeUpLayer.id] ?? ""}
           kelvin={kelvins[closeUpLayer.id] ?? null}
           trendLabel={
             signals?.[closeUpLayer.id]
-              ? trendMark(signals[closeUpLayer.id]).label.toLowerCase()
+              ? trendLabel(signals[closeUpLayer.id] as TrendSignal, voice)
               : undefined
           }
           onClose={() => setCloseUpId(null)}
         />
       ) : null}
-      {particleLine && strata.phase === "off" ? (
-        <p className="particle-note" role="note">
-          {particleLine}
-        </p>
-      ) : null}
       <p className="credit">
-        Surface: Blue Marble,{" "}
+        {t("hud.credit.surface")}{" "}
         <a href="https://visibleearth.nasa.gov/images/57730/blue-marble-land-surface-ocean-color-sea-ice-and-clouds">
           NASA Visible Earth
         </a>
-        . Closer Taiwan view: Blue Marble shaded relief,{" "}
+        . {t("hud.credit.detail")}{" "}
         <a href="https://gibs.earthdata.nasa.gov/">NASA GIBS</a>.
-        {snapshotDay ? ` Snapshot ${snapshotDay}.` : ""} NASA insignia is not
-        used.
+        {snapshotDay
+          ? ` ${t("hud.credit.snapshot", { date: snapshotDay })}`
+          : ""}{" "}
+        {t("hud.credit.insignia")}
       </p>
     </div>
   );

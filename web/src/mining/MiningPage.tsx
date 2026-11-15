@@ -35,17 +35,21 @@ import {
   type VariableGraphFile,
 } from "../analysis/miningPlus";
 import { useAnalysisFile } from "../analysis/useAnalysisFile";
+import { carryChoices, t, useI18n } from "../i18n";
+import { LanguageMenu, ModeSwitch } from "../i18n/ChoiceControls";
+import { variableName } from "../i18n/names";
 import { GapSection } from "./GapSection";
 import { NetworkSection } from "./NetworkSection";
 import { MethodDetails } from "./parts";
 import { SimilarSection } from "./SimilarSection";
 
-const columns: { key: RuleSortKey; label: string }[] = [
-  { key: "rule", label: "Rule" },
-  { key: "support", label: "Support" },
-  { key: "confidence", label: "Confidence" },
-  { key: "lift", label: "Lift" },
-  { key: "q", label: "q" },
+// Column headings are messages: mining.rules.column.<key>.
+const columns: { key: RuleSortKey }[] = [
+  { key: "rule" },
+  { key: "support" },
+  { key: "confidence" },
+  { key: "lift" },
+  { key: "q" },
 ];
 
 function ExcludedNote({
@@ -59,13 +63,16 @@ function ExcludedNote({
 }) {
   return (
     <p className="note">
-      Near-duplicate variables are left out by a fixed rule, not picked by hand:
-      variables are taken in snapshot catalog order, and one is dropped when its
-      detrended anomalies correlate above {formatParameter(limit ?? null)} (in
-      absolute value) with a variable already kept.{" "}
+      {t("mining.detail.excludedNote", {
+        limit: formatParameter(limit ?? null),
+      })}{" "}
       {excluded.length
-        ? `Left out here: ${excluded.map((item) => formatExcluded(item, names)).join("; ")}.`
-        : "None is left out here."}
+        ? t("mining.detail.excludedList", {
+            items: excluded
+              .map((item) => formatExcluded(item, names))
+              .join("; "),
+          })
+        : t("mining.detail.excludedNone")}
     </p>
   );
 }
@@ -88,7 +95,8 @@ function Chip({ item, names }: { item: string; names: VariableNames }) {
   const chip = ruleChip(item);
   return (
     <span className={`chip chip-${chip.state}`}>
-      {names[chip.variableId] ?? chip.variableId} <strong>{chip.state}</strong>
+      {variableName(chip.variableId, names[chip.variableId] ?? chip.variableId)}{" "}
+      <strong>{chip.state}</strong>
       {chip.previousMonth ? " (month before)" : ""}
     </span>
   );
@@ -101,16 +109,19 @@ function RuleChips({
   rule: { antecedents: string[]; consequent: string };
   names: VariableNames;
 }) {
+  const { t } = useI18n();
   return (
     <span className="rule-chips">
       {rule.antecedents.map((item, index) => (
         <span key={item} className="rule-part">
-          {index > 0 ? <span className="rule-word">and</span> : null}
+          {index > 0 ? (
+            <span className="rule-word">{t("mining.extra.and")}</span>
+          ) : null}
           <Chip item={item} names={names} />
         </span>
       ))}
       <span className="rule-part">
-        <span className="rule-word" aria-label="goes with">
+        <span className="rule-word" aria-label={t("mining.rules.goesWith")}>
           →
         </span>
         <Chip item={rule.consequent} names={names} />
@@ -120,6 +131,7 @@ function RuleChips({
 }
 
 function RulesSection({ file }: { file: FpGrowthFile }) {
+  const { t } = useI18n();
   const [variableId, setVariableId] = useState("all");
   const [tableId, setTableId] = useState("region");
   const [lagged, setLagged] = useState(false);
@@ -136,23 +148,19 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
 
   return (
     <section id="rules" aria-labelledby="rules-title">
-      <h2 id="rules-title">Association rules</h2>
+      <h2 id="rules-title">{t("mining.sections.rules")}</h2>
       <p className="asks">
-        <strong>What this asks:</strong> which combinations of high, normal or
-        low months of different variables turn up together more often than their
-        separate frequencies would give?
+        <strong>{t("mining.label.asks")}</strong> {t("mining.rules.asks")}
       </p>
       <p className="note">
-        <strong>Method and limits:</strong> FP-growth on detrended monthly
-        anomalies of the Taiwan core series, each labelled low, normal or high;
-        one location in one month is one case. Rules are kept only when q is
-        below {formatParameter(file.parameters.rule_alpha ?? null)}.
-        Neighbouring months and places are not independent, so the q values are
-        optimistic.
+        <strong>{t("mining.label.method")}</strong>{" "}
+        {t("mining.rules.method", {
+          alpha: formatParameter(file.parameters.rule_alpha ?? null),
+        })}
       </p>
       <div className="controls">
         <label>
-          Table{" "}
+          {t("mining.control.table")}{" "}
           <select
             value={tableId}
             onChange={(event) => setTableId(event.target.value)}
@@ -165,25 +173,25 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
           </select>
         </label>
         <label>
-          Timing{" "}
+          {t("mining.control.timing")}{" "}
           <select
             value={lagged ? "lagged" : "same"}
             onChange={(event) => setLagged(event.target.value === "lagged")}
           >
-            <option value="same">same month</option>
-            <option value="lagged">previous month → this month</option>
+            <option value="same">{t("mining.control.sameMonth")}</option>
+            <option value="lagged">{t("mining.control.lagged")}</option>
           </select>
         </label>
         <label>
-          Variable{" "}
+          {t("mining.control.variable")}{" "}
           <select
             value={variableId}
             onChange={(event) => setVariableId(event.target.value)}
           >
-            <option value="all">all variables</option>
+            <option value="all">{t("mining.control.allVariables")}</option>
             {table.variables.map((id) => (
               <option key={id} value={id}>
-                {names[id] ?? id}
+                {variableName(id, names[id] ?? id)}
               </option>
             ))}
           </select>
@@ -236,7 +244,7 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
                     type="button"
                     onClick={() => setSort(nextSort(sort, column.key))}
                   >
-                    {column.label}
+                    {t(`mining.rules.column.${column.key}`)}
                     {sort.key === column.key
                       ? sort.descending
                         ? " ↓"
@@ -286,7 +294,7 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
           names={names}
           limit={file.parameters.max_abs_correlation}
         />
-        <h3>Parameters</h3>
+        <h3>{t("mining.label.parameters")}</h3>
         <ParameterList parameters={file.parameters} />
       </MethodDetails>
     </section>
@@ -294,6 +302,7 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
 }
 
 function TreeSection({ file }: { file: DecisionTreeFile }) {
+  const { t } = useI18n();
   const names = file.variable_names;
   const classes = file.target_classes;
   const summary = file.summary;
@@ -301,30 +310,29 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
 
   return (
     <section id="greenness" aria-labelledby="greenness-title">
-      <h2 id="greenness-title">Predicting vegetation greenness</h2>
+      <h2 id="greenness-title">{t("mining.sections.greenness")}</h2>
       <p className="asks">
-        <strong>What this asks:</strong> can the other variables of a month tell
-        whether vegetation greenness (NDVI) is low, normal or high in a Taiwan
-        region? In this run the tree did not beat the baselines.
+        <strong>{t("mining.label.asks")}</strong> {t("mining.greenness.asks")}
       </p>
       <p className="note">
-        <strong>Method and limits:</strong> target: the low, normal or high
-        state of {formatFeature(file.target, names)} in the {file.table} table.
-        Features: the same month&apos;s detrended anomalies of the other
-        variables, plus last month&apos;s value of each variable
-        {file.features.includes(`prev:${file.target}`)
-          ? " (including the target itself)"
-          : " (not the target's own previous month)"}
-        .{" "}
+        <strong>{t("mining.label.method")}</strong>{" "}
+        {t("mining.detail.treeMethod", {
+          target: formatFeature(file.target, names),
+          table: file.table,
+          targetLag: t(
+            file.features.includes(`prev:${file.target}`)
+              ? "mining.detail.targetLagIncluded"
+              : "mining.detail.targetLagExcluded",
+          ),
+        })}{" "}
         {file.same_quantity_excluded.length
-          ? `Not used as features because they measure the same quantity as the target: ${file.same_quantity_excluded
-              .map((id) => names[id] ?? id)
-              .join(", ")}. `
+          ? t("mining.detail.sameQuantityExcluded", {
+              names: file.same_quantity_excluded
+                .map((id) => names[id] ?? id)
+                .join(", "),
+            })
           : ""}
-        Validation walks forward in time: each fold tests on the next block of
-        months and trains on every month before it. Monthly means, the linear
-        trend and the target&apos;s quantiles are estimated from the training
-        months of each fold only.
+        {t("mining.detail.validation")}
       </p>
       <p
         className={summary.above_all_in_every_fold ? "verdict" : "verdict warn"}
@@ -332,28 +340,30 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
         {summary.text_en}
       </p>
       <p className="note">
-        Three baselines per fold, all scored on the test months and none using
-        any other variable: always guess the most common class of the training
-        months; always guess the most common class of the test months (known
-        only afterwards); guess that the target stays in last month&apos;s state
-        (persistence). Mean test accuracy over {summary.n_folds} folds: tree{" "}
-        {formatShare(summary.mean_test_accuracy)}, training-majority guess{" "}
-        {formatShare(summary.mean_train_majority_accuracy)}, test-majority guess{" "}
-        {formatShare(summary.mean_test_majority_accuracy)}, persistence guess{" "}
-        {formatShare(summary.mean_persistence_accuracy)}.
+        {t("mining.detail.baselines", {
+          folds: summary.n_folds,
+          tree: formatShare(summary.mean_test_accuracy),
+          training: formatShare(summary.mean_train_majority_accuracy),
+          test: formatShare(summary.mean_test_majority_accuracy),
+          persistence: formatShare(summary.mean_persistence_accuracy),
+        })}
       </p>
       <div className="scroll">
         <table>
           <thead>
             <tr>
-              <th>Fold</th>
-              <th>Training months</th>
-              <th>Test months</th>
-              <th className="number">Tree, test</th>
-              <th className="number">Training-majority guess</th>
-              <th className="number">Test-majority guess</th>
-              <th className="number">Persistence guess</th>
-              <th>Tree against baselines</th>
+              <th>{t("mining.extra.fold")}</th>
+              <th>{t("mining.extra.training_months")}</th>
+              <th>{t("mining.extra.test_months")}</th>
+              <th className="number">{t("mining.extra.tree_test")}</th>
+              <th className="number">
+                {t("mining.extra.training_majority_guess")}
+              </th>
+              <th className="number">
+                {t("mining.extra.test_majority_guess")}
+              </th>
+              <th className="number">{t("mining.extra.persistence_guess")}</th>
+              <th>{t("mining.extra.tree_against_baselines")}</th>
             </tr>
           </thead>
           <tbody>
@@ -361,18 +371,27 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
               <tr key={fold.fold}>
                 <td>{fold.fold}</td>
                 <td>
-                  {fold.train_first_month.slice(0, 7)} to{" "}
-                  {fold.train_last_month.slice(0, 7)} ({fold.n_train} rows)
+                  {t("mining.detail.monthRows", {
+                    first: fold.train_first_month.slice(0, 7),
+                    last: fold.train_last_month.slice(0, 7),
+                    rows: fold.n_train,
+                  })}
                 </td>
                 <td>
-                  {fold.test_first_month.slice(0, 7)} to{" "}
-                  {fold.test_last_month.slice(0, 7)} ({fold.n_test} rows)
+                  {t("mining.detail.monthRows", {
+                    first: fold.test_first_month.slice(0, 7),
+                    last: fold.test_last_month.slice(0, 7),
+                    rows: fold.n_test,
+                  })}
                 </td>
                 <td className="number">{formatShare(fold.accuracy.test)}</td>
                 <td className="number">
                   {formatShare(fold.baselines.train_majority.test_accuracy)} (
                   {fold.baselines.train_majority.predicted_class}
-                  {fold.baselines.train_majority.tie ? ", tied" : ""})
+                  {fold.baselines.train_majority.tie
+                    ? t("mining.detail.tied")
+                    : ""}
+                  )
                 </td>
                 <td className="number">
                   {formatShare(fold.baselines.test_majority.test_accuracy)} (
@@ -388,16 +407,22 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
         </table>
       </div>
       <dl>
-        <dt>Rows used</dt>
+        <dt>{t("mining.extra.rows_used")}</dt>
         <dd>
           {Object.entries(file.rows_by_location)
             .map(
               ([location, rows]) =>
-                `${location} ${rows.n_complete_rows} of ${rows.n_rows}` +
+                t("mining.detail.rowsAtLocation", {
+                  location,
+                  complete: rows.n_complete_rows,
+                  total: rows.n_rows,
+                }) +
                 (rows.missing_variables.length
-                  ? ` (no ${rows.missing_variables
-                      .map((id) => names[id] ?? id)
-                      .join(", ")})`
+                  ? t("mining.detail.missingVariables", {
+                      names: rows.missing_variables
+                        .map((id) => names[id] ?? id)
+                        .join(", "),
+                    })
                   : ""),
             )
             .join(" · ")}
@@ -411,23 +436,22 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
       {last ? (
         <>
           <h3>
-            Tree of fold {last.fold} (trained on{" "}
-            {last.train_first_month.slice(0, 7)} to{" "}
-            {last.train_last_month.slice(0, 7)})
+            {t("mining.detail.foldTree", {
+              fold: last.fold,
+              first: last.train_first_month.slice(0, 7),
+              last: last.train_last_month.slice(0, 7),
+            })}
           </h3>
           <pre>{labelTreeText(last.tree_text, names)}</pre>
-          <h3>
-            Fold {last.fold} test months: actual state (rows) against predicted
-            state
-          </h3>
+          <h3>{t("mining.detail.foldConfusion", { fold: last.fold })}</h3>
           <div className="scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Actual</th>
+                  <th>{t("mining.extra.actual")}</th>
                   {classes.map((name) => (
                     <th key={name} className="number">
-                      predicted {name}
+                      {t("mining.detail.predicted", { name })}
                     </th>
                   ))}
                 </tr>
@@ -446,7 +470,7 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
               </tbody>
             </table>
           </div>
-          <h3>Feature importance (fold {last.fold})</h3>
+          <h3>{t("mining.detail.featureImportance", { fold: last.fold })}</h3>
           <div className="scroll">
             <table>
               <tbody>
@@ -464,7 +488,7 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
         </>
       ) : null}
       <MethodDetails>
-        <h3>Parameters</h3>
+        <h3>{t("mining.label.parameters")}</h3>
         <ParameterList parameters={file.parameters} />
       </MethodDetails>
     </section>
@@ -473,6 +497,7 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
 
 // Numbers only: how the results change when gaps are filled or left missing.
 function GapFillingSection({ data }: { data: MiningResults }) {
+  const { t } = useI18n();
   const rules = data.rules.gap_filling_sensitivity;
   const tree = data.tree.gap_filling_sensitivity;
   if (!rules || !tree) return null;
@@ -482,34 +507,32 @@ function GapFillingSection({ data }: { data: MiningResults }) {
 
   return (
     <section id="gap-filling" aria-labelledby="gap-filling-title">
-      <h2 id="gap-filling-title">
-        Gap filling: filled and unfilled runs compared
-      </h2>
+      <h2 id="gap-filling-title">{t("mining.sections.gapFilling")}</h2>
       <p className="note">
-        {data.rules.gap_filling_note} The tables and the tree above are the{" "}
-        {rules.primary} run. Trend statistics are never gap-filled.
+        {data.rules.gap_filling_note}{" "}
+        {t("mining.detail.gapFillingNote", { run: rules.primary })}
       </p>
       <div className="scroll">
         <table>
           <thead>
             <tr>
-              <th>Table</th>
-              <th>Timing</th>
+              <th>{t("mining.extra.table")}</th>
+              <th>{t("mining.extra.timing")}</th>
+              <th className="number">{t("mining.detail.monthsFilled")}</th>
+              {runs.map((run) => (
+                <th key={run} className="number">
+                  {t("mining.detail.missingCells", { run })}
+                </th>
+              ))}
+              {runs.map((run) => (
+                <th key={run} className="number">
+                  {t("mining.detail.rulesRun", { run })}
+                </th>
+              ))}
               <th className="number">
-                Months filled (interpolated / climatology)
+                {t("mining.extra.listed_rules_in_both")}
               </th>
-              {runs.map((run) => (
-                <th key={run} className="number">
-                  Missing cells, {run}
-                </th>
-              ))}
-              {runs.map((run) => (
-                <th key={run} className="number">
-                  Rules, {run}
-                </th>
-              ))}
-              <th className="number">Listed rules in both</th>
-              <th>Top rules</th>
+              <th>{t("mining.extra.top_rules")}</th>
             </tr>
           </thead>
           <tbody>
@@ -541,7 +564,9 @@ function GapFillingSection({ data }: { data: MiningResults }) {
                   <td>
                     {formatTopRules(row.comparison)}
                     {row.comparison.top_rules_compared
-                      ? ` (top ${row.comparison.top_rules_compared})`
+                      ? t("mining.detail.topCount", {
+                          count: row.comparison.top_rules_compared,
+                        })
                       : ""}
                   </td>
                 </tr>
@@ -555,14 +580,22 @@ function GapFillingSection({ data }: { data: MiningResults }) {
           <table>
             <thead>
               <tr>
-                <th>Decision tree fold</th>
-                <th className="number">Test rows, filled</th>
-                <th className="number">Tree, filled</th>
-                <th className="number">Test rows, unfilled</th>
-                <th className="number">Tree, unfilled</th>
-                <th className="number">Training-majority guess</th>
-                <th className="number">Test-majority guess</th>
-                <th className="number">Persistence guess</th>
+                <th>{t("mining.extra.decision_tree_fold")}</th>
+                <th className="number">{t("mining.extra.test_rows_filled")}</th>
+                <th className="number">{t("mining.extra.tree_filled")}</th>
+                <th className="number">
+                  {t("mining.extra.test_rows_unfilled")}
+                </th>
+                <th className="number">{t("mining.extra.tree_unfilled")}</th>
+                <th className="number">
+                  {t("mining.extra.training_majority_guess")}
+                </th>
+                <th className="number">
+                  {t("mining.extra.test_majority_guess")}
+                </th>
+                <th className="number">
+                  {t("mining.extra.persistence_guess")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -597,11 +630,14 @@ function GapFillingSection({ data }: { data: MiningResults }) {
       ) : null}
       {filled && unfilled ? (
         <p className="note">
-          Baselines are those of the filled run. Folds above all three
-          baselines: {filled.summary.n_folds_above_all} of {filled.folds.length}{" "}
-          filled, {unfilled.summary.n_folds_above_all} of{" "}
-          {unfilled.folds.length} unfilled. Rows usable for the tree:{" "}
-          {filled.n_complete_rows} filled, {unfilled.n_complete_rows} unfilled.
+          {t("mining.detail.gapFillingResults", {
+            filledAbove: filled.summary.n_folds_above_all,
+            filledTotal: filled.folds.length,
+            unfilledAbove: unfilled.summary.n_folds_above_all,
+            unfilledTotal: unfilled.folds.length,
+            filledRows: filled.n_complete_rows,
+            unfilledRows: unfilled.n_complete_rows,
+          })}
         </p>
       ) : null}
     </section>
@@ -611,6 +647,7 @@ function GapFillingSection({ data }: { data: MiningResults }) {
 // Numbers only: how the results change when series with verified step months
 // are cut at those months before detrending.
 function SegmentationSection({ data }: { data: MiningResults }) {
+  const { t } = useI18n();
   const rules = data.rules.segmentation_sensitivity;
   const tree = data.tree.segmentation_sensitivity;
   if (!rules || !tree) return null;
@@ -633,26 +670,28 @@ function SegmentationSection({ data }: { data: MiningResults }) {
 
   return (
     <section id="segmentation" aria-labelledby="segmentation-title">
-      <h2 id="segmentation-title">
-        Known step months: segmented and unsegmented runs compared
-      </h2>
+      <h2 id="segmentation-title">{t("mining.sections.segmentation")}</h2>
       <p className="note">
-        {rules.note} Series cut in the segmented run:{" "}
-        {stepped.length ? stepped.join("; ") : "none"}.
+        {rules.note}{" "}
+        {t("mining.detail.segmentedSeries", {
+          series: stepped.length ? stepped.join("; ") : t("mining.format.none"),
+        })}
       </p>
       <div className="scroll">
         <table>
           <thead>
             <tr>
-              <th>Table</th>
-              <th>Timing</th>
+              <th>{t("mining.extra.table")}</th>
+              <th>{t("mining.extra.timing")}</th>
               {runs.map((run) => (
                 <th key={run} className="number">
-                  Rules, {run}
+                  {t("mining.detail.rulesRun", { run })}
                 </th>
               ))}
-              <th className="number">Listed rules in both</th>
-              <th>Top rules</th>
+              <th className="number">
+                {t("mining.extra.listed_rules_in_both")}
+              </th>
+              <th>{t("mining.extra.top_rules")}</th>
             </tr>
           </thead>
           <tbody>
@@ -671,7 +710,9 @@ function SegmentationSection({ data }: { data: MiningResults }) {
                 <td>
                   {formatTopRules(row.comparison)}
                   {row.comparison.top_rules_compared
-                    ? ` (top ${row.comparison.top_rules_compared})`
+                    ? t("mining.detail.topCount", {
+                        count: row.comparison.top_rules_compared,
+                      })
                     : ""}
                 </td>
               </tr>
@@ -681,30 +722,32 @@ function SegmentationSection({ data }: { data: MiningResults }) {
       </div>
       {primary && other ? (
         <p className="note">
-          Decision tree test accuracy by fold: unsegmented{" "}
-          {primary.folds
-            .map((fold) => formatShare(fold.test_accuracy))
-            .join(", ")}
-          ; segmented{" "}
-          {other.folds
-            .map((fold) => formatShare(fold.test_accuracy))
-            .join(", ")}
-          . Folds above all three baselines: {primary.summary.n_folds_above_all}{" "}
-          of {primary.folds.length} unsegmented,{" "}
-          {other.summary.n_folds_above_all} of {other.folds.length} segmented.
+          {t("mining.detail.segmentationResults", {
+            unsegmented: primary.folds
+              .map((fold) => formatShare(fold.test_accuracy))
+              .join(", "),
+            segmented: other.folds
+              .map((fold) => formatShare(fold.test_accuracy))
+              .join(", "),
+            unsegmentedAbove: primary.summary.n_folds_above_all,
+            unsegmentedTotal: primary.folds.length,
+            segmentedAbove: other.summary.n_folds_above_all,
+            segmentedTotal: other.folds.length,
+          })}
         </p>
       ) : null}
     </section>
   );
 }
 
+// `label` is the message key under mining.sections.
 const SECTIONS = [
-  { id: "rules", label: "Association rules" },
-  { id: "network", label: "Variable network" },
-  { id: "similar", label: "Similar series" },
-  { id: "gap", label: "Where do models and observations differ?" },
-  { id: "greenness", label: "Predicting vegetation greenness" },
-  { id: "gap-filling", label: "Sensitivity checks" },
+  { id: "rules", label: "rules" },
+  { id: "network", label: "network" },
+  { id: "similar", label: "similar" },
+  { id: "gap", label: "gap" },
+  { id: "greenness", label: "greenness" },
+  { id: "gap-filling", label: "sensitivity" },
 ];
 
 // Every id a link's fragment may name: the sections of the list above and
@@ -720,10 +763,11 @@ function Loaded<T>({
   what: string;
   children: (data: T) => ReactNode;
 }) {
+  const { t } = useI18n();
   if (state.status === "loading")
-    return <p className="note">Loading {what}…</p>;
+    return <p className="note">{t("mining.load.loadingPart", { what })}</p>;
   if (state.status === "error") {
-    return <p className="note">Could not read {what}.</p>;
+    return <p className="note">{t("mining.load.errorPart", { what })}</p>;
   }
   return <>{children(state.data)}</>;
 }
@@ -743,53 +787,64 @@ function Scope({
   const region = data.rules.tables.region;
   return (
     <dl className="scope">
-      <dt>Association rules, greenness tree</dt>
+      <dt>{t("mining.extra.association_rules_greenness_tree")}</dt>
       <dd>
-        Taiwan core series: {point?.locations.length ?? 0} points (
-        {point?.variables.length ?? 0} variables,{" "}
-        {point?.first_month?.slice(0, 7)} to {point?.last_month?.slice(0, 7)},{" "}
-        {point?.same_month.n_transactions ?? 0} location-months) and{" "}
-        {region?.locations.length ?? 0} regions ({region?.variables.length ?? 0}{" "}
-        variables, {region?.first_month?.slice(0, 7)} to{" "}
-        {region?.last_month?.slice(0, 7)},{" "}
-        {region?.same_month.n_transactions ?? 0} location-months)
+        {t("mining.detail.scopeRules", {
+          points: point?.locations.length ?? 0,
+          pointVariables: point?.variables.length ?? 0,
+          pointFirst: point?.first_month?.slice(0, 7) ?? "",
+          pointLast: point?.last_month?.slice(0, 7) ?? "",
+          pointMonths: point?.same_month.n_transactions ?? 0,
+          regions: region?.locations.length ?? 0,
+          regionVariables: region?.variables.length ?? 0,
+          regionFirst: region?.first_month?.slice(0, 7) ?? "",
+          regionLast: region?.last_month?.slice(0, 7) ?? "",
+          regionMonths: region?.same_month.n_transactions ?? 0,
+        })}
       </dd>
       {graph ? (
         <>
-          <dt>Variable network</dt>
+          <dt>{t("mining.extra.variable_network")}</dt>
           <dd>
-            the same Taiwan series, {graph.tables.point?.nodes.length ?? 0}{" "}
-            variables at points and {graph.tables.region?.nodes.length ?? 0} in
-            regions;{" "}
+            {t("mining.detail.scopeNetwork", {
+              points: graph.tables.point?.nodes.length ?? 0,
+              regions: graph.tables.region?.nodes.length ?? 0,
+            })}{" "}
             {graph.world_cities
-              ? `${graph.world_cities.cities.length} world cities × ${graph.world_cities.variables.length} variables for the cross-city table`
+              ? t("mining.detail.scopeCities", {
+                  cities: graph.world_cities.cities.length,
+                  variables: graph.world_cities.variables.length,
+                })
               : ""}
           </dd>
         </>
       ) : null}
       {similar ? (
         <>
-          <dt>Similar series</dt>
+          <dt>{t("mining.extra.similar_series")}</dt>
           <dd>
-            {similar.summary.n_series} series: Taiwan points{" "}
-            {similar.summary.n_series_by_group.taiwan ?? 0}, world cities{" "}
-            {similar.summary.n_series_by_group.world_city ?? 0}, global mean{" "}
-            {similar.summary.n_series_by_group.global ?? 0};{" "}
-            {similar.window.first_month.slice(0, 7)} to{" "}
-            {similar.window.last_month.slice(0, 7)} ({similar.window.n_months}{" "}
-            months)
+            {t("mining.detail.scopeSimilar", {
+              series: similar.summary.n_series,
+              taiwan: similar.summary.n_series_by_group.taiwan ?? 0,
+              cities: similar.summary.n_series_by_group.world_city ?? 0,
+              global: similar.summary.n_series_by_group.global ?? 0,
+              first: similar.window.first_month.slice(0, 7),
+              last: similar.window.last_month.slice(0, 7),
+              months: similar.window.n_months,
+            })}
           </dd>
         </>
       ) : null}
       {gap ? (
         <>
-          <dt>Models and observations</dt>
+          <dt>{t("mining.extra.models_and_observations")}</dt>
           <dd>
-            {gap.pairs.length} station–model pairs at{" "}
-            {new Set(gap.pairs.map((pair) => pair.station)).size} Taiwan
-            stations, {gap.pairs.reduce((sum, pair) => sum + pair.n_months, 0)}{" "}
-            pair-months (2001-01 to 2025-12);{" "}
-            {gap.variants[gap.primary_variant]?.n_rows ?? 0} rows in the tree
+            {t("mining.detail.scopeGap", {
+              pairs: gap.pairs.length,
+              stations: new Set(gap.pairs.map((pair) => pair.station)).size,
+              months: gap.pairs.reduce((sum, pair) => sum + pair.n_months, 0),
+              rows: gap.variants[gap.primary_variant]?.n_rows ?? 0,
+            })}
           </dd>
         </>
       ) : null}
@@ -798,6 +853,7 @@ function Scope({
 }
 
 export function MiningPage() {
+  const { t, tm, locale } = useI18n();
   const state = useAnalysisFile(loadMining);
   const graph = useAnalysisFile(loadVariableGraph);
   const similar = useAnalysisFile(loadSimilarSeries);
@@ -817,36 +873,36 @@ export function MiningPage() {
 
   return (
     <main className="mining">
-      <p>
-        <a href={import.meta.env.BASE_URL}>← Globe</a>
+      <p className="page-bar">
+        <a href={carryChoices(import.meta.env.BASE_URL)}>{t("mining.back")}</a>
+        <LanguageMenu />
+        <ModeSwitch />
       </p>
+      {locale === "en" ? null : (
+        <p className="note page-partial">{t("common.partial")}</p>
+      )}
       <h1>
-        Data mining <span className="tag">exploratory</span>
+        {t("mining.title")} <span className="tag">{t("mining.tag")}</span>
       </h1>
       <p className="lead">
-        Patterns found by letting standard mining methods run over the monthly
-        series of this site, each with its method, its sample size and a
-        comparison against simple guesses.{" "}
-        <strong>
-          Exploratory results. Nothing on this page shows cause and effect.
-        </strong>
+        {tm("mining.lead")} <strong>{t("mining.leadWarning")}</strong>
       </p>
-      <nav className="toc" aria-label="Sections of this page">
+      <nav className="toc" aria-label={t("mining.tocLabel")}>
         <ul>
           {SECTIONS.map((section) => (
             <li key={section.id}>
-              <a href={`#${section.id}`}>{section.label}</a>
+              <a href={`#${section.id}`}>
+                {t(`mining.sections.${section.label}`)}
+              </a>
             </li>
           ))}
         </ul>
       </nav>
-      {state.status === "loading" ? <p>Loading…</p> : null}
-      {state.status === "error" ? (
-        <p>Could not read the mining results.</p>
-      ) : null}
+      {state.status === "loading" ? <p>{t("common.status.loading")}</p> : null}
+      {state.status === "error" ? <p>{t("mining.load.error")}</p> : null}
       {state.status === "ready" ? (
         <>
-          <h2 className="scope-title">Data used</h2>
+          <h2 className="scope-title">{t("mining.label.dataUsed")}</h2>
           <Scope
             data={state.data}
             graph={graph.status === "ready" ? graph.data : null}
@@ -868,13 +924,13 @@ export function MiningPage() {
           <RulesSection file={state.data.rules} />
         </>
       ) : null}
-      <Loaded state={graph} what="the variable network">
+      <Loaded state={graph} what={t("mining.load.network")}>
         {(data) => <NetworkSection file={data} />}
       </Loaded>
-      <Loaded state={similar} what="the similar-series lists">
+      <Loaded state={similar} what={t("mining.load.similar")}>
         {(data) => <SimilarSection file={data} />}
       </Loaded>
-      <Loaded state={gap} what="the model and observation results">
+      <Loaded state={gap} what={t("mining.load.gap")}>
         {(data) => <GapSection file={data} />}
       </Loaded>
       {state.status === "ready" ? (

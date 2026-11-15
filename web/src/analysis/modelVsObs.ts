@@ -3,6 +3,7 @@
 // page does not say which side is right.
 import type { TrendCaveat } from "./trendCaveats";
 import { analysisUrl } from "./trends";
+import { formatCount, t } from "../i18n";
 
 export type DataKind = "in_situ" | "satellite_retrieval" | "model" | "unknown";
 
@@ -80,7 +81,10 @@ export type ModelVsObsFile = {
     string,
     { name_en: string | null; unit: string | null; data_kind: DataKind }
   >;
-  locations: Record<string, { name_en: string | null }>;
+  locations: Record<
+    string,
+    { name_en: string | null; lat?: number | null; lon?: number | null }
+  >;
   skipped: { pair_id: string; reason: string }[];
   pairs: Pair[];
 };
@@ -146,10 +150,13 @@ export function pairCaveat(
     .map((id) => issues[id])
     .filter((issue): issue is KnownIssue => issue !== undefined);
   if (!found.length) return null;
-  const sides = [
-    pair.model.known_issues.length ? "model" : null,
-    pair.obs.known_issues.length ? "observation" : null,
-  ].filter((side) => side !== null);
+  const side = pair.model.known_issues.length
+    ? pair.obs.known_issues.length
+      ? "both"
+      : "model"
+    : pair.obs.known_issues.length
+      ? "observation"
+      : "paired";
   const sources = [
     ...new Set(
       found.map((issue) =>
@@ -160,9 +167,13 @@ export function pairCaveat(
     ),
   ];
   return {
-    summary: `Caution: the ${sides.join(" and ")} series has ${
-      found.length === 1 ? "a known issue" : `${found.length} known issues`
-    }.`,
+    summary: t(
+      found.length === 1 ? "compare.caveat.one" : "compare.caveat.many",
+      {
+        side: t(`compare.caveat.${side}`),
+        count: formatCount(found.length),
+      },
+    ),
     details: found.map((issue) => issue.summary_en).join(" "),
     sources: sources.join("; "),
   };

@@ -15,6 +15,7 @@ import {
   clampIndex,
   nextPlayIndex,
   parseMonthParam,
+  playIntervalMs,
   resolveMonth,
   TIMELINE_SPEEDS,
 } from "./timelineMath";
@@ -92,7 +93,7 @@ export function TimelineProvider({
       const next = nextPlayIndex(monthIndex, months.length);
       if (next === null) setPlayingState(false);
       else setChosen(months[next] ?? null);
-    }, 1000 / speed);
+    }, playIntervalMs(speed));
     return () => window.clearTimeout(handle);
   }, [playing, speed, monthIndex, months]);
 

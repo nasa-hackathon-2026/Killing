@@ -140,6 +140,7 @@ describe("summarizeTrend", () => {
       headline: "+0.21 °C per decade (95% CI 0.12 to 0.30)",
       significance: "significant after autocorrelation and FDR correction",
       period: "2001-01 to 2026-09",
+      plain: "About +0.21 °C per decade",
     });
   });
 
@@ -154,6 +155,7 @@ describe("summarizeTrend", () => {
       headline: "Trend not analyzed",
       significance: "40% of months missing.",
       period: null,
+      plain: null,
     });
   });
 

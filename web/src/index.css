@@ -1211,3 +1211,101 @@ body,
 .timeline-chart-note a {
   color: inherit;
 }
+
+/* ---- Role switch and language menu in the HUD (i18n/ChoiceControls.tsx).
+   Wide windows show them in the row; from 1180px down they move into the
+   More menu, so the row still never wraps. */
+.hud-choices {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hud-menu-choices {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.hud .choice-mode button {
+  padding: 8px 10px;
+}
+
+.hud .choice-language select {
+  cursor: pointer;
+}
+
+@media (max-width: 1500px) {
+  .hud-main .hud-fly {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .hud-choices {
+    display: none;
+  }
+
+  .hud-menu-choices {
+    display: flex;
+  }
+
+  .hud-menu-choices .choice-mode button {
+    padding: 6px 8px;
+  }
+}
+
+/* ---- Plain trend wording and "Details" (analysis/TrendBlock.tsx). */
+.trend-plain {
+  color: #e8eef7;
+  font-weight: 600;
+}
+
+.trend-plain span {
+  font-weight: 400;
+}
+
+.trend-definition {
+  margin: 0;
+  color: #b7c6da;
+  font-size: 12px;
+}
+
+.trend-caveat-line {
+  margin: 0;
+  padding: 3px 8px;
+  border-left: 3px solid #ffb84d;
+  background: rgba(255, 184, 77, 0.12);
+  color: #ffe2b0;
+  font-size: 12px;
+}
+
+.trend-details {
+  font-size: 12px;
+}
+
+.trend-details > summary,
+.timeline-details > summary {
+  color: #b7c6da;
+  cursor: pointer;
+}
+
+.trend-details > * + * {
+  margin-top: 4px;
+}
+
+.layers-howto {
+  padding: 0;
+  color: #cfe3ff;
+  font: inherit;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.timeline-details {
+  margin: 6px 0 0;
+  font-size: 12px;
+}

@@ -1,0 +1,81 @@
+{
+  "aria": "Time series of {{name}}",
+  "at": "at {{place}}",
+  "show": "Show chart",
+  "hide": "Hide chart",
+  "close": "Close chart",
+  "noSeries": "This variable has no data at {{place}}.",
+  "noValues": "No values to draw.",
+  "modesAria": "Chart mode",
+  "modes": {
+    "values": "Monthly values",
+    "anomalies": {
+      "general": "Difference from usual",
+      "expert": "Anomalies"
+    },
+    "running": {
+      "general": "12-month average",
+      "expert": "12-month running mean"
+    }
+  },
+  "plotAria": "{{mode}} of {{name}} at {{place}}, {{first}} to {{last}}",
+  "readout": {
+    "general": "value {{value}} · {{anomaly}} from the usual for that month",
+    "expert": "value {{value}} · anomaly {{anomaly}} · coverage {{coverage}}",
+    "timelineMonth": "(timeline month)"
+  },
+  "key": {
+    "values": "Monthly values{{unit}}",
+    "anomalies": {
+      "general": "Each month minus the usual value for that calendar month{{unit}}",
+      "expert": "Anomalies{{unit}}: value minus the mean of the same calendar month"
+    },
+    "running": {
+      "general": "Average of 12 months around each month{{unit}}",
+      "expert": "Centred 12-month mean{{unit}}; needs all 12 months, so gaps stay gaps"
+    },
+    "trend": {
+      "general": "Trend line.",
+      "expert": "Linear trend of the monthly anomalies (slope from the analysis, drawn through the mean of the analysed months)."
+    },
+    "band": {
+      "general": "Shaded: how uncertain the slope is. It is not a forecast.",
+      "expert": "{{level}}% CI of the slope, not a prediction interval."
+    },
+    "break": {
+      "general": "Dashed: a month when the data product changed ({{months}}).",
+      "expert": "Documented step month ({{months}})."
+    },
+    "cursor": "Timeline month; click the chart to jump."
+  },
+  "plain": {
+    "change": "Change per decade",
+    "holds": "Does it hold up?",
+    "reliable": "Can the data be trusted?"
+  },
+  "stats": {
+    "change": "Change per decade",
+    "ttest": "t-test of the slope",
+    "p": "p {{p}}",
+    "pFdr": "p {{p}}, FDR-adjusted {{fdr}} ({{verdict}} at {{alpha}})",
+    "pNone": "p not available",
+    "significant": "significant",
+    "notSignificant": "not significant",
+    "neff": "Effective sample size {{n}} (lag-1 autocorrelation {{r}})",
+    "mk": "Mann-Kendall",
+    "mkLine": "Hamed-Rao: {{hamedRao}}. Seasonal: {{seasonal}}",
+    "sen": "Sen slope",
+    "period": "Period",
+    "periodLine": "{{first}} to {{last}}, {{count}} valid months",
+    "notAnalyzed": "Trend not analyzed: {{reason}}",
+    "none": "No trend statistics for this series.",
+    "method": "Method: least-squares slope of monthly anomalies. The t-test and CI use an effective sample size from the lag-1 autocorrelation of the residuals. FDR is Benjamini-Hochberg across the analysed series of one family (Taiwan's series are one family, the world cities and the global mean another). The Sen slope CI has no autocorrelation correction."
+  },
+  "similar": {
+    "link": "Similar series",
+    "text": {
+      "general": "(exploratory): other measurements that ran high and low in the same months.",
+      "expert": "(exploratory): which other variables went above and below normal in the same months."
+    }
+  }
+}

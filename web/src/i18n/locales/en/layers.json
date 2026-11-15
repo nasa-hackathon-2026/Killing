@@ -1,0 +1,22 @@
+{
+  "title": "Layers",
+  "onCount": "{{count}} on",
+  "expand": "Expand layers",
+  "collapse": "Collapse layers",
+  "valuesAt": "Values at",
+  "valuesAtPlace": "Values at {{place}}",
+  "place": "Place",
+  "month": "Month",
+  "note": {
+    "general": "Each layer is one measurement at this place. Tick a layer to show it; the mark beside its name shows its long-term change.",
+    "expert": "Count, size and speed of each form follow this place's own record. K is shown as °C. Each slider sets opacity. Flow direction is illustrative: there is no wind data."
+  },
+  "trendNote": "Trend: linear change of monthly anomalies over each record. ▲ ▼ mark significant trends, ◇ not significant, and a crossed-out triangle a significant trend with a documented data issue (see its caution). Not significant does not mean no change.",
+  "closeUp": "Close-up",
+  "closeUpAria": "{{name}}: close-up",
+  "chart": "Chart",
+  "chartAria": "{{name}}: time series chart",
+  "opacityAria": "{{name}}: opacity",
+  "compareStation": "Compare with station",
+  "compareObservations": "Compare with observations"
+}
