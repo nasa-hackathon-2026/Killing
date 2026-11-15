@@ -13,6 +13,7 @@
   "trendmap": "Global trend-map controls, legend and methodology.",
   "fields": "Global monthly-climatology distribution controls, legend, methodology and particle note; the moving dots are not wind transport.",
   "calm": "Calm particle style controls, legend and selected-place notes.",
+  "globeStats": "Existing trend, model-station and similarity results drawn on the globe, with accessible tables; similarity does not imply causation.",
   "closeup": "Close-up visual descriptions and scientific context.",
   "companions": "Data companion names and factual speech templates.",
   "compare": "Model and observation comparison page.",
