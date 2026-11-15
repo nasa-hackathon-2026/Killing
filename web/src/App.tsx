@@ -1,11 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import {
   loadTrends,
   summarizeTrend,
   trendKey,
   type TrendSummary,
 } from "./analysis/trends";
-import { CloseUpPanel } from "./closeup/CloseUpPanel";
 import { HudIcon } from "./hud/icons";
 import { CompanionDock } from "./companions/CompanionDock";
 import { companionReading, monthlyAnomaly } from "./companions/companionData";
@@ -32,7 +31,6 @@ import { GuideCard } from "./guide/GuideCard";
 import { usualIntensity } from "./forms/calm/calmMath";
 import { useParticleStyle } from "./forms/calm/particleStyle";
 import { particleNote } from "./guide/particleNote";
-import { Tour } from "./guide/Tour";
 import { requestedTourStep } from "./guide/tourScript";
 import { useGuidedTour } from "./guide/useGuidedTour";
 import { carryChoices, monthYear, t, useI18n, type Locale } from "./i18n";
@@ -42,7 +40,6 @@ import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations, taiwanOverview } from "./mock/snapshot";
 import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
-import { EarthCanvas } from "./scene/EarthCanvas";
 import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
@@ -74,8 +71,7 @@ import {
   usePlaceSnapshot,
   type SnapshotState,
 } from "./snapshot/usePlaceSnapshot";
-import { StrataApproach } from "./strata/StrataApproach";
-import { StrataHint, StrataView } from "./strata/StrataView";
+import { StrataHint } from "./strata/StrataHint";
 import { useStrataMode } from "./strata/useStrataMode";
 import { TimelineProvider, useTimeline } from "./timeline/TimelineContext";
 import { TimelineDock } from "./timeline/TimelineDock";
@@ -88,7 +84,6 @@ import {
 import { TrendMapLegend } from "./trendmap/TrendMapLegend";
 import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
 import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
-import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
 import { useGlobeStats } from "./globeStats/useGlobeStats";
 import { GLOBE_STATS_TEXT } from "./globeStats/globeStatsText";
 import {
@@ -114,6 +109,33 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
     : initialLayerVisibility(layer.id),
   opacity: 0.75,
 }));
+// The globe (three.js, about 1.7 MB) and what is drawn inside it load apart
+// from the page, so the panels and the menu are on screen first (#201); main.tsx
+// starts the download at once, in parallel. The layer view (a second canvas),
+// the close-up and the guided tour load when first opened.
+const EarthCanvas = lazy(() =>
+  import("./scene/EarthCanvas").then((m) => ({ default: m.EarthCanvas })),
+);
+const GlobeStatsScene = lazy(() =>
+  import("./globeStats/GlobeStatsScene").then((m) => ({
+    default: m.GlobeStatsScene,
+  })),
+);
+const StrataApproach = lazy(() =>
+  import("./strata/StrataApproach").then((m) => ({
+    default: m.StrataApproach,
+  })),
+);
+const StrataView = lazy(() =>
+  import("./strata/StrataView").then((m) => ({ default: m.StrataView })),
+);
+const CloseUpPanel = lazy(() =>
+  import("./closeup/CloseUpPanel").then((m) => ({ default: m.CloseUpPanel })),
+);
+const Tour = lazy(() =>
+  import("./guide/Tour").then((m) => ({ default: m.Tour })),
+);
+
 // ?trendmap=<id>; the old ?field=<id> (the global distribution, now part of
 // the same layer) opens the map of that variable.
 const initialTrendMap =
@@ -403,7 +425,6 @@ function AppView({
   };
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
-  const months = timeline.months;
   const activeMonth = timeline.month;
   const intensities: Record<string, number> = {};
   const available: Record<string, boolean> = {};
@@ -568,67 +589,75 @@ function AppView({
 
   return (
     <div className="app">
-      <EarthCanvas
-        forceWebGL={forceWebGL}
-        flyTarget={flyTarget}
-        layers={controls}
-        intensities={intensities}
-        available={available}
-        trendDirections={trendDirections}
-        usual={usual}
-        trendMap={trendMap.status === "ready" ? trendMap.map : null}
-        trendMapId={trendMapId}
-        trendMapOpacity={trendMapOpacity}
-        places={places.filter(hasCoordinates)}
-        locationId={locationId}
-        region={region}
-        onKind={setKind}
-        onFlyDone={() => {
-          setStartDone(true);
-          setFlyTarget(null);
-        }}
-        onSelectLocation={(id) => selectPlace(id, false)}
-        paused={strata.shown}
-        controlsLocked={strata.phase !== "off"}
-      >
-        <GlobeStatsScene state={globeStats} />
-        {location ? (
-          <StrataApproach
-            phase={strata.phase}
-            lat={location.lat}
-            lon={location.lon}
-            onArrive={strata.onArrive}
-            onReturn={strata.onReturn}
-            onNear={setNearGround}
-          />
-        ) : null}
-      </EarthCanvas>
-      {strata.shown && location ? (
-        <StrataView
-          closing={strata.phase === "closing"}
-          onClosed={strata.onClosed}
-          onExit={strata.exit}
-          place={{ ...location, nameEn: placeName }}
-          month={activeMonth}
-          controls={controls}
-          readings={readings}
+      <Suspense fallback={null}>
+        <EarthCanvas
+          forceWebGL={forceWebGL}
+          flyTarget={flyTarget}
+          layers={controls}
           intensities={intensities}
           available={available}
-          anomalyZ={Object.fromEntries(
-            here.map((item) => [
-              item.variableId,
-              activeMonth
-                ? (monthlyAnomaly(item.points, activeMonth)?.z ?? null)
-                : null,
-            ]),
-          )}
-          trends={trends}
-          signals={signals}
-          series={here}
+          trendDirections={trendDirections}
+          usual={usual}
+          trendMap={trendMap.status === "ready" ? trendMap.map : null}
+          trendMapId={trendMapId}
+          trendMapOpacity={trendMapOpacity}
+          places={places.filter(hasCoordinates)}
           locationId={locationId}
-          aggregation={aggregation}
-          trendsFile={trendsFile.status === "ready" ? trendsFile.data : null}
-        />
+          region={region}
+          onKind={setKind}
+          onFlyDone={() => {
+            setStartDone(true);
+            setFlyTarget(null);
+          }}
+          onSelectLocation={(id) => selectPlace(id, false)}
+          paused={strata.shown}
+          controlsLocked={strata.phase !== "off"}
+        >
+          <Suspense fallback={null}>
+            <GlobeStatsScene state={globeStats} />
+          </Suspense>
+          {location ? (
+            <Suspense fallback={null}>
+              <StrataApproach
+                phase={strata.phase}
+                lat={location.lat}
+                lon={location.lon}
+                onArrive={strata.onArrive}
+                onReturn={strata.onReturn}
+                onNear={setNearGround}
+              />
+            </Suspense>
+          ) : null}
+        </EarthCanvas>
+      </Suspense>
+      {strata.shown && location ? (
+        <Suspense fallback={null}>
+          <StrataView
+            closing={strata.phase === "closing"}
+            onClosed={strata.onClosed}
+            onExit={strata.exit}
+            place={{ ...location, nameEn: placeName }}
+            month={activeMonth}
+            controls={controls}
+            readings={readings}
+            intensities={intensities}
+            available={available}
+            anomalyZ={Object.fromEntries(
+              here.map((item) => [
+                item.variableId,
+                activeMonth
+                  ? (monthlyAnomaly(item.points, activeMonth)?.z ?? null)
+                  : null,
+              ]),
+            )}
+            trends={trends}
+            signals={signals}
+            series={here}
+            locationId={locationId}
+            aggregation={aggregation}
+            trendsFile={trendsFile.status === "ready" ? trendsFile.data : null}
+          />
+        </Suspense>
       ) : null}
       {strata.phase === "off" && nearGround && location ? (
         <StrataHint placeName={placeName} onEnter={enterStrata} />
@@ -754,25 +783,27 @@ function AppView({
         />
       ) : null}
       {tourStep !== null ? (
-        <Tour
-          step={tourStep}
-          vars={{
-            place: placeName,
-            month: activeMonth ? monthYear(activeMonth) : "",
-          }}
-          month={activeMonth}
-          sentences={tourSentences}
-          figure={(variableId) => {
-            const reading = readingOf(variableId);
-            return {
-              value: reading.value,
-              anomalyZ: reading.anomaly?.z ?? null,
-              signal: reading.signal,
-            };
-          }}
-          onStep={guidedTour.go}
-          onEnd={endTour}
-        />
+        <Suspense fallback={null}>
+          <Tour
+            step={tourStep}
+            vars={{
+              place: placeName,
+              month: activeMonth ? monthYear(activeMonth) : "",
+            }}
+            month={activeMonth}
+            sentences={tourSentences}
+            figure={(variableId) => {
+              const reading = readingOf(variableId);
+              return {
+                value: reading.value,
+                anomalyZ: reading.anomaly?.z ?? null,
+                signal: reading.signal,
+              };
+            }}
+            onStep={guidedTour.go}
+            onEnd={endTour}
+          />
+        </Suspense>
       ) : null}
       <LayerPanel
         layers={layerRegistry}
@@ -792,9 +823,6 @@ function AppView({
           setGuideOpen(true);
         }}
         compareLinks={compareLinks}
-        months={months}
-        month={activeMonth}
-        onMonth={timeline.setMonth}
         onToggle={(id) =>
           setControls((current) =>
             current.map((layer) =>
@@ -872,28 +900,30 @@ function AppView({
         ) : null}
       </div>
       {closeUpLayer ? (
-        <CloseUpPanel
-          variableId={closeUpLayer.id}
-          variableName={t("closeup.kicker", {
-            name: closeUpName,
-            where: activeMonth
-              ? t("places.placeMonth", {
-                  place: placeName,
-                  month: activeMonth.slice(0, 7),
-                })
-              : placeName,
-          })}
-          hasData={available[closeUpLayer.id] ?? false}
-          value={intensities[closeUpLayer.id] ?? 0}
-          reading={readings[closeUpLayer.id] ?? ""}
-          kelvin={kelvins[closeUpLayer.id] ?? null}
-          trendLabel={
-            signals?.[closeUpLayer.id]
-              ? trendLabel(signals[closeUpLayer.id] as TrendSignal, voice)
-              : undefined
-          }
-          onClose={() => setCloseUpId(null)}
-        />
+        <Suspense fallback={null}>
+          <CloseUpPanel
+            variableId={closeUpLayer.id}
+            variableName={t("closeup.kicker", {
+              name: closeUpName,
+              where: activeMonth
+                ? t("places.placeMonth", {
+                    place: placeName,
+                    month: activeMonth.slice(0, 7),
+                  })
+                : placeName,
+            })}
+            hasData={available[closeUpLayer.id] ?? false}
+            value={intensities[closeUpLayer.id] ?? 0}
+            reading={readings[closeUpLayer.id] ?? ""}
+            kelvin={kelvins[closeUpLayer.id] ?? null}
+            trendLabel={
+              signals?.[closeUpLayer.id]
+                ? trendLabel(signals[closeUpLayer.id] as TrendSignal, voice)
+                : undefined
+            }
+            onClose={() => setCloseUpId(null)}
+          />
+        </Suspense>
       ) : null}
       <p className="credit">
         {t("hud.credit.surface")}{" "}

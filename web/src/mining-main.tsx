@@ -4,6 +4,7 @@ import { MiningPage } from "./mining/MiningPage";
 import { initI18n } from "./i18n";
 import "./index.css";
 import "./theme/controls.css";
+import "./theme/tailwind.css";
 import "./mining/mining.css";
 
 const root = document.getElementById("root");

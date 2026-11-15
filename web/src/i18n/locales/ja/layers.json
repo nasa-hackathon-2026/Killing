@@ -16,5 +16,7 @@
   "compareStation": "観測所と比較",
   "compareObservations": "観測と比較",
   "cautionHint": "既知のデータ上の問題があります。このレイヤーを開いて注意書きを読んでください。",
-  "showAria": "{{name}}を表示"
+  "showAria": "{{name}}を表示",
+  "display": "表示設定",
+  "opacity": "不透明度"
 }

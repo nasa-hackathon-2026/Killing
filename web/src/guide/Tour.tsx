@@ -22,7 +22,6 @@ import {
   type Locale,
   type Vars,
 } from "../i18n";
-import { variableName } from "../i18n/names";
 import "./guide.css";
 import { useParticleStyle } from "../forms/calm/particleStyle";
 import { exampleHref, GUIDE_EXAMPLES } from "./examples";
@@ -93,11 +92,7 @@ function findTarget(target: TourTarget): Element | null {
       ) ?? null
     );
   }
-  const name = variableName(target.layer, target.layer);
-  const label = Array.from(document.querySelectorAll(".layer-row-name")).find(
-    (item) => item.textContent?.trim() === name,
-  );
-  return label?.closest(".layer-row") ?? null;
+  return document.querySelector(`[data-layer-row="${target.layer}"]`);
 }
 
 const MARGIN = 12;

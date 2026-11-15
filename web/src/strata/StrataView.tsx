@@ -615,19 +615,3 @@ export function StrataView({
     </section>
   );
 }
-
-// Offered once the user has zoomed in on the globe; never switches by itself.
-export function StrataHint({
-  placeName,
-  onEnter,
-}: {
-  placeName: string;
-  onEnter: () => void;
-}) {
-  const { t } = useI18n();
-  return (
-    <button type="button" className="strata-hint" onClick={onEnter}>
-      {t("strata.hint", { place: placeName })}
-    </button>
-  );
-}

@@ -217,6 +217,17 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **掛載點**：`EarthCanvas.tsx` 的 `Scene` 在樣式為 Calm 且選定地點有座標時畫 `<CalmLayers />`，並把 `calm` 傳給 `GlassParticleLayer`（玻璃殼、粒子、趨勢箭頭淡出）。全球平均沒有座標，維持 Lively。`App.tsx` 多算一個 `usual`（每層的 `usualIntensity`）傳進去。
 - **文字集中在 `calmText.ts`**（切換鈕、圖例、粒子說明那一行在 Calm 下的說法；`guide/particleNote.ts` 依 `style` 選用），元件不寫死字串。
 
+## 前端的 Tailwind、UI 庫與載入（#201）
+決策與前後數字見 `docs/adr/0007-tailwind-and-radix-for-the-front-end.md`。
+
+- **Tailwind v4**：`web/src/theme/tailwind.css`（四個入口各 import 一次，在 `controls.css` 之後），只含 theme 與 utilities，**沒有 preflight**。既有未分層 CSS 優先於 utility，所以搬元件時先刪舊規則。token 在該檔 `@theme`（`bg-panel`、`text-ink`、`text-muted`、`border-line`、`text-accent` 等）。
+- **UI 元件**：`web/src/ui/`（Radix primitives 加 Tailwind：`switch`、`slider`、`tooltip` 的 `Tip`、`button` 與 `buttonClass`），`web/src/lib/cn.ts`。`Tip` 自帶 provider。新元件用這些，不另寫手刻開關、滑桿、提示框。
+- **圖層面板（右側）**：`layers/LayerPanel.tsx`、`LayerRow.tsx`。依「分層視圖」的六層分組（`layerGroups.ts`，順序同 `strataSpec.ts`）；開關是 Switch，顏色是該圖層的 `formColor`；名稱換行不截斷；細節用 Collapsible，**可同時展開多個**（`layerAccordion.ts` 的 `toggleExpanded`）；月份只由底部時間軸控制（面板不再有 Month 滑桿）；粒子樣式切換收在「Display」摺疊區。每列有 `data-layer-row="<變數 id>"`，導覽（`guide/Tour.tsx`）用它找列，不要改名。外框 `aside.layers` 的位置與分層視圖的停靠規則仍在 `index.css`、`strata.css`。
+- **資料夥伴預設收合成小方塊**（`CompanionDock.tsx`；`?companions=gather|gallery` 才一開始就展開）。新增的 `nextDockNarration` 規則不變：旁白開著、換地點時仍會自動展開。
+- **延後載入**：`App.tsx` 以 `lazy` 載入 `EarthCanvas`、`GlobeStatsScene`、`StrataApproach`、`StrataView`、`CloseUpPanel`、`Tour`；`TimelineDock.tsx` 載入 `InvestigationPanel`。`main.tsx` 一開始就預取 `EarthCanvas`。`StrataHint` 獨立成檔（它要在分層視圖載入前就能出現）。**不要在首頁的靜態 import 鏈裡加 `three` 或 `@react-three/*`**，否則 `three-core`、`three-renderer` 會回到首頁的預載清單；檢查方式是 `npm run build` 後看 `dist/index.html` 的 `modulepreload`。
+- **vendor 分塊**：`vite.config.ts` 的 `build.rolldownOptions.output.codeSplitting`（`vendor-react`、`vendor-radix`、`three-core`、`three-renderer`）。
+- **開發伺服器**：本機有多個 worktree 時 Vite 的檔案監看可能漏掉更新（畫面還是舊的），遇到就重啟 dev server。
+
 ## 前端的首次使用引導與面板停靠（#105）
 主畫面的開始卡片、範例與 HUD。程式在 `web/src/guide/`（CSS 類別一律 `guide-` 開頭），`App.tsx` 只掛一個 `<GuideCard />` 與一段 HUD。
 
@@ -255,7 +266,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 ## 前端的時間軸與時間序列圖（#99）
 主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`（面板內容見「前端的調查面板」）。
 
-- **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`SPEED_MIN` 0.5 到 `SPEED_MAX` 12、每格 `SPEED_STEP` 0.5，拉桿、−／+ 與可輸入的數字框共用；輸入值經 `clampSpeed` 取最近的一格；預設 `DEFAULT_SPEED` = 2；手機寬度不顯示 −／+）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板原本的 Month 滑桿也讀寫這個 context。
+- **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`SPEED_MIN` 0.5 到 `SPEED_MAX` 12、每格 `SPEED_STEP` 0.5，拉桿、−／+ 與可輸入的數字框共用；輸入值經 `clampSpeed` 取最近的一格；預設 `DEFAULT_SPEED` = 2；手機寬度不顯示 −／+）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板的 Month 滑桿已移除（#201），月份只由時間軸列控制。
 - **播放**：provider 裡一個 `setTimeout` 鏈，每 1000 ÷ speed 毫秒前進一個月，到最後一個月自動停；目前月份落在最後 `PLAY_FROM_START_WITHIN`（24）個月內時按播放會從第一個月開始（`playStartIndex`，#165）。粒子圖層本來就在 `useFrame` 裡讀 `intensity`，換月只是換 props，不重建幾何。系統開「減少動態效果」時 `?play=1` 不自動播放（手動按仍可）。鍵盤（`TimelineBar.tsx`）：空白鍵播放／暫停、左右鍵前後一個月；焦點在 input、select、textarea、button、連結上時不攔截。
 - **純函式（都有測試）**：`timelineMath.ts`（月份與索引、播放的下一格、`?month` 解析）、`seriesMath.ts`（對齊到時間軸月份、距平、移動平均、趨勢線、距平條、已知跳變月份）、`chartGeometry.ts`（座標換算、刻度、缺月斷線的 path、滑鼠位置換月份）。
 - **距平**：優先用 `data/analysis/anomalies.json`（`loadAnomalies.ts`；被清洗排除的月份是 null）；沒有該序列時才用 `calendarAnomalies`（減去同一日曆月的平均，沒有覆蓋率篩選）。

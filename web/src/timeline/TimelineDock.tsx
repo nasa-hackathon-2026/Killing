@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { trendKey, type TrendsFile } from "../analysis/trends";
 import {
   useAnalysisFile,
@@ -18,10 +18,17 @@ import { variableName } from "../i18n/names";
 import { similarLink } from "../analysis/miningPlus";
 import { TimelineBar } from "./TimelineBar";
 import { useTimeline } from "./TimelineContext";
-import { InvestigationPanel } from "../investigation/InvestigationPanel";
 import { parseTab, type TabId } from "../investigation/logic";
 import type { Place } from "../snapshot/places";
 import { requestedTab } from "../urlParams";
+
+// The chart and its four tabs are only needed once a layer is charted, so
+// their code (and the chart library of the page) loads then (#201).
+const InvestigationPanel = lazy(() =>
+  import("../investigation/InvestigationPanel").then((m) => ({
+    default: m.InvestigationPanel,
+  })),
+);
 
 type TimelineDockProps = {
   // Point series of the current place.
@@ -114,33 +121,35 @@ export function TimelineDock({
   return (
     <>
       {selected ? (
-        <InvestigationPanel
-          variableId={selected.id}
-          variableName={variableName(selected.id, selected.nameEn)}
-          locationId={locationId}
-          locationName={locationName}
-          aggregation={aggregation}
-          series={
-            series.find((item) => item.variableId === selected.id) ?? null
-          }
-          anomalies={anomalies}
-          trends={trendsData}
-          breaks={stepsOf(key)}
-          similarHref={carryChoices(
-            similarLink(import.meta.env.BASE_URL, locationId, selected.id),
-          )}
-          places={places}
-          variables={variables}
-          tab={tab}
-          onTab={setTab}
-          wide={wide}
-          onWide={setWide}
-          collapsed={collapsed}
-          onCollapsed={setCollapsed}
-          onSelectVariable={setSelectedVariableId}
-          onSelectLocation={onSelectLocation}
-          onClose={() => setSelectedVariableId(null)}
-        />
+        <Suspense fallback={null}>
+          <InvestigationPanel
+            variableId={selected.id}
+            variableName={variableName(selected.id, selected.nameEn)}
+            locationId={locationId}
+            locationName={locationName}
+            aggregation={aggregation}
+            series={
+              series.find((item) => item.variableId === selected.id) ?? null
+            }
+            anomalies={anomalies}
+            trends={trendsData}
+            breaks={stepsOf(key)}
+            similarHref={carryChoices(
+              similarLink(import.meta.env.BASE_URL, locationId, selected.id),
+            )}
+            places={places}
+            variables={variables}
+            tab={tab}
+            onTab={setTab}
+            wide={wide}
+            onWide={setWide}
+            collapsed={collapsed}
+            onCollapsed={setCollapsed}
+            onSelectVariable={setSelectedVariableId}
+            onSelectLocation={onSelectLocation}
+            onClose={() => setSelectedVariableId(null)}
+          />
+        </Suspense>
       ) : null}
       <TimelineBar
         strip={bars}

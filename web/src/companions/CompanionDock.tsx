@@ -64,9 +64,6 @@ export type CompanionDockProps = {
 // stored choice wins over the role's default.
 export const NARRATION_STORAGE_KEY = "estd.narrate";
 
-// At or below this width the panel starts collapsed, as a chip under the HUD.
-const NARROW_WIDTH = 700;
-
 function requestedMode(): string | null {
   if (typeof window === "undefined") return null;
   return new URLSearchParams(window.location.search).get("companions");
@@ -164,10 +161,11 @@ export function CompanionDock({
   );
   const narrate = narrateChoice ?? settings.narration;
   const [compactOpen, setCompactOpen] = useState(false);
+  // Folded to a chip unless the reader opens it: the panel repeated the layer
+  // list in a second column and took the globe's room (#201). It still opens
+  // by itself when the narration speaks, and ?companions=gather|gallery.
   const [userCollapsed, setCollapsed] = useState(
-    () =>
-      mode === "collapsed" ||
-      (typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH),
+    () => mode !== "gather" && mode !== "gallery",
   );
   const collapsed = compact ? !compactOpen : userCollapsed;
   const [selectedId, setSelectedId] = useState<string | null>(null);

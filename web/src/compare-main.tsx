@@ -4,6 +4,7 @@ import { ComparePage } from "./compare/ComparePage";
 import { initI18n } from "./i18n";
 import "./index.css";
 import "./theme/controls.css";
+import "./theme/tailwind.css";
 import "./mining/mining.css";
 import "./compare/compare.css";
 

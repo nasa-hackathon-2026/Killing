@@ -44,11 +44,14 @@ describe("a folded layer row", () => {
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain("Rising 0.31 °C per decade");
     expect(html).not.toContain("Close-up");
-    expect(html).not.toContain('type="range"');
+    expect(html).not.toContain('role="slider"');
   });
 
-  it("does not point the button at details that are not on the page", () => {
-    expect(render()).not.toContain("aria-controls");
+  it("wraps a long name instead of cutting it off", () => {
+    const html = render();
+    expect(html).toContain("Near-surface air temperature");
+    expect(html).not.toContain("truncate");
+    expect(html).not.toContain("text-ellipsis");
   });
 });
 
@@ -71,15 +74,16 @@ describe("the caution mark", () => {
   });
 });
 
-describe("the on/off box", () => {
-  it("is outside the expand button, so ticking it never opens the details", () => {
+describe("the on/off switch", () => {
+  it("is a switch outside the expand button, so turning it on never opens the details", () => {
     const html = render();
-    const button = html.slice(
-      html.indexOf('<button type="button" class="layer-row-toggle"'),
-      html.indexOf("</button>"),
+    const trigger = html.slice(
+      html.indexOf('aria-expanded="false"') - 120,
+      html.indexOf("</button>", html.indexOf('aria-expanded="false"')),
     );
-    expect(button).not.toContain("checkbox");
-    expect(html).toContain('type="checkbox"');
+    expect(trigger).not.toContain('role="switch"');
+    expect(html).toContain('role="switch"');
+    expect(html).toContain('aria-checked="false"');
     expect(html).toContain('aria-label="Show Near-surface air temperature');
   });
 });
@@ -96,9 +100,6 @@ describe("the Layers panel", () => {
         readings: { imerg_precip: "0.32 mm/hr", gldas_tair: "28.0 °C" },
         locationName: "Taichung",
         trends: { gldas_tair: base.trend ?? null },
-        months: ["2025-06-01"],
-        month: "2025-06-01",
-        onMonth: noop,
         onToggle: noop,
         onOpacity: noop,
         onHowTo: noop,
@@ -113,10 +114,31 @@ describe("the Layers panel", () => {
 
   it("starts with every layer folded", () => {
     const html = panel();
-    expect(
-      html.match(/class="layer-row-toggle" aria-expanded="false"/g)?.length,
-    ).toBe(2);
-    expect(html).not.toContain('type="range" min="0.15"');
+    expect(html.match(/aria-expanded="false"/g)?.length).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(html).not.toContain('role="slider"');
+  });
+
+  it("has no second month slider; the month is chosen on the timeline", () => {
+    const html = panel();
+    expect(html).not.toContain("Month");
+    expect(html).not.toContain('type="range"');
+  });
+
+  it("groups the layers by stratum, top of the atmosphere first", () => {
+    const html = panel();
+    expect(html).toContain("Troposphere: water vapor and rain");
+    expect(html).toContain("Near-surface air");
+    expect(html.indexOf("Troposphere: water vapor and rain")).toBeLessThan(
+      html.indexOf("Near-surface air"),
+    );
+  });
+
+  it("keeps the display settings folded, so the layer list stays on the first screen", () => {
+    const html = panel();
+    expect(html).toContain("Display");
+    expect(html).not.toContain("Calm");
   });
 
   it("keeps only the how-to link above the rows in researcher mode", () => {
@@ -135,13 +157,14 @@ describe("an open layer row", () => {
   it("shows the trend, the caution, the actions and the opacity slider in the region the button controls", () => {
     const html = render({ expanded: true });
     expect(html).toContain('aria-expanded="true"');
-    expect(html).toContain('aria-controls="layer-details-gldas_tair"');
-    const body = html.slice(html.indexOf('id="layer-details-gldas_tair"'));
+    const controls = /aria-controls="([^"]+)"/.exec(html)?.[1];
+    expect(controls).toBeTruthy();
+    const body = html.slice(html.indexOf(`id="${controls}"`));
     expect(body).toContain("Rising 0.31 °C per decade");
     expect(body).toContain("Caution:");
-    expect(body).toContain("Details");
     expect(body).toContain("Close-up");
     expect(body).toContain("Chart");
-    expect(body).toContain('type="range"');
+    expect(body).toContain("Opacity");
+    expect(body).toContain('role="slider"');
   });
 });
