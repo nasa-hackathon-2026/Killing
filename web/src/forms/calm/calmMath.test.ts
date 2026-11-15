@@ -237,6 +237,15 @@ describe("calmViewScale and calmDriftSpeed", () => {
     expect(calmViewScale(1.01)).toBeGreaterThan(0);
   });
 
+  it("stays legible at the closest distance: about 70% of the size from afar (#211)", () => {
+    // The camera cannot come closer than 1.18 (EarthCanvas minDistance).
+    const onScreen = (distance: number) =>
+      calmViewScale(distance) / (distance - 1);
+    const share = onScreen(1.18) / onScreen(3.2);
+    expect(share).toBeGreaterThan(0.6);
+    expect(share).toBeLessThan(0.8);
+  });
+
   it("keeps every layer slow", () => {
     expect(calmDriftSpeed(0.04)).toBeCloseTo(0.25);
     expect(calmDriftSpeed(3)).toBeCloseTo(0.45);
