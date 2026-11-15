@@ -1,4 +1,4 @@
-import { interpolate, t } from "../../i18n";
+import { t } from "../../i18n";
 
 export const calmText = {
   get toggleLabel() {
@@ -43,17 +43,4 @@ export const calmText = {
   get legendAria() {
     return t("calm.legendAria");
   },
-  get noteOneLayer() {
-    return t("calm.noteOneLayer");
-  },
-  get noteManyLayers() {
-    return t("calm.noteManyLayers");
-  },
 };
-
-export function fillCalmText(
-  template: string,
-  values: Record<string, string>,
-): string {
-  return interpolate(template, values);
-}
