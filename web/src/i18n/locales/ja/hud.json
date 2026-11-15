@@ -14,11 +14,6 @@
   "renderer": "Renderer: {{name}}",
   "forceWebgl": "Force WebGL",
   "autoRenderer": "Use automatic renderer",
-  "particles": {
-    "one": "Particles show one value: {{layer}} at {{where}}. They are not a map.",
-    "many": "Particles show one value per layer at {{where}}. They are not a map.",
-    "trendMap": "The coloured overlay is a map: the trend in each grid cell."
-  },
   "credit": {
     "surface": "Surface: Blue Marble,",
     "detail": "Closer Taiwan view: Blue Marble shaded relief,",

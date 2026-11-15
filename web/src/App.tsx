@@ -29,8 +29,6 @@ import {
 } from "./guide/firstVisit";
 import { GuideCard } from "./guide/GuideCard";
 import { usualIntensity } from "./forms/calm/calmMath";
-import { useParticleStyle } from "./forms/calm/particleStyle";
-import { particleNote } from "./guide/particleNote";
 import { Tour } from "./guide/Tour";
 import { TOUR_STEPS, tourLayers } from "./guide/tourScript";
 import { carryChoices, monthYear, t, useI18n } from "./i18n";
@@ -416,23 +414,11 @@ function AppView({
         )
       : undefined;
 
-  // What the particles are, so they are not read as a global map.
+  // The note under the global distribution: a typical month, not this one.
   const openIds = controls
     .filter((control) => control.visible)
     .map((control) => control.id);
   const fieldNote = useFieldNote(openIds);
-  const particleStyle = useParticleStyle();
-  const particleLine = particleNote({
-    style: location ? particleStyle : "lively",
-    layerNames: layerRegistry
-      .filter((layer) =>
-        controls.some((item) => item.id === layer.id && item.visible),
-      )
-      .map((layer) => variableName(layer.id, layer.nameEn)),
-    place: placeName,
-    month: activeMonth,
-    trendMap: trendMap.status === "ready",
-  });
 
   // What a companion says and looks like in the tour: the same reading the
   // Companions panel builds, as short template sentences.
@@ -729,10 +715,9 @@ function AppView({
           opacity={trendMapOpacity}
           onOpacity={setTrendMapOpacity}
         />
-        {particleLine ? (
+        {fieldNote ? (
           <aside className="particle-note" role="note">
-            <p>{particleLine}</p>
-            {fieldNote ? <p>{fieldNote}</p> : null}
+            <p>{fieldNote}</p>
           </aside>
         ) : null}
       </div>
