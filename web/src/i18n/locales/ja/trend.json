@@ -1,91 +1,91 @@
 {
   "label": {
     "rising": {
-      "general": "Rising",
-      "expert": "Rising, significant"
+      "general": "上昇",
+      "expert": "上昇（有意）"
     },
     "falling": {
-      "general": "Falling",
-      "expert": "Falling, significant"
+      "general": "下降",
+      "expert": "下降（有意）"
     },
     "risingRawOnly": {
-      "general": "Rising, weak evidence",
-      "expert": "Rising, significant before FDR only"
+      "general": "上昇（根拠は弱い）",
+      "expert": "上昇（FDR補正前のみ有意）"
     },
     "fallingRawOnly": {
-      "general": "Falling, weak evidence",
-      "expert": "Falling, significant before FDR only"
+      "general": "下降（根拠は弱い）",
+      "expert": "下降（FDR補正前のみ有意）"
     },
     "notSignificant": {
-      "general": "No clear change in this record",
-      "expert": "Not significant"
+      "general": "この記録では、はっきりした変化は読み取れません",
+      "expert": "有意でない"
     },
     "unreliableRising": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (rising, statistically significant)"
+      "general": "この数値は信頼できません",
+      "expert": "気候シグナルとしては信頼できないトレンド：記録されたデータ上の問題あり（上昇、統計的に有意）"
     },
     "unreliableFalling": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (falling, statistically significant)"
+      "general": "この数値は信頼できません",
+      "expert": "気候シグナルとしては信頼できないトレンド：記録されたデータ上の問題あり（下降、統計的に有意）"
     },
     "unreliableRisingRawOnly": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (rising, significant before FDR only)"
+      "general": "この数値は信頼できません",
+      "expert": "気候シグナルとしては信頼できないトレンド：記録されたデータ上の問題あり（上昇、FDR補正前のみ有意）"
     },
     "unreliableFallingRawOnly": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (falling, significant before FDR only)"
+      "general": "この数値は信頼できません",
+      "expert": "気候シグナルとしては信頼できないトレンド：記録されたデータ上の問題あり（下降、FDR補正前のみ有意）"
     },
     "insufficient": {
-      "general": "Too little data for a trend",
-      "expert": "Insufficient data"
+      "general": "トレンドを出すにはデータが少なすぎます",
+      "expert": "データ不足"
     },
     "unavailable": {
-      "general": "No trend result",
-      "expert": "No trend result"
+      "general": "トレンドの結果なし",
+      "expert": "トレンドの結果なし"
     }
   },
   "significance": {
     "notComputed": {
-      "general": "The test could not be run.",
-      "expert": "test could not be computed"
+      "general": "検定を実行できませんでした。",
+      "expert": "検定を計算できません"
     },
     "notSignificant": {
-      "general": "No clear change shows in this record. That is not the same as no change.",
-      "expert": "not significant after autocorrelation correction"
+      "general": "この記録の範囲では、はっきりした変化は読み取れません。変化がないという意味ではありません。",
+      "expert": "自己相関の補正後も有意でない"
     },
     "fdr": {
-      "general": "This change holds up in the statistical tests.",
-      "expert": "significant after autocorrelation and FDR correction"
+      "general": "この変化は、統計的な検定でも裏づけられています。",
+      "expert": "自己相関補正とFDR補正の後も有意"
     },
     "rawOnly": {
-      "general": "This change passes the basic test but not the stricter one, so treat it as uncertain.",
-      "expert": "significant after autocorrelation correction, not after FDR correction"
+      "general": "この変化は基本の検定は通りましたが、より厳しい検定は通らなかったので、不確かなものとして扱ってください。",
+      "expert": "自己相関補正後は有意だが、FDR補正後は有意でない"
     },
     "unreliableFdr": {
-      "general": "This number is not reliable: the data itself has a documented problem.",
-      "expert": "statistically significant, but not reliable as a climate signal: see caution"
+      "general": "この数値は信頼できません。データ自体に、記録された問題があります。",
+      "expert": "統計的には有意だが、気候シグナルとしては信頼できない：注意書きを参照"
     },
     "unreliableRawOnly": {
-      "general": "This number is not reliable: the data itself has a documented problem.",
-      "expert": "significant before FDR correction only, and not reliable as a climate signal: see caution"
+      "general": "この数値は信頼できません。データ自体に、記録された問題があります。",
+      "expert": "FDR補正前のみ有意で、気候シグナルとしても信頼できない：注意書きを参照"
     }
   },
   "change": {
-    "general": "About {{slope}} per decade",
-    "expert": "{{slope}} per decade ({{level}}% CI {{low}} to {{high}})"
+    "general": "10年あたり約{{slope}}",
+    "expert": "10年あたり{{slope}}（{{level}}% 信頼区間 {{low}}〜{{high}}）"
   },
-  "period": "{{first}} to {{last}}",
+  "period": "{{first}}〜{{last}}",
   "notAnalyzed": {
-    "general": "Too little data to work out a trend",
-    "expert": "Trend not analyzed"
+    "general": "トレンドを求めるにはデータが少なすぎます",
+    "expert": "トレンドは未解析"
   },
   "notSignificantNote": {
-    "general": "No clear change is not the same as no change: the record may be too short or too noisy to tell.",
-    "expert": "Not significant does not mean no change; the record may be too short or too variable to tell."
+    "general": "はっきりした変化が読み取れないことは、変化がないこととは違います。記録が短すぎたり、ばらつきが大きすぎたりして、判断できないだけかもしれません。",
+    "expert": "有意でないことは、変化がないことを意味しません。記録が短すぎるか、ばらつきが大きすぎて判断できない可能性があります。"
   },
   "reliable": {
-    "ok": "No documented data problem affects this trend.",
-    "bad": "Not reliable: the data itself has a documented problem (see the caution below)."
+    "ok": "このトレンドに影響する、記録されたデータ上の問題はありません。",
+    "bad": "信頼できません：データ自体に、記録された問題があります（下の注意書きを参照）。"
   }
 }

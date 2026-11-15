@@ -1,81 +1,81 @@
 {
-  "aria": "Time series of {{name}}",
-  "at": "at {{place}}",
-  "show": "Show chart",
-  "hide": "Hide chart",
-  "close": "Close chart",
-  "noSeries": "This variable has no data at {{place}}.",
-  "noValues": "No values to draw.",
-  "modesAria": "Chart mode",
+  "aria": "{{name}}の時系列",
+  "at": "（{{place}}）",
+  "show": "グラフを表示",
+  "hide": "グラフを隠す",
+  "close": "グラフを閉じる",
+  "noSeries": "この変数には、{{place}}のデータがありません。",
+  "noValues": "描画する値がありません。",
+  "modesAria": "グラフの種類",
   "modes": {
-    "values": "Monthly values",
+    "values": "月ごとの値",
     "anomalies": {
-      "general": "Difference from usual",
-      "expert": "Anomalies"
+      "general": "ふだんとの差",
+      "expert": "偏差"
     },
     "running": {
-      "general": "12-month average",
-      "expert": "12-month running mean"
+      "general": "12か月平均",
+      "expert": "12か月移動平均"
     }
   },
-  "plotAria": "{{mode}} of {{name}} at {{place}}, {{first}} to {{last}}",
+  "plotAria": "{{place}}の{{name}}の{{mode}}、{{first}}〜{{last}}",
   "readout": {
-    "general": "value {{value}} · {{anomaly}} from the usual for that month",
-    "expert": "value {{value}} · anomaly {{anomaly}} · coverage {{coverage}}",
-    "timelineMonth": "(timeline month)"
+    "general": "値 {{value}} · その月のふだんとの差 {{anomaly}}",
+    "expert": "値 {{value}} · 偏差 {{anomaly}} · カバー率 {{coverage}}",
+    "timelineMonth": "（タイムラインの月）"
   },
   "key": {
-    "values": "Monthly values{{unit}}",
+    "values": "月ごとの値{{unit}}",
     "anomalies": {
-      "general": "Each month minus the usual value for that calendar month{{unit}}",
-      "expert": "Anomalies{{unit}}: value minus the mean of the same calendar month"
+      "general": "各月の値から、同じ暦月のふだんの値を引いたもの{{unit}}",
+      "expert": "偏差{{unit}}：値から同じ暦月の平均を引いたもの"
     },
     "running": {
-      "general": "Average of 12 months around each month{{unit}}",
-      "expert": "Centred 12-month mean{{unit}}; needs all 12 months, so gaps stay gaps"
+      "general": "各月を中心とした12か月の平均{{unit}}",
+      "expert": "中心化12か月平均{{unit}}。12か月すべてが必要なため、欠測は欠測のまま残ります"
     },
     "trend": {
-      "general": "Trend line.",
-      "expert": "Linear trend of the monthly anomalies (slope from the analysis, drawn through the mean of the analysed months)."
+      "general": "トレンド線。",
+      "expert": "月別偏差の線形トレンド（傾きは解析結果で、解析した月の平均を通るように描画）。"
     },
     "band": {
-      "general": "Shaded: how uncertain the slope is. It is not a forecast.",
-      "expert": "{{level}}% CI of the slope, not a prediction interval."
+      "general": "色つきの帯：傾きがどのくらい不確かかを示します。予測ではありません。",
+      "expert": "傾きの{{level}}%信頼区間。予測区間ではありません。"
     },
     "break": {
-      "general": "Dashed: a month when the data product changed ({{months}}).",
-      "expert": "Documented step month ({{months}})."
+      "general": "破線：データ製品が変わった月（{{months}}）。",
+      "expert": "記録された段差の月（{{months}}）。"
     },
-    "cursor": "Timeline month; click the chart to jump."
+    "cursor": "タイムラインの月。グラフをクリックするとその月に移動します。"
   },
   "plain": {
-    "change": "Change per decade",
-    "holds": "Does it hold up?",
-    "reliable": "Can the data be trusted?"
+    "change": "10年あたりの変化",
+    "holds": "裏づけはある？",
+    "reliable": "データは信頼できる？"
   },
   "stats": {
-    "change": "Change per decade",
-    "ttest": "t-test of the slope",
+    "change": "10年あたりの変化",
+    "ttest": "傾きのt検定",
     "p": "p {{p}}",
-    "pFdr": "p {{p}}, FDR-adjusted {{fdr}} ({{verdict}} at {{alpha}})",
-    "pNone": "p not available",
-    "significant": "significant",
-    "notSignificant": "not significant",
-    "neff": "Effective sample size {{n}} (lag-1 autocorrelation {{r}})",
-    "mk": "Mann-Kendall",
-    "mkLine": "Hamed-Rao: {{hamedRao}}. Seasonal: {{seasonal}}",
-    "sen": "Sen slope",
-    "period": "Period",
-    "periodLine": "{{first}} to {{last}}, {{count}} valid months",
-    "notAnalyzed": "Trend not analyzed: {{reason}}",
-    "none": "No trend statistics for this series.",
-    "method": "Method: least-squares slope of monthly anomalies. The t-test and CI use an effective sample size from the lag-1 autocorrelation of the residuals. FDR is Benjamini-Hochberg across the analysed series of one family (Taiwan's series are one family, the world cities and the global mean another). The Sen slope CI has no autocorrelation correction."
+    "pFdr": "p {{p}}、FDR調整後 {{fdr}}（{{alpha}}で{{verdict}}）",
+    "pNone": "p値なし",
+    "significant": "有意",
+    "notSignificant": "有意でない",
+    "neff": "有効標本サイズ {{n}}（ラグ1自己相関 {{r}}）",
+    "mk": "Mann-Kendall 検定",
+    "mkLine": "Hamed-Rao 補正：{{hamedRao}}。季節別：{{seasonal}}",
+    "sen": "Sen の傾き",
+    "period": "期間",
+    "periodLine": "{{first}}〜{{last}}、有効な月 {{count}}か月",
+    "notAnalyzed": "トレンドは未解析：{{reason}}",
+    "none": "この系列には、トレンドの統計量がありません。",
+    "method": "方法：月別偏差の最小二乗法による傾き。t検定と信頼区間には、残差のラグ1自己相関から求めた有効標本サイズを使います。FDRは、解析した系列を1つのファミリーとして扱う Benjamini-Hochberg 法です（台湾の系列が1ファミリー、世界の都市と全球平均がもう1ファミリー）。Sen の傾きの信頼区間には、自己相関の補正がありません。"
   },
   "similar": {
-    "link": "Similar series",
+    "link": "似た系列",
     "text": {
-      "general": "(exploratory): other measurements that ran high and low in the same months.",
-      "expert": "(exploratory): which other variables went above and below normal in the same months."
+      "general": "（探索的）：同じ月に高かったり低かったりした、ほかの測定値。",
+      "expert": "（探索的）：同じ月にその月の平均を上回った、または下回った、ほかの変数。"
     }
   }
 }

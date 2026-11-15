@@ -1,24 +1,24 @@
 {
-  "aria": "Timeline",
-  "play": "Play",
-  "pause": "Pause",
-  "playTitle": "Play or pause (Space)",
-  "speed": "Speed",
-  "speedTitle": "Months per second: {{count}}",
-  "latest": "Latest",
-  "latestTitle": "Back to the latest month most layers have",
-  "slider": "Timeline month",
+  "aria": "タイムライン",
+  "play": "再生",
+  "pause": "一時停止",
+  "playTitle": "再生／一時停止（スペースキー）",
+  "speed": "速度",
+  "speedTitle": "1秒あたりの月数：{{count}}",
+  "latest": "最⁠新",
+  "latestTitle": "多くのレイヤーにある最新の月に戻る",
+  "slider": "タイムラインの月",
   "strip": {
-    "aria": "Monthly anomalies of {{name}}",
-    "ariaFallback": "the selected layer",
-    "above": "above",
+    "aria": "{{name}}の月別偏差",
+    "ariaFallback": "選択中のレイヤー",
+    "above": "上回る",
     "below": {
-      "general": "below the usual for the month: {{name}}",
-      "expert": "below the calendar-month mean: {{name}}"
+      "general": "その月のふだんの値より低い：{{name}}",
+      "expert": "暦月平均より低い：{{name}}"
     },
     "step": {
-      "general": "data product changed",
-      "expert": "documented step"
+      "general": "データ製品が変わった",
+      "expert": "記録された段差"
     }
   }
 }
