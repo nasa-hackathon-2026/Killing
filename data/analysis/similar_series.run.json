@@ -1,0 +1,85 @@
+{
+  "command": "uv run python -m trend_detective.similar_series",
+  "generated_at": "2026-11-15T00:46:37Z",
+  "exploratory": true,
+  "input": {
+    "database": "analysis.series_embeddings (pg load, pg clean, pg derive)",
+    "scope": "data/seed/world_subset.json"
+  },
+  "parameters": {
+    "top_k": 5,
+    "bottom_k": 3,
+    "alpha": 0.05,
+    "trend_sensitive_delta": 0.1,
+    "scopes": [
+      [
+        "taiwan",
+        "point",
+        "core"
+      ],
+      [
+        "world_city",
+        "point",
+        "extended"
+      ],
+      [
+        "global",
+        "area_mean_grid",
+        "extended"
+      ]
+    ],
+    "global_locations": [
+      "global"
+    ],
+    "same_quantity_groups": [
+      [
+        "modis_ndvi",
+        "modis_ndvi_pc"
+      ],
+      [
+        "modis_lst",
+        "modis_lst_pc"
+      ],
+      [
+        "gldas_tair",
+        "merra2_t2m",
+        "airs_tsurf",
+        "power_t2m"
+      ]
+    ],
+    "check_tolerance": 1e-05,
+    "series_decimals": 2
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1"
+  },
+  "outputs": [
+    "similar_series.json"
+  ],
+  "window": {
+    "first_month": "2005-01-01",
+    "last_month": "2025-08-01",
+    "n_months": 248
+  },
+  "summary": {
+    "n_series": 185,
+    "n_series_by_group": {
+      "taiwan": 57,
+      "world_city": 118,
+      "global": 10
+    },
+    "n_candidate_pairs": 14577,
+    "n_candidate_pairs_significant": 2125,
+    "n_candidate_pairs_significant_detrended": 820,
+    "n_listed": 1480,
+    "n_listed_significant": 1286,
+    "n_listed_significant_detrended": 695,
+    "n_listed_trend_sensitive": 599
+  },
+  "check": {
+    "pgvector_matches_numpy": true,
+    "tolerance": 1e-05,
+    "max_abs_difference": 1.7580274336292945e-07
+  }
+}

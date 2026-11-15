@@ -13,6 +13,7 @@ import {
   calendarAnomalies,
   stripBars,
 } from "./seriesMath";
+import { similarLink } from "../analysis/miningPlus";
 import { TimelineBar } from "./TimelineBar";
 import { useTimeline } from "./TimelineContext";
 import { TimeSeriesPanel } from "./TimeSeriesPanel";
@@ -100,6 +101,11 @@ export function TimelineDock({
           trend={trend}
           alpha={trendsData?.parameters.alpha ?? 0.05}
           breaks={stepsOf(key)}
+          similarHref={similarLink(
+            import.meta.env.BASE_URL,
+            locationId,
+            selected.id,
+          )}
           onClose={() => setSelectedVariableId(null)}
         />
       ) : null}

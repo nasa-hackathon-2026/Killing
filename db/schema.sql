@@ -121,6 +121,27 @@ END $$;
 
 
 --
+-- Name: correlation_components(text); Type: FUNCTION; Schema: analysis; Owner: -
+--
+
+CREATE FUNCTION analysis.correlation_components(p_table_kind text) RETURNS TABLE(node_id integer, variable_id text, component integer, degree integer)
+    LANGUAGE sql STABLE
+    AS $$
+    SELECT n.node_id, n.variable_id,
+           coalesce(c.component, n.node_id)::integer,
+           (SELECT count(DISTINCT CASE WHEN e.source = n.node_id THEN e.target ELSE e.source END)
+            FROM analysis.correlation_edges e
+            WHERE e.table_kind = p_table_kind AND e.significant
+              AND n.node_id IN (e.source, e.target))::integer
+    FROM analysis.correlation_nodes n
+    LEFT JOIN pgr_connectedComponents(format(
+        'SELECT edge_id AS id, source, target, 1 AS cost FROM analysis.correlation_edges'
+        ' WHERE significant AND table_kind = %L', p_table_kind)) c ON c.node = n.node_id
+    WHERE n.table_kind = p_table_kind;
+$$;
+
+
+--
 -- Name: mann_kendall(integer); Type: FUNCTION; Schema: analysis; Owner: -
 --
 
@@ -862,6 +883,80 @@ CREATE TABLE obs.observations (
     coverage double precision,
     source_api text NOT NULL,
     tier text NOT NULL
+);
+
+
+--
+-- Name: correlation_edges; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.correlation_edges (
+    table_kind text NOT NULL,
+    edge_id integer NOT NULL,
+    source integer NOT NULL,
+    target integer NOT NULL,
+    source_variable text NOT NULL,
+    target_variable text NOT NULL,
+    lag integer NOT NULL,
+    r double precision NOT NULL,
+    p double precision NOT NULL,
+    q double precision NOT NULL,
+    n_eff double precision NOT NULL,
+    significant boolean NOT NULL
+);
+
+
+--
+-- Name: correlation_nodes; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.correlation_nodes (
+    table_kind text NOT NULL,
+    node_id integer NOT NULL,
+    variable_id text NOT NULL,
+    component integer NOT NULL,
+    degree integer NOT NULL
+);
+
+
+--
+-- Name: gap_stats; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.gap_stats (
+    run_id bigint NOT NULL,
+    "grouping" text NOT NULL,
+    model_variable text NOT NULL,
+    group_value text NOT NULL,
+    n_months integer NOT NULL,
+    mean_abs_difference double precision NOT NULL,
+    median_abs_difference double precision NOT NULL,
+    ci_low double precision,
+    ci_high double precision
+);
+
+
+--
+-- Name: gap_tree_folds; Type: TABLE; Schema: analysis; Owner: -
+--
+
+CREATE TABLE analysis.gap_tree_folds (
+    run_id bigint NOT NULL,
+    variant text NOT NULL,
+    validation text NOT NULL,
+    fold integer NOT NULL,
+    held_out_station text,
+    test_first_month date,
+    test_last_month date,
+    n_train integer NOT NULL,
+    n_test integer NOT NULL,
+    test_accuracy double precision NOT NULL,
+    macro_f1 double precision NOT NULL,
+    train_majority_accuracy double precision NOT NULL,
+    persistence_accuracy double precision NOT NULL,
+    calendar_month_accuracy double precision NOT NULL,
+    above_all_baselines boolean NOT NULL,
+    tree jsonb NOT NULL
 );
 
 
@@ -1927,6 +2022,38 @@ CREATE TABLE raw.planetary_computer (
 
 
 --
+-- Name: correlation_edges correlation_edges_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.correlation_edges
+    ADD CONSTRAINT correlation_edges_pkey PRIMARY KEY (table_kind, edge_id);
+
+
+--
+-- Name: correlation_nodes correlation_nodes_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.correlation_nodes
+    ADD CONSTRAINT correlation_nodes_pkey PRIMARY KEY (table_kind, node_id);
+
+
+--
+-- Name: gap_stats gap_stats_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.gap_stats
+    ADD CONSTRAINT gap_stats_pkey PRIMARY KEY (run_id, "grouping", model_variable, group_value);
+
+
+--
+-- Name: gap_tree_folds gap_tree_folds_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.gap_tree_folds
+    ADD CONSTRAINT gap_tree_folds_pkey PRIMARY KEY (run_id, variant, validation, fold);
+
+
+--
 -- Name: mining_rules mining_rules_pkey; Type: CONSTRAINT; Schema: analysis; Owner: -
 --
 
@@ -2425,6 +2552,22 @@ CREATE INDEX noaa_ghcnh_payload_gin ON raw.noaa_ghcnh USING gin (payload jsonb_p
 --
 
 CREATE INDEX planetary_computer_payload_gin ON raw.planetary_computer USING gin (payload jsonb_path_ops);
+
+
+--
+-- Name: gap_stats gap_stats_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.gap_stats
+    ADD CONSTRAINT gap_stats_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
+
+
+--
+-- Name: gap_tree_folds gap_tree_folds_run_id_fkey; Type: FK CONSTRAINT; Schema: analysis; Owner: -
+--
+
+ALTER TABLE ONLY analysis.gap_tree_folds
+    ADD CONSTRAINT gap_tree_folds_run_id_fkey FOREIGN KEY (run_id) REFERENCES analysis.runs(run_id);
 
 
 --

@@ -28,12 +28,12 @@ What it does not do yet, in short: outside Taiwan the site shows twelve world ci
 | Data companions | A small panel left of the layer list shows one original character per layer that is switched on (Rain, Vapor, Ozone, NO₂, Haze, Warmth, Leaf, Soil and so on), drawn by code as SVG. Its size follows the month's value within the series' own range, its posture (swollen, level, flattened) whether the month is above, near or below the mean of the same calendar month, and the mark over its head the trend (▲ ▼ only when significant, ◇ when not). Clicking one shows a sentence of data facts only: value, difference from that month's mean, change per decade and its significance, any known-problem caution, and whether the data are in situ, a satellite retrieval or a model. A speaker button (off by default) reads it with the browser's own voice. "Gather" arranges all twelve in one composition; `?companions=gallery` shows them on one page. Interactions between neighbouring companions are illustrative and show no cause and effect. |
 | Layer view | The "Layer view" button (also offered once you zoom in, or `?strata=1&at=<place id>` in the URL) flies to the selected place, tilts to an oblique view and pulls the Earth system there apart into six stacked platforms: stratosphere, troposphere (gases and aerosols), troposphere (water vapor and rain), near-surface air, land surface and top soil. Each platform lists its variables with the month's values and draws the particles of the layers that are switched on; rain falls from its platform to the land surface and evapotranspiration rises from it. Drag to turn, scroll to zoom, click a platform for its values, trend per decade, significance and cautions. The timeline keeps playing in this view, and a layer's "Chart" opens beside the Layers panel, so the stack, the six labels and the chart are visible together on a wide window. |
 | [Model vs observation](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/compare/) | Near-surface air temperature from models and reanalyses next to observations of the same quantity at the same place. Under "More" at the top of the globe page. |
-| [Data mining](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/mining/) | Exploratory association rules (FP-growth) and a decision tree on detrended monthly anomalies, with the baselines the tree is compared against. |
+| [Data mining](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/mining/) | Five exploratory analyses, each with its method, sample size and a comparison against simple guesses: association rules (FP-growth) shown as small "A high and B low → C high" labels; a variable network (correlations of detrended monthly anomalies, drawn by layer of the Earth system, with the same lines as a table and a cross-check over 12 world cities); similar series (pick a place and a variable to list the most and least similar other variables, with small overlaid lines); where models and observations differ (mean size of the model-minus-station temperature difference by product, season, period and station, and a decision tree compared with three baselines, forward in time and on a held-out station); and the earlier decision tree for vegetation greenness, which did not beat its baselines. The chart panel of the globe page links to "Similar series" for the place and variable on screen. |
 | [Form lab](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/lab/) | Every particle form and close-up on its own, with a 0 to 1 value slider, for trying out how a value looks. |
 
 | Close-up of tropospheric NO2 | Data mining page |
 |---|---|
-| ![Close-up panel for NO2 with reaction equations and a table of bond lengths](docs/images/closeup-no2.jpg) | ![Association rules table on the data mining page](docs/images/mining-rules.jpg) |
+| ![Close-up panel for NO2 with reaction equations and a table of bond lengths](docs/images/closeup-no2.jpg) | ![Variable network on the data mining page: variables arranged by layer of the Earth system, joined by lines for correlated monthly anomalies](docs/images/mining-network.jpg) |
 
 Screenshots were taken from a local build on 2026-11-14 in a headless browser, so the FPS number in them is not what a normal browser shows.
 
@@ -44,6 +44,7 @@ Screenshots were taken from a local build on 2026-11-14 in a headless browser, s
 3. Press play on the timeline at the bottom, or drag it, to watch the months go by.
 4. Press "Chart" on a layer for its whole record with the trend line, the confidence interval and the test results.
 5. "Layer view" shows which layer of the atmosphere or ground each variable belongs to; "Global trend map" lays one variable's per-cell trend over the globe; "More" leads to the model vs observation, data mining and form lab pages (and holds the renderer and FPS readout).
+6. On the data mining page, the row of links at the top jumps to each analysis; every section starts with the question it asks and its limits, and "Method details" opens the full method and parameters. "Similar series" at the bottom of a chart on the globe page opens that place and variable there.
 
 The examples on the start card are ordinary links. Their titles are questions; the page shows the numbers and how they were computed, and leaves the answer to the reader.
 
@@ -53,6 +54,7 @@ The examples on the start card are ordinary links. Their titles are questions; t
 | Has tropospheric NO₂ over Los Angeles changed since 2005? | [`?layers=omi_no2&at=los_angeles&chart=omi_no2`](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/?layers=omi_no2&at=los_angeles&chart=omi_no2) |
 | Which layer of the atmosphere or ground does each variable belong to? | [`?layers=omi_o3,omi_no2,imerg_precip,merra2_t2m,modis_ndvi,gldas_soilmoist&at=taichung&strata=1`](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/?layers=omi_o3,omi_no2,imerg_precip,merra2_t2m,modis_ndvi,gldas_soilmoist&at=taichung&strata=1) |
 | Do a model and a station agree on temperature? | [`compare/?pair=merra2_t2m__station_temp__taichung_station`](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/compare/?pair=merra2_t2m__station_temp__taichung_station) |
+| Which variables rose and fell in the same months as rainfall at Tokyo? | [`mining/?place=tokyo&variable=imerg_precip#similar`](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/mining/?place=tokyo&variable=imerg_precip#similar) |
 | Where on Earth has 2 m air temperature changed, and where is that change significant? | [`?layers=merra2_t2m&trendmap=merra2_t2m`](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/?layers=merra2_t2m&trendmap=merra2_t2m) |
 
 Everything can be reached with the keyboard (Tab, Enter or Space; Space and the arrow keys also drive the timeline), and with the system's "reduce motion" setting nothing plays by itself.
@@ -70,7 +72,8 @@ Everything can be reached with the keyboard (Tab, Enter or Space; Space and the 
 - **Trends are linear only**, on monthly anomalies. Step changes from sensor or product-version changes are not detected or corrected. "Not significant" does not mean "no change"; the record may be too short or too variable.
 - **The GLDAS air temperature trend contains step changes.** Compared with MERRA-2 over the same land cells, the GLDAS-2.1 global land mean shifts by about +0.4 K in May 2011, +0.6 K in July 2017 and −0.6 K in June 2019; these are months of upgrades to the NOAA GDAS analysis that GLDAS-2.1 uses as forcing. The site shows a caution next to this trend; the series is not corrected. The check and its sources are in [docs/data/gldas-tair-check.md](docs/data/gldas-tair-check.md).
 - **GLDAS evapotranspiration has a step in 2024–2025; GLDAS soil moisture disagrees with FLDAS on the sign of the trend.** Compared with FLDAS (same Noah model family, MERRA-2 and CHIRPS forcing) over the same land cells, neither variable shows a clear step in the three months above. GLDAS evapotranspiration runs about 0.1–0.2 mm/day above FLDAS from July 2024 to May 2025, the same months in which its shortwave forcing runs 15–32 W m⁻² above FLDAS; the site shows a caution next to this trend. For 0–10 cm soil moisture the GLDAS global land trend over 2001–2026 is −0.43 kg m⁻² per decade against +0.16 for FLDAS; the two series correlate at only 0.08 and no step could be established. With a single model product to compare against, the check cannot tell which is closer to the truth; the site shows a caution that the two products disagree, and the drying trend should be treated as unconfirmed. See [docs/data/gldas-water-check.md](docs/data/gldas-water-check.md).
-- **Data mining is exploratory.** It does not replace the trend tests and does not show cause and effect. The decision tree did not beat its baselines in walk-forward validation (numbers under [Data mining](#data-mining-exploratory)).
+- **Data mining is exploratory.** It does not replace the trend tests and does not show cause and effect. Neither decision tree beat its baselines in walk-forward validation: the vegetation-greenness tree is above all three baselines in 0 of 3 folds, and so is the tree for the size of the model-minus-station difference (1 of 6 when a station is held out). Numbers are under [Data mining](#data-mining-exploratory).
+- **Network lines and similar series are correlations.** They are computed on monthly anomalies over one period and say nothing about cause. The significance test corrects for lag-1 autocorrelation only, which is an approximation; places in the same table are neighbours and are not independent. Similarity is computed without removing trends, so two series that both drift look similar for that reason alone; the page lists the value after removing trends next to it and marks the pairs that change (599 of the 1,480 listed). The similar-series lists only search among the 185 series shown on the site, and the model-versus-station analysis covers Taiwan stations and air temperature only (11 pairs at 6 stations); the world cities are not in it.
 - **Units are as provided by each product** (for example K for MERRA-2, °C for NASA POWER); the layer panel converts Kelvin to °C for display only.
 - **A close-up covers the chart.** The close-up panel opens over the left side of the page, on top of an open time series chart; close it to see the chart again.
 - **Phone widths are simplified.** The Layers and Companions panels start folded, "Fly to Taiwan" is left out of the top row, the layer view shows values without variable names in its labels (tap a label for the names) and hides the companion panel, and an open chart covers the layer view until it is closed. Between 701 and 1180 px, an open chart takes the place of the Layers panel in the layer view, and below 900 px the companion panel gives way to an open chart.
@@ -96,7 +99,7 @@ How much data there is:
 
 | Tier | Size | In git? | Shown on the site? |
 |---|---|---|---|
-| **Core snapshot** (`data/snapshot/`) | 16 variables (15 NASA, 1 NOAA station), 12 locations, 128 monthly series: 65 point, 61 area-mean, 2 station. Records start between 2000 and 2004 and run to the latest month available on 2026-11-14. | Yes | Point series of 12 variables |
+| **Core snapshot** (`data/snapshot/`) | 16 variables (15 NASA, 1 NOAA station), 12 locations, 133 monthly series: 65 point, 66 area-mean, 2 station. Records start between 2000 and 2004 and run to the latest month available on 2026-11-14. | Yes | Point series of 12 variables |
 | **World subset** (`data/snapshot/world/`) | The ten core Giovanni variables at 12 world cities (point series) and as a global mean (computed from the global grids): 130 series, copied unchanged from the extended series and the grid area means by `uv run python -m trend_detective.world_export`. Their trends are in `data/analysis/world/`. | Yes | Yes, through the place menu |
 | **Extended series** (`data/extended/`) | 121 more Giovanni variables at the Taiwan points and 12 world cities, plus the core variables at the world cities: 2,177 point series | No (large) | No |
 | **Global grids** (`data/raw/grid/`) | 345 monthly cubes at native resolution (about 90 GB); 4,499 area-mean series for the globe, world regions and Taiwan boxes computed from them | No | No |
@@ -127,17 +130,17 @@ For each series (`src/trend_detective/trends.py`, results in [`data/analysis/tre
 
 The site uses the autocorrelation-corrected t-test with FDR for its "significant" label.
 
-Results of the run on the 2026-11-14 snapshot ([`trends.run.json`](data/analysis/trends.run.json)): of 128 series, 125 were analysed and 3 had too many missing months (tropospheric NO2 at Hualien, Taipei and Yushan).
+Results of the run on the 2026-11-14 snapshot ([`trends.run.json`](data/analysis/trends.run.json)): of 133 series, 130 were analysed and 3 had too many missing months (tropospheric NO2 at Hualien, Taipei and Yushan).
 
 | Test | Series tested | p < 0.05 | Still below 0.05 after FDR |
 |---|---|---|---|
-| Linear trend, t-test with autocorrelation correction | 125 | 81 | 74 |
-| Linear trend, t-test without correction (for comparison) | 125 | 97 | not computed |
-| Mann-Kendall, original | 125 | 87 | 86 |
-| Mann-Kendall, Hamed-Rao | 124 | 69 | 65 |
-| Seasonal Mann-Kendall | 125 | 88 | 86 |
+| Linear trend, t-test with autocorrelation correction | 130 | 83 | 74 |
+| Linear trend, t-test without correction (for comparison) | 130 | 101 | not computed |
+| Mann-Kendall, original | 130 | 88 | 86 |
+| Mann-Kendall, Hamed-Rao | 129 | 69 | 65 |
+| Seasonal Mann-Kendall | 130 | 89 | 86 |
 
-These are counts of series, many of which are closely related (the same variable at neighbouring places, products derived from the same source), so they are not 125 independent findings.
+These are counts of series, many of which are closely related (the same variable at neighbouring places, products derived from the same source), so they are not 130 independent findings.
 
 Known pitfalls and how they are handled:
 
@@ -151,22 +154,56 @@ Known pitfalls and how they are handled:
 
 ### Data mining (exploratory)
 
-`src/trend_detective/mining.py`, results in [`data/analysis/fpgrowth.json`](data/analysis/fpgrowth.json) and [`decision_tree.json`](data/analysis/decision_tree.json), both marked `exploratory: true`.
+Five analyses, all marked `exploratory: true` in their result files and all shown on the [data mining page](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/mining/). Parameters were fixed before each run and are stored in the result files and their run records (`*.run.json`); every run that was made is listed. Method, leakage guards, baselines, result tables and limits of the three newer analyses are in [`docs/data/mining.md`](docs/data/mining.md) (in Traditional Chinese).
+
+**Association rules and the vegetation-greenness tree** (`src/trend_detective/mining.py`, results in [`data/analysis/fpgrowth.json`](data/analysis/fpgrowth.json) and [`decision_tree.json`](data/analysis/decision_tree.json)):
 
 - **Input**: monthly anomalies with each series' own linear trend removed, so the states describe month-to-month variation, not the long-term trend. Each value is labelled low, normal or high by that series' own terciles. One place in one month is one row.
-- **Near-duplicate variables** are dropped by a fixed rule (absolute correlation above 0.85 with a variable earlier in the catalog). In this run that removed NASA POWER temperature from the point table (r = 1.000 with MERRA-2) and MERRA-2 temperature from the region table (r = 0.858 with GLDAS).
-- **Association rules (FP-growth)**: minimum support 0.05, confidence 0.6, lift 1.5, at most three items, the two sides never the same variable. Each rule gets a one-sided Fisher exact test with FDR correction. Result: 368 same-month rules from 1,260 point rows; 248 same-month rules and 1 one-month-lag rule from 1,008 region rows. Every candidate rule passed the significance filter, because rows are not independent (neighbouring months and places) and the p-values are therefore optimistic; in practice the lift threshold does the filtering.
+- **Near-duplicate variables** are dropped by a fixed rule (absolute correlation above 0.85 with a variable earlier in the catalog). In this run that removed NASA POWER temperature from the point table (r = 1.000 with MERRA-2), and MERRA-2 temperature (r = 0.858 with GLDAS) and the second land surface temperature series (r = 0.972 with the first) from the region table. Gaps in the mining input are filled by a fixed rule (short gaps interpolated, longer gaps set to the monthly climatology); the page compares the filled and unfilled runs.
+- **Association rules (FP-growth)**: minimum support 0.05, confidence 0.6, lift 1.5, at most three items, the two sides never the same variable. Each rule gets a one-sided Fisher exact test with FDR correction. Result: 367 same-month rules from 1,260 point rows; 259 same-month rules and 1 one-month-lag rule from 1,008 region rows. Every candidate rule passed the significance filter, because rows are not independent (neighbouring months and places) and the p-values are therefore optimistic; in practice the lift threshold does the filtering.
 - **Decision tree**: predicts the low/normal/high state of regional NDVI from the other variables in the same and the previous month (depth 3), with three walk-forward folds. NDVI's own previous month and the second NDVI series are not allowed as features. Monthly means, trend and thresholds are estimated from the training months of each fold only.
 
 Decision tree test accuracy against three guesses that use no other variable:
 
 | Fold (test period) | Tree | Always guess the training period's most common class | Always guess the test period's most common class (known only afterwards) | Same as the previous month |
 |---|---|---|---|---|
-| 1 (2014-11 to 2018-04) | 0.460 | 0.270 | 0.468 | 0.484 |
-| 2 (2018-05 to 2021-10) | 0.421 | 0.325 | 0.421 | 0.556 |
-| 3 (2021-11 to 2025-06) | 0.317 | 0.349 | 0.405 | 0.603 |
+| 1 (2014-11 to 2018-06) | 0.462 | 0.273 | 0.455 | 0.470 |
+| 2 (2018-07 to 2022-02) | 0.455 | 0.265 | 0.402 | 0.583 |
+| 3 (2022-03 to 2025-09) | 0.310 | 0.279 | 0.426 | 0.566 |
 
 The tree is above all three baselines in 0 of 3 folds. We report it as it is: with these inputs the tree has no demonstrated predictive value, and the page says so.
+
+**Where models and observations differ** (`src/trend_detective/gap_tree.py`, result in [`data/analysis/gap_tree.json`](data/analysis/gap_tree.json)). Input: the 11 Taiwan pairs of a weather station with GLDAS or MERRA-2 air temperature at the same place (6 stations, 3,273 pair-months, 2001-01 to 2025-12). NASA POWER is left out because it serves MERRA-2 fields.
+
+Mean of |model anomaly − station anomaly| in °C, with a 95% interval from a bootstrap that resamples whole calendar years:
+
+| Group | GLDAS | MERRA-2 |
+|---|---|---|
+| All months | 0.51 (0.47 to 0.54), n = 1,488 | 0.32 (0.30 to 0.35), n = 1,785 |
+| Dec–Feb | 0.54 (0.49 to 0.59) | 0.36 (0.32 to 0.39) |
+| Mar–May | 0.51 (0.48 to 0.55) | 0.31 (0.28 to 0.35) |
+| Jun–Aug | 0.48 (0.43 to 0.54) | 0.32 (0.29 to 0.36) |
+| Sep–Nov | 0.48 (0.43 to 0.55) | 0.29 (0.26 to 0.33) |
+| Before 2011-05 | 0.49 (0.44 to 0.55) | 0.31 (0.30 to 0.33) |
+| 2011-05 up to 2017-07 | 0.47 (0.42 to 0.51) | 0.30 (0.26 to 0.35) |
+| 2017-07 up to 2019-06 | 0.63 (0.56 to 0.71) | 0.29 (0.28 to 0.33) |
+| From 2019-06 | 0.53 (0.51 to 0.55) | 0.35 (0.30 to 0.42) |
+
+The periods are cut at the documented step months of the GLDAS air temperature; MERRA-2 is split at the same months only for comparison. By station the GLDAS mean runs from 0.31 (Taipei) to 0.66 (Taichung) and the MERRA-2 mean from 0.26 (Lanyu) to 0.36 (Kaohsiung airport). These numbers do not say which side is right.
+
+The decision tree predicts whether the difference of a month is small, medium or large (cut at the terciles of the training rows) from the calendar month, the model product, the GLDAS period number, the station, the low/normal/high state of eight non-temperature variables at the nearest core point, and the state of the station's own anomaly; 2,518 rows, depth 3. Leakage guards: the model anomaly, the station anomaly and their difference are never features; temperature variables are not features; the target's own previous month is not a feature; a run stops if any single feature classifies more than 95% of the training rows; and every cut point, calendar-month mean and trend is estimated from the training months only.
+
+| Test period (walk-forward) | Tree | Training-majority guess | Same as the previous month | Most common class of the calendar month |
+|---|---|---|---|---|
+| 2014-10 to 2018-05 | 0.296 | 0.212 | 0.470 | 0.406 |
+| 2018-06 to 2021-12 | 0.378 | 0.456 | 0.497 | 0.306 |
+| 2022-01 to 2025-06 | 0.365 | 0.538 | 0.479 | 0.365 |
+
+The tree is above all three baselines in 0 of 3 folds. Trained on five stations and tested on the sixth, it is above all three in 1 of 6 (Tainan); mean accuracy 0.391 against 0.427 for the previous-month guess. Two more runs are listed on the page: without the GLDAS period number (also 0 of 3 and 1 of 6) and, as a reference only, with the pair's own previous class as a feature (0 of 3 and 1 of 6). No other settings were tried.
+
+**Variable network** (`src/trend_detective/variable_graph.py`, result in [`data/analysis/variable_graph.json`](data/analysis/variable_graph.json)). Pairwise correlations of detrended monthly anomalies of the Taiwan core series, in the same month and one month apart, with a t-test on an effective sample size corrected for the lag-1 autocorrelation of both series and Benjamini-Hochberg FDR over all tests of a table. Products of the same quantity are not compared with each other. Result: at the 5 points, 13 variables, 216 tests, 31 below q = 0.05 (20 same month, 11 one month apart), 3 connected groups (NO2 and NDVI have no line); in the 4 regions, 14 variables, 258 tests, 68 below the limit (39 and 29), 1 connected group. Connected groups and link counts were computed in Python (union-find) and in PostgreSQL (pgRouting) and agree for every variable. In the 12 world cities (10 variables, each city tested on its own, 1,461 tests), 333 are below the limit; precipitation with soil moisture and soil moisture with evapotranspiration are below it in all 12 cities with the same sign.
+
+**Similar series** (`src/trend_detective/similar_series.py`, result in [`data/analysis/similar_series.json`](data/analysis/similar_series.json)). The pgvector embeddings of the cleaning database (248 monthly anomalies, 2005-01 to 2025-08, standardised, so cosine similarity equals the Pearson correlation) for the 185 series shown on the site: 57 at the Taiwan points, 118 at the world cities, 10 global means. For each series the five most similar and three least similar series of a different variable are listed. Of the 14,577 candidate pairs, 2,125 are below q = 0.05 after the autocorrelation correction and FDR over all candidate pairs, and 820 after each series has its own linear trend removed; of the 1,480 listed pairs, 1,286 and 695.
 
 ## How to reproduce
 
@@ -175,13 +212,16 @@ You need [uv](https://docs.astral.sh/uv/) (Python 3.11 or later) and Node.js 22 
 | Step | Command | Notes |
 |---|---|---|
 | Install the data layer | `uv sync --locked` | |
-| Run its tests | `uv run pytest` | 324 passed |
+| Run its tests | `uv run pytest` | 504 passed, 26 skipped on a clone without the local PostgreSQL database (529 passed, 1 skipped with it) |
 | Recompute trend statistics | `uv run python -m trend_detective.trends` | About 3 s. Reads `data/snapshot/`, writes `data/analysis/trends.json`, `anomalies.json`, `trends.run.json`. Only the run timestamp changes if the data is unchanged. |
 | Recompute data mining | `uv run python -m trend_detective.mining` | About 3 s. Run after the trend step. |
+| Recompute the model-versus-station tree | `uv run python -m trend_detective.gap_tree` | About 3 s. Reads `data/analysis/model_vs_obs.json` and `anomalies.json`; no database needed. |
+| Recompute the variable network | `uv run python -m trend_detective.variable_graph --no-db` | About 3 s. Without `--no-db` it also runs the pgRouting cross-check, which needs the local PostgreSQL database (`docs/data/postgres.md`). |
+| Recompute similar series | `uv run python -m trend_detective.similar_series` | Needs the local PostgreSQL database with the series embeddings; not reproducible from a fresh clone alone. |
 | Regenerate the data lists | `uv run python -m trend_detective.data_lists` | Rewrites `docs/data/nasa-data.md` and `references.md` from the catalog. |
-| Build the SQLite file | `uv run python -m trend_detective.sqlite_export` | Writes `data/sqlite/trend_detective.sqlite` (not in git). On a fresh clone the unified table is complete (128 series, 37,709 rows) and the per-source raw tables are empty, because raw downloads are not in git. |
+| Build the SQLite file | `uv run python -m trend_detective.sqlite_export` | Writes `data/sqlite/trend_detective.sqlite` (not in git). On a fresh clone the unified table is complete (133 series, 39,264 rows) and the per-source raw tables are empty, because raw downloads are not in git. |
 | Install the web app | `npm ci --prefix web` | |
-| Run its tests | `npm test --prefix web` | 102 passed |
+| Run its tests | `npm test --prefix web` | 315 passed |
 | Start the site locally | `npm run dev --prefix web` | Open `http://localhost:5173/earth-system-trend-detective/` (also `lab/` and `mining/` under it). |
 | Build the site | `npm run build --prefix web` | Output in `web/dist/`, including a copy of `data/snapshot/` and `data/analysis/`. GitHub Pages runs this on every push to `main`. |
 
@@ -206,10 +246,10 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 | `data/grid/` | Reduced global grid files for seven variables. The site reads the trend maps (`meta.json`, `trend_slope_per_decade.i16`, `trend_significance.u8`); the annual means and monthly climatologies are not used by the site yet. |
 | `data/seed/` | Lists of variables, locations and grid products that drive the fetch scripts. |
 | `data/raw/`, `data/extended/`, `data/sqlite/` | Raw downloads, extended series, SQLite export. Not in git. |
-| `src/trend_detective/` | Python data layer: one module per source, plus `snapshot`, `trends`, `mining`, `grid*`, `sqlite_export`. |
+| `src/trend_detective/` | Python data layer: one module per source, plus `snapshot`, `trends`, `mining`, `gap_tree`, `variable_graph`, `similar_series`, `grid*`, `sqlite_export`. |
 | `tests/` | pytest tests for the data layer, with small fixtures; they do not use the network. |
 | `web/` | Vite + React + three.js site: the globe (`web/src/`), the form lab (`web/lab/`), the mining page (`web/mining/`), and a minimal line-chart check page (`web/tracer/`). |
-| `docs/data/` | Generated data lists, raw-data notes, SQLite guide. |
+| `docs/data/` | Generated data lists, raw-data notes, SQLite and PostgreSQL guides, the model-versus-observation and data-mining method notes. |
 | `docs/images/` | Screenshots used in this README. |
 | [`docs/submission/`](docs/submission/) | Draft of the Space Apps submission form (English), a structure suggestion for the demo, and a pre-submission checklist (Traditional Chinese). For the team to rewrite and verify. |
 | `docs/agents/`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/` | Instructions and configuration for the coding agents used in development; see [docs/agents/README.md](docs/agents/README.md). |
@@ -226,6 +266,7 @@ What was done with AI tools:
 - **Web front end, later parts** (trend summary in the layer panel, the mining page, the ten additional particle forms, the close-up views and their text; pull requests #57, #58, #62, #65): implemented by Claude Code. The mapping from each variable to a particle shape and the wording and reaction equations in the close-ups were first drafted by the tool as defaults for the team to change ([#60](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/60)).
 - **Data companions** (the characters in the companion panel): the idea of one pet-like character per form of matter, shown together in a composition after *The School of Athens*, is the team's; the code that draws the characters and fills in their sentences was written by an AI tool (Claude Code) following the team's design. The characters are drawn by that code as SVG shapes; no AI-generated image, no external image, font or audio file is used, and the voice is the browser's built-in speech synthesis. The sentences are templates filled with numbers from the data; they state no cause and no conclusion.
 - **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files ([#59](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/59)).
+- **Data-mining additions** (the model-versus-station tree and its table of group means, the variable network, the similar-series lists, and the reworked mining page; [#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)): the direction — to use the decision tree on the difference between models and observations, and to put the database's similar-series and variable-graph results on the site — is the team's; the code, the fixed parameters and the page text were written by Claude Code following that direction. The page gives numbers and methods and states no cause and no conclusion.
 
 What was decided by team members, as recorded in the issues:
 
@@ -270,6 +311,6 @@ What is not AI-generated:
 
 這是 NASA Space Apps Challenge 2026 台中場「Be An Earth System Trend Detective!」的作品。網站用 three.js 地球呈現 12 個 NASA 地球觀測變數在台灣 5 個點位的月資料：每個變數一層粒子，數量、大小、速度跟著數值變；圖層面板列出每個變數每十年的變化量、95% 信賴區間與顯著性（月距平的線性趨勢，t 檢定經自相關修正並做 FDR 校正）。另有探索性的資料探勘頁面與展示實驗場。第一次打開時會預先開啟降水與 MERRA-2 氣溫兩個圖層，並顯示一張開始卡片（三個步驟、四個可直接開啟的範例、怎麼讀圖的說明），用法見上方 [How to use](#how-to-use)。
 
-目前的限制：畫面只有台灣 5 個點位；流動方向是示意（沒有風向資料）；全球資料只有 7 個變數的趨勢地圖接到畫面（地球上方的 Global trend map 選單），其餘全球格點與世界各地的序列還沒接上；探勘是探索性的，決策樹在走動驗證的 3 折中沒有任何一折高於全部基準。
+目前的限制：台灣以外是 12 個世界城市與全球平均，只有 12 個圖層變數中的 10 個（兩個 MODIS 圖層只有台灣）；流動方向是示意（沒有風向資料）；全球格點只有 7 個變數的趨勢地圖接到畫面（地球上方的 Global trend map 選單）；探勘是探索性的，不代表因果——關聯規則、變數關聯圖與相似序列都只是共同變動，兩棵決策樹（預測植被指數、預測模式與測站氣溫差距的大小）在走動驗證的 3 折中都沒有任何一折高於全部基準。
 
 資料來源、方法、重現步驟與 AI（SI）使用揭露的草稿見上方各節；標有 `TODO(team)` 的地方需要隊伍確認或補充。開發用的 agent 設定說明在 [docs/agents/README.md](docs/agents/README.md)。

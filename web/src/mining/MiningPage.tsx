@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   foldVerdict,
   formatExcluded,
@@ -23,7 +23,21 @@ import {
   type RuleSortKey,
   type VariableNames,
 } from "../analysis/mining";
+import {
+  filterRulesByVariable,
+  loadGapTree,
+  loadSimilarSeries,
+  loadVariableGraph,
+  ruleChip,
+  type GapTreeFile,
+  type SimilarSeriesFile,
+  type VariableGraphFile,
+} from "../analysis/miningPlus";
 import { useAnalysisFile } from "../analysis/useAnalysisFile";
+import { GapSection } from "./GapSection";
+import { NetworkSection } from "./NetworkSection";
+import { MethodDetails } from "./parts";
+import { SimilarSection } from "./SimilarSection";
 
 const columns: { key: RuleSortKey; label: string }[] = [
   { key: "rule", label: "Rule" },
@@ -68,7 +82,44 @@ function ParameterList({ parameters }: { parameters: Parameters }) {
   );
 }
 
+// One item of a rule as a small label: "Precipitation high".
+function Chip({ item, names }: { item: string; names: VariableNames }) {
+  const chip = ruleChip(item);
+  return (
+    <span className={`chip chip-${chip.state}`}>
+      {names[chip.variableId] ?? chip.variableId} <strong>{chip.state}</strong>
+      {chip.previousMonth ? " (month before)" : ""}
+    </span>
+  );
+}
+
+function RuleChips({
+  rule,
+  names,
+}: {
+  rule: { antecedents: string[]; consequent: string };
+  names: VariableNames;
+}) {
+  return (
+    <span className="rule-chips">
+      {rule.antecedents.map((item, index) => (
+        <span key={item} className="rule-part">
+          {index > 0 ? <span className="rule-word">and</span> : null}
+          <Chip item={item} names={names} />
+        </span>
+      ))}
+      <span className="rule-part">
+        <span className="rule-word" aria-label="goes with">
+          →
+        </span>
+        <Chip item={rule.consequent} names={names} />
+      </span>
+    </span>
+  );
+}
+
 function RulesSection({ file }: { file: FpGrowthFile }) {
+  const [variableId, setVariableId] = useState("all");
   const [tableId, setTableId] = useState("region");
   const [lagged, setLagged] = useState(false);
   const [showPersistence, setShowPersistence] = useState(false);
@@ -77,23 +128,26 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
   const table = file.tables[tableId];
   if (!table) return null;
   const set = lagged ? table.lagged_one_month : table.same_month;
-  const shown = sortRules(visibleRules(set, showPersistence), sort, names);
+  const shown = filterRulesByVariable(
+    sortRules(visibleRules(set, showPersistence), sort, names),
+    variableId,
+  );
 
   return (
-    <section>
-      <h2>Association rules (FP-growth)</h2>
-      <p className="note">
-        Each detrended monthly anomaly is labelled low, normal or high against
-        that series&apos; own quantiles. One location in one month is one
-        transaction. Support is the share of transactions that contain every
-        item of the rule, confidence is the share of transactions with the left
-        side that also have the right side, and lift is confidence divided by
-        how common the right side is on its own. The two sides of a rule never
-        use the same variable.
+    <section id="rules" aria-labelledby="rules-title">
+      <h2 id="rules-title">Association rules</h2>
+      <p className="asks">
+        <strong>What this asks:</strong> which combinations of high, normal or
+        low months of different variables turn up together more often than their
+        separate frequencies would give?
       </p>
       <p className="note">
-        q: {file.significance_note} Only rules with q below{" "}
-        {formatParameter(file.parameters.rule_alpha ?? null)} are kept.
+        <strong>Method and limits:</strong> FP-growth on detrended monthly
+        anomalies of the Taiwan core series, each labelled low, normal or high;
+        one location in one month is one case. Rules are kept only when q is
+        below {formatParameter(file.parameters.rule_alpha ?? null)}.
+        Neighbouring months and places are not independent, so the q values are
+        optimistic.
       </p>
       <div className="controls">
         <label>
@@ -117,6 +171,20 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
           >
             <option value="same">same month</option>
             <option value="lagged">previous month → this month</option>
+          </select>
+        </label>
+        <label>
+          Variable{" "}
+          <select
+            value={variableId}
+            onChange={(event) => setVariableId(event.target.value)}
+          >
+            <option value="all">all variables</option>
+            {table.variables.map((id) => (
+              <option key={id} value={id}>
+                {names[id] ?? id}
+              </option>
+            ))}
           </select>
         </label>
         {lagged ? (
@@ -147,12 +215,7 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
               .join(", ")}`
           : ""}
       </p>
-      <ExcludedNote
-        excluded={table.excluded_variables}
-        names={names}
-        limit={file.parameters.max_abs_correlation}
-      />
-      <div className="scroll">
+      <div className="scroll tall">
         <table>
           <thead>
             <tr>
@@ -186,7 +249,9 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
           <tbody>
             {shown.map((rule) => (
               <tr key={formatRule(rule, {})}>
-                <td>{formatRule(rule, names)}</td>
+                <td>
+                  <RuleChips rule={rule} names={names} />
+                </td>
                 <td className="number">{formatShare(rule.support)}</td>
                 <td className="number">{formatShare(rule.confidence)}</td>
                 <td className="number">{rule.lift.toFixed(2)}</td>
@@ -202,8 +267,27 @@ function RulesSection({ file }: { file: FpGrowthFile }) {
           thresholds and the significance test.
         </p>
       ) : null}
-      <h3>Parameters</h3>
-      <ParameterList parameters={file.parameters} />
+      <p className="note">
+        Support: share of cases that contain every item of the rule. Confidence:
+        share of the cases with the left side that also have the right side.
+        Lift: confidence divided by how common the right side is on its own (1 =
+        no more often than by chance).
+      </p>
+      <MethodDetails>
+        <p>
+          Each detrended monthly anomaly is labelled low, normal or high against
+          that series&apos; own quantiles. One location in one month is one
+          transaction. The two sides of a rule never use the same variable.
+        </p>
+        <p>q: {file.significance_note}</p>
+        <ExcludedNote
+          excluded={table.excluded_variables}
+          names={names}
+          limit={file.parameters.max_abs_correlation}
+        />
+        <h3>Parameters</h3>
+        <ParameterList parameters={file.parameters} />
+      </MethodDetails>
     </section>
   );
 }
@@ -215,13 +299,18 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
   const last = file.folds.at(-1);
 
   return (
-    <section>
-      <h2>Decision tree</h2>
+    <section id="greenness" aria-labelledby="greenness-title">
+      <h2 id="greenness-title">Predicting vegetation greenness</h2>
+      <p className="asks">
+        <strong>What this asks:</strong> can the other variables of a month tell
+        whether vegetation greenness (NDVI) is low, normal or high in a Taiwan
+        region? In this run the tree did not beat the baselines.
+      </p>
       <p className="note">
-        Target: the low, normal or high state of{" "}
-        {formatFeature(file.target, names)} in the {file.table} table. Features:
-        the same month&apos;s detrended anomalies of the other variables, plus
-        last month&apos;s value of each variable
+        <strong>Method and limits:</strong> target: the low, normal or high
+        state of {formatFeature(file.target, names)} in the {file.table} table.
+        Features: the same month&apos;s detrended anomalies of the other
+        variables, plus last month&apos;s value of each variable
         {file.features.includes(`prev:${file.target}`)
           ? " (including the target itself)"
           : " (not the target's own previous month)"}
@@ -373,8 +462,10 @@ function TreeSection({ file }: { file: DecisionTreeFile }) {
           </div>
         </>
       ) : null}
-      <h3>Parameters</h3>
-      <ParameterList parameters={file.parameters} />
+      <MethodDetails>
+        <h3>Parameters</h3>
+        <ParameterList parameters={file.parameters} />
+      </MethodDetails>
     </section>
   );
 }
@@ -389,8 +480,10 @@ function GapFillingSection({ data }: { data: MiningResults }) {
   const unfilled = tree.unfilled;
 
   return (
-    <section>
-      <h2>Gap filling: filled and unfilled runs compared</h2>
+    <section id="gap-filling" aria-labelledby="gap-filling-title">
+      <h2 id="gap-filling-title">
+        Gap filling: filled and unfilled runs compared
+      </h2>
       <p className="note">
         {data.rules.gap_filling_note} The tables and the tree above are the{" "}
         {rules.primary} run. Trend statistics are never gap-filled.
@@ -538,8 +631,10 @@ function SegmentationSection({ data }: { data: MiningResults }) {
   const other = tree.segmented;
 
   return (
-    <section>
-      <h2>Known step months: segmented and unsegmented runs compared</h2>
+    <section id="segmentation" aria-labelledby="segmentation-title">
+      <h2 id="segmentation-title">
+        Known step months: segmented and unsegmented runs compared
+      </h2>
       <p className="note">
         {rules.note} Series cut in the segmented run:{" "}
         {stepped.length ? stepped.join("; ") : "none"}.
@@ -602,8 +697,106 @@ function SegmentationSection({ data }: { data: MiningResults }) {
   );
 }
 
+const SECTIONS = [
+  { id: "rules", label: "Association rules" },
+  { id: "network", label: "Variable network" },
+  { id: "similar", label: "Similar series" },
+  { id: "gap", label: "Where do models and observations differ?" },
+  { id: "greenness", label: "Predicting vegetation greenness" },
+  { id: "gap-filling", label: "Sensitivity checks" },
+];
+
+function Loaded<T>({
+  state,
+  what,
+  children,
+}: {
+  state: ReturnType<typeof useAnalysisFile<T>>;
+  what: string;
+  children: (data: T) => ReactNode;
+}) {
+  if (state.status === "loading")
+    return <p className="note">Loading {what}…</p>;
+  if (state.status === "error") {
+    return <p className="note">Could not read {what}.</p>;
+  }
+  return <>{children(state.data)}</>;
+}
+
+function Scope({
+  data,
+  graph,
+  similar,
+  gap,
+}: {
+  data: MiningResults;
+  graph: VariableGraphFile | null;
+  similar: SimilarSeriesFile | null;
+  gap: GapTreeFile | null;
+}) {
+  const point = data.rules.tables.point;
+  const region = data.rules.tables.region;
+  return (
+    <dl className="scope">
+      <dt>Association rules, greenness tree</dt>
+      <dd>
+        Taiwan core series: {point?.locations.length ?? 0} points (
+        {point?.variables.length ?? 0} variables,{" "}
+        {point?.first_month?.slice(0, 7)} to {point?.last_month?.slice(0, 7)},{" "}
+        {point?.same_month.n_transactions ?? 0} location-months) and{" "}
+        {region?.locations.length ?? 0} regions ({region?.variables.length ?? 0}{" "}
+        variables, {region?.first_month?.slice(0, 7)} to{" "}
+        {region?.last_month?.slice(0, 7)},{" "}
+        {region?.same_month.n_transactions ?? 0} location-months)
+      </dd>
+      {graph ? (
+        <>
+          <dt>Variable network</dt>
+          <dd>
+            the same Taiwan series, {graph.tables.point?.nodes.length ?? 0}{" "}
+            variables at points and {graph.tables.region?.nodes.length ?? 0} in
+            regions;{" "}
+            {graph.world_cities
+              ? `${graph.world_cities.cities.length} world cities × ${graph.world_cities.variables.length} variables for the cross-city table`
+              : ""}
+          </dd>
+        </>
+      ) : null}
+      {similar ? (
+        <>
+          <dt>Similar series</dt>
+          <dd>
+            {similar.summary.n_series} series: Taiwan points{" "}
+            {similar.summary.n_series_by_group.taiwan ?? 0}, world cities{" "}
+            {similar.summary.n_series_by_group.world_city ?? 0}, global mean{" "}
+            {similar.summary.n_series_by_group.global ?? 0};{" "}
+            {similar.window.first_month.slice(0, 7)} to{" "}
+            {similar.window.last_month.slice(0, 7)} ({similar.window.n_months}{" "}
+            months)
+          </dd>
+        </>
+      ) : null}
+      {gap ? (
+        <>
+          <dt>Models and observations</dt>
+          <dd>
+            {gap.pairs.length} station–model pairs at{" "}
+            {new Set(gap.pairs.map((pair) => pair.station)).size} Taiwan
+            stations, {gap.pairs.reduce((sum, pair) => sum + pair.n_months, 0)}{" "}
+            pair-months (2001-01 to 2025-12);{" "}
+            {gap.variants[gap.primary_variant]?.n_rows ?? 0} rows in the tree
+          </dd>
+        </>
+      ) : null}
+    </dl>
+  );
+}
+
 export function MiningPage() {
   const state = useAnalysisFile(loadMining);
+  const graph = useAnalysisFile(loadVariableGraph);
+  const similar = useAnalysisFile(loadSimilarSeries);
+  const gap = useAnalysisFile(loadGapTree);
 
   return (
     <main className="mining">
@@ -613,16 +806,40 @@ export function MiningPage() {
       <h1>
         Data mining <span className="tag">exploratory</span>
       </h1>
+      <p className="lead">
+        Patterns found by letting standard mining methods run over the monthly
+        series of this site, each with its method, its sample size and a
+        comparison against simple guesses.{" "}
+        <strong>
+          Exploratory results. Nothing on this page shows cause and effect.
+        </strong>
+      </p>
+      <nav className="toc" aria-label="Sections of this page">
+        <ul>
+          {SECTIONS.map((section) => (
+            <li key={section.id}>
+              <a href={`#${section.id}`}>{section.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
       {state.status === "loading" ? <p>Loading…</p> : null}
       {state.status === "error" ? (
         <p>Could not read the mining results.</p>
       ) : null}
       {state.status === "ready" ? (
         <>
-          <p>{state.data.rules.note}</p>
+          <h2 className="scope-title">Data used</h2>
+          <Scope
+            data={state.data}
+            graph={graph.status === "ready" ? graph.data : null}
+            similar={similar.status === "ready" ? similar.data : null}
+            gap={gap.status === "ready" ? gap.data : null}
+          />
           <p className="note">
-            Parameters are adjustable defaults, not conclusions. Input: monthly
-            anomalies from the snapshot of{" "}
+            Parameters were fixed before each run and are listed under
+            &quot;Method details&quot;; they are adjustable defaults, not
+            conclusions. Input: monthly anomalies from the snapshot of{" "}
             {state.data.rules.input.snapshot_generated_at.slice(0, 10)}.{" "}
             {state.data.rules.detrending_note} Locations left out:{" "}
             {formatParameter(
@@ -632,6 +849,19 @@ export function MiningPage() {
             observation would be counted twice).
           </p>
           <RulesSection file={state.data.rules} />
+        </>
+      ) : null}
+      <Loaded state={graph} what="the variable network">
+        {(data) => <NetworkSection file={data} />}
+      </Loaded>
+      <Loaded state={similar} what="the similar-series lists">
+        {(data) => <SimilarSection file={data} />}
+      </Loaded>
+      <Loaded state={gap} what="the model and observation results">
+        {(data) => <GapSection file={data} />}
+      </Loaded>
+      {state.status === "ready" ? (
+        <>
           <TreeSection file={state.data.tree} />
           <GapFillingSection data={state.data} />
           <SegmentationSection data={state.data} />
