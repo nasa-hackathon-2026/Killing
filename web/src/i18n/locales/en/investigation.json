@@ -1,0 +1,197 @@
+{
+  "panel": {
+    "aria": "Investigation of {{name}} at {{place}}",
+    "tabsAria": "Four questions about this series",
+    "expand": "Expand",
+    "narrow": "Narrow",
+    "expandAria": "Make the panel wider",
+    "loading": "Reading the analysis results…"
+  },
+  "tabs": {
+    "what": {
+      "short": "What",
+      "question": "What is changing?"
+    },
+    "where": {
+      "short": "Where",
+      "question": "Where is it changing?"
+    },
+    "howmuch": {
+      "short": "How much",
+      "question": "How much?"
+    },
+    "significant": {
+      "short": "Significant?",
+      "question": "Is the change significant?"
+    }
+  },
+  "answer": {
+    "what": "{{name}} at {{place}}, {{first}} to {{last}}: {{label}}.",
+    "where": {
+      "general": "Here: {{label}}. Of {{total}} places with this variable, {{up}} rising, {{down}} falling, {{flat}} with no clear change, {{bad}} not reliable.",
+      "expert": "Here: {{label}}. Of {{total}} places with this variable: {{up}} rising, {{down}} falling (p < {{alpha}}), {{flat}} not significant or not analysed, {{bad}} not reliable as a climate signal."
+    },
+    "howmuch": {
+      "general": "About {{slope}} per decade; about {{total}} over {{years}} years if the straight line held.",
+      "expert": "{{change}}; {{total}} over {{years}} years as a linear conversion."
+    },
+    "unreliableSuffix": {
+      "general": "The number is not reliable: the data have a documented problem.",
+      "expert": "Not reliable as a climate signal: documented data issue."
+    },
+    "significant": {
+      "fdr": {
+        "general": "Yes: the change holds up in the statistical tests (p {{p}}).",
+        "expert": "Yes: the linear trend is significant after autocorrelation and FDR correction (p {{p}}, q {{q}})."
+      },
+      "rawOnly": {
+        "general": "Weak evidence: it passes the basic test but not the stricter one (p {{p}}).",
+        "expert": "Only before FDR correction: p {{p}}, q {{q}}."
+      },
+      "notSignificant": {
+        "general": "No clear change shows in this record yet (p {{p}}). That is not the same as no change.",
+        "expert": "Not significant (p {{p}}, q {{q}}). This is not evidence of no change."
+      },
+      "unreliableFdr": {
+        "general": "The test says significant (p {{p}}), but the number is not reliable: the data have a documented problem.",
+        "expert": "Statistically significant (p {{p}}, q {{q}}), but not to be read as a climate signal: documented data issue."
+      },
+      "unreliableRawOnly": {
+        "general": "The test says significant (p {{p}}), but the number is not reliable: the data have a documented problem.",
+        "expert": "Significant before FDR correction only (p {{p}}, q {{q}}), and not to be read as a climate signal: documented data issue."
+      },
+      "notComputed": {
+        "general": "The test could not be run for this series.",
+        "expert": "The test could not be computed for this series."
+      }
+    },
+    "notAnalyzed": "Not analysed: {{reason}}",
+    "noTrend": "No trend result for this series.",
+    "noSeries": "No data for this variable at {{place}}."
+  },
+  "what": {
+    "seasonTitle": "Seasonal cycle: average of each calendar month",
+    "seasonAria": "Average of each calendar month of {{name}} at {{place}}; the line for {{year}} drawn on top.",
+    "seasonKeyMean": "Average over the record",
+    "seasonKeyYear": "{{year}}",
+    "seasonKeyRange": "Lowest to highest of each month",
+    "why": "Why remove the season first? Most of the swing from month to month is the yearly cycle. Comparing each month with its own long-term average (the anomaly) shows the slower change underneath.",
+    "facts": {
+      "definition": "Definition",
+      "unit": "Unit",
+      "kind": "Data type",
+      "product": "Product",
+      "period": "Period",
+      "periodLine": "{{first}} to {{last}}"
+    },
+    "groupsTitle": "Explore by question",
+    "groupsNote": "Other questions",
+    "chartNote": "Click the chart to jump the timeline to that month."
+  },
+  "groups": {
+    "water": "Water: is it getting wetter or drier here?",
+    "heat": "Heat: is it getting warmer or cooler here?",
+    "air": "Air: is what is in the air changing here?",
+    "other": "Plants: is it getting greener or browner here?"
+  },
+  "where": {
+    "title": "Monthly anomalies and trend line at every place",
+    "sameScale": "Same scale",
+    "ownScale": "Own scale",
+    "scaleAria": "Y scale of the small charts",
+    "noData": "No data",
+    "here": "here",
+    "cellAria": "{{place}}: {{label}}, {{change}} per decade. Open this place.",
+    "cellAriaNone": "{{place}}: {{label}}. Open this place.",
+    "note": {
+      "general": "Each box is one place: the blue line is each month's difference from usual, the yellow line the trend. All boxes share one vertical scale unless 'Own scale' is on. Click a box to go there.",
+      "expert": "Each cell: monthly anomalies (blue) and the OLS trend (yellow); shared y scale unless 'Own scale'. Marks as in the Layers panel. Click a cell to switch place."
+    },
+    "mapHint": "A global map of this trend is under 'Global trend map' at the top."
+  },
+  "howmuch": {
+    "anomalyTitle": "Monthly anomalies with the linear trend",
+    "anomalyAria": "Monthly anomalies of {{name}} at {{place}} with the trend line and its confidence band.",
+    "intervalTitle": "Change per decade with its {{level}}% confidence interval",
+    "intervalAria": "Least-squares change per decade {{ols}} and Sen slope {{sen}} on a number line centred on zero.",
+    "ols": "Linear (OLS)",
+    "sen": "Sen slope",
+    "zero": "0 = no change",
+    "intervalNote": "If a bar crosses the 0 line, the data are also consistent with no change or the opposite direction.",
+    "total": "Over {{first}} to {{last}} ({{years}} years) the trend line amounts to about {{total}}. This is the slope times the period, a linear conversion, not the observed difference between the first and the last year.",
+    "tableTitle": "Numbers",
+    "table": {
+      "change": "Change per decade",
+      "ci": "{{level}}% CI",
+      "p": "p (OLS, autocorrelation-corrected)",
+      "period": "Analysed period",
+      "valid": "Valid months",
+      "missing": "Missing or unusable months"
+    },
+    "why": "Why per decade? A rate per decade puts records of different length on the same footing."
+  },
+  "significant": {
+    "olsTitle": "Linear trend (OLS t-test, lag-1 autocorrelation correction)",
+    "mkTitle": "Mann-Kendall (rank-based; no straight line assumed)",
+    "rows": {
+      "ttest": "t-test of the slope",
+      "q": "q (FDR-adjusted p)",
+      "neff": "Effective sample size",
+      "r1": "Lag-1 autocorrelation",
+      "original": "Original",
+      "hamedRao": "Hamed-Rao",
+      "seasonal": "Seasonal",
+      "sen": "Sen slope per decade"
+    },
+    "pq": "p {{p}} · q {{q}}",
+    "light": {
+      "significant": "Significant after FDR",
+      "rawOnly": "Significant before FDR only",
+      "notSignificant": "Not significant",
+      "none": "Not computed"
+    },
+    "agreement": {
+      "bothSame": "The two tests agree: both significant, same direction.",
+      "bothNone": "The two tests agree: neither is significant.",
+      "disagree": "The two tests disagree. This can happen when a few unusual months dominate, or when the change is not a straight line.",
+      "unknown": "The two tests cannot be compared for this series."
+    },
+    "agreementBasis": "Compared at p < {{alpha}} before FDR; Mann-Kendall here is Hamed-Rao (Seasonal when Hamed-Rao has no p).",
+    "notSignificantNote": "Not significant does not mean no change: often the record is not long enough yet, or the variation is too large. This record: {{years}} years, {{months}} valid months.",
+    "fdr": "Multiple testing: q values are Benjamini-Hochberg adjusted across the {{n}} analysed series of the {{family}}, separately for each test.",
+    "family": {
+      "core": "Taiwan core run",
+      "world": "world subset (world cities and global mean)"
+    },
+    "pSource": "All p and q values are read from the analysis results file; nothing is re-tested in the browser.",
+    "evidenceAria": "Test results"
+  },
+  "diag": {
+    "more": "More for researchers",
+    "residualTitle": "Residuals: monthly anomalies minus the trend line",
+    "residualAria": "Residuals of {{name}} at {{place}} over time; {{n}} months beyond three robust standard deviations.",
+    "residualKey": "Dots: months beyond ±3 robust SD (1.4826 × MAD): {{n}}.",
+    "acfTitle": "Autocorrelation of the residuals, lags 1–24 months",
+    "acfAria": "Autocorrelation of the residuals at lags 1 to 24 months; lag 1 is {{here}}.",
+    "acfKey": "Dashed: ±1.96/√n (white noise). Lag 1 in the results file: {{file}}; in this chart: {{here}}.",
+    "acfNote": "Descriptive only, computed here from the series. The file's lag-1 value pairs adjacent months without a gap (Pearson r); this chart uses the whole-series mean and variance, so the two can differ slightly. Test p values always come from the results file.",
+    "histTitle": "Distribution of monthly anomalies",
+    "histAria": "Histogram of {{n}} monthly anomalies.",
+    "rangeTitle": "Spread within each calendar month",
+    "rangeAria": "Lowest, average and highest value of each calendar month.",
+    "annualTitle": "Yearly means (complete years only)",
+    "annualAria": "Mean of each complete year from {{first}} to {{last}}.",
+    "annualNote": "Does it look like a straight line, a step or a curve?",
+    "downloadCsv": "Download this series (CSV)",
+    "downloadJson": "Download the trend result (JSON)",
+    "methods": "Methods",
+    "method": {
+      "anomaly": "Anomaly: each monthly value minus the mean of the same calendar month over all usable years of the series.",
+      "ols": "OLS: least-squares slope of the anomalies on time. Its standard error, t-test and CI use the effective sample size n(1 − r1)/(1 + r1), with r1 the lag-1 autocorrelation of the residuals (Santer et al. 2000).",
+      "mk": "Mann-Kendall: Original assumes independent months; Hamed-Rao corrects the variance for autocorrelation (all lags; known to be lenient); Seasonal compares each calendar month only with itself, on the monthly values. Sen slope: median of pairwise slopes; its CI has no autocorrelation correction.",
+      "fdr": "FDR: Benjamini-Hochberg across all analysed series of one run, separately for each test; q is the adjusted p.",
+      "missing": "Missing values: months flagged missing, partial or low coverage are left out; nothing is gap-filled for the trend tests.",
+      "cleaning": "Flags: outlier_suspect and known_discontinuity months are only marked, not removed; documented steps are drawn as dashed lines."
+    }
+  }
+}

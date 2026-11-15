@@ -1,0 +1,197 @@
+{
+  "panel": {
+    "aria": "{{place}}的{{name}}調查面板",
+    "tabsAria": "關於這條序列的四個問題",
+    "expand": "加寬",
+    "narrow": "還原",
+    "expandAria": "把面板加寬",
+    "loading": "正在讀取分析結果…"
+  },
+  "tabs": {
+    "what": {
+      "short": "什麼在變",
+      "question": "什麼在變？"
+    },
+    "where": {
+      "short": "在哪裡變",
+      "question": "在哪裡變？"
+    },
+    "howmuch": {
+      "short": "變多少",
+      "question": "變多少？"
+    },
+    "significant": {
+      "short": "顯著嗎",
+      "question": "變化是否顯著？"
+    }
+  },
+  "answer": {
+    "what": "{{place}}的{{name}}，{{first}} 至 {{last}}：{{label}}。",
+    "where": {
+      "general": "這裡：{{label}}。有這個變數的 {{total}} 個地點中，{{up}} 個上升、{{down}} 個下降、{{flat}} 個看不出明顯變化、{{bad}} 個數字不可靠。",
+      "expert": "這裡：{{label}}。有這個變數的 {{total}} 個地點：{{up}} 個上升、{{down}} 個下降（p < {{alpha}}），{{flat}} 個不顯著或未分析，{{bad}} 個不宜解讀為氣候訊號。"
+    },
+    "howmuch": {
+      "general": "每 10 年約 {{slope}}；若照直線換算，{{years}} 年約 {{total}}。",
+      "expert": "{{change}}；以線性換算，{{years}} 年為 {{total}}。"
+    },
+    "unreliableSuffix": {
+      "general": "這個數字不可靠：資料本身有已記錄的問題。",
+      "expert": "不宜解讀為氣候訊號：資料有已記錄的問題。"
+    },
+    "significant": {
+      "fdr": {
+        "general": "是：這個變化通過統計檢定（p {{p}}）。",
+        "expert": "是：線性趨勢在自相關修正與 FDR 校正後都顯著（p {{p}}，q {{q}}）。"
+      },
+      "rawOnly": {
+        "general": "證據偏弱：通過基本檢定，但沒有通過較嚴格的檢定（p {{p}}）。",
+        "expert": "只在 FDR 校正前顯著：p {{p}}，q {{q}}。"
+      },
+      "notSignificant": {
+        "general": "這段紀錄裡還看不出明顯變化（p {{p}}）。這不等於沒有變化。",
+        "expert": "不顯著（p {{p}}，q {{q}}）。這不是「沒有變化」的證據。"
+      },
+      "unreliableFdr": {
+        "general": "檢定結果是顯著（p {{p}}），但這個數字不可靠：資料本身有已記錄的問題。",
+        "expert": "統計上顯著（p {{p}}，q {{q}}），但不宜解讀為氣候訊號：資料有已記錄的問題。"
+      },
+      "unreliableRawOnly": {
+        "general": "檢定結果是顯著（p {{p}}），但這個數字不可靠：資料本身有已記錄的問題。",
+        "expert": "只在 FDR 校正前顯著（p {{p}}，q {{q}}），而且不宜解讀為氣候訊號：資料有已記錄的問題。"
+      },
+      "notComputed": {
+        "general": "這條序列無法進行檢定。",
+        "expert": "這條序列的檢定無法計算。"
+      }
+    },
+    "notAnalyzed": "未分析：{{reason}}",
+    "noTrend": "這條序列沒有趨勢結果。",
+    "noSeries": "{{place}}沒有這個變數的資料。"
+  },
+  "what": {
+    "seasonTitle": "季節循環：每個日曆月的多年平均",
+    "seasonAria": "{{place}}的{{name}}每個日曆月的多年平均，上面疊著 {{year}} 年的值。",
+    "seasonKeyMean": "整段紀錄的平均",
+    "seasonKeyYear": "{{year}} 年",
+    "seasonKeyRange": "每個月的最低到最高",
+    "why": "為什麼要先去掉季節？逐月的起伏大多是一年一次的季節循環。把每個月和它自己的多年平均相比（距平），才看得到底下較慢的變化。",
+    "facts": {
+      "definition": "定義",
+      "unit": "單位",
+      "kind": "資料性質",
+      "product": "產品",
+      "period": "期間",
+      "periodLine": "{{first}} 至 {{last}}"
+    },
+    "groupsTitle": "用問題找變數",
+    "groupsNote": "其他問題",
+    "chartNote": "點圖可以把時間軸跳到那個月。"
+  },
+  "groups": {
+    "water": "水：這裡變濕還是變乾？",
+    "heat": "熱：這裡變暖還是變冷？",
+    "air": "空氣：這裡空氣裡的成分有在變嗎？",
+    "other": "植物：這裡變綠還是變黃？"
+  },
+  "where": {
+    "title": "每個地點的月距平與趨勢線",
+    "sameScale": "同一比例尺",
+    "ownScale": "各自縮放",
+    "scaleAria": "小圖的縱軸比例尺",
+    "noData": "無資料",
+    "here": "目前",
+    "cellAria": "{{place}}：{{label}}，每 10 年 {{change}}。切換到這個地點。",
+    "cellAriaNone": "{{place}}：{{label}}。切換到這個地點。",
+    "note": {
+      "general": "每一格是一個地點：藍線是每個月和平常的差，黃線是趨勢。沒有選「各自縮放」時，所有格子用同一個縱軸。點一格就切換到那裡。",
+      "expert": "每一格：月距平（藍）與 OLS 趨勢線（黃）；除非選「各自縮放」，否則共用縱軸。標記與圖層面板相同。點一格切換地點。"
+    },
+    "mapHint": "這個變數的全球趨勢地圖在上方的「Global trend map」選單。"
+  },
+  "howmuch": {
+    "anomalyTitle": "月距平與線性趨勢",
+    "anomalyAria": "{{place}}的{{name}}月距平，附趨勢線與信賴帶。",
+    "intervalTitle": "每 10 年變化量與 {{level}}% 信賴區間",
+    "intervalAria": "最小平方法每 10 年變化 {{ols}}，Sen 斜率 {{sen}}，畫在以 0 為中心的數線上。",
+    "ols": "線性（OLS）",
+    "sen": "Sen 斜率",
+    "zero": "0 = 沒有變化",
+    "intervalNote": "如果橫條跨過 0 線，資料也和「沒有變化」或「反方向」相容。",
+    "total": "在 {{first}} 至 {{last}}（{{years}} 年）期間，趨勢線約相當於 {{total}}。這是斜率乘上期間長度的線性換算，不是第一年和最後一年實際觀測到的差。",
+    "tableTitle": "數字",
+    "table": {
+      "change": "每 10 年變化",
+      "ci": "{{level}}% 信賴區間",
+      "p": "p（OLS，自相關修正）",
+      "period": "分析期間",
+      "valid": "有效月數",
+      "missing": "缺月或不可用月數"
+    },
+    "why": "為什麼用每 10 年？換算成每 10 年的變化率，長短不同的紀錄才能放在一起比。"
+  },
+  "significant": {
+    "olsTitle": "線性趨勢（OLS t 檢定，lag-1 自相關修正）",
+    "mkTitle": "Mann-Kendall（以排序為基礎，不假設是直線）",
+    "rows": {
+      "ttest": "斜率的 t 檢定",
+      "q": "q（FDR 校正後的 p）",
+      "neff": "有效樣本數",
+      "r1": "lag-1 自相關",
+      "original": "原始",
+      "hamedRao": "Hamed-Rao",
+      "seasonal": "Seasonal",
+      "sen": "Sen 斜率（每 10 年）"
+    },
+    "pq": "p {{p}} · q {{q}}",
+    "light": {
+      "significant": "FDR 校正後顯著",
+      "rawOnly": "只在 FDR 校正前顯著",
+      "notSignificant": "不顯著",
+      "none": "無法計算"
+    },
+    "agreement": {
+      "bothSame": "兩種檢定一致：都顯著，方向相同。",
+      "bothNone": "兩種檢定一致：都不顯著。",
+      "disagree": "兩種檢定的結論不一致。這可能是少數幾個不尋常的月份主導了結果，或是變化不是一條直線。",
+      "unknown": "這條序列的兩種檢定無法比較。"
+    },
+    "agreementBasis": "比較標準是 FDR 校正前 p < {{alpha}}；這裡的 Mann-Kendall 用 Hamed-Rao（Hamed-Rao 沒有 p 時用 Seasonal）。",
+    "notSignificantNote": "不顯著不代表沒有變化：常常只是紀錄還不夠長，或變動太大。這段紀錄：{{years}} 年、{{months}} 個有效月。",
+    "fdr": "多重檢定：q 值是在{{family}}有分析的 {{n}} 條序列之間做 Benjamini-Hochberg 校正，各檢定分開做。",
+    "family": {
+      "core": "台灣核心資料",
+      "world": "世界子集（世界城市與全球平均）"
+    },
+    "pSource": "所有 p 與 q 都直接讀自分析結果檔，瀏覽器裡不重做任何檢定。",
+    "evidenceAria": "檢定結果"
+  },
+  "diag": {
+    "more": "給研究者的更多內容",
+    "residualTitle": "殘差：月距平減去趨勢線",
+    "residualAria": "{{place}}的{{name}}殘差隨時間變化；{{n}} 個月超過 3 個穩健標準差。",
+    "residualKey": "點：超過 ±3 個穩健標準差（1.4826 × MAD）的月份：{{n}} 個。",
+    "acfTitle": "殘差的自相關，lag 1–24 個月",
+    "acfAria": "殘差在 lag 1 到 24 個月的自相關；lag 1 是 {{here}}。",
+    "acfKey": "虛線：±1.96/√n（白雜訊）。結果檔的 lag 1：{{file}}；這張圖：{{here}}。",
+    "acfNote": "只是描述性的圖，由這裡從序列算出。結果檔的 lag-1 只配對中間沒有缺月的相鄰月份（Pearson r）；這張圖用整條序列的平均與變異數，所以兩者可能略有不同。檢定的 p 值一律來自結果檔。",
+    "histTitle": "月距平的分布",
+    "histAria": "{{n}} 個月距平的直方圖。",
+    "rangeTitle": "每個日曆月內的分散",
+    "rangeAria": "每個日曆月的最低、平均與最高值。",
+    "annualTitle": "逐年平均（只計完整年份）",
+    "annualAria": "{{first}} 至 {{last}} 每個完整年份的平均。",
+    "annualNote": "看起來像一條直線、一個階梯，還是一條曲線？",
+    "downloadCsv": "下載這條序列（CSV）",
+    "downloadJson": "下載趨勢結果（JSON）",
+    "methods": "方法",
+    "method": {
+      "anomaly": "距平：每個月的值減去同一日曆月在這條序列所有可用年份的平均。",
+      "ols": "OLS：距平對時間的最小平方法斜率。標準誤、t 檢定與信賴區間使用有效樣本數 n(1 − r1)/(1 + r1)，r1 是殘差的 lag-1 自相關（Santer et al. 2000）。",
+      "mk": "Mann-Kendall：原始版假設各月獨立；Hamed-Rao 依自相關修正變異數（全部 lag；已知偏寬鬆）；Seasonal 只拿同一個日曆月彼此比較，用的是月值。Sen 斜率：兩兩斜率的中位數，信賴區間沒有自相關修正。",
+      "fdr": "FDR：同一次執行有分析的全部序列之間做 Benjamini-Hochberg，各檢定分開；q 是校正後的 p。",
+      "missing": "缺值：標為 missing、partial、low coverage 的月份不用；趨勢檢定不補值。",
+      "cleaning": "旗標：outlier_suspect 與 known_discontinuity 的月份只標記、不刪除；已記錄的跳變月份畫成虛線。"
+    }
+  }
+}

@@ -52,3 +52,9 @@ export function requestedField(): string | null {
 export function requestedParticles(): string | null {
   return param("particles");
 }
+
+// ?tab=what|where|howmuch|significant opens the investigation panel (the
+// ?chart= panel) on one of its four questions (investigation/logic.ts).
+export function requestedTab(): string | null {
+  return param("tab");
+}
