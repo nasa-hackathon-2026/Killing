@@ -1,0 +1,37 @@
+{
+  "title": "分層視圖",
+  "back": "回到地球",
+  "hint": "進入{{place}}的分層視圖",
+  "noLayer": "目前沒有開啟圖層。在圖層面板勾選一個，就會出現在這裡。",
+  "about": "關於這個視圖",
+  "controls": "拖曳可旋轉，滾輪可縮放，點一層看它的數字。",
+  "names": {
+    "stratosphere": "平流層",
+    "troposphere-air": "對流層：氣體與氣膠",
+    "troposphere-water": "對流層：水氣與雨",
+    "near-surface": "近地面空氣",
+    "land-surface": "地表",
+    "top-soil": "表層土壤"
+  },
+  "heights": {
+    "stratosphere": "高度約 15–50 公里",
+    "troposphere-air": "地面到約 10–15 公里",
+    "troposphere-water": "地面到約 10–15 公里",
+    "near-surface": "離地約 2 公尺",
+    "top-soil": "地面下 0–10 公分"
+  },
+  "notes": {
+    "scale": "高度不照比例。",
+    "columnTotals": "整柱總量畫在該氣體最多的那一層。",
+    "flow": "流動方向只是示意，沒有風場資料。"
+  },
+  "columnTotal": {
+    "general": "這個數字算的是地點上方整柱空氣裡的氣體，畫在含量最多的那一層。",
+    "expert": "整個氣柱的總量，畫在該氣體最多的那一層。"
+  },
+  "flow": "粒子從「{{from}}」移動到「{{to}}」；路徑只是示意。",
+  "valuesAria": "{{name}}：數值",
+  "valuesAt": "{{where}}的數值。",
+  "off": "已在圖層面板關閉，不畫粒子。",
+  "listedUnder": "{{name}}列在「{{stratum}}」。"
+}

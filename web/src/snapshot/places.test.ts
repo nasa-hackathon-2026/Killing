@@ -112,7 +112,8 @@ describe("worldPlaces", () => {
     const global = worldPlaces(world).find((place) => place.id === "global");
     expect(global?.aggregation).toBe("area_mean_grid");
     expect(hasCoordinates(global)).toBe(false);
-    expect(placeNote(global)).toMatch(/Not a point value/);
+    expect(placeNote(global, "expert")).toMatch(/Not a point value/);
+    expect(placeNote(global, "general")).toMatch(/not the value at one place/);
     expect(placeNote(worldPlaces(world)[1])).toBeNull();
   });
 });

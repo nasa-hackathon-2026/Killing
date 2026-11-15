@@ -15,17 +15,19 @@ import { formRegistry, type FormDefinition } from "../forms/registry";
 import { TrendArrows } from "../forms/TrendArrows";
 import { mockVariables } from "../mock/snapshot";
 import { createSceneRenderer } from "../scene/createSceneRenderer";
+import { carryChoices, localNumber, useI18n } from "../i18n";
+import { LanguageMenu, ModeSwitch } from "../i18n/ChoiceControls";
+import { variableName } from "../i18n/names";
 import { FpsReadout } from "../scene/FpsReadout";
+import "./lab.css";
 import { rendererLabel, type RendererKind } from "../scene/rendererLabel";
 
+// `label` is the message key under lab.trend.
 const trendChoices: { label: string; signal: TrendSignal }[] = [
-  {
-    label: "Not significant",
-    signal: { state: "not-significant", fdr: false },
-  },
-  { label: "Rising, significant", signal: { state: "rising", fdr: true } },
-  { label: "Falling, significant", signal: { state: "falling", fdr: true } },
-  { label: "Insufficient data", signal: { state: "insufficient", fdr: false } },
+  { label: "notSignificant", signal: { state: "not-significant", fdr: false } },
+  { label: "rising", signal: { state: "rising", fdr: true } },
+  { label: "falling", signal: { state: "falling", fdr: true } },
+  { label: "insufficient", signal: { state: "insufficient", fdr: false } },
 ];
 
 function readParam(name: string): string | null {
@@ -92,6 +94,7 @@ function Stage({
 }
 
 export function FormLab() {
+  const { t, locale } = useI18n();
   const [variableId, setVariableId] = useState(() => {
     const asked = readParam("variable");
     return formSpec(asked ?? "") ? (asked as string) : "imerg_precip";
@@ -136,12 +139,19 @@ export function FormLab() {
           />
         </Canvas>
       ) : null}
+      <h1 className="lab-title">
+        {t("lab.title")} <span>{t("lab.intro")}</span>
+      </h1>
       <div className="hud">
-        <p className="badge">Renderer: {rendererLabel(kind)}</p>
+        <p className="badge">
+          {t("lab.renderer", { name: rendererLabel(kind) })}
+        </p>
         <FpsReadout />
-        <a href={import.meta.env.BASE_URL}>Earth</a>
+        <a href={carryChoices(import.meta.env.BASE_URL)}>{t("lab.back")}</a>
+        <LanguageMenu />
+        <ModeSwitch />
         <label>
-          Variable
+          {t("lab.control.variable")}
           <select
             value={variableId}
             onChange={(event) => setVariableId(event.target.value)}
@@ -155,54 +165,64 @@ export function FormLab() {
               );
               return (
                 <option key={row.variableId} value={row.variableId}>
-                  {variable?.nameEn ?? row.variableId} — {rowForm?.nameEn}
+                  {variableName(
+                    row.variableId,
+                    variable?.nameEn ?? row.variableId,
+                  )}{" "}
+                  — {rowForm?.nameEn}
                 </option>
               );
             })}
           </select>
         </label>
         <label>
-          Value
+          {t("lab.control.value")}
           <input
             type="range"
             min={0}
             max={1}
             step={0.01}
             value={value}
-            aria-label="Form value"
+            aria-label={t("lab.control.valueAria")}
             onChange={(event) => setValue(Number(event.target.value))}
           />
         </label>
-        <p className="badge">{value.toFixed(2)}</p>
+        <p className="badge">{localNumber(value.toFixed(2))}</p>
         <label>
-          Trend
+          {t("lab.control.trend")}
           <select
             value={trendIndex}
             onChange={(event) => setTrendIndex(Number(event.target.value))}
           >
             {trendChoices.map((choice, index) => (
               <option key={choice.label} value={index}>
-                {choice.label}
+                {t(`lab.trend.${choice.label}`)}
               </option>
             ))}
           </select>
         </label>
         <button type="button" onClick={() => setPlaying((current) => !current)}>
-          {playing ? "Pause" : "Play"}
+          {playing ? t("lab.control.pause") : t("lab.control.play")}
         </button>
         <button type="button" onClick={() => setCloseUpOpen((open) => !open)}>
-          {closeUpOpen ? "Hide close-up" : "Close-up"}
+          {closeUpOpen
+            ? t("lab.control.hideCloseUp")
+            : t("lab.control.closeUp")}
         </button>
       </div>
       {closeUpOpen ? (
         <CloseUpPanel
           variableId={variableId}
-          variableName={`${variable?.nameEn ?? variableId} (lab)`}
+          variableName={t("lab.labSuffix", {
+            name: variableName(variableId, variable?.nameEn ?? variableId),
+          })}
           value={value}
           reading={
             labKelvin !== null
-              ? `lab value ${(labKelvin - 273.15).toFixed(1)} °C`
-              : `lab value ${value.toFixed(2)}`
+              ? t("lab.labValue", {
+                  value: `${localNumber((labKelvin - 273.15).toFixed(1))} °C`,
+                })
+              : t("lab.labValue", { value: localNumber(value.toFixed(2)) })
           }
           kelvin={labKelvin}
           trendLabel={
@@ -220,8 +240,13 @@ export function FormLab() {
             ? " (original form; its own numbers apply)"
             : ""}
           <br />
-          {spec.note} Flow direction is illustrative; no wind data. Lab values
-          are not measurements.
+          {spec.note} {t("lab.footer")}
+          {locale === "en" ? null : (
+            <>
+              <br />
+              {t("common.partial")}
+            </>
+          )}
         </p>
       ) : null}
     </div>

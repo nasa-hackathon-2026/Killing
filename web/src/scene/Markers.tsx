@@ -4,6 +4,8 @@ import { useMemo, useRef } from "react";
 import { DoubleSide, Quaternion, Vector3, type Mesh } from "three";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { latLonToVector3 } from "../geo/latLon";
+import { useI18n } from "../i18n";
+import { placeName } from "../i18n/names";
 import type { MockLocation } from "../mock/snapshot";
 
 type MarkersProps = {
@@ -22,6 +24,7 @@ const OUTWARD = new Vector3(0, 0, 1);
 // talk about can be found at a glance. The outer ring pulses unless the
 // reader asked for reduced motion.
 function SelectedPlace({ location }: { location: MockLocation }) {
+  useI18n();
   const ring = useRef<Mesh>(null);
   const pulse = useRef<Mesh>(null);
   const label = useRef<HTMLParagraphElement>(null);
@@ -84,7 +87,7 @@ function SelectedPlace({ location }: { location: MockLocation }) {
         style={{ pointerEvents: "none" }}
       >
         <p ref={label} className="place-label">
-          {location.nameEn}
+          {placeName(location.id, location.nameEn)}
         </p>
       </Html>
     </>

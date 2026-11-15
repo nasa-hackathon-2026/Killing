@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { registerMessages, setLocale } from "../i18n";
+import translatedCompare from "../i18n/locales/zh-TW/compare.json";
 import {
   breakMonths,
   compareLinksFor,
@@ -29,6 +31,8 @@ const issues: Record<string, KnownIssue> = {
     source_doc: "docs/data/sources/ghcnh_taiwan.md",
   },
 };
+
+afterEach(() => setLocale("en"));
 
 function pair(overrides: Partial<Pair> = {}): Pair {
   return {
@@ -68,6 +72,13 @@ describe("formatting", () => {
 });
 
 describe("pairCaveat", () => {
+  it("translates the visible warning while keeping source details intact", () => {
+    registerMessages("zh-TW", { compare: translatedCompare });
+    setLocale("zh-TW");
+    const caveat = pairCaveat(pair(), issues);
+    expect(caveat?.summary).toBe("注意：模式與觀測序列有 2 個已知資料問題。");
+    expect(caveat?.details).toContain("Step of about +0.4 K.");
+  });
   it("names the sides and lists summaries and sources", () => {
     const caveat = pairCaveat(pair(), issues);
     expect(caveat?.summary).toBe(

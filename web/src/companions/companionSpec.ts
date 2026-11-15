@@ -7,6 +7,8 @@
 // Colors are not a new palette: `baseColor` is the same color the particles
 // of that layer use (formColor over src/mock/snapshot.ts).
 import type { DataKind } from "../analysis/modelVsObs";
+import { t, tOptional } from "../i18n";
+import { variableName } from "../i18n/names";
 import { formColor } from "../forms/formColor";
 import { formSpec } from "../forms/formMapping";
 import { mockVariables } from "../mock/snapshot";
@@ -206,9 +208,26 @@ export function companionFor(variableId: string): CompanionSpec | undefined {
   return COMPANIONS.find((item) => item.id === variableId);
 }
 
+// The character's name in the active language ("Rain", "雨").
+export function companionName(spec: CompanionSpec): string {
+  return tOptional(`companions.names.${spec.id}`) ?? spec.name;
+}
+
 // "Warmth · AIRS" for companions that share a body, else just the name.
+// The tag is a product name and is not translated.
 export function companionTitle(spec: CompanionSpec): string {
-  return spec.tag ? `${spec.name} · ${spec.tag}` : spec.name;
+  const name = companionName(spec);
+  return spec.tag ? `${name} · ${spec.tag}` : name;
+}
+
+// The variable's name in the active language.
+export function companionVariable(spec: CompanionSpec): string {
+  return variableName(spec.id, spec.variableName);
+}
+
+// Short label under a companion's feet, in the active language.
+export function dataKindShort(kind: DataKind): string {
+  return t(`common.dataKind.${kind}.short`);
 }
 
 // Highest first; equal heights keep the table order.

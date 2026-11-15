@@ -1,10 +1,12 @@
 import { trendMark, type TrendSignal } from "../forms/encoding";
+import { useI18n } from "../i18n";
 
 // The trend mark next to a variable's name: ▲ ▼ △ ▽ ◇ as text, and the
 // "not reliable" mark as a drawn shape (a triangle outline in the direction
 // of the slope with a line through it), so it does not depend on a font.
 export function TrendMarkIcon({ signal }: { signal: TrendSignal }) {
-  const mark = trendMark(signal);
+  const { voice } = useI18n();
+  const mark = trendMark(signal, voice);
   if (!mark.glyph) return null;
   if (!signal.unreliable) {
     return (

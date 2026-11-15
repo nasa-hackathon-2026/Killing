@@ -2,8 +2,9 @@ import { Canvas } from "@react-three/fiber";
 import { useRef } from "react";
 import { elements, molecules, rmsSpeed } from "../chemistry/molecules";
 import { formSpec } from "../forms/formMapping";
+import { localNumber, useI18n } from "../i18n";
 import { prefersReducedMotion } from "../forms/reducedMotion";
-import { closeUp, SCHEMATIC_NOTE, type SceneKind } from "./closeUps";
+import { closeUp, type SceneKind } from "./closeUps";
 import { CloseUpScene } from "./CloseUpScene";
 import { MAX_CLOSEUP_LABELS } from "./labels";
 import { ATOM_RADIUS_FRACTION, PHOTON_COLOR } from "./scripts";
@@ -25,6 +26,8 @@ type CloseUpPanelProps = {
   value: number;
   // The reading as shown in the layer panel, e.g. "28.0 °C" or "No data".
   reading: string;
+  // False when the month has no value.
+  hasData?: boolean;
   // Absolute temperature when the variable is one, else null.
   kelvin: number | null;
   trendLabel?: string;
@@ -38,32 +41,128 @@ export function CloseUpPanel({
   variableName,
   value,
   reading,
+  hasData = true,
   kelvin,
   trendLabel,
   onClose,
 }: CloseUpPanelProps) {
+  const { t, tm, settings } = useI18n();
   const labelLayer = useRef<HTMLDivElement>(null);
   const spec = formSpec(variableId);
   const view = spec ? closeUp(spec.closeUpId) : undefined;
   if (!view) return null;
   const thermal = view.scene === "thermal";
+  const base = `closeup.views.${view.id}`;
   const shown = view.molecules.map((id) => molecules[id]);
   const usedElements = [
     ...new Set(shown.flatMap((molecule) => molecule.atoms)),
   ].map((id) => elements[id]);
 
+  // Numbers, the molecule table and the sources: shown as they are for a
+  // researcher, folded under "Details" otherwise.
+  const extra = (
+    <>
+      {thermal && kelvin !== null ? (
+        <p>
+          {t("closeup.thermal", {
+            celsius: localNumber((kelvin - 273.15).toFixed(1)),
+            kelvin: localNumber(kelvin.toFixed(1)),
+            n2: Math.round(rmsSpeed(kelvin, molecules.N2.molarMass)),
+            o2: Math.round(rmsSpeed(kelvin, molecules.O2.molarMass)),
+          })}
+        </p>
+      ) : null}
+      {usedElements.length > 0 ? (
+        <p className="closeup-legend">
+          {usedElements.map((element) => (
+            <span key={element.symbol}>
+              <i style={{ background: element.cpkColor }} />
+              {element.symbol}
+            </span>
+          ))}
+          {view.scene === "reaction" || view.scene === "photosynthesis" ? (
+            <span>
+              <i style={{ background: PHOTON_COLOR }} />
+              {t("closeup.light")}
+            </span>
+          ) : null}
+          <span>
+            {t("closeup.cpk", {
+              percent: Math.round(ATOM_RADIUS_FRACTION * 100),
+            })}
+          </span>
+        </p>
+      ) : null}
+      {shown.some((molecule) => molecule.bondLength !== null) ? (
+        <table>
+          <thead>
+            <tr>
+              <th>{t("closeup.table.molecule")}</th>
+              <th>{t("closeup.table.bondLength")}</th>
+              <th>{t("closeup.table.bondAngle")}</th>
+              <th>{t("closeup.table.source")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown
+              .filter((molecule) => molecule.bondLength !== null)
+              .map((molecule) => (
+                <tr key={molecule.id}>
+                  <td>
+                    {molecule.formula} {t(`closeup.molecules.${molecule.id}`)}
+                  </td>
+                  <td>
+                    {localNumber(molecule.bondLength?.toFixed(3) ?? "")} Å
+                  </td>
+                  <td>
+                    {molecule.bondAngle === null
+                      ? "—"
+                      : `${localNumber(molecule.bondAngle.toFixed(1))}°`}
+                  </td>
+                  <td>
+                    {molecule.sourceUrl ? (
+                      <a
+                        href={molecule.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        NIST CCCBDB
+                      </a>
+                    ) : (
+                      molecule.source
+                    )}
+                  </td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      ) : null}
+      <p className="closeup-sources">
+        {t("closeup.sources", {
+          sources: view.sources.join("; "),
+          radii: elements.O.source.split(";")[0] ?? "",
+        })}
+      </p>
+    </>
+  );
+
   return (
-    <section className="closeup" aria-label={`Close-up: ${view.titleEn}`}>
+    <section
+      className="closeup"
+      aria-label={t("closeup.aria", { title: t(`${base}.title`) })}
+    >
       <header>
         <div>
           <p className="closeup-kicker">
             {variableName} · {reading}
-            {trendLabel ? ` · trend: ${trendLabel}` : ""}
+            {trendLabel
+              ? ` · ${t("closeup.trend", { label: trendLabel })}`
+              : ""}
           </p>
-          <h2>{view.titleEn}</h2>
+          <h2>{t(`${base}.title`)}</h2>
         </div>
         <button type="button" onClick={onClose}>
-          Close
+          {t("common.action.close")}
         </button>
       </header>
       <div className="closeup-canvas">
@@ -86,10 +185,12 @@ export function CloseUpPanel({
           ))}
         </div>
         <p className="closeup-tag">
-          {view.scene === "aerosol"
-            ? "Molecules and the particle edge share one scale; atoms drawn smaller."
-            : SCHEMATIC_NOTE}
-          {prefersReducedMotion() ? " Motion is off (system setting)." : ""}
+          {t(
+            view.scene === "aerosol"
+              ? "closeup.aerosolScale"
+              : "closeup.schematic",
+          )}
+          {prefersReducedMotion() ? ` ${t("closeup.motionOff")}` : ""}
         </p>
       </div>
       <div className="closeup-text">
@@ -98,87 +199,21 @@ export function CloseUpPanel({
             {equation}
           </p>
         ))}
-        <p>{view.textEn}</p>
+        <p>{tm(`${base}.text`)}</p>
         <p>
           {view.scene === "aerosol"
-            ? "The grey surface is the edge of a single particle 100 nm across; this view does not change with the value."
-            : view.valueEn}
-          {reading === "No data" ? " This month has no data." : ""}
+            ? t("closeup.aerosolValue")
+            : t(`${base}.value`)}
+          {hasData ? "" : ` ${t("closeup.noDataMonth")}`}
         </p>
-        {thermal && kelvin !== null ? (
-          <p>
-            At {(kelvin - 273.15).toFixed(1)} °C ({kelvin.toFixed(1)} K): N₂
-            about {Math.round(rmsSpeed(kelvin, molecules.N2.molarMass))} m/s, O₂
-            about {Math.round(rmsSpeed(kelvin, molecules.O2.molarMass))} m/s
-            (root-mean-square speed).
-          </p>
-        ) : null}
-        {usedElements.length > 0 ? (
-          <p className="closeup-legend">
-            {usedElements.map((element) => (
-              <span key={element.symbol}>
-                <i style={{ background: element.cpkColor }} />
-                {element.symbol}
-              </span>
-            ))}
-            {view.scene === "reaction" || view.scene === "photosynthesis" ? (
-              <span>
-                <i style={{ background: PHOTON_COLOR }} />
-                light (hν), drawn as a ball
-              </span>
-            ) : null}
-            <span>
-              CPK colors; spheres at {Math.round(ATOM_RADIUS_FRACTION * 100)}%
-              of van der Waals radius
-            </span>
-          </p>
-        ) : null}
-        {shown.some((molecule) => molecule.bondLength !== null) ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Molecule</th>
-                <th>Bond length</th>
-                <th>Bond angle</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown
-                .filter((molecule) => molecule.bondLength !== null)
-                .map((molecule) => (
-                  <tr key={molecule.id}>
-                    <td>
-                      {molecule.formula} {molecule.nameEn}
-                    </td>
-                    <td>{molecule.bondLength?.toFixed(3)} Å</td>
-                    <td>
-                      {molecule.bondAngle === null
-                        ? "—"
-                        : `${molecule.bondAngle.toFixed(1)}°`}
-                    </td>
-                    <td>
-                      {molecule.sourceUrl ? (
-                        <a
-                          href={molecule.sourceUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          NIST CCCBDB
-                        </a>
-                      ) : (
-                        molecule.source
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        ) : null}
-        <p className="closeup-sources">
-          Sources: {view.sources.join("; ")}. Atom radii:{" "}
-          {elements.O.source.split(";")[0]}.
-        </p>
+        {settings.fullStatistics ? (
+          extra
+        ) : (
+          <details className="trend-details">
+            <summary>{t("common.action.details")}</summary>
+            {extra}
+          </details>
+        )}
       </div>
     </section>
   );

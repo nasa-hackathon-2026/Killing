@@ -1,0 +1,22 @@
+{
+  "controlLabel": "Global distribution",
+  "off": "Distribution: off",
+  "auto": "Follow chart / layers",
+  "unavailable": "{{name}} (no global grid)",
+  "unavailableReason": "No global grid in this site for this variable: only the 7 variables with files in data/grid/ can be drawn as a distribution.",
+  "autoNothing": "Follow chart / layers: no open layer or chart variable has a global grid.",
+  "loading": "Loading the global distribution…",
+  "error": "Could not read the global distribution.",
+  "typical": "Typical {{month}}",
+  "period": "mean of {{start}}–{{end}}",
+  "legendToggle": "Legend",
+  "low": "low",
+  "high": "high",
+  "densityCaption": "Dot density and brightness",
+  "notThisMonth": "Typical month, not this exact month.",
+  "method": "Each calendar month is the mean of that month over {{start}}–{{end}} (monthly climatology). Dot density and brightness follow the value between the 2nd and 98th percentiles of all 12 months; no dots where there is no data.",
+  "noWind": "No wind data: motion is not transport.",
+  "withTrendMap": "The trend map remains underneath; distribution dots are dimmed.",
+  "dataKind": "Data: {{kind}}.",
+  "particleNote": "The glowing dots are a map: typical {{month}} {{variable}}."
+}

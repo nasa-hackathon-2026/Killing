@@ -11,6 +11,7 @@ import {
   type MoleculeId,
 } from "../chemistry/molecules";
 import { trendMark, type TrendSignal } from "../forms/encoding";
+import { getVoice, useI18n } from "../i18n";
 import { prefersReducedMotion } from "../forms/reducedMotion";
 import { companionDrive, moodFor, type CompanionMood } from "./companionData";
 import {
@@ -31,7 +32,8 @@ import {
 import {
   companionFor,
   companionTitle,
-  DATA_KIND_SHORT,
+  companionVariable,
+  dataKindShort,
   type CompanionSpec,
 } from "./companionSpec";
 import "./companions.css";
@@ -89,7 +91,7 @@ function markSignal(
 // The same marks as the layer panel (▲ ▼ solid only after FDR, △ ▽ before
 // FDR only, ◇ not significant), drawn as shapes so no font is needed.
 function TrendGlyph({ signal }: { signal: TrendSignal }) {
-  const label = trendMark(signal).label;
+  const label = trendMark(signal, getVoice()).label;
   const y = 11;
   let shape: ReactNode = null;
   if (signal.state === "rising" || signal.state === "falling") {
@@ -551,6 +553,7 @@ export function Companion({
   className,
 }: CompanionProps) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const { t } = useI18n();
   const spec = companionFor(variableId);
   if (!spec) return null;
   const hasData = value !== null && !Number.isNaN(value);
@@ -591,12 +594,15 @@ export function Companion({
   const eyeY = spec.kind === "gas" ? box.middle - 11 : box.middle - 5;
   const eyeGap = 10.5;
   const grounded = !floats(spec);
-  const label = [spec.tag, DATA_KIND_SHORT[kind]].filter(Boolean).join(" · ");
+  const label = [spec.tag, dataKindShort(kind)].filter(Boolean).join(" · ");
   const viewHeight = showLabel ? VIEW_HEIGHT : VIEW_HEIGHT_BARE;
   const style = {
     "--companion-period": `${drive.period.toFixed(2)}s`,
   } as CSSProperties;
-  const title = `${companionTitle(spec)}: ${spec.variableName}${hasData ? "" : ", no data this month"}`;
+  const title = t(
+    hasData ? "companions.figureTitle" : "companions.figureTitleNoData",
+    { name: companionTitle(spec), variable: companionVariable(spec) },
+  );
 
   return (
     <svg
@@ -743,7 +749,7 @@ export function Companion({
       </g>
       {warning ? (
         <g className="companion-warning">
-          <title>Known problem with this trend</title>
+          <title>{t("companions.cautionTitle")}</title>
           <path
             d="M104 8l9 16h-18z"
             fill={WARNING_COLOR}

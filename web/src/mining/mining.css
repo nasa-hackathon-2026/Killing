@@ -515,3 +515,32 @@ body:has(.mining) {
     content: "Scroll sideways to see the whole network.";
   }
 }
+
+/* Top bar of the sub-pages: back link, language menu, reader mode. */
+.page-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+.page-bar .choice-language {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.page-bar .choice-label {
+  font-size: 12px;
+  opacity: 0.75;
+}
+.page-bar .choice-mode button {
+  padding: 4px 10px;
+  color: inherit;
+  font: inherit;
+  background: rgba(20, 32, 56, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.page-partial {
+  font-size: 13px;
+  opacity: 0.8;
+}
