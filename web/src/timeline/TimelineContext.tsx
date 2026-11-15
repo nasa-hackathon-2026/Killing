@@ -14,6 +14,7 @@ import { requestedChart, requestedMonth, requestedPlay } from "../urlParams";
 import {
   clampIndex,
   nextPlayIndex,
+  playStartIndex,
   parseMonthParam,
   playIntervalMs,
   resolveMonth,
@@ -109,11 +110,13 @@ export function TimelineProvider({
     (delta: number) => setMonthIndex(monthIndex + delta),
     [monthIndex, setMonthIndex],
   );
-  // Pressing play on the last month starts again from the first.
+  // Pressing play in the last PLAY_FROM_START_WITHIN months starts again
+  // from the first (playStartIndex).
   const setPlaying = useCallback(
     (next: boolean) => {
-      if (next && monthIndex >= months.length - 1 && months[0]) {
-        setChosen(months[0]);
+      const start = playStartIndex(monthIndex, months.length);
+      if (next && start !== monthIndex && months[start]) {
+        setChosen(months[start]);
       }
       setPlayingState(next);
     },

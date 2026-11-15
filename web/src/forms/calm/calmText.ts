@@ -37,6 +37,9 @@ export const calmText = {
   get legendArrow() {
     return t("calm.legendArrow");
   },
+  get legendSummary() {
+    return t("calm.legendSummary");
+  },
   get legendScale() {
     return t("calm.legendScale");
   },

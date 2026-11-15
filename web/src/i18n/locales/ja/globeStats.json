@@ -23,6 +23,8 @@
   "trendUnreliable": "Crossed triangle, dashed and faded: not reliable as a climate signal because of a documented trend-affecting data issue",
   "trendNoData": "Grey dot: no result at this place",
   "trendLengthScale": "Length is scaled to the 90th percentile of the changes shown for this variable.",
+  "trendKeyShort": "Arrows: change per decade · filled = significant · outline = not significant · crossed = not reliable",
+  "pausedForTrendMap": "Per-place trend marks are hidden while the global trend map is on, so the two trend pictures do not mix.",
   "gapIntro": "Each disc compares the trend of a model with the trend of a station at one place.",
   "gapHalves": "Left half: model trend. Right half: station trend. Same colour scale.",
   "gapRing": "Outer ring: thicker means the monthly anomalies agree less (1 minus correlation).",
