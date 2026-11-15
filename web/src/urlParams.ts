@@ -5,8 +5,8 @@
 // reads ?month=2015-07 (the month shown), ?play=1 (start playing) and
 // ?chart=gldas_tair (the variable in the time series chart).
 // ?strata=1&at=taipei opens the layer view at a place (`at` is optional).
-// ?field=imerg_precip (or auto, or off) turns on the global distribution
-// (web/src/fields).
+// ?field=imerg_precip (the old global distribution, now part of the trend
+// map) opens the trend map of that variable (web/src/fields/fieldStore.ts).
 // ?particles=calm|lively picks the particle style (forms/calm/particleStyle.ts).
 function param(name: string): string | null {
   if (typeof window === "undefined") return null;

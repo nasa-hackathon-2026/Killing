@@ -7,6 +7,7 @@ import { latLonToVector3 } from "../geo/latLon";
 import { useI18n } from "../i18n";
 import { placeName } from "../i18n/names";
 import type { MockLocation } from "../mock/snapshot";
+import { markerScale } from "./markerScale";
 
 type MarkersProps = {
   locations: MockLocation[];
@@ -18,6 +19,10 @@ type MarkersProps = {
 // the surface, so it stays about the same size on screen.
 const RING_REFERENCE_DISTANCE = 3.2;
 const PULSE_SECONDS = 2.4;
+// Radius of a place's dot at the starting distance, and of the selected one.
+const DOT_RADIUS = 0.011;
+const DOT_SELECTED = 0.013;
+const HALO_RATIO = 1.8;
 const OUTWARD = new Vector3(0, 0, 1);
 
 // A ring around the selected place and its name, so the place the panels
@@ -96,27 +101,65 @@ function SelectedPlace({ location }: { location: MockLocation }) {
   );
 }
 
+// The dot of one place. Its size follows the camera (markerScale), so it
+// gets smaller on screen when the reader zooms in.
+function PlaceDot({
+  location,
+  selected,
+  onSelect,
+}: {
+  location: MockLocation;
+  selected: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const dot = useRef<Mesh>(null);
+  const position = useMemo(() => {
+    const at = latLonToVector3(location.lat, location.lon, 1.008);
+    return new Vector3(at.x, at.y, at.z);
+  }, [location.lat, location.lon]);
+  useFrame(({ camera }) => {
+    dot.current?.scale.setScalar(markerScale(camera.position.length()));
+  });
+  return (
+    <mesh
+      ref={dot}
+      position={position}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect(location.id);
+      }}
+    >
+      <sphereGeometry args={[selected ? DOT_SELECTED : DOT_RADIUS, 16, 16]} />
+      <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
+      {/* A dark halo behind the dot, so it stands out on bright land,
+          clouds and the trend map. */}
+      <mesh renderOrder={-1}>
+        <sphereGeometry
+          args={[(selected ? DOT_SELECTED : DOT_RADIUS) * HALO_RATIO, 16, 16]}
+        />
+        <meshBasicMaterial
+          color="#08101f"
+          transparent
+          opacity={0.6}
+          depthWrite={false}
+        />
+      </mesh>
+    </mesh>
+  );
+}
+
 export function Markers({ locations, selectedId, onSelect }: MarkersProps) {
   const chosen = locations.find((location) => location.id === selectedId);
   return (
     <>
-      {locations.map((location) => {
-        const position = latLonToVector3(location.lat, location.lon, 1.008);
-        const selected = location.id === selectedId;
-        return (
-          <mesh
-            key={location.id}
-            position={[position.x, position.y, position.z]}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(location.id);
-            }}
-          >
-            <sphereGeometry args={[selected ? 0.01 : 0.006, 12, 12]} />
-            <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
-          </mesh>
-        );
-      })}
+      {locations.map((location) => (
+        <PlaceDot
+          key={location.id}
+          location={location}
+          selected={location.id === selectedId}
+          onSelect={onSelect}
+        />
+      ))}
       {chosen ? <SelectedPlace key={chosen.id} location={chosen} /> : null}
     </>
   );

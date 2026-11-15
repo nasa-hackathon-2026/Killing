@@ -1,51 +1,20 @@
-// Which global distribution is on, shared by the control (FieldToggle, in
-// the page) and the dots (GlobalField, inside the canvas) without threading
-// state through App. Starts from ?field= (urlParams.ts) or DEFAULT_FIELD.
+// The global distribution is part of the global trend map (#197): there is
+// one control, and the variable of the trend map is the variable of the dots.
+// The old ?field=<id> still opens the map of that variable (see
+// initialTrendMapId in App); this file only reads it.
 
-import { useSyncExternalStore } from "react";
 import { requestedField } from "../urlParams";
-import { DEFAULT_FIELD, fieldVariable, type FieldMode } from "./fieldConfig";
+import { fieldVariable } from "./fieldConfig";
 
-// "?field=auto", "?field=<id with a grid>" or "?field=off"; anything else
-// falls back to DEFAULT_FIELD.
-export function parseFieldParam(value: string | null): FieldMode {
-  if (value === null) return DEFAULT_FIELD;
-  if (value === "off" || value === "") return null;
-  if (value === "auto") return "auto";
-  return fieldVariable(value) ? value : DEFAULT_FIELD;
+// "?field=<id with a grid>" → that id; "off", "auto" (which followed the
+// chart or an open layer, now gone) and anything else → null.
+export function parseFieldParam(value: string | null): string | null {
+  if (value === null || value === "off" || value === "" || value === "auto") {
+    return null;
+  }
+  return fieldVariable(value) ? value : null;
 }
 
-// The variable drawn: an explicit id as is; "auto" follows the time series
-// chart when its variable has a grid, else the first open layer with one.
-export function resolveField(
-  mode: FieldMode,
-  chartId: string | null,
-  openIds: readonly string[],
-): string | null {
-  if (mode === null) return null;
-  if (mode !== "auto") return fieldVariable(mode) ? mode : null;
-  if (fieldVariable(chartId)) return chartId;
-  return openIds.find((id) => fieldVariable(id)) ?? null;
-}
-
-let mode: FieldMode = parseFieldParam(requestedField());
-const listeners = new Set<() => void>();
-
-export function setFieldMode(next: FieldMode): void {
-  if (next === mode) return;
-  mode = next;
-  for (const listener of listeners) listener();
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-export function useFieldMode(): FieldMode {
-  return useSyncExternalStore(
-    subscribe,
-    () => mode,
-    () => mode,
-  );
+export function requestedFieldVariable(): string | null {
+  return parseFieldParam(requestedField());
 }

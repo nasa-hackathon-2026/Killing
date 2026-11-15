@@ -126,6 +126,9 @@ export function TrendMapLegend({
           {t("trendmap.key.empty")}
         </li>
       </ul>
+      <p className="trendmap-note trendmap-season">
+        {t("trendmap.seasonNote")}
+      </p>
       <label className="trendmap-opacity">
         {t("trendmap.opacity")}
         <input

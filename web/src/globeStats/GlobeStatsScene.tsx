@@ -23,6 +23,7 @@ function FrontFacingButton({
   children,
   onClick,
   style,
+  above = false,
 }: {
   position: [number, number, number];
   lat: number;
@@ -32,6 +33,9 @@ function FrontFacingButton({
   children?: React.ReactNode;
   onClick: () => void;
   style?: React.CSSProperties;
+  // Drawn above the point instead of centred on it, so the place's dot stays
+  // visible (the trend arrows, #197).
+  above?: boolean;
 }) {
   const button = useRef<HTMLButtonElement>(null);
   const normal = useMemo(() => {
@@ -46,7 +50,7 @@ function FrontFacingButton({
   });
 
   return (
-    <Html position={position} center zIndexRange={[0, 0]}>
+    <Html position={position} center={!above} zIndexRange={[0, 0]}>
       <button
         ref={button}
         type="button"
@@ -98,6 +102,7 @@ function TrendMarks({ state }: { state: GlobeStatsState }) {
         position={[position.x, position.y, position.z]}
         lat={glyph.lat}
         lon={glyph.lon}
+        above
         className={`globe-stats-marker globe-trend-marker globe-trend-${glyph.kind}`}
         label={glyph.summary}
         onClick={() => state.onSelectLocation(glyph.placeId)}

@@ -19,6 +19,7 @@ import { useTimeline } from "../timeline/TimelineContext";
 import {
   DOT_SIZE,
   DOT_SIZE_SPREAD,
+  DOT_TREND_DIM_FLOOR,
   FIELD_RADIUS,
   HOT_WHITE,
   MONTH_FOLLOW_RATE,
@@ -36,8 +37,9 @@ import {
   monthBlend,
   nearFarBlend,
 } from "./fieldMapping";
-import { resolveField, useFieldMode } from "./fieldStore";
 import { useField, type FieldData } from "./loadField";
+import type { TrendMap } from "../trendmap/loadTrendMap";
+import { trendDotColors } from "./trendDotColors";
 
 // A soft round glow with a bright core, drawn once.
 function glowTexture(): CanvasTexture | null {
@@ -68,18 +70,18 @@ function glowTexture(): CanvasTexture | null {
 }
 
 type GlobalFieldProps = {
-  // Ids of the layers switched on in the Layers panel ("auto" mode).
-  openIds: readonly string[];
-  // The global trend map is drawn too: dots are dimmed above it.
-  trendMapOn: boolean;
+  // Variable of the global trend map; null = off. The dots are part of that
+  // map (#197): same variable, same colours.
+  id: string | null;
+  // The trend map once loaded: each dot takes the colour of its cell.
+  trendMap: TrendMap | null;
 };
 
-// The global distribution: glowing dots on a shell just above the surface,
-// lit where the monthly climatology of the chosen variable is high.
-export function GlobalField({ openIds, trendMapOn }: GlobalFieldProps) {
-  const mode = useFieldMode();
+// The glowing dots of the global trend map: dots on a shell just above the
+// surface, lit where the monthly climatology of the variable is high and
+// coloured by the trend of the cell they sit on.
+export function GlobalField({ id, trendMap }: GlobalFieldProps) {
   const timeline = useTimeline();
-  const id = resolveField(mode, timeline.selectedVariableId, openIds);
   const state = useField(id);
 
   // Off: the place's particles are left exactly as they were.
@@ -99,7 +101,7 @@ export function GlobalField({ openIds, trendMapOn }: GlobalFieldProps) {
       field={state.field}
       month={calendarMonth(timeline.month)}
       speed={timeline.playing ? timeline.speed : 1}
-      trendMapOn={trendMapOn}
+      trendMap={trendMap}
     />
   );
 }
@@ -108,12 +110,12 @@ function FieldDotsMesh({
   field,
   month,
   speed,
-  trendMapOn,
+  trendMap,
 }: {
   field: FieldData;
   month: number | null;
   speed: number;
-  trendMapOn: boolean;
+  trendMap: TrendMap | null;
 }) {
   const shownMonth = useRef<number | null>(null);
   const strength = useRef(0);
@@ -123,6 +125,11 @@ function FieldDotsMesh({
   const base = useMemo(
     () => new Color(layer ? formColor(layer) : "#ffffff"),
     [layer],
+  );
+
+  const trendColors = useMemo(
+    () => trendDotColors(trendMap, field),
+    [trendMap, field],
   );
 
   const mesh = useMemo(() => {
@@ -192,7 +199,7 @@ function FieldDotsMesh({
     time.current += delta * moving;
     const blend = nearFarBlend(camera.position.length());
     fieldFrame.local = blend.local;
-    const target = blend.field * (trendMapOn ? WITH_TREND_MAP_STRENGTH : 1);
+    const target = blend.field * (trendColors ? WITH_TREND_MAP_STRENGTH : 1);
     strength.current = prefersReducedMotion()
       ? target
       : strength.current +
@@ -231,9 +238,22 @@ function FieldDotsMesh({
             );
       }
       const hot = glow > 0 ? HOT_WHITE * level * level : 0;
-      array[dot * 3] = glow * (base.r + (1 - base.r) * hot);
-      array[dot * 3 + 1] = glow * (base.g + (1 - base.g) * hot);
-      array[dot * 3 + 2] = glow * (base.b + (1 - base.b) * hot);
+      let red = base.r;
+      let green = base.g;
+      let blue = base.b;
+      if (trendColors) {
+        // Trend colour; the dot is dimmer where the trend is weak or not
+        // significant, as the map's own cells are.
+        red = trendColors[dot * 4] ?? red;
+        green = trendColors[dot * 4 + 1] ?? green;
+        blue = trendColors[dot * 4 + 2] ?? blue;
+        glow *=
+          DOT_TREND_DIM_FLOOR +
+          (1 - DOT_TREND_DIM_FLOOR) * (trendColors[dot * 4 + 3] ?? 1);
+      }
+      array[dot * 3] = glow * (red + (1 - red) * hot);
+      array[dot * 3 + 1] = glow * (green + (1 - green) * hot);
+      array[dot * 3 + 2] = glow * (blue + (1 - blue) * hot);
     }
     colors.needsUpdate = true;
   });

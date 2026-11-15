@@ -26,5 +26,6 @@
     "general": "Estompé ne veut pas dire aucun changement. Un changement de capteur ou de produit de données peut aussi créer une fausse tendance.",
     "expert": "Non significatif ne signifie pas absence de changement. Les tendances sont calculées sur une grille d’environ 1° ; des changements de capteur ou de produit peuvent produire des tendances artificielles."
   },
-  "evapUnit": "Affiché en mm/jour (kg m-2 s-1 × 86 400)."
+  "evapUnit": "Affiché en mm/jour (kg m-2 s-1 × 86 400).",
+  "seasonNote": "La luminosité suit la frise temporelle : chaque cellule et chaque point est plus lumineux les mois où sa valeur typique est plus élevée. C’est le cycle saisonnier typique, répété chaque année, et non la valeur de l’année choisie. Les couleurs montrent la tendance de toute la série. Les points ne représentent ni vent ni écoulement."
 }

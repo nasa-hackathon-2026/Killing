@@ -46,7 +46,7 @@ import { EarthCanvas } from "./scene/EarthCanvas";
 import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
-import { FieldToggle } from "./fields/FieldToggle";
+import { requestedFieldVariable } from "./fields/fieldStore";
 import { HudSearch } from "./hud/HudSearch";
 import { useDismissOpenDetails } from "./hud/useDismissOnOutside";
 import { useFieldNote } from "./fields/useFieldNote";
@@ -114,7 +114,12 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
     : initialLayerVisibility(layer.id),
   opacity: 0.75,
 }));
-const initialTrendMap = trendMapVariable(requestedTrendMap())?.id ?? null;
+// ?trendmap=<id>; the old ?field=<id> (the global distribution, now part of
+// the same layer) opens the map of that variable.
+const initialTrendMap =
+  trendMapVariable(requestedTrendMap())?.id ??
+  trendMapVariable(requestedFieldVariable())?.id ??
+  null;
 // ?at=<place id>. The id is checked against the catalogs once they are
 // read (resolvePlaceId); until then it is kept as asked.
 const askedPlace = requestedPlace();
@@ -497,10 +502,7 @@ function AppView({
       : undefined;
 
   // What the particles are, so they are not read as a global map.
-  const openIds = controls
-    .filter((control) => control.visible)
-    .map((control) => control.id);
-  const fieldNote = useFieldNote(openIds);
+  const fieldNote = useFieldNote(trendMapId);
   const particleStyle = useParticleStyle();
   const particleLine = particleNote({
     style: location ? particleStyle : "lively",
@@ -575,6 +577,7 @@ function AppView({
         trendDirections={trendDirections}
         usual={usual}
         trendMap={trendMap.status === "ready" ? trendMap.map : null}
+        trendMapId={trendMapId}
         trendMapOpacity={trendMapOpacity}
         places={places.filter(hasCoordinates)}
         locationId={locationId}
@@ -646,13 +649,6 @@ function AppView({
           onPlace={(id) => selectPlace(id, true)}
           onLayer={showLayer}
         />
-        {strata.phase === "off" ? (
-          <FieldToggle
-            openIds={openIds}
-            trendMapOn={trendMap.status === "ready"}
-            legendHidden={Boolean(closeUpLayer)}
-          />
-        ) : null}
         <button
           type="button"
           className="hud-guide"

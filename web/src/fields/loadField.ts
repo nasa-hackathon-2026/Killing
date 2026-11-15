@@ -24,6 +24,9 @@ export type FieldData = {
   spec: FieldGridSpec;
   range: FieldRange;
   dots: FieldDots;
+  // The 12 monthly climatology layers (nLat × nLon, NaN = no data), which
+  // the trend map overlay follows with the timeline.
+  months: Float32Array[];
 };
 
 async function request(url: string): Promise<Response> {
@@ -79,7 +82,7 @@ export async function loadField(
     MAX_ATTEMPTS_PER_POINT,
     seedOf(id),
   );
-  return { variable, meta, spec, range, dots };
+  return { variable, meta, spec, range, dots, months };
 }
 
 export type FieldState =

@@ -298,12 +298,15 @@ export function calmSlot(index: number, count: number, grid: CalmGrid): Point {
 }
 
 // Size of the whole display for a camera at `distance` from the Earth's
-// center: it shrinks as the camera comes closer, but more slowly than the
-// view does, so zooming in still enlarges it on screen.
+// center. On screen a thing of world size s looks (distance - 1) / s times
+// smaller, so an exponent of 1 would keep it the same on screen; above 1 the
+// display shrinks faster than the view comes closer, so zooming in makes it
+// smaller on screen and the map shows through (#197).
 export const CALM_REFERENCE_DISTANCE = 3.2;
+export const CALM_VIEW_EXPONENT = 1.5;
 export function calmViewScale(distance: number): number {
   const ratio = (distance - 1) / (CALM_REFERENCE_DISTANCE - 1);
-  return Math.pow(Math.min(1.6, Math.max(0.05, ratio)), 0.7);
+  return Math.pow(Math.min(1.6, Math.max(0.05, ratio)), CALM_VIEW_EXPONENT);
 }
 
 // How fast a cluster drifts, from the layer's own speed multiplier

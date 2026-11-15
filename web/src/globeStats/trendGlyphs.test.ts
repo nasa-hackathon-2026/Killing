@@ -52,9 +52,9 @@ function trendsFile(entries: Record<string, TrendEntry>): TrendsFile {
 
 describe("trend glyphs", () => {
   it("draws every outline short, including significant before FDR only", () => {
-    expect(glyphLength(1, "solid")).toBe(46);
-    expect(glyphLength(1, "hollow")).toBe(18);
-    expect(glyphLength(0, "hollow")).toBe(12);
+    expect(glyphLength(1, "solid")).toBe(28);
+    expect(glyphLength(1, "hollow")).toBe(12);
+    expect(glyphLength(0, "hollow")).toBe(8);
     expect(glyphLength(1, "nodata")).toBe(0);
   });
 
