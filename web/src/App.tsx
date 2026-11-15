@@ -161,14 +161,6 @@ function trendMapLabel(variable: { id: string; label: string }): string {
   return product && !name.includes(product) ? `${name} (${product})` : name;
 }
 
-// "Precipitation (GPM IMERG Final)": the variable's name in the active
-// language with the product name, which is not translated.
-function trendMapLabel(variable: { id: string; label: string }): string {
-  const product = /\(([^()]+)\)$/.exec(variable.label)?.[1];
-  const name = variableName(variable.id, variable.label);
-  return product && !name.includes(product) ? `${name} (${product})` : name;
-}
-
 // Loads the snapshot and owns the place; the month, playback and the charted
 // variable live in the timeline context (web/src/timeline/TimelineContext.tsx)
 // so every panel reads the same month.
