@@ -188,7 +188,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **前端的地點清單不寫在程式裡**：`web/src/snapshot/loadSnapshot.ts` 讀兩份目錄檔，台灣 5 點來自核心（`placeIds`），世界地點來自 `data/snapshot/world/catalog.json` 的 `locations`（`group` 是 `world_city` 或 `global`、且有序列的才列）。世界子集不存在時網站只顯示台灣。群組的順序與標題、`?at=` 的解析、無資料的文字在 `web/src/snapshot/places.ts`（`PLACE_GROUPS`、`resolvePlaceId`、`NO_DATA_AT_PLACE`、`placeNote`）。選單本身在 `web/src/layers/LayerPanel.tsx` 最上面（「Values at」）。
 - **世界地點的序列是選到才讀**（`loadPlaceSeries`、`usePlaceSnapshot(locationId)`；一個地點 10 個檔）；趨勢與距平在啟動時各多讀一個檔，`loadTrends`／`loadAnomalies` 把世界子集的 `series` 併進核心的（鍵含地點 id，不會撞）。
 - **聚合方式跟著地點**：`Place.aggregation`（全球平均是 `area_mean_grid`），`App.tsx` 傳給 `TimelineDock`、`CompanionDock` 組趨勢的鍵；新增讀趨勢的元件時不要寫死 `"point"`。
-- **鏡頭**：`web/src/scene/FlyCamera.tsx` 收一個 `FlyTarget`（緯度、經度、距離），沿大圓弧轉過去（重用 `strataCamera.ts` 的 `approachPosition`，不會穿過地球）；「減少動態效果」或 `instant` 時直接到位。從選單選地點會飛；點台灣的標記不飛。12 個世界城市（選單、城市標記、或網址 `?at=`）沿大圓弧滑到該城市，城市在視線軸上、距離用選地點的距離（`web/src/scene/worldCityFrame.ts`）；減少動態效果時直接到位。全球平均沒有座標：沒有標記、不飛、不能進分層視圖（Layer view 鈕停用，分層視圖開著時選單不列 Global）。拖曳旋轉在比預設觀看距離更近時依「目前距離 ÷ 預設距離」變慢（`web/src/scene/orbitSpeed.ts`）；滾輪縮放、飛行動畫與分層視圖的拖曳不走這個係數。
+- **鏡頭**：`web/src/scene/FlyCamera.tsx` 收一個 `FlyTarget`（緯度、經度、距離），沿大圓弧轉過去（重用 `strataCamera.ts` 的 `approachPosition`，不會穿過地球）；「減少動態效果」或 `instant` 時直接到位。從選單選地點會飛；點台灣的標記不飛。12 個世界城市（選單、城市標記、或網址 `?at=`）沿大圓弧滑到該城市，城市在視線軸上、距離用選地點的距離（`web/src/scene/worldCityFrame.ts`）；減少動態效果時直接到位。全球平均沒有座標：沒有標記、不飛、不能進分層視圖（Layer view 鈕停用，分層視圖開著時選單不列 Global）。拖曳旋轉在比預設觀看距離更近時依「（目前距離 ÷ 預設距離）³」變慢（`web/src/scene/orbitSpeed.ts`）；滾輪縮放、飛行動畫與分層視圖的拖曳不走這個係數。
 - **Compare 連結**：`analysis/modelVsObs.ts` 的 `compareLinksFor` 依 `model_vs_obs.json` 找出該地點（或台灣的 `<地點>_station`）有配對的模式變數，圖層面板在該變數旁顯示 "Compare with station"（觀測是 GISTEMP 格點時寫 "Compare with observations"）。
 - **台灣區域平均（#169）**：地點選單在台灣點位之後多一組「Taiwan regions (area means)」（`taiwan`、`north`、`central`、`south`、`east`，`?at=` 與搜尋都找得到）。清單來自核心目錄檔 `kind = "region"` 且有 bbox 與 `area_mean` 序列的地點（`loadSnapshot.ts` 的 `taiwanRegions`），`Place.aggregation` 是 `area_mean`、`lat`／`lon` 是 null（沒有單點）、`bbox` 保留；序列選到才讀（`regionPending`，只讀圖層變數，`modis_*_pc` 不讀），趨勢與距平的鍵是 `<變數>__<區域>__area_mean`。沒有序列的變數（`north` 缺 AIRS 與 OMI 臭氧、氣膠）顯示 "No data at this place"。地球上只畫選定區域的 bbox 細線框與名稱（`scene/RegionFrame.tsx`，純函式在 `geo/regionFrame.ts`：中心、框的頂點、鏡頭距離、bbox 文字）；框是資料取樣範圍，不是國界。選到區域時鏡頭飛到中心、距離剛好看得到整個框（`?at=` 開頁也是）；Calm 粒子的團塊放在 bbox 中心。區域沒有標記、不畫地球上的統計標記、不能進分層視圖（Layer view 停用，比照全球平均）、沒有 Compare 連結。選單下的說明是 `places.note.region`。
 - **不畫國界、不標示國家歸屬**；城市清單照 `data/seed/locations.world.json`，顯示名稱用它的 `name_en`。
@@ -241,7 +241,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
 ## 前端的時間軸與時間序列圖（#99）
-主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
+主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`（面板內容見「前端的調查面板」）。
 
 - **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`SPEED_MIN` 0.5 到 `SPEED_MAX` 12、每格 `SPEED_STEP` 0.5，拉桿、−／+ 與可輸入的數字框共用；輸入值經 `clampSpeed` 取最近的一格；預設 `DEFAULT_SPEED` = 2；手機寬度不顯示 −／+）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板原本的 Month 滑桿也讀寫這個 context。
 - **播放**：provider 裡一個 `setTimeout` 鏈，每 1000 ÷ speed 毫秒前進一個月，到最後一個月自動停；目前月份落在最後 `PLAY_FROM_START_WITHIN`（24）個月內時按播放會從第一個月開始（`playStartIndex`，#165）。粒子圖層本來就在 `useFrame` 裡讀 `intensity`，換月只是換 props，不重建幾何。系統開「減少動態效果」時 `?play=1` 不自動播放（手動按仍可）。鍵盤（`TimelineBar.tsx`）：空白鍵播放／暫停、左右鍵前後一個月；焦點在 input、select、textarea、button、連結上時不攔截。
@@ -252,6 +252,18 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **距平條**（時間軸滑桿上方）：跟著時間序列圖的變數，沒開圖時用第一個開著的圖層；高度除以絕對距平的第 98 百分位數（`STRIP_QUANTILE`）。已知跳變月份來自該序列在 `trends.json` 的 `known_issues` → 最上層 `known_issues[*].break_months`（源頭是 `data/seed/cleaning.json`），圖上與距平條上都畫虛線。`web/src/analysis/trendCaveats.ts` 有警語的變數照樣顯示 `TrendCaveatNote`。
 - **版面**：CSS 類別一律 `timeline-` 前綴，集中在 `index.css` 最後一段；時間軸列的位置與高度是 `.app` 上的 `--timeline-bottom`、`--timeline-height`，其他面板要避開它就用這兩個變數。寬螢幕時圖在左側面板；1180px 以下時間軸列與圖改靠左、讓出右側圖層面板；700px 以下滿寬。和其他面板怎麼並排、分層視圖開著時圖停在哪裡，見上面「首次使用引導與面板停靠」。
 - 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有地點選單裡的地點（台灣 5 點、世界城市、全球平均，見「世界子集與地點選單」）；觸控裝置上沒有 hover，點一下就是跳到該月。
+## 前端的調查面板（#167）
+圖層的 Chart 按鈕（或 `?chart=<變數>`）開的面板，依題目四個問題分成四個編號分頁；`?tab=what|where|howmuch|significant` 直接開到某一頁。程式全在 `web/src/investigation/`，樣式在同目錄的 `investigation.css`（類別 `investigation-` 開頭；面板外框與位置仍是 `index.css` 的 `.timeline-chart`），文字在 i18n 的 `investigation` 命名空間。`TimelineDock` 渲染它並保存分頁、加寬、收合的狀態；原本的 `TimeSeriesPanel.tsx` 不再被渲染。
+
+- **一句話答案**（`answers.ts`）只用 `trendSignal`、`significanceOutcome` 與結果檔的數字組成；不寫原因，「不顯著」不寫成「沒有變化」，不可靠的趨勢用 `unreliable*` 的說法與斜線底色。
+- **變數分組是資料**：`groups.json`（水、熱、空氣、植物），測試檢查每個圖層變數恰好屬於一組；新增圖層變數要加進去。組名是只問不答的問句。
+- **一致性判斷**（`logic.ts` 的 `agreement`）：OLS 的 `significant` 與 Mann-Kendall（Hamed-Rao，沒有 p 時用 Seasonal）的 `significant` 比較（FDR 校正前、同一個 alpha），都顯著且同向、都不顯著算一致，其餘算不一致並顯示提示。2026-11-15：核心 130 條有分析的序列有 15 條不一致、世界子集 128 條有 17 條。
+- **前端只算描述性統計**（`stats.ts`，有測試）：季節循環、以結果檔斜率重建的殘差、穩健標準差與離群月、殘差 ACF、直方圖、逐年平均、區間圖座標、CSV。檢定的 p、q 一律讀自結果檔；ACF 的 lag 1 與結果檔的 `lag1_autocorrelation` 算法不同（後者只配對相鄰無缺口的月份、Pearson r），兩者略有差異是預期的。
+- **FDR 家族**由 `data.ts` 讀兩份結果檔判斷（世界子集的鍵自成一族），家族大小用各檔的 `summary.n_analyzed`。
+- **三種身分**：Everyone 只有主圖與答案、其餘收在 Details；Student 另展開季節循環、定義與「為什麼」；Researcher 全部展開並多出殘差、ACF、直方圖、逐年平均、下載與方法（`Fold.tsx` 依 `fullStatistics`、`readingAid` 決定）。
+- 選地點用 `App.tsx` 傳進 `TimelineDock` 的 `onSelectLocation`（與地點選單同一個 `selectPlace`，世界城市鏡頭會飛過去）。
+- **②的小倍數圖不讀序列檔**：每格只用 `anomalies.json` 與 `trends.json`（啟動時已讀、含核心的台灣點位與區域 `area_mean`、世界子集），所以台灣區域、世界城市不必按需載入；沒有該鍵的地點（例如北區的 AIRS 與 OMI 臭氧、氣膠）顯示 No data。同一比例尺是全部格子絕對距平的第 98 百分位數（`sharedLimit`），超出的月份被裁掉。
+
 ## 資料夥伴（#100）
 主畫面 Layers 面板左邊的「Companions」面板：每個開啟的圖層一隻原創角色，外形由該地點、該月份的資料決定，點一下用一句話說出數字。程式都在 `web/src/companions/`，CSS 在同目錄的 `companions.css`（類別一律 `companion-` 開頭），`App.tsx` 只掛一個 `<CompanionDock />`。網址參數 `?companions=gallery`（12 隻總覽）、`gather`（直接開 Gather）、`collapsed`（收合）。
 

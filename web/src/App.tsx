@@ -827,6 +827,8 @@ function AppView({
         locationName={placeName}
         aggregation={aggregation}
         trends={trendsFile}
+        places={places}
+        onSelectLocation={(id) => selectPlace(id, true)}
       />
       <CompanionDock
         compact={strata.shown}
