@@ -81,7 +81,7 @@
     "particles": "This is {{place}} in {{month}}. The particles show one number per layer for this place and month; they are not a map.",
     "particlesCalm": "This is {{place}} in {{month}}. The cluster above the place shows one number per layer for this month; it is not a map.",
     "what": {
-      "tab": "Tab ① shows my whole record month by month, and my usual cycle through the year. Other measurements of the same group are listed there too."
+      "tab": "Tab ① shows my whole record month by month; Details holds my usual cycle through the year. Other measurements of the same group are listed below."
     },
     "where": {
       "tab": "Tab ② shows the same measurement at many places side by side. Click a box to go to that place.",

@@ -81,7 +81,7 @@
     "particles": "Voici {{place}} en {{month}}. Les particules montrent un nombre par couche pour ce lieu et ce mois ; ce n’est pas une carte.",
     "particlesCalm": "Voici {{place}} en {{month}}. L’amas au-dessus du lieu montre un nombre par couche pour ce mois ; ce n’est pas une carte.",
     "what": {
-      "tab": "L’onglet ① montre toute ma série mois par mois, et mon cycle habituel au fil de l’année. Les autres mesures du même groupe y sont aussi listées."
+      "tab": "L’onglet ① montre toute ma série mois par mois ; mon cycle habituel au fil de l’année est dans « Détails ». Les autres mesures du même groupe sont listées en dessous."
     },
     "where": {
       "tab": "L’onglet ② montre la même mesure en de nombreux lieux, côte à côte. Clique sur une case pour aller à ce lieu.",

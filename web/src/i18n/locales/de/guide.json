@@ -81,7 +81,7 @@
     "particles": "Das ist {{place}} im {{month}}. Die Teilchen zeigen eine Zahl je Ebene für diesen Ort und Monat; sie sind keine Karte.",
     "particlesCalm": "Das ist {{place}} im {{month}}. Der Haufen über dem Ort zeigt eine Zahl je Ebene für diesen Monat; er ist keine Karte.",
     "what": {
-      "tab": "Reiter ① zeigt meine ganze Messreihe Monat für Monat und meinen üblichen Verlauf durchs Jahr. Andere Messungen derselben Gruppe stehen auch dort."
+      "tab": "Reiter ① zeigt meine ganze Messreihe Monat für Monat; unter „Details“ steht mein üblicher Verlauf durchs Jahr. Andere Messungen derselben Gruppe stehen darunter."
     },
     "where": {
       "tab": "Reiter ② zeigt dieselbe Messung an vielen Orten nebeneinander. Klick auf ein Kästchen, um zu diesem Ort zu wechseln.",
