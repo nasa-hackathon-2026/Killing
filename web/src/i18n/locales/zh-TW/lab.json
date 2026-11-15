@@ -1,0 +1,25 @@
+{
+  "title": "形態實驗場",
+  "intro": "一次只看一種粒子形態。這裡的數值是實驗用的，不是量測值。",
+  "back": "地球",
+  "renderer": "繪圖引擎：{{name}}",
+  "control": {
+    "variable": "變數",
+    "value": "數值",
+    "valueAria": "形態的數值",
+    "trend": "趨勢",
+    "play": "播放",
+    "pause": "暫停",
+    "closeUp": "近看",
+    "hideCloseUp": "收起近看"
+  },
+  "trend": {
+    "notSignificant": "不顯著",
+    "rising": "上升，顯著",
+    "falling": "下降，顯著",
+    "insufficient": "資料不足"
+  },
+  "labSuffix": "{{name}}（實驗場）",
+  "labValue": "實驗值 {{value}}",
+  "footer": "流動方向只是示意，沒有風的資料。這裡的數值不是量測值。"
+}

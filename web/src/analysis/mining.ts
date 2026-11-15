@@ -2,6 +2,7 @@
 // `uv run python -m trend_detective.mining` (data/analysis/fpgrowth.json and
 // decision_tree.json). This module only reads, sorts and formats them.
 import { analysisUrl } from "./trends";
+import { localNumber, t } from "../i18n";
 
 export type VariableNames = Record<string, string>;
 
@@ -237,7 +238,9 @@ export function formatRule(rule: Rule, names: VariableNames): string {
 // A decision tree feature: "prev:omi_o3" is last month's value of omi_o3.
 export function formatFeature(feature: string, names: VariableNames): string {
   return feature.startsWith("prev:")
-    ? `${nameOf(feature.slice(5), names)} (previous month)`
+    ? t("mining.format.previousMonthFeature", {
+        name: nameOf(feature.slice(5), names),
+      })
     : nameOf(feature, names);
 }
 
@@ -251,33 +254,34 @@ export function labelTreeText(text: string, names: VariableNames): string {
 }
 
 export function formatQ(q: number): string {
-  return q < 0.001 ? "<0.001" : q.toFixed(3);
+  return localNumber(q < 0.001 ? "<0.001" : q.toFixed(3));
 }
 
 export function formatExcluded(
   item: ExcludedVariable,
   names: VariableNames,
 ): string {
-  return (
-    `${nameOf(item.variable_id, names)} (correlation ` +
-    `${item.correlation.toFixed(3)} with ` +
-    `${nameOf(item.correlated_with, names)}, ${item.n_pairs} location-months)`
-  );
+  return t("mining.format.excluded", {
+    name: nameOf(item.variable_id, names),
+    correlation: localNumber(item.correlation.toFixed(3)),
+    other: nameOf(item.correlated_with, names),
+    pairs: item.n_pairs,
+  });
 }
 
 export function foldVerdict(fold: Fold): string {
   const notAbove = [
-    fold.above_train_majority ? null : "training-majority guess",
-    fold.above_test_majority ? null : "test-majority guess",
-    fold.above_persistence ? null : "persistence guess",
+    fold.above_train_majority ? null : t("mining.format.trainingGuess"),
+    fold.above_test_majority ? null : t("mining.format.testGuess"),
+    fold.above_persistence ? null : t("mining.format.persistenceGuess"),
   ].filter((name) => name !== null);
   return notAbove.length
-    ? `not above: ${notAbove.join(", ")}`
-    : "above all three baselines";
+    ? t("mining.format.notAbove", { names: notAbove.join(", ") })
+    : t("mining.format.aboveAll");
 }
 
 export function formatShare(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
+  return `${localNumber((value * 100).toFixed(1))}%`;
 }
 
 // Clicking the active column flips its direction; a new column starts with
@@ -340,18 +344,20 @@ export function ruleComparisonRows(
 
 // "yes" only when the top rules are the same rules in the same order.
 export function formatTopRules(comparison: RuleComparison): string {
-  if (comparison.top_rules_compared === 0) return "no rules";
-  if (comparison.top_rules_same_order) return "same rules, same order";
-  if (comparison.top_rules_same_set) return "same rules, different order";
-  return "different rules";
+  if (comparison.top_rules_compared === 0) return t("mining.format.noRules");
+  if (comparison.top_rules_same_order) return t("mining.format.sameOrder");
+  if (comparison.top_rules_same_set) return t("mining.format.differentOrder");
+  return t("mining.format.differentRules");
 }
 
 export function formatParameter(value: Parameters[string]): string {
-  if (value === null) return "none";
-  if (typeof value === "boolean") return value ? "yes" : "no";
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "none";
+  if (value === null) return t("mining.format.none");
+  if (typeof value === "boolean")
+    return t(value ? "mining.format.yes" : "mining.format.no");
+  if (Array.isArray(value))
+    return value.length ? value.join(", ") : t("mining.format.none");
   if (typeof value === "number" && !Number.isInteger(value)) {
-    return String(Number(value.toFixed(4)));
+    return localNumber(String(Number(value.toFixed(4))));
   }
   return String(value);
 }

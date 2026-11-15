@@ -1,0 +1,30 @@
+{
+  "loading": "Loading the trend map…",
+  "error": "Could not read the trend map.",
+  "unitLine": "Change per decade ({{unit}} per decade) · {{product}}",
+  "rampAria": "Colour scale from −{{edge}} (falling) to +{{edge}} (rising) {{unit}} per decade",
+  "falling": "falling",
+  "rising": "rising",
+  "key": {
+    "full": {
+      "general": "Strong colour: the change holds up in the statistical tests",
+      "expert": "Full colour: significant after FDR correction"
+    },
+    "faded": {
+      "general": "Faded: no clear change, or only weak evidence",
+      "expert": "Faded: not significant, or significant only before correction"
+    },
+    "empty": "No colour: no data, or not analysed"
+  },
+  "fadeNote": "Colours also fade where the change is close to zero, so the surface shows through.",
+  "opacity": "Opacity",
+  "opacityAria": "Trend map opacity",
+  "summary": "{{share}} of the analysed area shows a change that holds up in the tests ({{first}} to {{last}}).",
+  "periodLine": "Period {{first}} to {{last}} ({{count}} months). Grid {{lat}} × {{lon}}. Significant after FDR correction: {{fdr}} of the analysed area ({{raw}} before correction).",
+  "method": "Method: linear trend of monthly anomalies in each grid cell; t-test adjusted for lag-1 autocorrelation; Benjamini-Hochberg FDR across the map at α = {{alpha}}. The colour range is ± the {{quantile}}th percentile of the absolute cell trends; values beyond it take the end colours.",
+  "warning": {
+    "general": "Faded does not mean no change. A change of sensor or data product can also create a false trend.",
+    "expert": "Not significant does not mean no change. Trends are computed on a ~1° grid; sensor or product changes can cause artificial trends."
+  },
+  "evapUnit": "Shown as mm/day (kg m-2 s-1 × 86,400)."
+}

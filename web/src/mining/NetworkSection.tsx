@@ -11,6 +11,7 @@ import {
   type VariableGraphFile,
 } from "../analysis/miningPlus";
 import { MethodDetails } from "./parts";
+import { useI18n } from "../i18n";
 
 const WIDTH = 1000;
 const ROW_HEIGHT = 108;
@@ -38,6 +39,7 @@ function product(name: string): string {
 }
 
 export function NetworkSection({ file }: { file: VariableGraphFile }) {
+  const { t } = useI18n();
   const [tableId, setTableId] = useState("region");
   const [lag, setLag] = useState<"all" | 0 | 1>("all");
   const [activeEdge, setActiveEdge] = useState<number | null>(null);
@@ -96,21 +98,20 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
 
   return (
     <section id="network" aria-labelledby="network-title">
-      <h2 id="network-title">Variable network</h2>
+      <h2 id="network-title">{t("mining.sections.network")}</h2>
       <p className="asks">
-        <strong>What this asks:</strong> which pairs of variables tend to be
-        above or below normal in the same month, or one month apart?
+        <strong>{t("mining.label.asks")}</strong> {t("mining.network.asks")}
       </p>
       <p className="note">
-        <strong>Method and limits:</strong> {file.note} Each line is a
-        correlation that stays below q = {file.parameters.alpha} after a
-        correction for month-to-month persistence and for the number of pairs
-        tested. Two products of the same quantity (for example two air
-        temperature products) are not compared with each other.
+        <strong>{t("mining.label.method")}</strong>{" "}
+        {t("mining.network.method", {
+          note: file.note,
+          alpha: file.parameters.alpha,
+        })}
       </p>
       <div className="controls">
         <label>
-          Table{" "}
+          {t("mining.control.table")}{" "}
           <select
             value={tableId}
             onChange={(event) => {
@@ -121,13 +122,15 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
           >
             {Object.keys(file.tables).map((id) => (
               <option key={id} value={id}>
-                {id === "point" ? "Taiwan points" : "Taiwan regions"}
+                {id === "point"
+                  ? t("mining.control.taiwanPoints")
+                  : t("mining.control.taiwanRegions")}
               </option>
             ))}
           </select>
         </label>
         <label>
-          Timing{" "}
+          {t("mining.control.timing")}{" "}
           <select
             value={String(lag)}
             onChange={(event) => {
@@ -136,9 +139,9 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
               setActiveEdge(null);
             }}
           >
-            <option value="all">same month and one month apart</option>
-            <option value="0">same month only</option>
-            <option value="1">one month apart only</option>
+            <option value="all">{t("mining.control.bothTimings")}</option>
+            <option value="0">{t("mining.control.sameMonthOnly")}</option>
+            <option value="1">{t("mining.control.oneMonthApartOnly")}</option>
           </select>
         </label>
       </div>
@@ -292,19 +295,23 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
         )}
       </div>
 
-      <h3>The same lines as a table</h3>
+      <h3>{t("mining.network.tableTitle")}</h3>
       <div className="scroll tall">
         <table>
           <thead>
             <tr>
-              <th>First variable</th>
-              <th>Second variable</th>
-              <th>Timing</th>
-              <th className="number">r</th>
-              <th className="number">r by location</th>
-              <th className="number">q</th>
-              <th className="number">Effective sample size</th>
-              <th>Documented data issue</th>
+              <th>{t("mining.network.column.first")}</th>
+              <th>{t("mining.network.column.second")}</th>
+              <th>{t("mining.network.column.timing")}</th>
+              <th className="number">{t("mining.network.column.r")}</th>
+              <th className="number">
+                {t("mining.network.column.rByLocation")}
+              </th>
+              <th className="number">{t("mining.network.column.q")}</th>
+              <th className="number">
+                {t("mining.network.column.nEffective")}
+              </th>
+              <th>{t("mining.network.column.issue")}</th>
             </tr>
           </thead>
           <tbody>
@@ -326,19 +333,21 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
         </table>
       </div>
       {edges.length === 0 ? (
-        <p className="note">No pair is below the limit with this setting.</p>
+        <p className="note">
+          {t("mining.extra.no_pair_is_below_the_limit_with_this_setting")}
+        </p>
       ) : null}
 
-      <h3>Variables</h3>
+      <h3>{t("mining.network.variablesTitle")}</h3>
       <div className="scroll">
         <table>
           <thead>
             <tr>
-              <th>Variable</th>
-              <th>Kind of data</th>
-              <th className="number">Linked variables</th>
-              <th className="number">Group</th>
-              <th>Documented data issues</th>
+              <th>{t("mining.network.column.variable")}</th>
+              <th>{t("mining.network.column.kind")}</th>
+              <th className="number">{t("mining.network.column.linked")}</th>
+              <th className="number">{t("mining.network.column.group")}</th>
+              <th>{t("mining.network.column.issues")}</th>
             </tr>
           </thead>
           <tbody>
@@ -385,13 +394,17 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
             <table>
               <thead>
                 <tr>
-                  <th>First variable</th>
-                  <th>Second variable</th>
-                  <th>Timing</th>
-                  <th className="number">Cities below the limit</th>
-                  <th className="number">Positive / negative</th>
-                  <th>Same sign</th>
-                  <th className="number">Median r (range)</th>
+                  <th>{t("mining.network.column.first")}</th>
+                  <th>{t("mining.network.column.second")}</th>
+                  <th>{t("mining.network.column.timing")}</th>
+                  <th className="number">
+                    {t("mining.network.column.citiesBelow")}
+                  </th>
+                  <th className="number">{t("mining.network.column.signs")}</th>
+                  <th>{t("mining.network.column.sameSign")}</th>
+                  <th className="number">
+                    {t("mining.network.column.medianR")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -432,7 +445,7 @@ export function NetworkSection({ file }: { file: VariableGraphFile }) {
               <dd>{text}</dd>
             </div>
           ))}
-          <dt>pairs not compared</dt>
+          <dt>{t("mining.extra.pairs_not_compared")}</dt>
           <dd>
             {table.excluded_pairs
               .map(

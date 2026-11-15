@@ -1,7 +1,8 @@
 import { useEffect } from "react";
+import { useI18n } from "../i18n";
 import type { StripBar } from "./seriesMath";
 import { useTimeline } from "./TimelineContext";
-import { monthLabel, speedLabel, TIMELINE_SPEEDS } from "./timelineMath";
+import { monthLabel, TIMELINE_SPEEDS } from "./timelineMath";
 
 type TimelineBarProps = {
   // Anomaly strip above the slider: one bar per month of `stripName`.
@@ -38,6 +39,7 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
     speed,
     setSpeed,
   } = useTimeline();
+  const { t, tm } = useI18n();
 
   // Space plays or pauses, the arrow keys step one month. Keys typed into a
   // form control (or pressed on a focused button or link) are left alone.
@@ -65,13 +67,13 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
   const count = months.length;
 
   return (
-    <section className="timeline-bar" aria-label="Timeline">
+    <section className="timeline-bar" aria-label={t("timeline.aria")}>
       <div className="timeline-row">
         <button
           type="button"
           className="timeline-play"
-          aria-label={playing ? "Pause" : "Play"}
-          title="Play or pause (Space)"
+          aria-label={t(playing ? "timeline.pause" : "timeline.play")}
+          title={t("timeline.playTitle")}
           onClick={() => setPlaying(!playing)}
         >
           {playing ? "❚❚" : "▶"}
@@ -79,13 +81,17 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
         <p className="timeline-now" aria-live="off">
           <strong>{label.year}</strong> {label.name}
         </p>
-        <div className="timeline-speed" role="group" aria-label="Speed">
+        <div
+          className="timeline-speed"
+          role="group"
+          aria-label={t("timeline.speed")}
+        >
           {TIMELINE_SPEEDS.map((value) => (
             <button
               key={value}
               type="button"
               aria-pressed={speed === value}
-              title={speedLabel(value)}
+              title={t("timeline.speedTitle", { count: value })}
               onClick={() => setSpeed(value)}
             >
               {value}×
@@ -95,14 +101,14 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
         <button
           type="button"
           className="timeline-latest"
-          title="Back to the latest month most layers have"
+          title={t("timeline.latestTitle")}
           disabled={!defaultMonth || defaultMonth === month}
           onClick={() => {
             setPlaying(false);
             if (defaultMonth) setMonth(defaultMonth);
           }}
         >
-          Latest
+          {t("timeline.latest")}
         </button>
       </div>
       <div className="timeline-track">
@@ -112,7 +118,9 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
             viewBox={`0 0 ${count} 2`}
             preserveAspectRatio="none"
             role="img"
-            aria-label={`Monthly anomalies of ${stripName ?? "the selected layer"}`}
+            aria-label={t("timeline.strip.aria", {
+              name: stripName ?? t("timeline.strip.ariaFallback"),
+            })}
           >
             <line
               className="timeline-strip-zero"
@@ -158,7 +166,7 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
           max={count - 1}
           step={1}
           value={monthIndex}
-          aria-label="Timeline month"
+          aria-label={t("timeline.slider")}
           aria-valuetext={month.slice(0, 7)}
           onChange={(event) => setMonthIndex(Number(event.target.value))}
         />
@@ -166,13 +174,14 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
           <span>{months[0]?.slice(0, 7)}</span>
           {strip.length > 0 && stripName ? (
             <span className="timeline-strip-key">
-              <i className="timeline-strip-high" /> above /{" "}
-              <i className="timeline-strip-low" /> below the calendar-month
-              mean: {stripName}
+              <i className="timeline-strip-high" /> {t("timeline.strip.above")}{" "}
+              / <i className="timeline-strip-low" />{" "}
+              {tm("timeline.strip.below", { name: stripName })}
               {breaks.length > 0 ? (
                 <>
                   {" "}
-                  · <i className="timeline-strip-break" /> documented step
+                  · <i className="timeline-strip-break" />{" "}
+                  {tm("timeline.strip.step")}
                 </>
               ) : null}
             </span>

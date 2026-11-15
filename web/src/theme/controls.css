@@ -1,0 +1,552 @@
+/* Themed controls (#132): scrollbars, checkboxes, radios, sliders, selects,
+   details arrows, selection and focus, for the main page and the three
+   sub-pages. Every rule uses element and attribute selectors, so a control
+   added later is styled without adding a class. Each entry (main.tsx,
+   mining-main.tsx, compare-main.tsx, lab-main.tsx) imports this file once.
+
+   Colors are the variables below; they were taken from the values index.css
+   already used. A light surface (the companion speech bubble) overrides them
+   locally. Contrast on the page background #0b1220 (WCAG): text 16.0,
+   muted 10.8, accent 10.6, control border 7.3, focus ring 13.0, scrollbar
+   thumb 4.5 (idle) to 8.7 (dragging). */
+:root {
+  --ctl-bg: #0b1220;
+  --ctl-surface: rgba(8, 14, 28, 0.72);
+  --ctl-menu: #0f1a2e;
+  --ctl-text: #e8eef7;
+  --ctl-muted: #b7c6da;
+  --ctl-border: rgba(255, 255, 255, 0.22);
+  --ctl-border-strong: #8fa3bd;
+  --ctl-accent: #8ec8ff;
+  --ctl-accent-strong: #cfe3ff;
+  --ctl-on-accent: #0b1220;
+  --ctl-focus: #ffd166;
+  --ctl-track: rgba(255, 255, 255, 0.26);
+  --ctl-scroll-size: 10px;
+  --ctl-scroll-thumb: rgba(142, 200, 255, 0.6);
+  --ctl-scroll-thumb-hover: rgba(142, 200, 255, 0.7);
+  --ctl-scroll-thumb-active: rgba(142, 200, 255, 0.9);
+  --ctl-scroll-track: transparent;
+  --ctl-selection: #2b5c8a;
+  --ctl-radius: 6px;
+
+  /* Lets the browser draw its own parts (the open select list, date pickers,
+     native tooltips) dark as well. */
+  color-scheme: dark;
+}
+
+/* The companion speech bubble is a light card. */
+.companion-bubble {
+  --ctl-border-strong: #4c5d70;
+  --ctl-accent: #1f5f99;
+  --ctl-accent-strong: #10202e;
+  --ctl-on-accent: #f4f8fd;
+  --ctl-focus: #10202e;
+  --ctl-track: rgba(16, 32, 46, 0.3);
+  --ctl-scroll-thumb: rgba(16, 32, 46, 0.45);
+  --ctl-scroll-thumb-hover: rgba(16, 32, 46, 0.65);
+  --ctl-scroll-thumb-active: rgba(16, 32, 46, 0.85);
+}
+
+/* ---- Scrollbars ---------------------------------------------------------
+   Chromium 121+ ignores every ::-webkit-scrollbar rule on an element whose
+   scrollbar-width or scrollbar-color is not `auto`. The standard properties
+   cannot round the thumb or style hover and drag, so they are given only to
+   browsers without ::-webkit-scrollbar (Firefox). Chromium and Safari take
+   the pseudo-elements below. Checked in Chromium, Firefox and WebKit. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--ctl-scroll-thumb) var(--ctl-scroll-track);
+  }
+
+  .companion-bubble {
+    scrollbar-color: var(--ctl-scroll-thumb) var(--ctl-scroll-track);
+  }
+
+  * {
+    scrollbar-width: thin;
+  }
+}
+
+::-webkit-scrollbar {
+  width: var(--ctl-scroll-size);
+  height: var(--ctl-scroll-size);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--ctl-scroll-track);
+}
+
+/* The transparent border leaves a 6px thumb inside a 10px grab area. */
+::-webkit-scrollbar-thumb {
+  background-color: var(--ctl-scroll-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ctl-scroll-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--ctl-scroll-thumb-active);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* The page scrollbar of the sub-pages sits on the page background. */
+html {
+  background: var(--ctl-bg);
+}
+
+/* Panels whose content switches between short and long keep the scrollbar
+   slot, so the text does not reflow when the bar appears. Where the slot is
+   known to be --ctl-scroll-size wide (a mouse, and ::-webkit-scrollbar), the
+   right padding gives that width back, so the panel has no extra blank edge:
+   12px padding = 2px + the 10px slot. */
+.layers:not(.layers-collapsed),
+.timeline-chart,
+.trendmap {
+  scrollbar-gutter: stable;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  @supports selector(::-webkit-scrollbar) {
+    .app > .layers:not(.layers-collapsed),
+    .app > .timeline-chart,
+    .app > .trendmap {
+      padding-right: calc(12px - var(--ctl-scroll-size));
+    }
+  }
+}
+
+/* ---- Focus, selection, placeholder -------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--ctl-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #ffffff;
+  background: var(--ctl-selection);
+}
+
+::placeholder {
+  color: var(--ctl-muted);
+  opacity: 1;
+}
+
+/* Text fields: none on the site yet; these are the defaults for new ones. */
+:where(
+  input:not([type]),
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="date"],
+  input[type="month"],
+  textarea
+) {
+  padding: 4px 8px;
+  color: var(--ctl-text);
+  font: inherit;
+  background: var(--ctl-surface);
+  border: 1px solid var(--ctl-border-strong);
+  border-radius: var(--ctl-radius);
+}
+
+/* ---- Checkboxes and radio buttons ---------------------------------------
+   Drawn here: a thin box, filled with the accent when checked. A row can set
+   --layer-color to use its own color. */
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin: 0 2px;
+  vertical-align: -3px;
+  background: var(--ctl-surface);
+  border: 1.5px solid var(--ctl-border-strong);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+}
+
+/* The mark: a tick cut from a square, or a dot. */
+input[type="checkbox"]::before,
+input[type="radio"]::before {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  background: var(--ctl-on-accent);
+  transform: scale(0);
+  transition: transform 0.12s;
+}
+
+input[type="checkbox"]::before {
+  clip-path: polygon(12% 52%, 26% 38%, 42% 54%, 76% 18%, 90% 32%, 42% 82%);
+}
+
+input[type="radio"]::before {
+  inset: 3px;
+  border-radius: 50%;
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked,
+input[type="checkbox"]:indeterminate {
+  background: var(--layer-color, var(--ctl-accent));
+  border-color: var(--layer-color, var(--ctl-accent));
+}
+
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:indeterminate::before {
+  inset: 5.5px 2.5px;
+  clip-path: none;
+  transform: scale(1);
+}
+
+input[type="checkbox"]:not(:disabled):hover,
+input[type="radio"]:not(:disabled):hover,
+label:hover > input[type="checkbox"]:not(:disabled),
+label:hover > input[type="radio"]:not(:disabled) {
+  border-color: var(--ctl-accent-strong);
+  box-shadow: 0 0 0 3px rgba(142, 200, 255, 0.22);
+}
+
+input[type="checkbox"]:checked:not(:disabled):hover,
+input[type="radio"]:checked:not(:disabled):hover,
+label:hover > input[type="checkbox"]:checked:not(:disabled),
+label:hover > input[type="radio"]:checked:not(:disabled) {
+  background: var(--ctl-accent-strong);
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* The label is part of the click target: at least 24px high. */
+label:has(> input[type="checkbox"]),
+label:has(> input[type="radio"]) {
+  min-height: 24px;
+  cursor: pointer;
+}
+
+label:has(> input:disabled) {
+  cursor: not-allowed;
+}
+
+/* ---- Sliders -------------------------------------------------------------
+   A 4px track and a 16px round thumb; the input stays 16px high, the height
+   of the native control, so no panel changes size. Firefox paints
+   the part already passed with ::-moz-range-progress. WebKit and Chromium
+   have no such pseudo-element: there the thumb paints the whole track as its
+   own border-image (accent to its left, track color to its right), which the
+   input clips with overflow: hidden. No inline style or script is needed. */
+input[type="range"] {
+  appearance: none;
+  box-sizing: border-box;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: var(--ctl-accent);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 16px;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  background: var(--ctl-accent);
+  border-radius: 50%;
+  border-image: linear-gradient(
+      90deg,
+      var(--ctl-accent) 50%,
+      var(--ctl-track) 0
+    )
+    0 1 / calc(50% - 2px) 100vw / 0 100vw;
+  box-shadow: inset 0 0 0 1.5px var(--ctl-on-accent);
+  transition:
+    background-color 0.12s,
+    box-shadow 0.12s;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--ctl-track);
+  border-radius: 2px;
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 4px;
+  background: var(--ctl-accent);
+  border-radius: 2px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  background: var(--ctl-accent);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--ctl-on-accent);
+  transition:
+    background-color 0.12s,
+    box-shadow 0.12s;
+}
+
+input[type="range"]:not(:disabled):hover::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  background: var(--ctl-accent-strong);
+}
+
+input[type="range"]:not(:disabled):hover::-moz-range-thumb,
+input[type="range"]:focus-visible::-moz-range-thumb {
+  background: var(--ctl-accent-strong);
+}
+
+/* Dragging: a light core inside an accent ring. */
+input[type="range"]:not(:disabled):active::-webkit-slider-thumb {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 4px var(--ctl-accent);
+}
+
+input[type="range"]:not(:disabled):active::-moz-range-thumb {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 4px var(--ctl-accent);
+}
+
+input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ---- Selects -------------------------------------------------------------
+   The closed control gets its own arrow. The two :not() raise the
+   specificity above the `background` shorthands in index.css and mining.css,
+   which would otherwise remove the arrow. The 28px of right padding and the
+   1.3 line height keep the size Chromium gave the native control, so the
+   HUD row and the sub-page filter rows do not wrap. */
+:where(select) {
+  color: var(--ctl-text);
+  background-color: var(--ctl-surface);
+  border: 1px solid var(--ctl-border);
+  border-radius: var(--ctl-radius);
+  cursor: pointer;
+}
+
+select:not([multiple]):not([size]) {
+  appearance: none;
+  padding-right: 28px;
+  line-height: 1.3;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%23b7c6da' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 12px 8px;
+  text-overflow: ellipsis;
+}
+
+select:not([multiple]):not(:disabled):hover,
+select:not([multiple]):not(:disabled):focus-visible,
+select:not([multiple]):not(:disabled):open {
+  border-color: var(--ctl-accent-strong);
+}
+
+select:not([multiple]):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* The open list is drawn by the browser. Chromium and Firefox on Windows and
+   Linux take these colors; macOS and mobile lists follow color-scheme. */
+select option,
+select optgroup {
+  color: var(--ctl-text);
+  background-color: var(--ctl-menu);
+}
+
+select optgroup {
+  color: var(--ctl-muted);
+  font-style: normal;
+  font-weight: 600;
+}
+
+select option:disabled {
+  color: #7f8da3;
+}
+
+/* ---- Buttons and link buttons -------------------------------------------
+   The panels already give buttons one look; these add the states that were
+   missing. .strata-label keeps its colored left edge. */
+button:not(:disabled):not(.strata-label):hover,
+.hud a:hover,
+a.closeup-open:hover,
+.hud summary:hover {
+  border-color: var(--ctl-accent-strong);
+}
+
+button:not(:disabled):active,
+.hud a:active,
+a.closeup-open:active {
+  filter: brightness(1.25);
+}
+
+:where(button:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ---- details / summary ---------------------------------------------------
+   A drawn chevron replaces the browser triangle and turns when open. The
+   More menu (.hud-more) keeps the mark index.css gives it. */
+details:not(.hud-more) > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details:not(.hud-more) > summary::-webkit-details-marker {
+  display: none;
+}
+
+details:not(.hud-more) > summary::before {
+  content: "";
+  display: inline-block;
+  box-sizing: border-box;
+  width: 0.5em;
+  height: 0.5em;
+  margin: 0 0.6em 0.12em 0.15em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+details:not(.hud-more)[open] > summary::before {
+  transform: translateY(-0.1em) rotate(45deg);
+}
+
+details:not(.hud-more) > summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+details > summary:focus-visible {
+  border-radius: 3px;
+}
+
+/* ---- Wide tables on the sub-pages ----------------------------------------
+   An edge shadow shows there is more to scroll sideways; it disappears at
+   each end (the page-colored covers scroll with the content). */
+.mining .scroll {
+  background:
+    linear-gradient(to right, var(--ctl-bg) 40%, rgba(11, 18, 32, 0)) left
+      center / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--ctl-bg) 40%, rgba(11, 18, 32, 0)) right
+      center / 28px 100% no-repeat local,
+    linear-gradient(to right, rgba(142, 200, 255, 0.3), rgba(142, 200, 255, 0))
+      left center / 12px 100% no-repeat scroll,
+    linear-gradient(to left, rgba(142, 200, 255, 0.3), rgba(142, 200, 255, 0))
+      right center / 12px 100% no-repeat scroll;
+}
+
+/* ---- Preferences ---------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="checkbox"]::before,
+  input[type="radio"]::before,
+  details:not(.hud-more) > summary::before {
+    transition: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    transition: none;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    transition: none;
+  }
+}
+
+/* Windows high contrast: hand the drawn parts back to the system. */
+@media (forced-colors: active) {
+  :root {
+    --ctl-focus: Highlight;
+  }
+
+  html,
+  .companion-bubble {
+    scrollbar-color: auto;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: ButtonText;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  select:not([multiple]):not([size]) {
+    appearance: auto;
+    overflow: visible;
+    background-image: none;
+  }
+
+  input[type="checkbox"]::before,
+  input[type="radio"]::before {
+    display: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: auto;
+    border-image: none;
+    box-shadow: none;
+  }
+
+  select:not([multiple]):not([size]) {
+    padding-right: 8px;
+  }
+
+  details:not(.hud-more) > summary::before {
+    border-color: CanvasText;
+  }
+
+  .mining .scroll {
+    background: none;
+  }
+
+  ::selection {
+    color: HighlightText;
+    background: Highlight;
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "title": "Form lab",
+  "intro": "Try each particle form by itself. Lab values are not measurements.",
+  "back": "Earth",
+  "renderer": "Renderer: {{name}}",
+  "control": {
+    "variable": "Variable",
+    "value": "Value",
+    "valueAria": "Form value",
+    "trend": "Trend",
+    "play": "Play",
+    "pause": "Pause",
+    "closeUp": "Close-up",
+    "hideCloseUp": "Hide close-up"
+  },
+  "trend": {
+    "notSignificant": "Not significant",
+    "rising": "Rising, significant",
+    "falling": "Falling, significant",
+    "insufficient": "Insufficient data"
+  },
+  "labSuffix": "{{name}} (lab)",
+  "labValue": "lab value {{value}}",
+  "footer": "Flow direction is illustrative; no wind data. Lab values are not measurements."
+}

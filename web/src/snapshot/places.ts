@@ -4,6 +4,9 @@
 // `uv run python -m trend_detective.world_export`). Names and coordinates
 // are read from the catalogs; nothing here says which country a place is in.
 
+import { t, tm, type Voice } from "../i18n";
+import { placeName } from "../i18n/names";
+
 export type PlaceGroup = "taiwan" | "world_city" | "global";
 
 // Order and headings of the place menu.
@@ -61,11 +64,25 @@ export function resolvePlaceId(asked: string | null, places: Place[]): string {
 
 // A sentence under the place menu for places whose numbers are not a point
 // value. States the method only.
-export function placeNote(place: Place | undefined): string | null {
+export function placeNote(
+  place: Place | undefined,
+  voice?: Voice,
+): string | null {
   if (place?.aggregation === "area_mean_grid") {
-    return "Mean of the whole global grid, weighted by cos(latitude), land and ocean together where the product covers both. Not a point value.";
+    return tm("places.note.globalMean", undefined, voice);
   }
   return null;
 }
 
-export const NO_DATA_AT_PLACE = "No data at this place";
+// The place's name in the active language (the catalog's English name when
+// the `places` namespace does not list it).
+export function displayPlaceName(place: {
+  id: string;
+  nameEn: string;
+}): string {
+  return placeName(place.id, place.nameEn);
+}
+
+export function placeGroupLabel(id: PlaceGroup): string {
+  return t(`places.groups.${id}`);
+}

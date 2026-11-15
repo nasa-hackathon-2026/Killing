@@ -1,3 +1,4 @@
+import { monthName } from "../i18n";
 // Month arithmetic and playback steps of the timeline. Months are the
 // snapshot's "YYYY-MM-01" strings; pure functions only.
 
@@ -8,12 +9,6 @@ export const TIMELINE_SPEEDS = [0.5, 2, 6] as const;
 // Milliseconds the player waits before advancing one month.
 export function playIntervalMs(monthsPerSecond: number): number {
   return 1000 / monthsPerSecond;
-}
-
-// Tooltip for a speed button, e.g. "0.5 months per second".
-export function speedLabel(monthsPerSecond: number): string {
-  const noun = monthsPerSecond === 1 ? "month" : "months";
-  return `${monthsPerSecond} ${noun} per second`;
 }
 
 // Months since year 0, so two months can be subtracted.
@@ -62,24 +57,7 @@ export function resolveMonth(
   return months.at(-1) ?? null;
 }
 
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
+// The year and the short month name in the active language.
 export function monthLabel(month: string): { year: string; name: string } {
-  return {
-    year: month.slice(0, 4),
-    name: MONTH_NAMES[Number(month.slice(5, 7)) - 1] ?? "",
-  };
+  return { year: month.slice(0, 4), name: monthName(month, "short") };
 }

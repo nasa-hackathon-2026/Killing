@@ -2,6 +2,8 @@
 // (data/analysis/trends.json). This module only reads and formats them; it
 // does not compute or interpret anything.
 
+import { localNumber, t, type Voice } from "../i18n";
+
 export type TestResult = {
   p: number | null;
   p_fdr: number | null;
@@ -62,6 +64,9 @@ export type TrendSummary = {
   headline: string;
   significance: string;
   period: string | null;
+  // The plain line of the general voice ("About +0.21 °C per decade"); null
+  // when no trend was analyzed.
+  plain: string | null;
 };
 
 export function analysisUrl(file: string): string {
@@ -120,11 +125,11 @@ export function deltaUnit(unit: string): string {
 }
 
 function formatter(unit: string, values: number[]): (value: number) => string {
-  if (deltaUnit(unit) === "°C") return (value) => value.toFixed(2);
+  if (deltaUnit(unit) === "°C") return (value) => localNumber(value.toFixed(2));
   const largest = Math.max(...values.map((value) => Math.abs(value)));
   if (largest === 0) return () => "0";
   if (largest >= 1e5 || largest < 0.001) {
-    return (value) => value.toExponential(2);
+    return (value) => localNumber(value.toExponential(2));
   }
   const digits =
     largest >= 100
@@ -138,7 +143,7 @@ function formatter(unit: string, values: number[]): (value: number) => string {
             : largest >= 0.01
               ? 4
               : 5;
-  return (value) => value.toFixed(digits);
+  return (value) => localNumber(value.toFixed(digits));
 }
 
 function signed(text: string, value: number): string {
@@ -155,31 +160,81 @@ export function formatChangePerDecade(
 ): string {
   const format = formatter(unit, [slope, ...interval]);
   const suffix = deltaUnit(unit) === "" ? "" : ` ${deltaUnit(unit)}`;
-  const level = Math.round((1 - alpha) * 100);
-  return (
-    `${signed(format(slope), slope)}${suffix} per decade ` +
-    `(${level}% CI ${format(interval[0])} to ${format(interval[1])})`
+  return t("trend.change.expert", {
+    slope: `${signed(format(slope), slope)}${suffix}`,
+    level: Math.round((1 - alpha) * 100),
+    low: format(interval[0]),
+    high: format(interval[1]),
+  });
+}
+
+// The slope alone with its unit, at the same precision as the full line, so
+// the plain wording never shows a different number: "+0.21 °C". `sign`
+// false gives the size only ("0.21 °C"), for sentences that say the
+// direction in words.
+export function formatSlope(
+  slope: number,
+  interval: [number, number],
+  unit: string,
+  sign = true,
+): string {
+  const format = formatter(unit, [slope, ...interval]);
+  const suffix = deltaUnit(unit) === "" ? "" : ` ${deltaUnit(unit)}`;
+  const text = sign ? signed(format(slope), slope) : format(Math.abs(slope));
+  return `${text}${suffix}`;
+}
+
+// "About +0.21 °C per decade": the plain line of the general voice.
+export function formatChangePlain(
+  slope: number,
+  interval: [number, number],
+  unit: string,
+): string {
+  return t("trend.change.general", {
+    slope: formatSlope(slope, interval, unit),
+  });
+}
+
+export type SignificanceOutcome =
+  | "notComputed"
+  | "notSignificant"
+  | "fdr"
+  | "rawOnly"
+  | "unreliableFdr"
+  | "unreliableRawOnly";
+
+// Which of the six wordings a test result gets. Raw means after the lag-1
+// autocorrelation correction, FDR after Benjamini-Hochberg as well.
+// `unreliable`: the series has a documented issue that affects trends
+// (trendReliability.ts). The statistical fact stays; its reading is limited.
+export function significanceOutcome(
+  test: TestResult,
+  unreliable = false,
+): SignificanceOutcome {
+  if (test.significant === null) return "notComputed";
+  if (!test.significant) return "notSignificant";
+  if (unreliable)
+    return test.significant_fdr ? "unreliableFdr" : "unreliableRawOnly";
+  return test.significant_fdr ? "fdr" : "rawOnly";
+}
+
+// The wording of the linear trend's t-test, with the statistical terms by
+// default; `voice` "general" gives the plain sentence for the same outcome.
+export function significanceText(
+  test: TestResult,
+  unreliable = false,
+  voice: Voice = "expert",
+): string {
+  return t(
+    `trend.significance.${significanceOutcome(test, unreliable)}.${voice}`,
   );
 }
 
-// Wording follows the linear trend's t-test: raw means after the lag-1
-// autocorrelation correction, FDR means after Benjamini-Hochberg as well.
-// `unreliable`: the series has a documented issue that affects trends
-// (trendReliability.ts). The statistical fact stays; its reading is limited.
-export function significanceText(test: TestResult, unreliable = false): string {
-  if (test.significant === null) return "test could not be computed";
-  if (!test.significant) {
-    return "not significant after autocorrelation correction";
-  }
-  if (unreliable) {
-    return test.significant_fdr
-      ? "statistically significant, but not reliable as a climate signal: see caution"
-      : "significant before FDR correction only, and not reliable as a climate signal: see caution";
-  }
-  if (test.significant_fdr) {
-    return "significant after autocorrelation and FDR correction";
-  }
-  return "significant after autocorrelation correction, not after FDR correction";
+export function formatPeriod(first: string, last: string): string {
+  return t("trend.period", {
+    first: first.slice(0, 7),
+    last: last.slice(0, 7),
+  });
 }
 
 export function summarizeTrend(
@@ -190,9 +245,10 @@ export function summarizeTrend(
   if (!entry) return null;
   if (entry.status === "insufficient") {
     return {
-      headline: "Trend not analyzed",
+      headline: t("trend.notAnalyzed.expert"),
       significance: entry.reason.text_en,
       period: null,
+      plain: null,
     };
   }
   return {
@@ -203,7 +259,12 @@ export function summarizeTrend(
       alpha,
     ),
     significance: significanceText(entry.ols, unreliable),
-    period: `${entry.data.first_month.slice(0, 7)} to ${entry.data.last_month.slice(0, 7)}`,
+    period: formatPeriod(entry.data.first_month, entry.data.last_month),
+    plain: formatChangePlain(
+      entry.ols.slope_per_decade,
+      entry.ols.ci_per_decade,
+      entry.unit,
+    ),
   };
 }
 

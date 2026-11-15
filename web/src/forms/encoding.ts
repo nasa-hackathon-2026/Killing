@@ -1,9 +1,7 @@
 // How a value and a trend become what a form draws. Pure functions; the
 // per-variable numbers they read live in formMapping.ts.
-import {
-  trendUnreliable,
-  UNRELIABLE_TREND_LABEL,
-} from "../analysis/trendReliability";
+import { trendUnreliable } from "../analysis/trendReliability";
+import { getVoice, t, type Voice } from "../i18n";
 import type { TrendEntry } from "../analysis/trends";
 import { clampUnit, MAX_FORM_PARTICLES, particleCount } from "./particleField";
 
@@ -104,34 +102,64 @@ export function trendSignal(
     : signal;
 }
 
+// The eleven cases a trend label is written for (trend.label.* in the
+// message files). Both voices word the same case, so they cannot disagree.
+export type TrendCase =
+  | "rising"
+  | "falling"
+  | "risingRawOnly"
+  | "fallingRawOnly"
+  | "notSignificant"
+  | "unreliableRising"
+  | "unreliableFalling"
+  | "unreliableRisingRawOnly"
+  | "unreliableFallingRawOnly"
+  | "insufficient"
+  | "unavailable";
+
+export function trendCase(signal: TrendSignal): TrendCase {
+  if (signal.state === "rising" || signal.state === "falling") {
+    const direction = signal.state === "rising" ? "Rising" : "Falling";
+    if (signal.unreliable) {
+      return `unreliable${direction}${signal.fdr ? "" : "RawOnly"}`;
+    }
+    return signal.fdr ? signal.state : `${signal.state}RawOnly`;
+  }
+  if (signal.state === "not-significant") return "notSignificant";
+  return signal.state;
+}
+
+// The label next to a trend mark: plain words in the general voice
+// ("Rising", "No clear change in this record", "Number not reliable"), the
+// statistical wording in the expert voice.
+export function trendLabel(
+  signal: TrendSignal,
+  voice: Voice = getVoice(),
+): string {
+  return t(`trend.label.${trendCase(signal)}.${voice}`);
+}
+
 export type TrendMark = { glyph: string; label: string };
 
+const GLYPHS: Record<TrendState, [string, string]> = {
+  rising: ["▲", "△"],
+  falling: ["▼", "▽"],
+  "not-significant": ["◇", "◇"],
+  insufficient: ["·", "·"],
+  unavailable: ["", ""],
+};
+
 // The unreliable mark is drawn as a shape (analysis/TrendMarkIcon.tsx); its
-// glyph here is only the text fallback.
-export function trendMark(signal: TrendSignal): TrendMark {
-  if (signal.unreliable) {
-    const direction = signal.state === "rising" ? "rising" : "falling";
-    return {
-      glyph: "⚠",
-      label: `${UNRELIABLE_TREND_LABEL} (${direction}, ${signal.fdr ? "statistically significant" : "significant before FDR only"})`,
-    };
-  }
-  switch (signal.state) {
-    case "rising":
-      return signal.fdr
-        ? { glyph: "▲", label: "Rising, significant" }
-        : { glyph: "△", label: "Rising, significant before FDR only" };
-    case "falling":
-      return signal.fdr
-        ? { glyph: "▼", label: "Falling, significant" }
-        : { glyph: "▽", label: "Falling, significant before FDR only" };
-    case "not-significant":
-      return { glyph: "◇", label: "Not significant" };
-    case "insufficient":
-      return { glyph: "·", label: "Insufficient data" };
-    case "unavailable":
-      return { glyph: "", label: "No trend result" };
-  }
+// glyph here is only the text fallback. The label is the expert wording
+// unless a voice is given.
+export function trendMark(
+  signal: TrendSignal,
+  voice: Voice = "expert",
+): TrendMark {
+  return {
+    glyph: signal.unreliable ? "⚠" : GLYPHS[signal.state][signal.fdr ? 0 : 1],
+    label: trendLabel(signal, voice),
+  };
 }
 
 // +1 points away from the Earth, -1 towards it, 0 draws no arrows.

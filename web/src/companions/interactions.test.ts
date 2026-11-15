@@ -14,6 +14,7 @@ describe("interactionsFor", () => {
         effect: "drip",
         litId: null,
         note: "Vapor above Rain: a drop passes down.",
+        key: "vaporRain",
       },
     ]);
   });

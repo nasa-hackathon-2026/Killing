@@ -8,7 +8,6 @@ import {
   parseMonthParam,
   playIntervalMs,
   resolveMonth,
-  speedLabel,
   TIMELINE_SPEEDS,
 } from "./timelineMath";
 
@@ -19,11 +18,6 @@ describe("playback speeds", () => {
     expect(playIntervalMs(0.5)).toBe(2000);
     expect(playIntervalMs(2)).toBe(500);
     expect(playIntervalMs(6)).toBeCloseTo(1000 / 6);
-    expect(TIMELINE_SPEEDS.map(speedLabel)).toEqual([
-      "0.5 months per second",
-      "2 months per second",
-      "6 months per second",
-    ]);
   });
 });
 

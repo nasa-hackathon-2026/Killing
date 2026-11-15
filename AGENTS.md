@@ -48,6 +48,8 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 測試（全部）：`npm test --prefix web`
 - 測試（單檔）：`npm test --prefix web -- src/path/to/file.test.ts`
 
+修改網站文案、讀者身分或翻譯時，先讀 `docs/i18n/translation-guide.md`；訊息檔與鍵檢查在 `web/src/i18n/`。
+
 ## 如何重新產生資料
 靜態快照在 `data/snapshot/`（`catalog.json` 加 `series/*.json`，統一格式見 #4），會進 git；公開 demo 只讀這些檔。
 
@@ -205,6 +207,15 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **近看的文字標籤**：`web/src/closeup/labels.ts` 的 `labelingPainter` 包住 `Painter`，script 不用改：每畫一個分子就記一個化學式標籤、光子記 `hν`，同一種最多 `MAX_LABELS_PER_KIND` 個、全部最多 `MAX_CLOSEUP_LABELS` 個。標籤是疊在 canvas 上的 HTML（`CloseUpPanel` 的 `.closeup-labels`），每一幀由 `CloseUpScene` 投影定位，「減少動態效果」時照樣顯示。沒有分子的檢視（土壤水）沒有標籤。
 - **界線**：沒有風向資料，流動方向一律是示意（畫面上有註明）；趨勢箭頭只在 `trends.json` 判定顯著時出現；系統開啟「減少動態效果」時動畫停在靜止畫面（`web/src/forms/reducedMotion.ts`）。月份滑桿預設是「最多圖層有值的最近月份」（`bestDefaultMonth`）。
 
+### 粒子樣式 Calm（#133）
+地球主畫面的粒子有兩種樣式：原本的 Lively（粒子散佈整顆地球）與 Calm（每個開啟的圖層在選定地點上方聚成一團）。程式都在 `web/src/forms/calm/`；分層視圖、近看檢視、Form lab、資料夥伴不受影響。
+
+- **預設值只有一處**：`particleStyle.ts` 的 `DEFAULT_PARTICLE_STYLE`（目前 `lively`）。實際樣式依序取網址 `?particles=calm|lively`、`localStorage` 的 `estd-particle-style`、預設值（`resolveParticleStyle`，純函式）。各元件用 `useParticleStyle()` 讀（canvas 內外同一個值），切換鈕是 `ParticleStyleToggle.tsx`（`LayerPanel` 只掛一行）。
+- **數值對應是純函式**（`calmMath.ts`，有測試），用的是和 Lively 相同的正規化數值（`intensityAt`）：`calmUnits` 把 0–1 對到 1–`CALM_MAX_UNITS`（25）個單位（有資料的月份至少 `CALM_MIN_UNITS` 個，沒有資料是 0）；`calmSplit` 每 `CALM_GROUP_SIZE`（5）個合成一顆大的；`calmLayout` 決定每個單位的位置（先排大的、再排零散的，單位編號固定，所以 4 → 5 時是同樣五顆靠攏）；`calmRadius` 是色盤半徑（面積正比於單位數，`CALM_PACKING`）；`usualIntensity` 是「同一個日曆月整段紀錄的平均」的正規化數值（重用 `companionData.ts` 的 `monthlyAnomaly`，沒有值的月份也算得出來），`calmUsualRadius` 把它畫成白色參考圈，和色盤同一個比例尺；`approach` 是月份之間的平滑過渡；`calmGrid`／`calmSlot` 決定多個圖層怎麼排（依 `formMapping.ts` 高度帶由低到高、由下往上排；寬螢幕往左長，避開右側面板）；`calmDriftSpeed` 把形態的速度對應壓到很窄的慢速範圍。要調單位數、進位、大小、排列就改這個檔的常數。
+- **畫法**在 `CalmClusters.tsx`：整組顯示永遠面向鏡頭、大小隨鏡頭距離調整（`calmViewScale`），浮在地點上方並有一條細線連到地點標記；單位沿用該形態的遠看形狀與 `formColor`（`calmGeometry.ts`）；大顆是深色圓底上的五顆；無資料的月份只剩虛線圈；顯著且可靠的趨勢（`trendDirection` 不為 0）在團塊右側畫一個朝上或朝下的三角。`prefers-reduced-motion` 時不漂浮，月份改變時直接到位。
+- **掛載點**：`EarthCanvas.tsx` 的 `Scene` 在樣式為 Calm 且選定地點有座標時畫 `<CalmLayers />`，並把 `calm` 傳給 `GlassParticleLayer`（玻璃殼、粒子、趨勢箭頭淡出）。全球平均沒有座標，維持 Lively。`App.tsx` 多算一個 `usual`（每層的 `usualIntensity`）傳進去。
+- **文字集中在 `calmText.ts`**（切換鈕、圖例、粒子說明那一行在 Calm 下的說法；`guide/particleNote.ts` 依 `style` 選用），元件不寫死字串。
+
 ## 前端的首次使用引導與面板停靠（#105）
 主畫面的開始卡片、範例與 HUD。程式在 `web/src/guide/`（CSS 類別一律 `guide-` 開頭），`App.tsx` 只掛一個 `<GuideCard />` 與一段 HUD。
 
@@ -224,6 +235,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
   平台上只站角色，名稱在滑鼠移上或鍵盤聚焦時才出現（左欄已經列了每個變數與數值）。左欄標籤的位置由 `strataLayout.ts` 的 `stackLabelTops` 決定（純函式，有測試）：對齊各層高度、不壓到圖例、彼此不重疊、不超過 `labelCeiling`（寬螢幕是左下角出處文字的上緣，其他是時間軸列的上緣）。趨勢地圖的圖例在分層視圖開著時隱藏（地球被蓋住）；收合的 Companions 只留標題與 + 鈕（一排頭像會壓到最上面的平台）。
 - **無障礙**：`index.css` 最上面的 `:focus-visible` 給所有控制項同一個焦點框，不要在個別元件把 outline 拿掉；新的互動元素用 `<button>`、`<a>`、`<details>`，不要用可點的 `<div>`。
+- **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
 ## 前端的時間軸與時間序列圖（#99）
 主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
@@ -277,8 +289,16 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **顏色強度隨變化量（#81）**：每格的不透明度再乘上 `changeStrength`（`trendGrid.ts`，純函式）：斜率 0 時是 `ZERO_CHANGE_STRENGTH`（0.4），到 ±L 以上是 1，中間線性；顏色本身不變。顯著與不顯著乘同一個係數，所以同樣的斜率下顯著格子永遠是不顯著的 1 ÷ `NOT_SIGNIFICANT_ALPHA` 倍。原因是色階中間近白，而 `WebGPURenderer` 在線性光下混色（#81 實測：全白格子在不透明度 0.4 疊在深色海面上約 185／255，以 sRGB 數值混色會是約 120），淺色格子會蓋住陸地。係數大於 0，有分析但沒變化的格子仍然有畫，和缺值不同；代價是不顯著又近零的格子很淡。圖例有一句說明。
 - **讀檔與上色是純函式**（`trendGrid.ts`，有測試）：`trendGridSpec` 從 `meta.json` 讀網格與兩個趨勢圖層，排列方式或編碼和預期不同就丟錯而不猜；`decodeSlopes`／`decodeSignificance`、`symmetricLimit`、`paintTrendMap`。`loadTrendMap.ts` 抓三個檔，`useTrendMap.ts` 是 hook。
 - **對位**：`TrendMapOverlay.tsx` 用一塊只涵蓋該網格範圍的球面（`gridSpherePatch`：由網格的南緣、西緣、列數、行數與間距算 `SphereGeometry` 的 phi／theta 範圍），一個格子一個 texel、`NearestFilter`、`DataTexture` 不翻轉（第一列是最南邊）。所以 GLDAS（60°S 起）、MERRA-2（1.25° 經度、西緣 −180.3125）不必另外處理。測試檢查這塊球面每個頂點的 UV 換回經緯度後與 `latLonToVector3` 一致。新增網格不同的變數時，照 `meta.json` 的 `grid` 就會對上；改 `geo/latLon.ts` 的慣例時這裡要跟著改。
-- **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES`（`meta.json`、`trend_slope_per_decade.i16`、`trend_significance.u8`），7 個變數共約 1.3 MB；逐年平均與月氣候值（共約 30 MB）不進 `dist`，開發伺服器也不提供。之後前端要讀其他圖層，就把檔名加進這個清單。
+- **建置只帶需要的檔**：`web/snapshot-static.ts` 的 `GRID_FILES` 提供趨勢圖與全球分布需要的 metadata、趨勢斜率、顯著性、月氣候值；逐年平均不進 `dist`。新增前端圖層時才擴充這個清單。
 - 已知限制：不畫國界；色階範圍各變數自己取，不同變數的顏色深淺不能互比；全球都有值的變數（AIRS、MERRA-2、IMERG）會蓋住大部分底圖，預設不透明度因此是 0.4（#77），顏色強度再隨變化量調淡（#81，見上）；之後 MERRA-2、AIRS 看得出海岸線與陸地，MERRA-2 顯著升溫的區域仍有一層淡紅，要看得更清楚就把圖例的 Opacity 再調低；沒有點選格子看數值的功能。
+
+## 前端的全球分布（#134）
+
+- `?field=<變數 id>` 顯示七個既有格點變數的月氣候值；預設關閉，`field=off` 關閉，`field=auto` 跟隨圖表或第一個有格點的開啟圖層。控制與映射設定在 `web/src/fields/fieldConfig.ts`。
+- 圖例必須保留「典型月份，不是這個年月的實際值」與平均期間。月份跟隨時間軸，所有年份重複同一組十二個月；原始時間軸是 `YYYY-MM-01`，不是只有年月。
+- 密度與亮度共用十二個月的 2%–98% 分位範圍，再套各變數的 gamma；格子等權。缺值不畫，最低有效值仍有少量微光。點位依球面面積均勻抽樣、維持固定位置，沒有風場或輸送的意義。
+- 遠看凸顯全球點、近看凸顯地點粒子；減少動態效果時直接切月、停止閃爍。趨勢圖可同時顯示，全球點會調淡；分層視圖隱藏全球圖例。
+- 修改讀檔或座標時跑 `web/src/fields/fieldGrid.test.ts`；修改密度、月份插值或遠近混合時跑 `fieldMapping.test.ts`。這個功能只讀既有靜態格點，不重算或下載資料。
 
 ## SQLite 匯出
 同一批資料的另一種形式，給隊員與評審用 SQL 查；公開 demo 不讀它。

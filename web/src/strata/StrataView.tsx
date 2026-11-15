@@ -4,11 +4,12 @@
 // nothing is computed or interpreted here.
 import { Canvas } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
+import { TrendBlock } from "../analysis/TrendBlock";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
-import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
 import type { TrendSignal } from "../forms/encoding";
+import { monthYear, useI18n } from "../i18n";
+import { variableName } from "../i18n/names";
 import type { LayerControl } from "../layers/LayerPanel";
 import { layerRegistry } from "../layers/registry";
 import { CompanionSlot } from "./companionSlot";
@@ -29,12 +30,14 @@ import {
   type StrataOrbit,
 } from "./StrataScene";
 import {
-  COLUMN_TOTAL_NOTE,
+  columnTotalNote,
   flowNote,
   strata,
   strataAssignments,
-  STRATA_NOTES,
+  strataNotes,
   stratum,
+  stratumHeight,
+  stratumName,
   variablesOf,
   type StratumId,
 } from "./strataSpec";
@@ -45,7 +48,11 @@ type StrataViewProps = {
   closing: boolean;
   onClosed: () => void;
   onExit: () => void;
+  // `nameEn` is the name to show (already in the active language).
   place: { nameEn: string; lat: number; lon: number };
+  // The stratum a guided tour wants expanded; undefined leaves the choice
+  // to the visitor.
+  focus?: StratumId | null;
   // The month of the Month slider (see useCurrentMonth).
   month: string | null;
   controls: LayerControl[];
@@ -59,8 +66,9 @@ type StrataViewProps = {
 };
 
 function nameOf(variableId: string): string {
-  return (
-    layerRegistry.find((layer) => layer.id === variableId)?.nameEn ?? variableId
+  return variableName(
+    variableId,
+    layerRegistry.find((layer) => layer.id === variableId)?.nameEn,
   );
 }
 
@@ -77,7 +85,9 @@ export function StrataView({
   anomalyZ,
   trends,
   signals,
+  focus,
 }: StrataViewProps) {
+  const { t } = useI18n();
   const month = useCurrentMonth(appMonth);
   const chartOpen = useChartOpen();
   // The three notes of the legend start open where there is room for them
@@ -87,7 +97,15 @@ export function StrataView({
       typeof window === "undefined" ||
       (window.innerWidth > MEDIUM_WIDTH && window.innerHeight >= 800),
   );
-  const [selected, setSelected] = useState<StratumId | null>(null);
+  const [selected, setSelected] = useState<StratumId | null>(focus ?? null);
+  // A tour step moves the expanded stratum; the visitor can still change it.
+  const [lastFocus, setLastFocus] = useState(focus);
+  if (focus !== lastFocus) {
+    setLastFocus(focus);
+    if (focus !== undefined) setSelected(focus);
+  }
+  const notes = strataNotes();
+  const when = month ? monthYear(month, "short") : null;
   const orbit = useRef<StrataOrbit>({
     azimuth: DEFAULT_AZIMUTH,
     depression: DEFAULT_DEPRESSION,
@@ -171,7 +189,7 @@ export function StrataView({
   return (
     <section
       className={closing ? "strata strata-closing" : "strata"}
-      aria-label="Layer view"
+      aria-label={t("strata.title")}
     >
       <div className="strata-canvas" onPointerDown={drag} onWheel={wheel}>
         <Canvas
@@ -206,9 +224,9 @@ export function StrataView({
             onClick={() => setSelected(selected === item.id ? null : item.id)}
           >
             <span className="strata-label-head">
-              <strong>{item.nameEn}</strong>
-              {item.heightEn ? (
-                <span className="strata-height">{item.heightEn}</span>
+              <strong>{stratumName(item.id)}</strong>
+              {stratumHeight(item.id) ? (
+                <span className="strata-height">{stratumHeight(item.id)}</span>
               ) : null}
             </span>
             {variablesOf(item.id).map((variableId) => (
@@ -262,40 +280,45 @@ export function StrataView({
       </div>
       <header className="strata-header" ref={register("header")}>
         <p className="strata-title">
-          Layer view · {place.nameEn}
+          {t("strata.title")} · {place.nameEn}
           {month ? ` · ${month.slice(0, 7)}` : ""}
           <button type="button" onClick={onExit} disabled={closing}>
-            Back to the globe
+            {t("strata.back")}
           </button>
         </p>
-        {openCount === 0 ? (
-          <p>
-            No layer is switched on: tick one in the Layers panel to see it
-            here.
-          </p>
-        ) : null}
+        {openCount === 0 ? <p>{t("strata.noLayer")}</p> : null}
         <details open={notesOpen}>
-          <summary>{STRATA_NOTES[0]} About this view</summary>
+          <summary>
+            {notes[0]} {t("strata.about")}
+          </summary>
           <p>
-            {STRATA_NOTES.slice(1).join(" ")} Drag to turn, scroll to zoom,
-            click a layer for its numbers.
+            {notes[1]} {notes[2]} {t("strata.controls")}
           </p>
         </details>
       </header>
       {chosen ? (
-        <aside className="strata-detail" aria-label={`${chosen.nameEn} values`}>
+        <aside
+          className="strata-detail"
+          aria-label={t("strata.valuesAria", { name: stratumName(chosen.id) })}
+        >
           <header>
             <div>
-              <h2>{chosen.nameEn}</h2>
-              {chosen.heightEn ? <p>{chosen.heightEn}</p> : null}
+              <h2>{stratumName(chosen.id)}</h2>
+              {stratumHeight(chosen.id) ? (
+                <p>{stratumHeight(chosen.id)}</p>
+              ) : null}
             </div>
             <button type="button" onClick={() => setSelected(null)}>
-              Close
+              {t("common.action.close")}
             </button>
           </header>
           <p className="strata-detail-note">
-            Values at {place.nameEn}
-            {month ? `, ${month.slice(0, 7)}` : ""}. {STRATA_NOTES[0]}
+            {t("strata.valuesAt", {
+              where: when
+                ? t("places.placeMonth", { place: place.nameEn, month: when })
+                : place.nameEn,
+            })}{" "}
+            {notes[0]}
           </p>
           <ul>
             {variablesOf(chosen.id).map((variableId) => {
@@ -304,7 +327,6 @@ export function StrataView({
               );
               const trend = trends?.[variableId];
               const signal = signals?.[variableId];
-              const caveat = trend ? trendCaveat(variableId) : null;
               return (
                 <li key={variableId}>
                   <p className="strata-detail-name">
@@ -312,18 +334,13 @@ export function StrataView({
                     {signal ? <TrendMarkIcon signal={signal} /> : null}
                     <b>{readings[variableId] ?? ""}</b>
                   </p>
-                  {trend ? (
-                    <p className="trend">
-                      {trend.headline}
-                      <span>
-                        {trend.significance}
-                        {trend.period ? ` · ${trend.period}` : ""}
-                      </span>
-                    </p>
-                  ) : null}
-                  {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
+                  <TrendBlock
+                    variableId={variableId}
+                    trend={trend}
+                    signal={signal}
+                  />
                   {assignment?.columnTotal ? (
-                    <p className="strata-detail-note">{COLUMN_TOTAL_NOTE}</p>
+                    <p className="strata-detail-note">{columnTotalNote()}</p>
                   ) : null}
                   {assignment?.flowsTo ? (
                     <p className="strata-detail-note">
@@ -331,9 +348,7 @@ export function StrataView({
                     </p>
                   ) : null}
                   {open(variableId) ? null : (
-                    <p className="strata-detail-note">
-                      Switched off in the Layers panel; no particles drawn.
-                    </p>
+                    <p className="strata-detail-note">{t("strata.off")}</p>
                   )}
                 </li>
               );
@@ -341,8 +356,10 @@ export function StrataView({
           </ul>
           {arriving.map((row) => (
             <p key={row.variableId} className="strata-detail-note">
-              {nameOf(row.variableId)} is listed under &quot;
-              {stratum(row.stratum)?.nameEn}&quot;.{" "}
+              {t("strata.listedUnder", {
+                name: nameOf(row.variableId),
+                stratum: stratumName(row.stratum),
+              })}{" "}
               {flowNote(row.stratum, chosen.id)}
             </p>
           ))}
@@ -360,9 +377,10 @@ export function StrataHint({
   placeName: string;
   onEnter: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <button type="button" className="strata-hint" onClick={onEnter}>
-      Enter layer view at {placeName}
+      {t("strata.hint", { place: placeName })}
     </button>
   );
 }
