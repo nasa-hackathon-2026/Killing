@@ -36,10 +36,14 @@ export function nextDockNarration(
   after: NarrationState,
   selectedId: string | null,
   shownIds: string[],
-  options: { enabled: boolean; collapsed: boolean },
+  options: { enabled: boolean; collapsed: boolean; compact: boolean },
 ): { speaker: string | null; expand: boolean } {
   const placeChanged = before.locationId !== after.locationId;
-  if (!options.enabled || (options.collapsed && !placeChanged)) {
+  if (
+    !options.enabled ||
+    options.compact ||
+    (options.collapsed && !placeChanged)
+  ) {
     return { speaker: null, expand: false };
   }
   const speaker = nextNarration(before, after, selectedId, shownIds);

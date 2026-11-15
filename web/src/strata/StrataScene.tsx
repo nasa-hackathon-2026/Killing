@@ -31,6 +31,7 @@ import {
   FOCUS_ZOOM,
   posePosition,
   HUD_RESERVE,
+  COMPANION_TOP_RESERVE,
   insetView,
   labelCeiling,
   viewInsets,
@@ -414,10 +415,12 @@ export function StrataScene({
         const row = rows.get(item.id);
         return row ? [{ id: item.id, row }] : [];
       });
-      const chip = document.querySelector(".companion-dock");
+      const chip = document.querySelector(".companion-dock-collapsed");
       const rowFloor = Math.max(
         HUD_RESERVE,
-        chip ? chip.getBoundingClientRect().bottom + ROW_BELOW_CHIP : 0,
+        chip
+          ? chip.getBoundingClientRect().bottom + ROW_BELOW_CHIP
+          : COMPANION_TOP_RESERVE,
       );
       const base = viewInsets(size.width, size.height, chartOpen);
       const rowCeiling = size.height - base.bottom;
