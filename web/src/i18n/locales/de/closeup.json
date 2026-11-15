@@ -1,112 +1,112 @@
 {
-  "aria": "Close-up: {{title}}",
-  "kicker": "{{name}} at {{where}}",
-  "trend": "trend: {{label}}",
-  "schematic": "Schematic, not to scale.",
-  "aerosolScale": "Molecules and the particle edge share one scale; atoms drawn smaller.",
-  "motionOff": "Motion is off (system setting).",
-  "aerosolValue": "The grey surface is the edge of a single particle 100 nm across; this view does not change with the value.",
-  "noDataMonth": "This month has no data.",
-  "thermal": "At {{celsius}} °C ({{kelvin}} K): N₂ about {{n2}} m/s, O₂ about {{o2}} m/s (root-mean-square speed).",
-  "light": "light (hν), drawn as a ball",
-  "cpk": "CPK colors; spheres at {{percent}}% of van der Waals radius",
+  "aria": "Nahansicht: {{title}}",
+  "kicker": "{{name}}, {{where}}",
+  "trend": "Trend: {{label}}",
+  "schematic": "Schematisch, nicht maßstäblich.",
+  "aerosolScale": "Moleküle und der Teilchenrand haben einen gemeinsamen Maßstab; Atome sind kleiner gezeichnet.",
+  "motionOff": "Bewegung ist aus (Systemeinstellung).",
+  "aerosolValue": "Die graue Fläche ist der Rand eines einzelnen Teilchens von 100 nm Durchmesser; diese Ansicht ändert sich nicht mit dem Wert.",
+  "noDataMonth": "Für diesen Monat gibt es keine Daten.",
+  "thermal": "Bei {{celsius}} °C ({{kelvin}} K): N₂ etwa {{n2}} m/s, O₂ etwa {{o2}} m/s (quadratisches Mittel der Geschwindigkeit).",
+  "light": "Licht (hν), als Kugel gezeichnet",
+  "cpk": "CPK-Farben; Kugeln mit {{percent}}% des Van-der-Waals-Radius",
   "table": {
-    "molecule": "Molecule",
-    "bondLength": "Bond length",
-    "bondAngle": "Bond angle",
-    "source": "Source"
+    "molecule": "Molekül",
+    "bondLength": "Bindungslänge",
+    "bondAngle": "Bindungswinkel",
+    "source": "Quelle"
   },
-  "sources": "Sources: {{sources}}. Atom radii: {{radii}}.",
+  "sources": "Quellen: {{sources}}. Atomradien: {{radii}}.",
   "molecules": {
-    "H2O": "Water",
-    "NO2": "Nitrogen dioxide",
-    "O3": "Ozone",
-    "N2": "Nitrogen",
-    "O2": "Oxygen",
-    "CO2": "Carbon dioxide",
-    "NO": "Nitric oxide",
-    "O": "Oxygen atom"
+    "H2O": "Wasser",
+    "NO2": "Stickstoffdioxid",
+    "O3": "Ozon",
+    "N2": "Stickstoff",
+    "O2": "Sauerstoff",
+    "CO2": "Kohlenstoffdioxid",
+    "NO": "Stickstoffmonoxid",
+    "O": "Sauerstoffatom"
   },
   "views": {
     "water-evaporation": {
-      "title": "Evaporation: water molecules leave the surface",
+      "title": "Verdunstung: Wassermoleküle verlassen die Oberfläche",
       "text": {
-        "general": "Water molecules that move fast enough escape from a wet surface into the air. Plants release water too.",
-        "expert": "Molecules at a wet surface that move fast enough escape into the air as vapor. Evapotranspiration also includes water released by plants."
+        "general": "Wassermoleküle, die schnell genug sind, entweichen von einer nassen Oberfläche in die Luft. Auch Pflanzen geben Wasser ab.",
+        "expert": "Moleküle an einer nassen Oberfläche, die schnell genug sind, entweichen als Dampf in die Luft. Die Evapotranspiration umfasst auch das von Pflanzen abgegebene Wasser."
       },
-      "value": "A larger flux shows more molecules leaving the liquid."
+      "value": "Ein größerer Fluss zeigt mehr Moleküle, die die Flüssigkeit verlassen."
     },
     "water-vapor": {
-      "title": "Water vapor: single molecules in the air",
+      "title": "Wasserdampf: einzelne Moleküle in der Luft",
       "text": {
-        "general": "Water vapor is an invisible gas of separate water molecules. Where air cools enough, they gather into cloud droplets.",
-        "expert": "Water vapor is an invisible gas of separate H₂O molecules. Where air cools enough, vapor condenses onto small particles and forms cloud droplets."
+        "general": "Wasserdampf ist ein unsichtbares Gas aus einzelnen Wassermolekülen. Wo die Luft genug abkühlt, sammeln sie sich zu Wolkentröpfchen.",
+        "expert": "Wasserdampf ist ein unsichtbares Gas aus einzelnen H₂O-Molekülen. Wo die Luft genug abkühlt, kondensiert der Dampf an kleinen Partikeln und bildet Wolkentröpfchen."
       },
-      "value": "A larger column amount shows more molecules in the air."
+      "value": "Eine größere Säulenmenge zeigt mehr Moleküle in der Luft."
     },
     "water-precipitation": {
-      "title": "Precipitation: droplets grow and fall",
+      "title": "Niederschlag: Tröpfchen wachsen und fallen",
       "text": {
-        "general": "Cloud droplets that grow large enough fall as rain. One raindrop holds about a million cloud droplets' worth of water.",
-        "expert": "Cloud droplets that grow large enough fall as rain. A typical cloud droplet is about 10 µm in radius and a typical raindrop about 1 mm, so a raindrop holds roughly a million cloud droplets' worth of water."
+        "general": "Wolkentröpfchen, die groß genug werden, fallen als Regen. Ein Regentropfen enthält so viel Wasser wie etwa eine Million Wolkentröpfchen.",
+        "expert": "Wolkentröpfchen, die groß genug werden, fallen als Regen. Ein typisches Wolkentröpfchen hat etwa 10 µm Radius und ein typischer Regentropfen etwa 1 mm, sodass ein Regentropfen etwa so viel Wasser enthält wie eine Million Wolkentröpfchen."
       },
-      "value": "A higher rate shows drops falling more often."
+      "value": "Eine höhere Rate zeigt, dass Tropfen häufiger fallen."
     },
     "no2-photolysis": {
-      "title": "NO₂ and sunlight make ozone near the ground",
+      "title": "NO₂ und Sonnenlicht bilden Ozon in Bodennähe",
       "text": {
-        "general": "Sunlight splits NO₂ and frees an oxygen atom. That atom joins an oxygen molecule (O₂) to form ozone (O₃).",
-        "expert": "Sunlight at wavelengths shorter than roughly 400 nm splits NO₂. The freed oxygen atom joins an O₂ molecule to form ozone; M is any air molecule that carries away the extra energy (drawn as N₂)."
+        "general": "Sonnenlicht spaltet NO₂ und setzt ein Sauerstoffatom frei. Dieses Atom verbindet sich mit einem Sauerstoffmolekül (O₂) zu Ozon (O₃).",
+        "expert": "Sonnenlicht mit Wellenlängen unter etwa 400 nm spaltet NO₂. Das freigesetzte Sauerstoffatom verbindet sich mit einem O₂-Molekül zu Ozon; M ist ein beliebiges Luftmolekül, das die überschüssige Energie abführt (als N₂ gezeichnet)."
       },
-      "value": "A larger NO₂ column shows more NO₂ molecules taking part."
+      "value": "Eine größere NO₂-Säule zeigt mehr beteiligte NO₂-Moleküle."
     },
     "ozone-chapman": {
-      "title": "How ozone forms in the stratosphere",
+      "title": "Wie sich Ozon in der Stratosphäre bildet",
       "text": {
-        "general": "Ultraviolet light splits oxygen molecules (O₂) into single atoms. Each atom joins another O₂ to form ozone (O₃).",
-        "expert": "Ultraviolet light at wavelengths shorter than about 242 nm splits O₂. Each oxygen atom joins another O₂ to form ozone (first steps of the Chapman mechanism); M is any air molecule, drawn as N₂. Total ozone counts the whole column, most of it in the stratosphere."
+        "general": "Ultraviolettes Licht spaltet Sauerstoffmoleküle (O₂) in einzelne Atome. Jedes Atom verbindet sich mit einem weiteren O₂ zu Ozon (O₃).",
+        "expert": "Ultraviolettes Licht mit Wellenlängen unter etwa 242 nm spaltet O₂. Jedes Sauerstoffatom verbindet sich mit einem weiteren O₂ zu Ozon (erste Schritte des Chapman-Mechanismus); M ist ein beliebiges Luftmolekül, als N₂ gezeichnet. Das Gesamtozon zählt die ganze Säule, der größte Teil davon liegt in der Stratosphäre."
       },
-      "value": "A larger ozone column shows more ozone being formed."
+      "value": "Eine größere Ozonsäule zeigt mehr Ozon, das gebildet wird."
     },
     "thermal-air": {
-      "title": "Temperature is how fast molecules move",
+      "title": "Temperatur zeigt, wie schnell sich Moleküle bewegen",
       "text": {
-        "general": "Air temperature measures how fast air molecules move on average. Warmer air means faster molecules.",
-        "expert": "Air temperature measures the average kinetic energy of its molecules, mostly N₂ and O₂. Their typical speed grows with the square root of the absolute temperature."
+        "general": "Die Lufttemperatur misst, wie schnell sich Luftmoleküle im Mittel bewegen. Wärmere Luft heißt schnellere Moleküle.",
+        "expert": "Die Lufttemperatur misst die mittlere kinetische Energie ihrer Moleküle, vor allem N₂ und O₂. Ihre typische Geschwindigkeit wächst mit der Wurzel der absoluten Temperatur."
       },
-      "value": "Molecule speed in this view follows √T for the selected month, so the change between months is real but small."
+      "value": "Die Molekülgeschwindigkeit folgt in dieser Ansicht √T für den gewählten Monat; die Änderung zwischen Monaten ist also real, aber klein."
     },
     "thermal-surface": {
-      "title": "Temperature is how fast particles move",
+      "title": "Temperatur zeigt, wie schnell sich Teilchen bewegen",
       "text": {
-        "general": "Land surface temperature is the temperature of the ground itself. This view uses air molecules to show the same idea: hotter means faster random motion.",
-        "expert": "Land surface temperature is the temperature of the ground itself, where atoms vibrate in place rather than fly freely. The view shows air molecules at that temperature to illustrate the same idea: hotter means faster random motion."
+        "general": "Die Landoberflächentemperatur ist die Temperatur des Bodens selbst. Diese Ansicht zeigt dieselbe Idee mit Luftmolekülen: heißer heißt schnellere, ungeordnete Bewegung.",
+        "expert": "Die Landoberflächentemperatur ist die Temperatur des Bodens selbst, in dem Atome an ihrem Platz schwingen, statt frei zu fliegen. Die Ansicht zeigt Luftmoleküle bei dieser Temperatur, um dieselbe Idee zu veranschaulichen: heißer heißt schnellere, ungeordnete Bewegung."
       },
-      "value": "Molecule speed in this view follows √T for the selected month, so the change between months is real but small."
+      "value": "Die Molekülgeschwindigkeit folgt in dieser Ansicht √T für den gewählten Monat; die Änderung zwischen Monaten ist also real, aber klein."
     },
     "aerosol-scale": {
-      "title": "Aerosols are particles, not molecules",
+      "title": "Aerosole sind Teilchen, keine Moleküle",
       "text": {
-        "general": "Aerosols are tiny solid or liquid particles such as dust, smoke and sea salt. Even a small one is hundreds of times wider than a gas molecule.",
-        "expert": "Aerosols are solid or liquid particles such as dust, smoke and sea salt, from a few nanometers to tens of micrometers across. Even a small 100 nm particle is hundreds of times wider than a gas molecule (about 0.3 nm). The UV aerosol index is a unitless measure that responds mainly to UV-absorbing aerosols such as dust and smoke."
+        "general": "Aerosole sind winzige feste oder flüssige Teilchen wie Staub, Rauch und Meersalz. Schon ein kleines ist hunderte Male breiter als ein Gasmolekül.",
+        "expert": "Aerosole sind feste oder flüssige Teilchen wie Staub, Rauch und Meersalz, einige Nanometer bis einige zehn Mikrometer groß. Schon ein kleines Teilchen von 100 nm ist hunderte Male breiter als ein Gasmolekül (etwa 0,3 nm). Der UV-Aerosolindex ist ein einheitenloses Maß, das hauptsächlich auf UV-absorbierende Aerosole wie Staub und Rauch reagiert."
       },
-      "value": "A higher index shows more grains."
+      "value": "Ein höherer Index zeigt mehr Körnchen."
     },
     "photosynthesis": {
-      "title": "Green leaves: photosynthesis",
+      "title": "Grüne Blätter: Photosynthese",
       "text": {
-        "general": "Leaves use light to build sugar from carbon dioxide and water, and release oxygen. NDVI measures how green the land looks from space.",
-        "expert": "Chlorophyll in the chloroplasts of leaf cells absorbs light and uses it to build sugar from CO₂ and water, releasing O₂. NDVI measures how green the surface looks from space: (NIR − red) / (NIR + red)."
+        "general": "Blätter bauen mit Licht aus Kohlenstoffdioxid und Wasser Zucker auf und geben Sauerstoff ab. Der NDVI misst, wie grün das Land aus dem All aussieht.",
+        "expert": "Chlorophyll in den Chloroplasten der Blattzellen absorbiert Licht und baut damit aus CO₂ und Wasser Zucker auf, wobei O₂ frei wird. Der NDVI misst, wie grün die Oberfläche aus dem All aussieht: (NIR − Rot) / (NIR + Rot)."
       },
-      "value": "A higher NDVI shows more molecules being exchanged."
+      "value": "Ein höherer NDVI zeigt mehr Moleküle, die ausgetauscht werden."
     },
     "soil-pores": {
-      "title": "Soil moisture: water between soil grains",
+      "title": "Bodenfeuchte: Wasser zwischen den Bodenkörnern",
       "text": {
-        "general": "Soil is grains with gaps between them. Soil moisture is the water held in those gaps, here in the top 10 cm.",
-        "expert": "Soil is grains with gaps (pores) between them. Soil moisture is the water held in those pores; here it is the water in the top 10 cm, in kilograms per square meter."
+        "general": "Boden besteht aus Körnern mit Lücken dazwischen. Die Bodenfeuchte ist das Wasser in diesen Lücken, hier in den obersten 10 cm.",
+        "expert": "Boden besteht aus Körnern mit Lücken (Poren) dazwischen. Die Bodenfeuchte ist das Wasser in diesen Poren; hier ist es das Wasser in den obersten 10 cm, in Kilogramm pro Quadratmeter."
       },
-      "value": "A wetter month shows more of the pore space filled with water."
+      "value": "Ein feuchterer Monat zeigt mehr mit Wasser gefüllten Porenraum."
     }
   }
 }

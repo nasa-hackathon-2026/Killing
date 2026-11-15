@@ -1,29 +1,29 @@
 {
-  "sources": "Sources: {{sources}}",
-  "unreliable": "This trend is not reliable as a climate signal: {{reason}}",
-  "genericReason": "it has a documented data issue.",
+  "sources": "出典：{{sources}}",
+  "unreliable": "このトレンドは気候シグナルとしては信頼できません：{{reason}}",
+  "genericReason": "記録されたデータ上の問題があるためです。",
   "gldas_tair": {
     "summary": {
-      "general": "Caution: this record jumps when its input data changed, so its trend is not a climate signal.",
-      "expert": "Caution: this trend contains step changes and should not be read as a climate signal."
+      "general": "注意：この記録は、入力データが変わったときに跳ねているため、そのトレンドは気候シグナルではありません。",
+      "expert": "注意：このトレンドには段差状の変化が含まれており、気候シグナルとして読むべきではありません。"
     },
-    "reason": "it contains step changes.",
-    "details": "GLDAS-2.1 air temperature comes from the NOAA GDAS operational analysis used to force the model. Against MERRA-2 over the same land cells, its global land mean shifts by about +0.4 K in May 2011, +0.6 K in July 2017 and −0.6 K in June 2019, the months of GDAS/GFS upgrades in the NCEP change log. At Taichung it also steps by 1 K or more against the station record."
+    "reason": "段差状の変化が含まれているためです。",
+    "details": "GLDAS-2.1の気温は、モデルを駆動するために使われるNOAA GDAS運用解析に由来します。同じ陸域の格子セルでMERRA-2と比べると、全球陸域平均は、NCEP変更履歴にあるGDAS/GFS更新の月にあたる2011年5月に約+0.4 K、2017年7月に約+0.6 K、2019年6月に−0.6 Kずれます。台中でも、観測所の記録に対して1 K以上の段差が生じています。"
   },
   "gldas_evap": {
     "summary": {
-      "general": "Caution: this record has a jump that a second, independent product does not show.",
-      "expert": "Caution: this series contains a step that an independent product does not show."
+      "general": "注意：この記録には、独立した別の製品には見られないジャンプがあります。",
+      "expert": "注意：この系列には、独立した別の製品には見られない段差が含まれています。"
     },
-    "reason": "the series contains a step that an independent product does not show.",
-    "details": "From July 2024 to May 2025 the GLDAS-2.1 downward shortwave forcing runs 15–32 W m⁻² above that of FLDAS (same Noah model family, MERRA-2 forcing) over the same land cells, and GLDAS global land evapotranspiration runs about 0.1–0.2 mm/day (1–2 × 10⁻⁶ kg m⁻² s⁻¹) above FLDAS; both differences are gone by July 2025. The GLDAS-2 README records that the cloud analysis behind its radiation input was decommissioned in summer 2024 and that radiation switched to GALWEM on 9 June 2025. Over 2001–2026 the GLDAS global land trend is +0.058 mm/day per decade against +0.012 for FLDAS."
+    "reason": "この系列に、独立した別の製品には見られない段差が含まれているためです。",
+    "details": "2024年7月から2025年5月にかけて、GLDAS-2.1の下向き短波強制は、同じ陸域の格子セルでFLDAS（同じNoahモデルの系統、MERRA-2強制）より15〜32 W m⁻² 高く、GLDASの全球陸域蒸発散はFLDASより約0.1〜0.2 mm/day（1〜2 × 10⁻⁶ kg m⁻² s⁻¹）高くなっています。どちらの差も、2025年7月には消えています。GLDAS-2のREADMEには、放射入力の元になる雲の解析が2024年夏に運用を終了し、2025年6月9日に放射がGALWEMへ切り替わったと記録されています。2001〜2026年の全球陸域のトレンドは、GLDASが10年あたり+0.058 mm/day、FLDASが+0.012です。"
   },
   "gldas_soilmoist": {
     "summary": {
-      "general": "Caution: two model products disagree on whether this goes up or down.",
-      "expert": "Caution: two model products disagree on the sign of this trend."
+      "general": "注意：2つのモデル製品で、これが増えているのか減っているのかが食い違っています。",
+      "expert": "注意：2つのモデル製品で、このトレンドの符号が食い違っています。"
     },
-    "reason": "two model products disagree on its sign.",
-    "details": "Over the same land cells and months (January 2001 to July 2026), the global land trend of 0–10 cm soil moisture is −0.43 kg m⁻² per decade in GLDAS-2.1 and +0.16 in FLDAS (same Noah model family, MERRA-2 and CHIRPS forcing), and the two global land series correlate at only 0.08. FLDAS is also a model simulation and the only product compared, so this check cannot tell which of the two is closer to the truth. No clear step was found at the GDAS/GFS upgrade months (May 2011, July 2017, June 2019)."
+    "reason": "2つのモデル製品で、その符号が食い違っているためです。",
+    "details": "同じ陸域の格子セルと同じ月（2001年1月〜2026年7月）で、0〜10 cm の土壌水分の全球陸域トレンドは、GLDAS-2.1では10年あたり−0.43 kg m⁻²、FLDAS（同じNoahモデルの系統、MERRA-2とCHIRPS強制）では+0.16で、2つの全球陸域系列の相関はわずか0.08です。FLDASもモデルによる計算で、比較した製品はこれ1つだけなので、この検証では、2つのうちどちらが真の値に近いかは判断できません。GDAS/GFSの更新月（2011年5月、2017年7月、2019年6月）には、はっきりした段差は見つかりませんでした。"
   }
 }
