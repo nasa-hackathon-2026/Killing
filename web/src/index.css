@@ -1185,12 +1185,15 @@ body,
   background: rgba(8, 14, 28, 0.94);
 }
 
-/* Beside the trend map legend when both are open; narrower when the window
-   has no room for the legend, the chart, the companions and the Layers
-   panel side by side (314px legend + 574px companions and Layers). */
-.app:has(.trendmap) .timeline-chart {
-  left: 314px;
-  width: min(440px, calc(100% - 314px - 574px));
+/* Beside the left legend column (.map-legends, 360px wide at 12px) when it
+   holds a map legend; narrower when the window has no room for the legends,
+   the chart, the companions and the Layers panel side by side (384px +
+   574px companions and Layers). Without a map legend the column shows
+   nothing while the chart is open (App.tsx), so the chart keeps the left. */
+.app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+  .timeline-chart {
+  left: 384px;
+  width: min(440px, calc(100% - 384px - 574px));
 }
 
 .timeline-chart header {
@@ -1347,7 +1350,8 @@ body,
 
   /* The drawer stops left of the companion panel (236px at its widest). */
   .timeline-chart,
-  .app:has(.trendmap) .timeline-chart {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart {
     top: auto;
     left: 12px;
     bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
@@ -1367,7 +1371,8 @@ body,
     display: none;
   }
 
-  .app:has(.trendmap) .timeline-chart {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart {
     max-height: calc(
       100% - 64px - 158px - var(--timeline-bottom) - var(--timeline-height) -
         16px
@@ -1379,7 +1384,8 @@ body,
    drawer takes the width and the companions give way until it is closed. */
 @media (max-width: 900px) {
   .timeline-chart,
-  .app:has(.trendmap) .timeline-chart {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart {
     width: calc(100% - 306px - 36px);
   }
 
@@ -1399,7 +1405,8 @@ body,
 
   .timeline-bar,
   .timeline-chart,
-  .app:has(.trendmap) .timeline-chart {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart {
     width: calc(100% - 24px);
   }
 
@@ -1429,7 +1436,8 @@ body,
     max-height: 150px;
   }
 
-  .app:has(.trendmap) .timeline-chart {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart {
     max-height: calc(
       100% - 148px - 158px - var(--timeline-bottom) - var(--timeline-height) -
         16px

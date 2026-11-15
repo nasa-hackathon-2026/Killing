@@ -72,6 +72,15 @@ export const TOUR_STEPS: TourStep[] = [
   fixed("research", "globe"),
 ];
 
+// The particles step reads differently in the Calm style: there the
+// particles are one small cluster above the place, not spread around the
+// globe.
+export function tourMessageKey(key: string, style: "calm" | "lively"): string {
+  return style === "calm" && key === "guide.tour.particles"
+    ? "guide.tour.particlesCalm"
+    : key;
+}
+
 // The layers a step needs on: every layer the tour has switched on so far.
 export function tourLayers(stepIndex: number): string[] {
   return TOUR_STEPS.slice(0, stepIndex + 1)

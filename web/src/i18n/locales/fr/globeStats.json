@@ -23,6 +23,8 @@
   "trendUnreliable": "Triangle barré, en tirets et estompé : pas fiable comme signal climatique, à cause d’un problème de données documenté qui affecte la tendance",
   "trendNoData": "Point gris : aucun résultat en ce lieu",
   "trendLengthScale": "La longueur est mise à l’échelle du 90e centile des variations affichées pour cette variable.",
+  "trendKeyShort": "Arrows: change per decade · filled = significant · outline = not significant · crossed = not reliable",
+  "pausedForTrendMap": "Per-place trend marks are hidden while the global trend map is on, so the two trend pictures do not mix.",
   "gapIntro": "Chaque disque compare la tendance d’un modèle à celle d’une station en un lieu.",
   "gapHalves": "Moitié gauche : tendance du modèle. Moitié droite : tendance de la station. Même échelle de couleurs.",
   "gapRing": "Anneau extérieur : plus il est épais, moins les anomalies mensuelles concordent (1 moins la corrélation).",

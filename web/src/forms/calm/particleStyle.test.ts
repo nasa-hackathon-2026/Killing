@@ -11,6 +11,11 @@ import {
 afterEach(() => setLocale("en"));
 
 describe("particle style", () => {
+  it("defaults to calm", () => {
+    expect(DEFAULT_PARTICLE_STYLE).toBe("calm");
+    expect(resolveParticleStyle(null, null)).toBe("calm");
+  });
+
   it("reads calm and lively only", () => {
     expect(parseParticleStyle("calm")).toBe("calm");
     expect(parseParticleStyle("lively")).toBe("lively");
@@ -23,6 +28,9 @@ describe("particle style", () => {
     expect(resolveParticleStyle(null, "calm")).toBe("calm");
     expect(resolveParticleStyle("nonsense", "calm")).toBe("calm");
     expect(resolveParticleStyle(null, null)).toBe(DEFAULT_PARTICLE_STYLE);
+    // A reader who picked Lively before keeps it.
+    expect(resolveParticleStyle(null, "lively")).toBe("lively");
+    expect(resolveParticleStyle("lively", null)).toBe("lively");
     expect(resolveParticleStyle(null, "nonsense")).toBe(DEFAULT_PARTICLE_STYLE);
   });
 });

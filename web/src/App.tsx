@@ -87,6 +87,12 @@ import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
 import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
 import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
 import { useGlobeStats } from "./globeStats/useGlobeStats";
+import { GLOBE_STATS_TEXT } from "./globeStats/globeStatsText";
+import {
+  buildTrendGlyphs,
+  countGlyphs,
+  followedVariable,
+} from "./globeStats/trendGlyphs";
 import {
   requestedCloseUp,
   requestedPlace,
@@ -435,12 +441,30 @@ function AppView({
     () => data?.places.filter(hasCoordinates) ?? [],
     [data],
   );
-  const selectedStatsVariableId =
-    timeline.selectedVariableId ??
-    controls.find((layer) => layer.visible)?.id ??
-    null;
+  // The marks follow the charted variable, else the open layer with the
+  // most places significant after FDR correction (followedVariable).
+  const selectedStatsVariableId = followedVariable(
+    timeline.selectedVariableId,
+    controls.filter((layer) => layer.visible).map((layer) => layer.id),
+    (variableId) => {
+      if (trendsFile.status !== "ready") return 0;
+      const counts = countGlyphs(
+        buildTrendGlyphs(globePlaces, variableId, trendsFile.data, ""),
+      );
+      return counts.solidUp + counts.solidDown;
+    },
+  );
+  // The left-hand legend column is put away in the layer view and the
+  // close-up. The trend map replaces the per-place trend marks (two trend
+  // pictures at once read as one). The chart, the start card and the tour
+  // take the left side, so the selector and legend give way to them.
+  const legendsHidden = strata.phase !== "off" || closeUpId !== null;
+  const trendMapOn = trendMapId !== null;
+  const chartOpen = timeline.selectedVariableId !== null;
+  const guideShown = guideOpen && tourStep === null;
   const globeStats = useGlobeStats({
-    hidden: strata.phase !== "off" || closeUpId !== null,
+    hidden: legendsHidden || trendMapOn,
+    legendHidden: chartOpen || guideShown || tourStep !== null,
     places: globePlaces,
     selectedLocationId: locationId,
     selectedVariableId: selectedStatsVariableId,
@@ -784,17 +808,26 @@ function AppView({
         aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
-      <div className="map-legends" hidden={globeStats.hidden}>
-        <div className="globe-stats-selectors">
-          <GlobeStatsControls state={globeStats} />
-        </div>
+      <div className="map-legends" hidden={legendsHidden}>
+        {trendMapOn && !chartOpen && !guideShown ? (
+          <p className="globe-stats-selectors globe-stats-paused">
+            {GLOBE_STATS_TEXT.pausedForTrendMap}
+          </p>
+        ) : null}
+        {globeStats.hidden || globeStats.legendHidden ? null : (
+          <div className="globe-stats-selectors">
+            <GlobeStatsControls state={globeStats} />
+          </div>
+        )}
         <GlobeStatsPanel state={globeStats} />
         <TrendMapLegend
           state={trendMap}
           opacity={trendMapOpacity}
           onOpacity={setTrendMapOpacity}
         />
-        {particleLine ? (
+        {/* The chart and the start card cover the bottom of the left
+            side; the note comes back when they close. */}
+        {particleLine && !guideShown && (!chartOpen || trendMapOn) ? (
           <aside className="particle-note" role="note">
             <p>{particleLine}</p>
             {fieldNote ? <p>{fieldNote}</p> : null}
