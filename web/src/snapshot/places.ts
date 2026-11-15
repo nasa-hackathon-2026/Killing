@@ -6,12 +6,14 @@
 
 import { t, tm, type Voice } from "../i18n";
 import { placeName } from "../i18n/names";
+import { bboxCenter, formatBbox, type Bbox } from "../geo/regionFrame";
 
-export type PlaceGroup = "taiwan" | "world_city" | "global";
+export type PlaceGroup = "taiwan" | "taiwan_region" | "world_city" | "global";
 
 // Order and headings of the place menu.
 export const PLACE_GROUPS: { id: PlaceGroup; label: string }[] = [
   { id: "taiwan", label: "Taiwan" },
+  { id: "taiwan_region", label: "Taiwan regions (area means)" },
   { id: "world_city", label: "World cities" },
   { id: "global", label: "Global" },
 ];
@@ -21,13 +23,16 @@ export const DEFAULT_PLACE_ID = "taichung";
 export type Place = {
   id: string;
   nameEn: string;
-  // null for a place that is not a point (the global mean).
+  // null for a place that is not a point (the global mean, a region).
   lat: number | null;
   lon: number | null;
   group: PlaceGroup;
   // Aggregation of this place's series, as in the series keys of
-  // trends.json: "point", or "area_mean_grid" for the global mean.
+  // trends.json: "point", "area_mean" for a Taiwan region, or
+  // "area_mean_grid" for the global mean.
   aggregation: string;
+  // The data area of a region (catalog bbox); only regions have one.
+  bbox?: Bbox;
 };
 
 export type PointPlace = Place & { lat: number; lon: number };
@@ -36,6 +41,51 @@ export function hasCoordinates(
   place: Place | undefined | null,
 ): place is PointPlace {
   return !!place && place.lat !== null && place.lon !== null;
+}
+
+export function isRegion(
+  place: Place | undefined | null,
+): place is Place & { bbox: Bbox } {
+  return !!place && place.group === "taiwan_region" && !!place.bbox;
+}
+
+// The point place (a Taiwan point or a world city) closest to a position on
+// the sphere, for "Fly near me". Regions and the global mean are left out: a
+// region is an area mean, not the place a reader stands at. null when no
+// place has coordinates.
+export function nearestPlace(
+  lat: number,
+  lon: number,
+  places: readonly Place[],
+): PointPlace | null {
+  let best: PointPlace | null = null;
+  let bestCos = -Infinity;
+  const rad = Math.PI / 180;
+  for (const place of places) {
+    if (!hasCoordinates(place)) continue;
+    if (place.group !== "taiwan" && place.group !== "world_city") continue;
+    // Cosine of the angle between the two points: larger is closer.
+    const cos =
+      Math.sin(lat * rad) * Math.sin(place.lat * rad) +
+      Math.cos(lat * rad) *
+        Math.cos(place.lat * rad) *
+        Math.cos((lon - place.lon) * rad);
+    if (cos > bestCos) {
+      best = place;
+      bestCos = cos;
+    }
+  }
+  return best;
+}
+
+// Where the camera looks for a place: the point itself, or the middle of a
+// region's data area. null for the global mean.
+export function placeAnchor(
+  place: Place | undefined | null,
+): { lat: number; lon: number } | null {
+  if (hasCoordinates(place)) return { lat: place.lat, lon: place.lon };
+  if (isRegion(place)) return bboxCenter(place.bbox);
+  return null;
 }
 
 export function isPlaceGroup(value: unknown): value is PlaceGroup {
@@ -70,6 +120,9 @@ export function placeNote(
 ): string | null {
   if (place?.aggregation === "area_mean_grid") {
     return tm("places.note.globalMean", undefined, voice);
+  }
+  if (isRegion(place)) {
+    return tm("places.note.region", { bbox: formatBbox(place.bbox) }, voice);
   }
   return null;
 }

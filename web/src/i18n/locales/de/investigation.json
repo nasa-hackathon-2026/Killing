@@ -1,0 +1,196 @@
+{
+  "panel": {
+    "aria": "Untersuchung von {{name}} bei {{place}}",
+    "tabsAria": "Vier Fragen zu dieser Datenreihe",
+    "expand": "Breiter",
+    "narrow": "Schmaler",
+    "expandAria": "Panel breiter machen"
+  },
+  "tabs": {
+    "what": {
+      "short": "Was",
+      "question": "Was verändert sich?"
+    },
+    "where": {
+      "short": "Wo",
+      "question": "Wo verändert es sich?"
+    },
+    "howmuch": {
+      "short": "Wie stark",
+      "question": "Wie stark?"
+    },
+    "significant": {
+      "short": "Signifikant?",
+      "question": "Ist die Veränderung signifikant?"
+    }
+  },
+  "answer": {
+    "what": "{{name}} bei {{place}}, {{first}} bis {{last}}: {{label}}.",
+    "where": {
+      "general": "Hier: {{label}}. Von {{total}} Orten mit dieser Variable: {{up}} steigend, {{down}} fallend, {{flat}} ohne eindeutige Veränderung, {{bad}} nicht verlässlich.",
+      "expert": "Hier: {{label}}. Von {{total}} Orten mit dieser Variable: {{up}} steigend, {{down}} fallend (p < {{alpha}}), {{flat}} nicht signifikant oder nicht analysiert, {{bad}} nicht als Klimasignal verlässlich."
+    },
+    "howmuch": {
+      "general": "Etwa {{slope}} pro Jahrzehnt; etwa {{total}} in {{years}} Jahren, wenn die Gerade über den ganzen Zeitraum zuträfe.",
+      "expert": "{{change}}; {{total}} über {{years}} Jahre als lineare Umrechnung."
+    },
+    "unreliableSuffix": {
+      "general": "Die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+      "expert": "Nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
+    },
+    "significant": {
+      "fdr": {
+        "general": "Ja: Die Veränderung besteht die statistischen Tests (p {{p}}).",
+        "expert": "Ja: Der lineare Trend ist nach Autokorrelations- und FDR-Korrektur signifikant (p {{p}}, q {{q}})."
+      },
+      "rawOnly": {
+        "general": "Schwache Belege: Der einfache Test ist bestanden, der strengere nicht (p {{p}}).",
+        "expert": "Nur vor FDR-Korrektur signifikant: p {{p}}, q {{q}}."
+      },
+      "notSignificant": {
+        "general": "In dieser Datenreihe ist bisher keine eindeutige Veränderung erkennbar (p {{p}}). Das ist nicht dasselbe wie keine Veränderung.",
+        "expert": "Nicht signifikant (p {{p}}, q {{q}}). Das ist kein Beleg dafür, dass es keine Veränderung gibt."
+      },
+      "unreliableFdr": {
+        "general": "Der Test sagt signifikant (p {{p}}), aber die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+        "expert": "Statistisch signifikant (p {{p}}, q {{q}}), aber nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
+      },
+      "unreliableRawOnly": {
+        "general": "Der Test sagt signifikant (p {{p}}), aber die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+        "expert": "Nur vor FDR-Korrektur signifikant (p {{p}}, q {{q}}) und nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
+      },
+      "notComputed": {
+        "general": "Für diese Datenreihe ließ sich der Test nicht durchführen.",
+        "expert": "Für diese Datenreihe war der Test nicht berechenbar."
+      }
+    },
+    "notAnalyzed": "Nicht analysiert: {{reason}}",
+    "noTrend": "Kein Trendergebnis für diese Datenreihe.",
+    "noSeries": "Für diese Variable gibt es bei {{place}} keine Daten.",
+    "loading": "Datenreihe für {{place}} wird gelesen …"
+  },
+  "what": {
+    "seasonTitle": "Saisonaler Verlauf: Mittelwert jedes Kalendermonats",
+    "seasonAria": "Mittelwert jedes Kalendermonats von {{name}} bei {{place}}; die Linie für {{year}} darübergezeichnet.",
+    "seasonKeyMean": "Mittelwert über die ganze Datenreihe",
+    "seasonKeyYear": "{{year}}",
+    "seasonKeyRange": "Niedrigster bis höchster Wert jedes Monats",
+    "why": "Warum zuerst die Jahreszeit entfernen? Der größte Teil des Auf und Ab von Monat zu Monat ist der Jahreszyklus. Vergleicht man jeden Monat mit seinem eigenen langjährigen Mittel (der Abweichung vom Üblichen), zeigt sich darunter die langsamere Veränderung.",
+    "facts": {
+      "definition": "Definition",
+      "unit": "Einheit",
+      "kind": "Datentyp",
+      "product": "Produkt",
+      "period": "Zeitraum",
+      "periodLine": "{{first}} bis {{last}}"
+    },
+    "groupsTitle": "Nach Fragen erkunden",
+    "groupsNote": "Weitere Fragen"
+  },
+  "groups": {
+    "water": "Wasser: Wird es hier feuchter oder trockener?",
+    "heat": "Wärme: Wird es hier wärmer oder kühler?",
+    "air": "Luft: Verändert sich hier, was in der Luft ist?",
+    "other": "Pflanzen: Wird es hier grüner oder brauner?"
+  },
+  "where": {
+    "title": "Jeder Ort: Monatsanomalien und Trend",
+    "sameScale": "Gleiche Skala",
+    "ownScale": "Eigene Skala",
+    "scaleAria": "Y-Skala der kleinen Diagramme",
+    "noData": "Keine Daten",
+    "here": "hier",
+    "cellAria": "{{place}}: {{label}}, {{change}} pro Jahrzehnt. Diesen Ort öffnen.",
+    "cellAriaNone": "{{place}}: {{label}}. Diesen Ort öffnen.",
+    "note": {
+      "general": "Jedes Kästchen ist ein Ort: Die blaue Linie ist die Abweichung jedes Monats vom Üblichen, die gelbe Linie der Trend. Alle Kästchen teilen sich eine senkrechte Skala, außer „Eigene Skala“ ist an. Klicke auf ein Kästchen, um dorthin zu wechseln.",
+      "expert": "Jede Zelle: Monatsanomalien (blau) und OLS-Trend (gelb); gemeinsame y-Skala, außer bei „Eigene Skala“. Markierungen wie im Bereich „Ebenen“. Klick auf eine Zelle wechselt den Ort."
+    },
+    "mapHint": "Eine globale Karte dieses Trends findest du oben unter „Globale Trendkarte“."
+  },
+  "howmuch": {
+    "anomalyTitle": "Monatsanomalien mit linearem Trend",
+    "anomalyAria": "Monatsanomalien von {{name}} bei {{place}} mit Trendlinie und ihrem Konfidenzband.",
+    "intervalTitle": "Änderung pro Jahrzehnt mit {{level}}-%-Konfidenzintervall",
+    "intervalAria": "Kleinste-Quadrate-Änderung pro Jahrzehnt {{ols}} und Sen-Steigung {{sen}} auf einer um null zentrierten Zahlengeraden.",
+    "ols": "Linear (OLS)",
+    "sen": "Sen-Steigung",
+    "zero": "0 = keine Veränderung",
+    "intervalNote": "Kreuzt ein Balken die 0-Linie, sind die Daten auch mit keiner Veränderung oder mit der Gegenrichtung vereinbar.",
+    "total": "Von {{first}} bis {{last}} ({{years}} Jahre) entspricht die Trendlinie etwa {{total}}. Das ist die Steigung mal der Zeitraum, eine lineare Umrechnung, nicht der beobachtete Unterschied zwischen dem ersten und dem letzten Jahr.",
+    "tableTitle": "Zahlen",
+    "table": {
+      "change": "Änderung pro Jahrzehnt",
+      "p": "p (OLS, autokorrelationskorrigiert)",
+      "period": "Analysierter Zeitraum",
+      "valid": "Gültige Monate",
+      "missing": "Fehlende oder unbrauchbare Monate"
+    },
+    "why": "Warum pro Jahrzehnt? Eine Rate pro Jahrzehnt stellt Datenreihen unterschiedlicher Länge auf dieselbe Grundlage."
+  },
+  "significant": {
+    "olsTitle": "Linearer Trend (OLS-t-Test, Korrektur der Autokorrelation bei Lag 1)",
+    "mkTitle": "Mann-Kendall (rangbasiert; keine Gerade vorausgesetzt)",
+    "rows": {
+      "ttest": "t-Test der Steigung",
+      "neff": "Effektive Stichprobengröße",
+      "r1": "Autokorrelation bei Lag 1",
+      "original": "Original",
+      "hamedRao": "Hamed-Rao",
+      "seasonal": "Saisonal",
+      "sen": "Sen-Steigung pro Jahrzehnt"
+    },
+    "pq": "p {{p}} · q {{q}}",
+    "light": {
+      "significant": "Signifikant nach FDR",
+      "rawOnly": "Nur vor FDR signifikant",
+      "notSignificant": "Nicht signifikant",
+      "none": "Nicht berechnet"
+    },
+    "agreement": {
+      "bothSame": "Die beiden Tests stimmen überein: beide signifikant, gleiche Richtung.",
+      "bothNone": "Die beiden Tests stimmen überein: keiner ist signifikant.",
+      "disagree": "Die beiden Tests widersprechen sich. Das kann vorkommen, wenn einige wenige ungewöhnliche Monate dominieren oder wenn die Veränderung keine Gerade ist.",
+      "unknown": "Für diese Datenreihe lassen sich die beiden Tests nicht vergleichen."
+    },
+    "agreementBasis": "Verglichen bei p < {{alpha}} vor FDR; Mann-Kendall ist hier Hamed-Rao (Saisonal, wenn Hamed-Rao kein p liefert).",
+    "notSignificantNote": "Nicht signifikant heißt nicht, dass es keine Veränderung gibt: Oft ist die Datenreihe noch nicht lang genug oder die Streuung zu groß. Diese Datenreihe: {{years}} Jahre, {{months}} gültige Monate.",
+    "fdr": "Mehrfachtests: Die q-Werte sind nach Benjamini-Hochberg über die {{n}} analysierten Datenreihen ({{family}}) angepasst, getrennt für jeden Test.",
+    "family": {
+      "core": "Taiwan-Kernanalyse",
+      "world": "Weltauswahl: Weltstädte und globaler Mittelwert"
+    },
+    "pSource": "Alle p- und q-Werte stammen aus der Ergebnisdatei der Analyse; im Browser wird nichts neu getestet.",
+    "evidenceAria": "Testergebnisse",
+    "chartAria": "p-Werte der vier Tests auf einer logarithmischen Achse: t-Test {{ols}}, Mann-Kendall Original {{original}}, Hamed-Rao {{hamedRao}}, saisonal {{seasonal}}.",
+    "chartKeyP": "p",
+    "chartKeyQ": "q (nach FDR)",
+    "chartKeyZone": "Weiter rechts = kleineres p; die schattierte Seite der gestrichelten Linie ist p < {{alpha}}. Werte unter 1e-6 liegen am Rand."
+  },
+  "diag": {
+    "more": "Mehr für Forschende",
+    "residualTitle": "Residuen: Monatsanomalien minus Trendlinie",
+    "residualAria": "Residuen von {{name}} bei {{place}} über die Zeit; {{n}} Monate jenseits von drei robusten Standardabweichungen.",
+    "residualKey": "Punkte: Monate jenseits von ±3 robusten Standardabweichungen (1,4826 × MAD): {{n}}.",
+    "acfTitle": "Autokorrelation der Residuen, Lag 1–24 Monate",
+    "acfAria": "Autokorrelation der Residuen bei Lag 1 bis 24 Monate; Lag 1 ist {{here}}.",
+    "acfKey": "Gestrichelt: ±1,96/√n (weißes Rauschen). Lag 1 in der Ergebnisdatei: {{file}}; in diesem Diagramm: {{here}}.",
+    "acfNote": "Nur beschreibend, hier aus der Datenreihe berechnet. Der Lag-1-Wert der Datei paart benachbarte Monate ohne Lücke (Pearson-r); dieses Diagramm verwendet Mittelwert und Varianz der gesamten Datenreihe, daher können beide leicht abweichen. Die p-Werte der Tests stammen immer aus der Ergebnisdatei.",
+    "histTitle": "Verteilung der Monatsanomalien",
+    "histAria": "Histogramm von {{n}} Monatsanomalien.",
+    "annualTitle": "Jahresmittel (nur vollständige Jahre)",
+    "annualAria": "Mittelwert jedes vollständigen Jahres von {{first}} bis {{last}}.",
+    "annualNote": "Sieht es nach einer Geraden, einer Stufe oder einer Kurve aus?",
+    "downloadCsv": "Diese Datenreihe herunterladen (CSV)",
+    "downloadJson": "Trendergebnis herunterladen (JSON)",
+    "methods": "Methoden",
+    "method": {
+      "anomaly": "Anomalie: jeder Monatswert minus der Mittelwert desselben Kalendermonats über alle nutzbaren Jahre der Datenreihe.",
+      "ols": "OLS: Kleinste-Quadrate-Steigung der Anomalien über die Zeit. Standardfehler, t-Test und Konfidenzintervall verwenden die effektive Stichprobengröße n(1 − r1)/(1 + r1); r1 ist die Autokorrelation der Residuen bei Lag 1 (Santer et al. 2000).",
+      "mk": "Mann-Kendall: Original setzt unabhängige Monate voraus; Hamed-Rao korrigiert die Varianz für Autokorrelation (alle Lags; bekanntermaßen nachsichtig); Saisonal vergleicht jeden Kalendermonat nur mit sich selbst, anhand der Monatswerte. Sen-Steigung: Median der paarweisen Steigungen; ihr Konfidenzintervall hat keine Autokorrelationskorrektur.",
+      "fdr": "FDR: Benjamini-Hochberg über alle analysierten Datenreihen eines Laufs, getrennt für jeden Test; q ist das angepasste p.",
+      "missing": "Fehlende Werte: Monate, die als fehlend, teilweise oder mit geringer Abdeckung markiert sind, werden ausgelassen; für die Trendtests wird nichts aufgefüllt.",
+      "cleaning": "Markierungen: Monate mit outlier_suspect und known_discontinuity werden nur markiert, nicht entfernt; dokumentierte Sprünge sind als gestrichelte Linien gezeichnet."
+    }
+  }
+}

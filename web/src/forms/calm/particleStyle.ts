@@ -11,7 +11,7 @@ export type ParticleStyle = "calm" | "lively";
 
 // The style a first-time visitor gets. Change this one constant to switch
 // the default.
-export const DEFAULT_PARTICLE_STYLE: ParticleStyle = "lively";
+export const DEFAULT_PARTICLE_STYLE: ParticleStyle = "calm";
 
 export const PARTICLE_STYLE_KEY = "estd-particle-style";
 

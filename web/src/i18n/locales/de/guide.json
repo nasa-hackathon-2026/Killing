@@ -78,6 +78,7 @@
     "welcome": "Hallo, ich bin Regen, einer der Datenbegleiter. Diese Seite zeigt bis zu 25 Jahre NASA-Erddaten an einem Ort und ob sich jede Messung verändert hat.",
     "place": "Gerade siehst du {{place}} im {{month}}. Im Bereich „Ebenen“ kannst du einen anderen Ort wählen und auf der Zeitleiste einen anderen Monat.",
     "particles": "Die Teilchen um den Globus zeigen für diesen Ort und Monat eine Zahl je Ebene. Mehr oder schnellere Teilchen bedeuten einen höheren Wert. Sie sind keine Karte.",
+    "particlesCalm": "Der Haufen über diesem Ort zeigt für diesen Monat eine Zahl je Ebene. Mehr Einheiten bedeuten einen höheren Wert, und der dünne Ring ist das Übliche für diesen Monat. Er ist keine Karte.",
     "enter": "Jede Messung gehört zu einer Höhe, von der Ozonschicht bis zum Boden. Besuchen wir sie von oben nach unten.",
     "trendMap": "Das war ein Ort. Willst du sehen, wo auf der Erde sich eine Messung verändert, öffne oben die Globale Trendkarte.",
     "research": "Für die volle Statistik, etwa Konfidenzintervalle und Testnamen, wechsle oben zu Forschende. Jetzt bist du dran."

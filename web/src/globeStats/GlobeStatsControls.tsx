@@ -6,7 +6,7 @@ import "./globeStats.css";
 
 export function GlobeStatsControls({ state }: { state: GlobeStatsState }) {
   useI18n();
-  if (state.hidden) return null;
+  if (state.hidden || state.legendHidden) return null;
 
   return (
     <>

@@ -9,8 +9,10 @@ import {
   DEFAULT_PLACE_ID,
   groupedPlaces,
   hasCoordinates,
+  nearestPlace,
   placeNote,
   resolvePlaceId,
+  type Place,
 } from "./places";
 
 const core: Catalog = {
@@ -213,5 +215,60 @@ describe("resolvePlaceId (?at=)", () => {
   });
   it("keeps the asked id until the catalogs are read", () => {
     expect(resolvePlaceId("tokyo", [])).toBe("tokyo");
+  });
+});
+
+describe("nearestPlace (Fly near me)", () => {
+  const point = (
+    id: string,
+    lat: number,
+    lon: number,
+    group: Place["group"],
+  ): Place => ({ id, nameEn: id, lat, lon, group, aggregation: "point" });
+  const places: Place[] = [
+    point("taichung", 24.15, 120.68, "taiwan"),
+    point("taipei", 25.03, 121.56, "taiwan"),
+    point("kaohsiung", 22.63, 120.3, "taiwan"),
+    point("tokyo", 35.68, 139.69, "world_city"),
+    point("los_angeles", 34.05, -118.24, "world_city"),
+    point("sydney", -33.87, 151.21, "world_city"),
+    {
+      id: "central",
+      nameEn: "Central",
+      lat: null,
+      lon: null,
+      group: "taiwan_region",
+      aggregation: "area_mean",
+      bbox: [120.2, 23.5, 121.3, 24.6],
+    },
+    {
+      id: "global",
+      nameEn: "Global",
+      lat: null,
+      lon: null,
+      group: "global",
+      aggregation: "area_mean_grid",
+    },
+  ];
+
+  it("picks the closest Taiwan point", () => {
+    // Tunghai University, Taichung.
+    expect(nearestPlace(24.18, 120.6, places)?.id).toBe("taichung");
+    expect(nearestPlace(25.1, 121.5, places)?.id).toBe("taipei");
+    expect(nearestPlace(22.7, 120.35, places)?.id).toBe("kaohsiung");
+  });
+
+  it("picks the closest world city, across the date line too", () => {
+    expect(nearestPlace(35.0, 135.8, places)?.id).toBe("tokyo");
+    // Honolulu: Los Angeles is closer than Tokyo or Sydney.
+    expect(nearestPlace(21.3, -157.86, places)?.id).toBe("los_angeles");
+    // Auckland: Sydney, not Los Angeles on the far side of the date line.
+    expect(nearestPlace(-36.85, 174.76, places)?.id).toBe("sydney");
+  });
+
+  it("never picks a region or the global mean", () => {
+    expect(nearestPlace(24.0, 120.8, places)?.group).toBe("taiwan");
+    expect(nearestPlace(0, 0, places.slice(6))).toBeNull();
+    expect(nearestPlace(0, 0, [])).toBeNull();
   });
 });

@@ -12,6 +12,7 @@
   "legendNoData": "anneau en tirets seul = pas de données",
   "legendArrow": "flèche = tendance significative, vers le haut ou le bas",
   "legendScale": "25 unités couvrent la série propre de chaque couche en ce lieu (du mois le plus bas au plus haut).",
+  "legendSummary": "Comment lire les amas",
   "legendAria": "Légende : une petite forme vaut une unité ; une grosse en vaut cinq réunies ; le disque teinté est ce mois ; l’anneau est l’habituel pour ce mois du calendrier ; un anneau en tirets seul signifie pas de données.",
   "noteOneLayer": "Lieu : {{place}}. L’amas est une seule valeur : {{layer}}{{when}}. L’anneau fin est l’habituel pour ce mois du calendrier. Ce n’est pas une carte.",
   "noteManyLayers": "Lieu : {{place}}. Chaque amas est la valeur d’une couche{{when}}. L’anneau fin est l’habituel pour ce mois du calendrier. Ce ne sont pas des cartes."

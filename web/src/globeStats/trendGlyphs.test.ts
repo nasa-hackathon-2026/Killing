@@ -4,7 +4,10 @@ import {
   buildTrendGlyphs,
   classifyTrend,
   countGlyphs,
+  followedVariable,
   glyphLength,
+  minSeparationDeg,
+  spreadMarks,
 } from "./trendGlyphs";
 
 function analyzedTrend(
@@ -48,9 +51,42 @@ function trendsFile(entries: Record<string, TrendEntry>): TrendsFile {
 }
 
 describe("trend glyphs", () => {
-  it("keeps pre-FDR significant arrows full length and shortens non-significant ones", () => {
-    expect(glyphLength(1, "hollow", true)).toBe(46);
-    expect(glyphLength(1, "hollow", false)).toBe(18);
+  it("draws every outline short, including significant before FDR only", () => {
+    expect(glyphLength(1, "solid")).toBe(46);
+    expect(glyphLength(1, "hollow")).toBe(18);
+    expect(glyphLength(0, "hollow")).toBe(12);
+    expect(glyphLength(1, "nodata")).toBe(0);
+  });
+
+  it("follows the chart, else the open layer with most filled marks", () => {
+    const filled = (id: string) =>
+      ({ imerg_precip: 1, merra2_t2m: 10 })[id] ?? 0;
+    expect(
+      followedVariable("omi_ozone", ["imerg_precip", "merra2_t2m"], filled),
+    ).toBe("omi_ozone");
+    expect(followedVariable(null, ["imerg_precip", "merra2_t2m"], filled)).toBe(
+      "merra2_t2m",
+    );
+    expect(followedVariable(null, ["a", "b"], () => 0)).toBe("a");
+    expect(followedVariable(null, [], filled)).toBeNull();
+  });
+
+  it("keeps only the selected mark of a close cluster when far away", () => {
+    const marks = [
+      { placeId: "taichung", lat: 24.15, lon: 120.68 },
+      { placeId: "taipei", lat: 25.03, lon: 121.56 },
+      { placeId: "kaohsiung", lat: 22.63, lon: 120.3 },
+      { placeId: "hualien", lat: 23.99, lon: 121.6 },
+      { placeId: "yushan", lat: 23.47, lon: 120.95 },
+      { placeId: "tokyo", lat: 35.68, lon: 139.69 },
+    ];
+    const far = spreadMarks(marks, "taipei", minSeparationDeg(3.2));
+    expect(far.map((mark) => mark.placeId)).toEqual(["taipei", "tokyo"]);
+    const near = spreadMarks(marks, "taipei", minSeparationDeg(1.2));
+    expect(near).toHaveLength(6);
+    // Selected elsewhere: the cluster still shows one mark.
+    const other = spreadMarks(marks, "tokyo", minSeparationDeg(3.2));
+    expect(other.map((mark) => mark.placeId)).toEqual(["taichung", "tokyo"]);
   });
 
   it("marks any analyzed trend with a documented trend-affecting issue as unreliable", () => {

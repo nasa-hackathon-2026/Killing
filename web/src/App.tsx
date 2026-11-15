@@ -50,6 +50,7 @@ import { useDismissOpenDetails } from "./hud/useDismissOnOutside";
 import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
+import { bboxCenter, regionFrameDistance } from "./geo/regionFrame";
 import { worldCityFrame } from "./scene/worldCityFrame";
 import {
   bestDefaultMonth,
@@ -61,6 +62,8 @@ import {
 import {
   displayPlaceName,
   hasCoordinates,
+  isRegion,
+  nearestPlace,
   placeNote,
   resolvePlaceId,
   type Place,
@@ -85,6 +88,12 @@ import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
 import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
 import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
 import { useGlobeStats } from "./globeStats/useGlobeStats";
+import { GLOBE_STATS_TEXT } from "./globeStats/globeStatsText";
+import {
+  buildTrendGlyphs,
+  countGlyphs,
+  followedVariable,
+} from "./globeStats/trendGlyphs";
 import {
   requestedCloseUp,
   requestedPlace,
@@ -127,15 +136,35 @@ const fallbackPlaces: Place[] = mockLocations.map((item) => ({
 // already framed when the page opens (no slide), shifted east on medium
 // windows so it is not behind the Companions panel.
 function useOpeningFlight(
-  group: string | undefined,
-  lat: number | null,
-  lon: number | null,
+  place: Place | undefined,
   strata: boolean,
 ): FlyTarget | null {
   return useMemo(() => {
-    if (strata || group === undefined || lat === null || lon === null) {
-      return null;
+    if (strata || !place) return null;
+    // A Taiwan region opens framed whole: the middle of its data area, at
+    // the distance where the outline fits (no slide).
+    if (isRegion(place)) {
+      const middle = bboxCenter(place.bbox);
+      const distance = regionFrameDistance(
+        place.bbox,
+        window.innerWidth / Math.max(1, window.innerHeight),
+      );
+      return {
+        lat: middle.lat,
+        lon:
+          middle.lon +
+          startLongitudeShift(
+            window.innerWidth,
+            window.innerHeight,
+            distance,
+            middle.lat,
+          ),
+        distance,
+        instant: true,
+      };
     }
+    const { group, lat, lon } = place;
+    if (lat === null || lon === null) return null;
     const city = worldCityFrame({ group, lat, lon }, PLACE_FLY_DISTANCE);
     if (city) return city;
     if (group !== "taiwan") return null;
@@ -152,7 +181,7 @@ function useOpeningFlight(
       distance: START_DISTANCE,
       instant: true,
     };
-  }, [group, lat, lon, strata]);
+  }, [place, strata]);
 }
 
 // "Precipitation (GPM IMERG Final)": the variable's name in the active
@@ -299,17 +328,37 @@ function AppView({
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const places = data?.places ?? fallbackPlaces;
   const place = places.find((item) => item.id === locationId);
-  // The place as a point on the globe; undefined for the global mean, which
-  // has no marker, no camera flight and no layer view.
+  // The place as a point on the globe; undefined for the global mean and the
+  // Taiwan regions, which have no marker and no layer view (a region has its
+  // own outline and camera flight, below).
   const location = hasCoordinates(place) ? place : undefined;
   const placeName = place ? displayPlaceName(place) : locationId;
   const aggregation = place?.aggregation ?? "point";
   // Series of a world place are read when it is picked.
   const placeLoading = !!data && !data.loaded.includes(locationId);
+  // A Taiwan region: its data area is outlined on the globe.
+  const region = isRegion(place)
+    ? { id: place.id, name: placeName, bbox: place.bbox }
+    : null;
   const selectPlace = (id: string, fly: boolean) => {
     setLocationId(id);
     const next = places.find((item) => item.id === id);
-    if (!hasCoordinates(next) || strata.phase !== "off") return;
+    if (strata.phase !== "off") return;
+    // A region has no point: the camera goes to the middle of its data
+    // area, at the distance that shows the whole outline.
+    if (isRegion(next)) {
+      const middle = bboxCenter(next.bbox);
+      setFlyTarget({
+        lat: middle.lat,
+        lon: middle.lon,
+        distance: regionFrameDistance(
+          next.bbox,
+          window.innerWidth / Math.max(1, window.innerHeight),
+        ),
+      });
+      return;
+    }
+    if (!hasCoordinates(next)) return;
     // A world city slides to the center and a little closer, whether it was
     // chosen from the menu or by its marker. Taiwan markers do not fly.
     const city = worldCityFrame(next, PLACE_FLY_DISTANCE);
@@ -330,14 +379,40 @@ function AppView({
   // A world city slides there (city on the viewing axis, slightly closer).
   // Taiwan is already there, with no slide. The global mean has no point
   // and keeps the default view; the layer view flies there by itself.
-  const openingFlight = useOpeningFlight(
-    place?.group,
-    place?.lat ?? null,
-    place?.lon ?? null,
-    requestedStrata(),
-  );
+  const openingFlight = useOpeningFlight(place, requestedStrata());
   const flyTarget = askedFlight ?? (startDone ? null : openingFlight);
   const flying = flyTarget !== null;
+  // "Fly near me": the device's position (asked only on this click, never
+  // stored or sent anywhere) picks the closest Taiwan point or world city.
+  // Without a position (no support, refused, timed out) it flies to Taiwan
+  // as before.
+  const [locating, setLocating] = useState(false);
+  const flyToTaiwan = () =>
+    setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE });
+  const flyNearMe = () => {
+    if (!("geolocation" in navigator)) {
+      flyToTaiwan();
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocating(false);
+        const nearest = nearestPlace(
+          position.coords.latitude,
+          position.coords.longitude,
+          places,
+        );
+        if (nearest) selectPlace(nearest.id, true);
+        else flyToTaiwan();
+      },
+      () => {
+        setLocating(false);
+        flyToTaiwan();
+      },
+      { timeout: 8000, maximumAge: 10 * 60 * 1000 },
+    );
+  };
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
   const months = timeline.months;
@@ -398,12 +473,30 @@ function AppView({
     () => data?.places.filter(hasCoordinates) ?? [],
     [data],
   );
-  const selectedStatsVariableId =
-    timeline.selectedVariableId ??
-    controls.find((layer) => layer.visible)?.id ??
-    null;
+  // The marks follow the charted variable, else the open layer with the
+  // most places significant after FDR correction (followedVariable).
+  const selectedStatsVariableId = followedVariable(
+    timeline.selectedVariableId,
+    controls.filter((layer) => layer.visible).map((layer) => layer.id),
+    (variableId) => {
+      if (trendsFile.status !== "ready") return 0;
+      const counts = countGlyphs(
+        buildTrendGlyphs(globePlaces, variableId, trendsFile.data, ""),
+      );
+      return counts.solidUp + counts.solidDown;
+    },
+  );
+  // The left-hand legend column is put away in the layer view and the
+  // close-up. The trend map replaces the per-place trend marks (two trend
+  // pictures at once read as one). The chart, the start card and the tour
+  // take the left side, so the selector and legend give way to them.
+  const legendsHidden = strata.phase !== "off" || closeUpId !== null;
+  const trendMapOn = trendMapId !== null;
+  const chartOpen = timeline.selectedVariableId !== null;
+  const guideShown = guideOpen && tourStep === null;
   const globeStats = useGlobeStats({
-    hidden: strata.phase !== "off" || closeUpId !== null,
+    hidden: legendsHidden || trendMapOn,
+    legendHidden: chartOpen || guideShown || tourStep !== null,
     places: globePlaces,
     selectedLocationId: locationId,
     selectedVariableId: selectedStatsVariableId,
@@ -495,6 +588,7 @@ function AppView({
         trendMapOpacity={trendMapOpacity}
         places={places.filter(hasCoordinates)}
         locationId={locationId}
+        region={region}
         onKind={setKind}
         onFlyDone={() => {
           setStartDone(true);
@@ -615,12 +709,11 @@ function AppView({
         <button
           type="button"
           className="hud-fly"
-          onClick={() =>
-            setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE })
-          }
-          disabled={flying || strata.phase !== "off"}
+          title={t("hud.flyNearTitle")}
+          onClick={flyNearMe}
+          disabled={flying || locating || strata.phase !== "off"}
         >
-          {t("hud.flyTaiwan")}
+          {t("hud.flyNear")}
         </button>
         <div className="hud-choices">{roleControls}</div>
         {/* Secondary pages and the renderer diagnostics. */}
@@ -734,6 +827,8 @@ function AppView({
         locationName={placeName}
         aggregation={aggregation}
         trends={trendsFile}
+        places={places}
+        onSelectLocation={(id) => selectPlace(id, true)}
       />
       <CompanionDock
         compact={strata.shown}
@@ -746,17 +841,26 @@ function AppView({
         aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
-      <div className="map-legends" hidden={globeStats.hidden}>
-        <div className="globe-stats-selectors">
-          <GlobeStatsControls state={globeStats} />
-        </div>
+      <div className="map-legends" hidden={legendsHidden}>
+        {trendMapOn && !chartOpen && !guideShown ? (
+          <p className="globe-stats-selectors globe-stats-paused">
+            {GLOBE_STATS_TEXT.pausedForTrendMap}
+          </p>
+        ) : null}
+        {globeStats.hidden || globeStats.legendHidden ? null : (
+          <div className="globe-stats-selectors">
+            <GlobeStatsControls state={globeStats} />
+          </div>
+        )}
         <GlobeStatsPanel state={globeStats} />
         <TrendMapLegend
           state={trendMap}
           opacity={trendMapOpacity}
           onOpacity={setTrendMapOpacity}
         />
-        {particleLine ? (
+        {/* The chart and the start card cover the bottom of the left
+            side; the note comes back when they close. */}
+        {particleLine && !guideShown && (!chartOpen || trendMapOn) ? (
           <aside className="particle-note" role="note">
             <p>{particleLine}</p>
             {fieldNote ? <p>{fieldNote}</p> : null}

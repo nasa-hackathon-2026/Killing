@@ -12,6 +12,7 @@
   "legendNoData": "nur gestrichelter Ring = keine Daten",
   "legendArrow": "Pfeil = signifikanter Trend, aufwärts oder abwärts",
   "legendScale": "25 Einheiten umfassen die eigene Datenreihe jeder Ebene an diesem Ort (vom niedrigsten bis zum höchsten Monat).",
+  "legendSummary": "So liest du die Haufen",
   "legendAria": "Legende: Eine kleine Form ist eine Einheit; eine große sind fünf Einheiten zusammen; die getönte Scheibe ist dieser Monat; der Ring ist das Übliche für diesen Kalendermonat; ein gestrichelter Ring allein bedeutet keine Daten.",
   "noteOneLayer": "Der Haufen über {{place}} ist ein Wert: {{layer}}{{when}}. Der dünne Ring ist das Übliche für diesen Kalendermonat. Er ist keine Karte.",
   "noteManyLayers": "Jeder Haufen über {{place}} ist der Wert einer Ebene{{when}}. Der dünne Ring ist das Übliche für diesen Kalendermonat. Sie sind keine Karte."

@@ -1,8 +1,8 @@
 {
   "aria": "Zeitreihe von {{name}}",
   "at": "bei {{place}}",
-  "show": "Diagramm zeigen",
-  "hide": "Diagramm ausblenden",
+  "show": "Einblenden",
+  "hide": "Ausblenden",
   "close": "Diagramm schließen",
   "noSeries": "Für diese Variable gibt es bei {{place}} keine Daten.",
   "noValues": "Keine Werte zum Zeichnen.",

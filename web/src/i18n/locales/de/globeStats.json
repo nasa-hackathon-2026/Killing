@@ -23,6 +23,8 @@
   "trendUnreliable": "Durchgestrichenes Dreieck, gestrichelt und verblasst: als Klimasignal nicht verlässlich wegen eines dokumentierten, den Trend beeinflussenden Datenproblems",
   "trendNoData": "Grauer Punkt: kein Ergebnis an diesem Ort",
   "trendLengthScale": "Die Länge ist auf das 90. Perzentil der für diese Variable gezeigten Änderungen skaliert.",
+  "trendKeyShort": "Pfeile: Änderung pro Jahrzehnt · gefüllt = signifikant · nur Umriss = nicht signifikant · durchgestrichen = nicht verlässlich",
+  "pausedForTrendMap": "Die Trendmarkierungen je Ort sind ausgeblendet, solange die globale Trendkarte an ist, damit sich die beiden Trendbilder nicht vermischen.",
   "gapIntro": "Jede Scheibe vergleicht den Trend eines Modells mit dem Trend einer Station an einem Ort.",
   "gapHalves": "Linke Hälfte: Modelltrend. Rechte Hälfte: Stationstrend. Dieselbe Farbskala.",
   "gapRing": "Äußerer Ring: Je dicker, desto weniger stimmen die Monatsanomalien überein (1 minus Korrelation).",

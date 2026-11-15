@@ -1,0 +1,196 @@
+{
+  "panel": {
+    "aria": "Enquête : {{name}} ({{place}})",
+    "tabsAria": "Quatre questions sur cette série",
+    "expand": "Élargir",
+    "narrow": "Rétrécir",
+    "expandAria": "Élargir le panneau"
+  },
+  "tabs": {
+    "what": {
+      "short": "Quoi",
+      "question": "Qu’est-ce qui change ?"
+    },
+    "where": {
+      "short": "Où",
+      "question": "Où est-ce que ça change ?"
+    },
+    "howmuch": {
+      "short": "Combien",
+      "question": "De combien ?"
+    },
+    "significant": {
+      "short": "Significatif ?",
+      "question": "Le changement est-il significatif ?"
+    }
+  },
+  "answer": {
+    "what": "{{name}} ({{place}}), de {{first}} à {{last}} : {{label}}.",
+    "where": {
+      "general": "Ici : {{label}}. Sur {{total}} lieux avec cette variable : {{up}} en hausse, {{down}} en baisse, {{flat}} sans changement net visible, {{bad}} pas fiables.",
+      "expert": "Ici : {{label}}. Sur {{total}} lieux avec cette variable : {{up}} en hausse, {{down}} en baisse (p < {{alpha}}), {{flat}} non significatifs ou non analysés, {{bad}} pas fiables comme signal climatique."
+    },
+    "howmuch": {
+      "general": "Environ {{slope}} par décennie ; environ {{total}} sur {{years}} ans si la droite se maintenait.",
+      "expert": "{{change}} ; {{total}} sur {{years}} ans en conversion linéaire."
+    },
+    "unreliableSuffix": {
+      "general": "Le chiffre n’est pas fiable : les données elles-mêmes ont un problème documenté.",
+      "expert": "Pas fiable comme signal climatique : problème de données documenté."
+    },
+    "significant": {
+      "fdr": {
+        "general": "Oui : le changement résiste aux tests statistiques (p {{p}}).",
+        "expert": "Oui : la tendance linéaire est significative après correction de l’autocorrélation et correction FDR (p {{p}}, q {{q}})."
+      },
+      "rawOnly": {
+        "general": "Preuve faible : le test de base est passé, pas le test plus strict (p {{p}}).",
+        "expert": "Significatif avant correction FDR seulement : p {{p}}, q {{q}}."
+      },
+      "notSignificant": {
+        "general": "Sur cette période, aucun changement net n’est encore visible (p {{p}}). Cela ne veut pas dire qu’il n’y a pas de changement.",
+        "expert": "Non significatif (p {{p}}, q {{q}}). Ce n’est pas une preuve d’absence de changement."
+      },
+      "unreliableFdr": {
+        "general": "Le test indique un résultat significatif (p {{p}}), mais le chiffre n’est pas fiable : les données elles-mêmes ont un problème documenté.",
+        "expert": "Statistiquement significatif (p {{p}}, q {{q}}), mais pas fiable comme signal climatique : problème de données documenté."
+      },
+      "unreliableRawOnly": {
+        "general": "Le test indique un résultat significatif (p {{p}}), mais le chiffre n’est pas fiable : les données elles-mêmes ont un problème documenté.",
+        "expert": "Significatif avant correction FDR seulement (p {{p}}, q {{q}}), et pas fiable comme signal climatique : problème de données documenté."
+      },
+      "notComputed": {
+        "general": "Le test n’a pas pu être effectué pour cette série.",
+        "expert": "Le test n’a pas pu être calculé pour cette série."
+      }
+    },
+    "notAnalyzed": "Non analysé : {{reason}}",
+    "noTrend": "Aucun résultat de tendance pour cette série.",
+    "noSeries": "Cette variable n’a pas de données pour ce lieu : {{place}}.",
+    "loading": "Lecture de la série ({{place}})…"
+  },
+  "what": {
+    "seasonTitle": "Cycle saisonnier : moyenne de chaque mois du calendrier",
+    "seasonAria": "Moyenne de chaque mois du calendrier : {{name}} ({{place}}) ; la courbe de {{year}} est tracée par-dessus.",
+    "seasonKeyMean": "Moyenne sur toute la série",
+    "seasonKeyYear": "{{year}}",
+    "seasonKeyRange": "Du plus bas au plus haut de chaque mois",
+    "why": "Pourquoi retirer d’abord la saison ? L’essentiel des variations d’un mois à l’autre vient du cycle annuel. Comparer chaque mois à sa propre moyenne de long terme (l’écart à l’habituel, ou anomalie) fait apparaître la variation plus lente qui se cache dessous.",
+    "facts": {
+      "definition": "Définition",
+      "unit": "Unité",
+      "kind": "Type de données",
+      "product": "Produit",
+      "period": "Période",
+      "periodLine": "{{first}} à {{last}}"
+    },
+    "groupsTitle": "Explorer par question",
+    "groupsNote": "Autres questions"
+  },
+  "groups": {
+    "water": "Eau : est-ce que ça devient plus humide ou plus sec ici ?",
+    "heat": "Chaleur : est-ce que ça se réchauffe ou se refroidit ici ?",
+    "air": "Air : est-ce que ce qu’il y a dans l’air change ici ?",
+    "other": "Plantes : est-ce que ça devient plus vert ou plus brun ici ?"
+  },
+  "where": {
+    "title": "Chaque lieu : anomalies mensuelles et tendance",
+    "sameScale": "Même échelle",
+    "ownScale": "Échelle propre",
+    "scaleAria": "Échelle verticale des petits graphiques",
+    "noData": "Pas de données",
+    "here": "ici",
+    "cellAria": "{{place}} : {{label}}, {{change}} par décennie. Ouvrir ce lieu.",
+    "cellAriaNone": "{{place}} : {{label}}. Ouvrir ce lieu.",
+    "note": {
+      "general": "Chaque case est un lieu : la ligne bleue est l’écart de chaque mois à l’habituel, la ligne jaune la tendance. Toutes les cases partagent la même échelle verticale, sauf si « Échelle propre » est activée. Clique sur une case pour y aller.",
+      "expert": "Chaque cellule : anomalies mensuelles (bleu) et tendance OLS (jaune) ; échelle y commune, sauf avec « Échelle propre ». Repères comme dans le panneau Couches. Clique sur une cellule pour changer de lieu."
+    },
+    "mapHint": "Une carte mondiale de cette tendance se trouve sous « Carte des tendances », en haut."
+  },
+  "howmuch": {
+    "anomalyTitle": "Anomalies mensuelles avec la tendance linéaire",
+    "anomalyAria": "Anomalies mensuelles : {{name}} ({{place}}), avec la droite de tendance et sa bande de confiance.",
+    "intervalTitle": "Variation par décennie avec son intervalle de confiance à {{level}} %",
+    "intervalAria": "Variation par décennie par moindres carrés {{ols}} et pente de Sen {{sen}} sur une droite numérique centrée sur zéro.",
+    "ols": "Linéaire (OLS)",
+    "sen": "Pente de Sen",
+    "zero": "0 = aucun changement",
+    "intervalNote": "Si une barre croise la ligne 0, les données sont aussi compatibles avec l’absence de changement ou avec le sens opposé.",
+    "total": "De {{first}} à {{last}} ({{years}} ans), la droite de tendance représente environ {{total}}. C’est la pente multipliée par la durée, une conversion linéaire, et non la différence observée entre la première et la dernière année.",
+    "tableTitle": "Chiffres",
+    "table": {
+      "change": "Variation par décennie",
+      "p": "p (OLS, corrigé de l’autocorrélation)",
+      "period": "Période analysée",
+      "valid": "Mois valides",
+      "missing": "Mois manquants ou inutilisables"
+    },
+    "why": "Pourquoi par décennie ? Un taux par décennie met sur un pied d’égalité des séries de longueurs différentes."
+  },
+  "significant": {
+    "olsTitle": "Tendance linéaire (test t OLS, correction de l’autocorrélation d’ordre 1)",
+    "mkTitle": "Mann-Kendall (fondé sur les rangs ; aucune droite supposée)",
+    "rows": {
+      "ttest": "Test t de la pente",
+      "neff": "Taille d’échantillon effective",
+      "r1": "Autocorrélation d’ordre 1",
+      "original": "Original",
+      "hamedRao": "Hamed-Rao",
+      "seasonal": "Saisonnier",
+      "sen": "Pente de Sen par décennie"
+    },
+    "pq": "p {{p}} · q {{q}}",
+    "light": {
+      "significant": "Significatif après FDR",
+      "rawOnly": "Significatif avant FDR seulement",
+      "notSignificant": "Non significatif",
+      "none": "Non calculé"
+    },
+    "agreement": {
+      "bothSame": "Les deux tests concordent : tous deux significatifs, dans le même sens.",
+      "bothNone": "Les deux tests concordent : aucun n’est significatif.",
+      "disagree": "Les deux tests ne concordent pas. Cela peut arriver quand quelques mois inhabituels dominent, ou quand le changement n’est pas une droite.",
+      "unknown": "Les deux tests ne peuvent pas être comparés pour cette série."
+    },
+    "agreementBasis": "Comparés au seuil p < {{alpha}} avant FDR ; ici, Mann-Kendall est Hamed-Rao (Saisonnier quand Hamed-Rao n’a pas de p).",
+    "notSignificantNote": "Non significatif ne veut pas dire sans changement : souvent, la série n’est pas encore assez longue, ou la variation est trop grande. Cette série : {{years}} ans, {{months}} mois valides.",
+    "fdr": "Tests multiples : les valeurs q sont ajustées par la méthode de Benjamini-Hochberg sur les {{n}} séries analysées ({{family}}), séparément pour chaque test.",
+    "family": {
+      "core": "analyse centrale de Taïwan",
+      "world": "sous-ensemble mondial : villes du monde et moyenne mondiale"
+    },
+    "pSource": "Toutes les valeurs p et q sont lues dans le fichier de résultats de l’analyse ; rien n’est retesté dans le navigateur.",
+    "evidenceAria": "Résultats des tests",
+    "chartAria": "Valeurs p des quatre tests sur un axe logarithmique : test t {{ols}}, Mann-Kendall original {{original}}, Hamed-Rao {{hamedRao}}, saisonnier {{seasonal}}.",
+    "chartKeyP": "p",
+    "chartKeyQ": "q (après FDR)",
+    "chartKeyZone": "Plus à droite = p plus petit ; le côté ombré de la ligne en tirets correspond à p < {{alpha}}. Les valeurs inférieures à 1e-6 sont placées au bord."
+  },
+  "diag": {
+    "more": "Plus pour les chercheurs",
+    "residualTitle": "Résidus : anomalies mensuelles moins la droite de tendance",
+    "residualAria": "Résidus : {{name}} ({{place}}) au fil du temps ; {{n}} mois au-delà de trois écarts types robustes.",
+    "residualKey": "Points : mois au-delà de ±3 écarts types robustes (1,4826 × MAD) : {{n}}.",
+    "acfTitle": "Autocorrélation des résidus, décalages de 1 à 24 mois",
+    "acfAria": "Autocorrélation des résidus pour des décalages de 1 à 24 mois ; le décalage 1 vaut {{here}}.",
+    "acfKey": "En tirets : ±1,96/√n (bruit blanc). Décalage 1 dans le fichier de résultats : {{file}} ; dans ce graphique : {{here}}.",
+    "acfNote": "Descriptif seulement, calculé ici à partir de la série. La valeur d’ordre 1 du fichier apparie des mois adjacents sans trou (r de Pearson) ; ce graphique utilise la moyenne et la variance de toute la série, si bien que les deux peuvent différer légèrement. Les valeurs p des tests viennent toujours du fichier de résultats.",
+    "histTitle": "Distribution des anomalies mensuelles",
+    "histAria": "Histogramme de {{n}} anomalies mensuelles.",
+    "annualTitle": "Moyennes annuelles (années complètes seulement)",
+    "annualAria": "Moyenne de chaque année complète, de {{first}} à {{last}}.",
+    "annualNote": "Cela ressemble-t-il à une droite, à une marche ou à une courbe ?",
+    "downloadCsv": "Télécharger cette série (CSV)",
+    "downloadJson": "Télécharger le résultat de tendance (JSON)",
+    "methods": "Méthodes",
+    "method": {
+      "anomaly": "Anomalie : chaque valeur mensuelle moins la moyenne du même mois calendaire sur toutes les années utilisables de la série.",
+      "ols": "OLS : pente des moindres carrés des anomalies par rapport au temps. Son erreur type, le test t et l’intervalle de confiance utilisent la taille d’échantillon effective n(1 − r1)/(1 + r1), où r1 est l’autocorrélation d’ordre 1 des résidus (Santer et al. 2000).",
+      "mk": "Mann-Kendall : Original suppose des mois indépendants ; Hamed-Rao corrige la variance de l’autocorrélation (tous les décalages ; réputé indulgent) ; Saisonnier compare chaque mois calendaire seulement avec lui-même, sur les valeurs mensuelles. Pente de Sen : médiane des pentes entre paires de points ; son intervalle de confiance n’a pas de correction d’autocorrélation.",
+      "fdr": "FDR : Benjamini-Hochberg sur toutes les séries analysées d’une même exécution, séparément pour chaque test ; q est le p ajusté.",
+      "missing": "Valeurs manquantes : les mois signalés comme manquants, partiels ou à faible couverture sont écartés ; rien n’est comblé pour les tests de tendance.",
+      "cleaning": "Indicateurs : les mois outlier_suspect et known_discontinuity sont seulement signalés, pas retirés ; les sauts documentés sont tracés en tirets."
+    }
+  }
+}

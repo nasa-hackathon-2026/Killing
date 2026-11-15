@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { strata } from "../strata/strataSpec";
 import { hasMessage } from "../i18n";
-import { TOUR_STEPS, speakersMatchStrata, tourLayers } from "./tourScript";
+import {
+  TOUR_STEPS,
+  speakersMatchStrata,
+  tourLayers,
+  tourMessageKey,
+} from "./tourScript";
 
 describe("companion tour", () => {
   it("visits every stratum once from top to bottom", () => {
@@ -19,5 +24,17 @@ describe("companion tour", () => {
       (step) => step.layer !== null,
     ).lastIndexOf(true);
     expect(tourLayers(lastLayerStep)).toHaveLength(strata.length);
+  });
+
+  it("words the particles step for the particle style", () => {
+    for (const step of TOUR_STEPS) {
+      for (const key of step.messages) {
+        expect(hasMessage(tourMessageKey(key, "calm"))).toBe(true);
+        expect(tourMessageKey(key, "lively")).toBe(key);
+      }
+    }
+    expect(tourMessageKey("guide.tour.particles", "calm")).toBe(
+      "guide.tour.particlesCalm",
+    );
   });
 });
