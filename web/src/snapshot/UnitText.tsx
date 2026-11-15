@@ -1,4 +1,4 @@
-import { typesetUnits } from "./unitText";
+import { typesetUnits } from "./unitTypeset";
 
 // Renders `typesetUnits` for a measurement or a sentence that contains one.
 // A string with no exponent is returned as text, so callers can use this on
