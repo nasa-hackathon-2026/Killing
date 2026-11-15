@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { latLonToVector3 } from "./latLon";
+import { latLonToVector3, vectorToLatLon } from "./latLon";
 
 function closeTo(actual: number, expected: number) {
   expect(actual).toBeCloseTo(expected, 6);
@@ -32,6 +32,19 @@ describe("latLonToVector3", () => {
     closeTo(point.x, 0);
     closeTo(point.y, 0);
     closeTo(point.z, -1);
+  });
+
+  it("round-trips a city through the camera direction", () => {
+    for (const [lat, lon] of [
+      [51.51, -0.13],
+      [-33.87, 151.21],
+      [35.68, 139.69],
+    ] as const) {
+      const point = latLonToVector3(lat, lon, 1.4);
+      const back = vectorToLatLon(point.x, point.y, point.z);
+      expect(back.lat).toBeCloseTo(lat, 6);
+      expect(back.lon).toBeCloseTo(lon, 6);
+    }
   });
 
   it("places Taichung in the northern, eastern quadrant", () => {
