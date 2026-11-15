@@ -6,8 +6,20 @@ import {
   monthNumber,
   nextPlayIndex,
   parseMonthParam,
+  playIntervalMs,
   resolveMonth,
+  TIMELINE_SPEEDS,
 } from "./timelineMath";
+
+describe("playback speeds", () => {
+  it("offers half the previous rates and waits 1000 / speed", () => {
+    expect(TIMELINE_SPEEDS).toEqual([0.5, 2, 6]);
+    expect(TIMELINE_SPEEDS[1]).toBe(2);
+    expect(playIntervalMs(0.5)).toBe(2000);
+    expect(playIntervalMs(2)).toBe(500);
+    expect(playIntervalMs(6)).toBeCloseTo(1000 / 6);
+  });
+});
 
 describe("month numbers", () => {
   it("round-trips and counts months across a year boundary", () => {

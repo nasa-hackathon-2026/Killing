@@ -1,6 +1,12 @@
 import { OrbitControls } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { Suspense, useState, type ReactNode } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import {
+  Suspense,
+  useRef,
+  useState,
+  type ComponentRef,
+  type ReactNode,
+} from "react";
 import { CalmLayers } from "../forms/calm/CalmLayers";
 import { useParticleStyle } from "../forms/calm/particleStyle";
 import { GlassParticleLayer } from "../layers/GlassParticleLayer";
@@ -11,6 +17,7 @@ import { mockLocations, type MockLocation } from "../mock/snapshot";
 import type { TrendMap } from "../trendmap/loadTrendMap";
 import { TrendMapOverlay } from "../trendmap/TrendMapOverlay";
 import { createSceneRenderer } from "./createSceneRenderer";
+import { DEFAULT_ORBIT_DISTANCE, orbitRotateSpeed } from "./orbitSpeed";
 import { Earth } from "./Earth";
 import { TaiwanDetail } from "./TaiwanDetail";
 import { FlyCamera, type FlyTarget } from "./FlyCamera";
@@ -148,14 +155,32 @@ function Scene({
         }}
       />
       {children}
-      <OrbitControls
+      <GlobeControls
         key={controlsLocked ? "locked" : controlEpoch}
-        enablePan={false}
         enabled={!flyTarget && !controlsLocked}
-        minDistance={1.18}
-        maxDistance={6}
       />
     </>
+  );
+}
+
+// Orbit drag only. rotateSpeed is written each frame from the camera
+// distance; zoomSpeed is left at the control default, and this component
+// is not mounted in the layer view.
+function GlobeControls({ enabled }: { enabled: boolean }) {
+  const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
+  useFrame(() => {
+    const current = controls.current;
+    if (!current) return;
+    current.rotateSpeed = orbitRotateSpeed(current.getDistance());
+  });
+  return (
+    <OrbitControls
+      ref={controls}
+      enablePan={false}
+      enabled={enabled}
+      minDistance={1.18}
+      maxDistance={6}
+    />
   );
 }
 
@@ -213,7 +238,7 @@ export function EarthCanvas({
   return (
     <Canvas
       key={forceWebGL ? "webgl" : "auto"}
-      camera={{ position: [0, 0, 3.2], fov: 45 }}
+      camera={{ position: [0, 0, DEFAULT_ORBIT_DISTANCE], fov: 45 }}
       dpr={[1, 2]}
       frameloop={paused ? "never" : "always"}
       gl={createSceneRenderer(forceWebGL, onKind)}
