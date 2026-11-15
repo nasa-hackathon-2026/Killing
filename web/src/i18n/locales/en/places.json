@@ -1,6 +1,7 @@
 {
   "groups": {
     "taiwan": "Taiwan",
+    "taiwan_region": "Taiwan regions (area means)",
     "world_city": "World cities",
     "global": "Global"
   },
@@ -12,6 +13,11 @@
     "yushan": "Yushan",
     "taichung_station": "Taichung station",
     "taipei_station": "Taipei station",
+    "taiwan": "Taiwan, whole island (area mean)",
+    "north": "Northern Taiwan (area mean)",
+    "central": "Central Taiwan (area mean)",
+    "south": "Southern Taiwan (area mean)",
+    "east": "Eastern Taiwan (area mean)",
     "global": "Global mean",
     "tokyo": "Tokyo",
     "delhi": "Delhi",
@@ -30,6 +36,10 @@
     "globalMean": {
       "general": "This is the average over the whole globe, not the value at one place.",
       "expert": "Mean of the whole global grid, weighted by cos(latitude), land and ocean together where the product covers both. Not a point value."
+    },
+    "region": {
+      "general": "This is the average of all the grid cells inside this data area ({{bbox}}), not the value at one place. Each data product has its own cell size, so a small area may hold only one or two cells.",
+      "expert": "Area mean over the data area {{bbox}} (a bounding box, not a border), as returned by the data provider's averaging service. Products differ in resolution; a small area may contain only one or two cells."
     }
   },
   "placeMonth": "{{place}}, {{month}}"

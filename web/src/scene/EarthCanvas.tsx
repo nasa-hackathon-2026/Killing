@@ -22,6 +22,8 @@ import { Earth } from "./Earth";
 import { TaiwanDetail } from "./TaiwanDetail";
 import { FlyCamera, type FlyTarget } from "./FlyCamera";
 import { Markers } from "./Markers";
+import { RegionFrame } from "./RegionFrame";
+import { bboxCenter, type Bbox } from "../geo/regionFrame";
 import { type RendererKind } from "./rendererLabel";
 
 export type SceneLayer = {
@@ -29,6 +31,8 @@ export type SceneLayer = {
   visible: boolean;
   opacity: number;
 };
+
+export type SelectedRegion = { id: string; name: string; bbox: Bbox };
 
 type EarthCanvasProps = {
   forceWebGL: boolean;
@@ -46,6 +50,9 @@ type EarthCanvasProps = {
   trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
+  // The selected Taiwan region: its data area is outlined and labelled, and
+  // the Calm particles gather at its middle. null for any other place.
+  region?: SelectedRegion | null;
   onKind: (kind: RendererKind) => void;
   onFlyDone: () => void;
   onSelectLocation: (id: string) => void;
@@ -68,6 +75,7 @@ function Scene({
   trendMapOpacity,
   places,
   locationId,
+  region,
   onFlyDone,
   onSelectLocation,
   controlsLocked,
@@ -89,6 +97,7 @@ function Scene({
   trendMapOpacity?: number;
   places: MockLocation[];
   locationId: string;
+  region?: SelectedRegion | null;
   onFlyDone: () => void;
   onSelectLocation: (id: string) => void;
 }) {
@@ -96,7 +105,9 @@ function Scene({
   const openLayers = layers.filter((layer) => layer.visible).length;
   // The Calm style needs a place to float above; the global mean has none
   // and keeps the Lively style.
-  const selected = places.find((place) => place.id === locationId);
+  const selected =
+    places.find((place) => place.id === locationId) ??
+    (region ? bboxCenter(region.bbox) : undefined);
   const calm = useParticleStyle() === "calm" && selected !== undefined;
 
   return (
@@ -116,6 +127,7 @@ function Scene({
         selectedId={locationId}
         onSelect={onSelectLocation}
       />
+      {region ? <RegionFrame bbox={region.bbox} name={region.name} /> : null}
       <GlobalField
         openIds={layers
           .filter((layer) => layer.visible)
@@ -228,6 +240,7 @@ export function EarthCanvas({
   trendMapOpacity,
   places,
   locationId,
+  region,
   onKind,
   onFlyDone,
   onSelectLocation,
@@ -254,6 +267,7 @@ export function EarthCanvas({
         trendMapOpacity={trendMapOpacity}
         places={places}
         locationId={locationId}
+        region={region}
         onFlyDone={onFlyDone}
         onSelectLocation={onSelectLocation}
         controlsLocked={controlsLocked}

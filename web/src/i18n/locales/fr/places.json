@@ -1,6 +1,7 @@
 {
   "groups": {
     "taiwan": "Taïwan",
+    "taiwan_region": "Régions de Taïwan (moyennes de zone)",
     "world_city": "Villes du monde",
     "global": "Monde"
   },
@@ -12,6 +13,11 @@
     "yushan": "Yushan",
     "taichung_station": "Station de Taichung",
     "taipei_station": "Station de Taipei",
+    "taiwan": "Taïwan, île entière (moyenne de zone)",
+    "north": "Nord de Taïwan (moyenne de zone)",
+    "central": "Centre de Taïwan (moyenne de zone)",
+    "south": "Sud de Taïwan (moyenne de zone)",
+    "east": "Est de Taïwan (moyenne de zone)",
     "global": "Moyenne mondiale",
     "tokyo": "Tokyo",
     "delhi": "Delhi",
@@ -30,6 +36,10 @@
     "globalMean": {
       "general": "C’est la moyenne sur tout le globe, et non la valeur en un seul lieu.",
       "expert": "Moyenne de toute la grille mondiale, pondérée par cos(latitude), terres et océans ensemble là où le produit couvre les deux. Ce n’est pas une valeur ponctuelle."
+    },
+    "region": {
+      "general": "C’est la moyenne de toutes les mailles de cette zone de données ({{bbox}}), et non la valeur en un seul lieu. Chaque produit a sa propre taille de maille : une petite zone peut n’en contenir qu’une ou deux.",
+      "expert": "Moyenne de zone sur la zone de données {{bbox}} (un rectangle englobant, pas une frontière), calculée par le service de moyennage du fournisseur. Les résolutions des produits diffèrent ; une petite zone peut ne contenir qu’une ou deux mailles."
     }
   },
   "placeMonth": "{{place}}, {{month}}"

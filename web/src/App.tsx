@@ -50,6 +50,7 @@ import { useDismissOpenDetails } from "./hud/useDismissOnOutside";
 import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
+import { bboxCenter, regionFrameDistance } from "./geo/regionFrame";
 import { worldCityFrame } from "./scene/worldCityFrame";
 import {
   bestDefaultMonth,
@@ -61,6 +62,7 @@ import {
 import {
   displayPlaceName,
   hasCoordinates,
+  isRegion,
   placeNote,
   resolvePlaceId,
   type Place,
@@ -127,15 +129,35 @@ const fallbackPlaces: Place[] = mockLocations.map((item) => ({
 // already framed when the page opens (no slide), shifted east on medium
 // windows so it is not behind the Companions panel.
 function useOpeningFlight(
-  group: string | undefined,
-  lat: number | null,
-  lon: number | null,
+  place: Place | undefined,
   strata: boolean,
 ): FlyTarget | null {
   return useMemo(() => {
-    if (strata || group === undefined || lat === null || lon === null) {
-      return null;
+    if (strata || !place) return null;
+    // A Taiwan region opens framed whole: the middle of its data area, at
+    // the distance where the outline fits (no slide).
+    if (isRegion(place)) {
+      const middle = bboxCenter(place.bbox);
+      const distance = regionFrameDistance(
+        place.bbox,
+        window.innerWidth / Math.max(1, window.innerHeight),
+      );
+      return {
+        lat: middle.lat,
+        lon:
+          middle.lon +
+          startLongitudeShift(
+            window.innerWidth,
+            window.innerHeight,
+            distance,
+            middle.lat,
+          ),
+        distance,
+        instant: true,
+      };
     }
+    const { group, lat, lon } = place;
+    if (lat === null || lon === null) return null;
     const city = worldCityFrame({ group, lat, lon }, PLACE_FLY_DISTANCE);
     if (city) return city;
     if (group !== "taiwan") return null;
@@ -152,7 +174,7 @@ function useOpeningFlight(
       distance: START_DISTANCE,
       instant: true,
     };
-  }, [group, lat, lon, strata]);
+  }, [place, strata]);
 }
 
 // "Precipitation (GPM IMERG Final)": the variable's name in the active
@@ -299,17 +321,37 @@ function AppView({
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const places = data?.places ?? fallbackPlaces;
   const place = places.find((item) => item.id === locationId);
-  // The place as a point on the globe; undefined for the global mean, which
-  // has no marker, no camera flight and no layer view.
+  // The place as a point on the globe; undefined for the global mean and the
+  // Taiwan regions, which have no marker and no layer view (a region has its
+  // own outline and camera flight, below).
   const location = hasCoordinates(place) ? place : undefined;
   const placeName = place ? displayPlaceName(place) : locationId;
   const aggregation = place?.aggregation ?? "point";
   // Series of a world place are read when it is picked.
   const placeLoading = !!data && !data.loaded.includes(locationId);
+  // A Taiwan region: its data area is outlined on the globe.
+  const region = isRegion(place)
+    ? { id: place.id, name: placeName, bbox: place.bbox }
+    : null;
   const selectPlace = (id: string, fly: boolean) => {
     setLocationId(id);
     const next = places.find((item) => item.id === id);
-    if (!hasCoordinates(next) || strata.phase !== "off") return;
+    if (strata.phase !== "off") return;
+    // A region has no point: the camera goes to the middle of its data
+    // area, at the distance that shows the whole outline.
+    if (isRegion(next)) {
+      const middle = bboxCenter(next.bbox);
+      setFlyTarget({
+        lat: middle.lat,
+        lon: middle.lon,
+        distance: regionFrameDistance(
+          next.bbox,
+          window.innerWidth / Math.max(1, window.innerHeight),
+        ),
+      });
+      return;
+    }
+    if (!hasCoordinates(next)) return;
     // A world city slides to the center and a little closer, whether it was
     // chosen from the menu or by its marker. Taiwan markers do not fly.
     const city = worldCityFrame(next, PLACE_FLY_DISTANCE);
@@ -330,12 +372,7 @@ function AppView({
   // A world city slides there (city on the viewing axis, slightly closer).
   // Taiwan is already there, with no slide. The global mean has no point
   // and keeps the default view; the layer view flies there by itself.
-  const openingFlight = useOpeningFlight(
-    place?.group,
-    place?.lat ?? null,
-    place?.lon ?? null,
-    requestedStrata(),
-  );
+  const openingFlight = useOpeningFlight(place, requestedStrata());
   const flyTarget = askedFlight ?? (startDone ? null : openingFlight);
   const flying = flyTarget !== null;
   const here =
@@ -495,6 +532,7 @@ function AppView({
         trendMapOpacity={trendMapOpacity}
         places={places.filter(hasCoordinates)}
         locationId={locationId}
+        region={region}
         onKind={setKind}
         onFlyDone={() => {
           setStartDone(true);
