@@ -36,6 +36,17 @@ jobs:
       - run: npm run typecheck --prefix web
       - run: npm test --prefix web
       - run: npm run build --prefix web
+      # Stable copy of the site under /stable/: the web front end as pinned by
+      # the release tag below, built with a different base path. The root of
+      # the site stays the latest main.
+      - uses: actions/checkout@v4
+        with:
+          ref: submission-2026-11-15
+          path: stable-src
+      - run: npm ci --prefix stable-src/web
+      - run: npx vite build --base=/earth-system-trend-detective/stable/
+        working-directory: stable-src/web
+      - run: mv stable-src/web/dist web/dist/stable
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist
