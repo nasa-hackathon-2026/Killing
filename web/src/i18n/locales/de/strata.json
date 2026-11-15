@@ -4,7 +4,8 @@
   "hint": "Schichtansicht bei {{place}} öffnen",
   "noLayer": "Keine Ebene ist an. Hake im Bereich „Ebenen“ eine an, um sie hier zu sehen.",
   "about": "Über diese Ansicht",
-  "controls": "Ziehen zum Drehen, scrollen zum Zoomen, auf eine Schicht klicken für ihre Zahlen.",
+  "controls": "Ziehen zum Drehen, scrollen oder zusammenziehen zum Zoomen, doppelklicken zum Zurücksetzen, auf eine Schicht klicken für ihre Zahlen.",
+  "reset": "Ansicht zurücksetzen",
   "names": {
     "stratosphere": "Stratosphäre",
     "troposphere-air": "Troposphäre: Gase und Aerosole",

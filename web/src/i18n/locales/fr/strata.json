@@ -4,7 +4,8 @@
   "hint": "Entrer dans la vue en couches : {{place}}",
   "noLayer": "Aucune couche n’est active. Coche-en une dans le panneau Couches pour la voir ici.",
   "about": "À propos de cette vue",
-  "controls": "Glisse pour tourner, fais défiler pour zoomer, clique sur une couche pour ses chiffres.",
+  "controls": "Glisse pour tourner, fais défiler ou pince pour zoomer, double-clique pour réinitialiser, clique sur une couche pour ses chiffres.",
+  "reset": "Réinitialiser la vue",
   "names": {
     "stratosphere": "Stratosphère",
     "troposphere-air": "Troposphère : gaz et aérosols",

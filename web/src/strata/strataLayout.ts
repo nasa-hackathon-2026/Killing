@@ -172,3 +172,33 @@ export function companionSpot(
   const x = ((index + 0.5) / slots - 0.5) * PLATFORM_WIDTH * 0.8;
   return [x, PLATFORM_DEPTH * 0.36];
 }
+
+// Companions standing on the platforms (no room for a row beside the stack):
+// on a small stack their figures would pile up. `points` are the screen
+// positions (pixels) of the feet of the figures, `width` and `height` their
+// size. Returns the scale (down to COMPANION_MIN_SCALE) at which no two
+// figures overlap, 1 when they already do not, and null when they would
+// have to get smaller than that: they are then left out, and the numbers
+// are in the labels, the Layers panel and the panel of the expanded layer.
+export const COMPANION_MIN_SCALE = 0.5;
+export function platformCompanionScale(
+  points: { x: number; y: number }[],
+  width = 40,
+  height = 42,
+): number | null {
+  let scale = 1;
+  for (let a = 0; a < points.length; a += 1) {
+    for (let b = a + 1; b < points.length; b += 1) {
+      const pa = points[a];
+      const pb = points[b];
+      if (!pa || !pb) continue;
+      // Not overlapping at scale s needs |dx| >= width*s or |dy| >= height*s.
+      const room = Math.max(
+        Math.abs(pa.x - pb.x) / width,
+        Math.abs(pa.y - pb.y) / height,
+      );
+      scale = Math.min(scale, room);
+    }
+  }
+  return scale >= COMPANION_MIN_SCALE ? scale : null;
+}

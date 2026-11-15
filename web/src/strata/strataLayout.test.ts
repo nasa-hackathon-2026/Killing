@@ -12,6 +12,8 @@ import {
   stackLabelTops,
   SLAB_HEIGHT,
   stackExtent,
+  COMPANION_MIN_SCALE,
+  platformCompanionScale,
 } from "./strataLayout";
 import { strata, strataAssignment } from "./strataSpec";
 
@@ -162,5 +164,48 @@ describe("stackLabelTops", () => {
     const tops = stackLabelTops([100, 300, 500], heights, 100, 500);
     expect(tops[0]).toBe(100);
     expect(overlaps(tops, heights)).toBe(false);
+  });
+});
+
+describe("companions that stand on the platforms", () => {
+  it("keeps full size while the figures do not overlap", () => {
+    expect(
+      platformCompanionScale([
+        { x: 100, y: 100 },
+        { x: 150, y: 100 },
+        { x: 100, y: 160 },
+      ]),
+    ).toBe(1);
+    expect(platformCompanionScale([])).toBe(1);
+    expect(platformCompanionScale([{ x: 5, y: 5 }])).toBe(1);
+  });
+
+  it("shrinks the figures just enough that two of them do not overlap", () => {
+    const scale = platformCompanionScale([
+      { x: 100, y: 100 },
+      { x: 120, y: 100 },
+    ]);
+    expect(scale).toBeCloseTo(0.5);
+    // At that scale the 40 px figures are 20 px wide, their centres 20 apart.
+    expect(40 * (scale ?? 0)).toBeLessThanOrEqual(20 + 1e-9);
+  });
+
+  it("leaves them out when they would get smaller than the lower limit", () => {
+    expect(
+      platformCompanionScale([
+        { x: 100, y: 100 },
+        { x: 110, y: 104 },
+      ]),
+    ).toBeNull();
+    expect(COMPANION_MIN_SCALE).toBeGreaterThan(0);
+  });
+
+  it("separates by height when they are stacked straight over each other", () => {
+    expect(
+      platformCompanionScale([
+        { x: 100, y: 100 },
+        { x: 100, y: 142 },
+      ]),
+    ).toBe(1);
   });
 });

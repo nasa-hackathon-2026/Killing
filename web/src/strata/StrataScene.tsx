@@ -42,6 +42,7 @@ import {
   PLATFORM_DEPTH,
   PLATFORM_WIDTH,
   stackExtent,
+  platformCompanionScale,
   stackLabelTops,
   type CompanionPlacement,
   type StratumBox,
@@ -329,6 +330,14 @@ export function StrataScene({
         items: { element: HTMLElement; x: number; width: number }[];
       }
     >();
+    // Companions standing on the platforms: placed after the loop, once all
+    // positions are known (platformCompanionScale).
+    const feet: {
+      element: HTMLElement;
+      x: number;
+      y: number;
+      visible: boolean;
+    }[] = [];
     const toScreen = (x: number, y: number, z: number) => {
       const point = projected.current;
       point.set(x, y, z).project(camera);
@@ -354,10 +363,7 @@ export function StrataScene({
         continue;
       }
       if (placement === "on") {
-        const transform = `translate(${at.x.toFixed(1)}px, ${at.y.toFixed(1)}px) translate(-50%, -100%)`;
-        writes.push(() => {
-          element.style.transform = transform;
-        });
+        feet.push({ element, x: at.x, y: at.y, visible: at.visible });
         continue;
       }
       let row = rows.get(anchor.stratum);
@@ -378,6 +384,17 @@ export function StrataScene({
         rows.set(anchor.stratum, row);
       }
       row.items.push({ element, x: at.x, width: element.offsetWidth });
+    }
+    if (feet.length > 0) {
+      const scale = platformCompanionScale(feet);
+      for (const foot of feet) {
+        const transform = `translate(${foot.x.toFixed(1)}px, ${foot.y.toFixed(1)}px) translate(-50%, -100%) scale(${(scale ?? 1).toFixed(3)})`;
+        const hidden = scale === null || !foot.visible;
+        writes.push(() => {
+          foot.element.style.transform = transform;
+          foot.element.style.visibility = hidden ? "hidden" : "visible";
+        });
+      }
     }
     const tops = stackLabelTops(
       labels.map((label) => label.center),

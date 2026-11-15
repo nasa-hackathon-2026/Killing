@@ -138,7 +138,7 @@
   padding: 0;
   background: none;
   border: 0;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.15;
   text-align: center;
   text-shadow:
@@ -165,6 +165,12 @@
 .strata-companion:hover,
 .strata-companion:focus-visible {
   z-index: 2;
+}
+
+/* Companions on the platforms are scaled down (StrataScene) from their feet
+   when the stack is small, so the figures do not pile up. */
+.strata-overlay:not(.strata-beside) .strata-companion {
+  transform-origin: 50% 100%;
 }
 
 /* Wide screens: one row of companions per stratum right of the stack
@@ -211,6 +217,12 @@
 .strata-companion-caption b {
   color: #d5e4f5;
   font-weight: 600;
+}
+
+/* Smallest tier (strataCamera.ts COMPANION_TIERS): the value only; the name
+   is in the left column, the tooltip and the accessible name. */
+.strata-tier-compact .strata-companion-caption span {
+  display: none;
 }
 
 .strata-companion[aria-pressed="true"] .strata-companion-caption span {
@@ -411,6 +423,32 @@
   }
 }
 
+/* The labels sit in the overlay as before (StrataScene places each one);
+   on a phone the same buttons become a row of chips (below). */
+.strata-labelbar {
+  display: contents;
+}
+
+/* Reset view: a small button in the top-left corner of the area the stack
+   is fitted into (viewInsets in strataCamera.ts: left = label column,
+   top = HUD row). */
+.strata-reset {
+  position: absolute;
+  bottom: 200px;
+  left: 302px;
+  z-index: 1;
+  min-height: 32px;
+  padding: 4px 10px;
+  color: #e8eef7;
+  font:
+    12px/1.3 system-ui,
+    sans-serif;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
 /* Short or medium-width windows: the six labels need the room, so the
    height text is left to the panel of an expanded layer. */
 @media (max-height: 800px), (max-width: 1180px) {
@@ -423,10 +461,93 @@
   }
 }
 
+/* Medium and compact: the companions stand on the platforms, so the folded
+   Companions chip would only sit over the top of the stack. */
+@media (max-width: 1180px) {
+  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
+}
+
+/* Compact (701-900 px): the labels list values only, in a narrower column
+   (LABEL_COLUMN_COMPACT in strataCamera.ts). */
+@media (min-width: 701px) and (max-width: 900px) {
+  .strata-label,
+  .strata-header {
+    width: 168px;
+  }
+
+  .strata-reset {
+    left: 196px;
+  }
+
+  .strata-off {
+    display: none;
+  }
+
+  .strata-label,
+  .strata-label-head {
+    display: block;
+  }
+
+  .strata-value:not(.strata-off) {
+    display: inline;
+  }
+
+  .strata-value-name {
+    display: none;
+  }
+
+  .strata-value b {
+    margin-right: 8px;
+    font-weight: 400;
+    white-space: normal;
+  }
+}
+
+/* Short (a phone turned sideways, strataCamera.ts layoutMode): the picture,
+   the timeline bar and the Layers panel have to share the height, so the
+   labels are left out (tap a platform or a figure to open a layer), the
+   legend keeps its title row, and an expanded layer's numbers take the
+   place of the Layers panel. */
+@media (min-width: 701px) and (max-height: 500px) {
+  .strata-labelbar,
+  .strata-header details {
+    display: none;
+  }
+
+  .strata-header {
+    width: 188px;
+  }
+
+  .strata-reset {
+    left: 220px;
+  }
+
+  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
+  }
+
+  .app:has(.strata-detail) aside.layers {
+    display: none;
+  }
+
+  .strata-detail {
+    top: 64px;
+    right: 12px;
+    bottom: 12px;
+    left: auto;
+    width: 306px;
+    max-height: none;
+  }
+}
+
 /* Narrow screens: the layer view keeps the screen for itself. The HUD is
-   hidden (the legend has its own "Back to the globe"), and the layer panel
-   becomes a short sheet above the timeline bar; the panel of an expanded
-   stratum takes its place. Only while the layer view is open. */
+   hidden (the legend has its own "Back to the globe"), the six layers
+   become a row of chips under the legend (scrolls sideways) so the stack
+   has the whole width, and the layer panel becomes a short sheet above the
+   timeline bar; the sheet of an expanded stratum takes its place, below
+   the stack's upper half. Only while the layer view is open. */
 @media (max-width: 700px) {
   .app:has(.strata) .hud {
     display: none;
@@ -448,21 +569,66 @@
   .strata-header {
     top: 12px;
     width: calc(100% - 24px);
+    padding: 4px 8px;
+  }
+
+  .strata-header .strata-title {
+    margin-bottom: 0;
   }
 
   .strata-header .strata-title button {
     display: block;
+    min-height: 44px;
+    white-space: nowrap;
   }
 
-  .strata-label {
-    left: 8px;
-    padding: 4px 6px;
+  .strata-reset {
+    top: 164px;
+    right: 12px;
+    bottom: auto;
+    left: auto;
+    min-height: 44px;
+  }
+
+  .strata-labelbar {
+    position: absolute;
+    top: 96px;
+    right: 0;
+    left: 0;
+    display: flex;
+    gap: 8px;
+    padding: 0 12px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    pointer-events: auto;
+    scroll-padding: 0 12px;
+    scroll-snap-type: x proximity;
+    touch-action: pan-x;
+  }
+
+  .strata-labelbar .strata-label {
+    position: static;
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 240px;
+    min-height: 44px;
+    padding: 4px 8px;
     font-size: 12px;
+    white-space: nowrap;
+    visibility: visible;
+    transform: none !important;
+    scroll-snap-align: start;
+  }
+
+  /* The chips stay while a layer is expanded: they are how to switch. */
+  .strata-labelbar .strata-label.strata-hidden {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .strata-value,
   .strata-height {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .strata-off,
@@ -470,11 +636,9 @@
     display: none;
   }
 
-  /* Values only, in a row: the names are in the panel a tap opens. */
-  .strata-label {
-    display: block;
-  }
-
+  /* Name on top, the open values under it; the names of the values are in
+     the panel a tap opens. */
+  .strata-label,
   .strata-label-head {
     display: block;
   }
@@ -490,7 +654,7 @@
   .strata-value b {
     margin-right: 8px;
     font-weight: 400;
-    white-space: normal;
+    white-space: nowrap;
   }
 
   /* The same companions stand on the platforms. */
@@ -499,6 +663,32 @@
   }
 
   .strata-detail {
-    max-height: 36%;
+    max-height: 28%;
+  }
+}
+
+/* Touch screens: every control of the layer view is at least 44 x 44 px. */
+@media (pointer: coarse) {
+  .strata-label,
+  .strata-companion,
+  .strata-header button,
+  .strata-detail button,
+  .strata-reset,
+  .strata-hint {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .strata-companion {
+    justify-content: center;
+  }
+}
+
+/* No slide or fade: the view and its labels appear and change at once. */
+@media (prefers-reduced-motion: reduce) {
+  .strata-label,
+  .strata-companion,
+  .strata-links line {
+    transition: none;
   }
 }
