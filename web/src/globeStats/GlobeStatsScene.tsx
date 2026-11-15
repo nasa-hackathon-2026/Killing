@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import { Vector3 } from "three";
 import { latLonToVector3 } from "../geo/latLon";
+import { greatCircleArcPoints } from "./greatCircleArc";
 import { css, directionColor, paletteFor, slopeColor } from "./globePalette";
 import { robustMax } from "./trendGlyphs";
 import type { GlobeStatsState } from "./useGlobeStats";
@@ -73,7 +74,12 @@ function TrendMarks({ state }: { state: GlobeStatsState }) {
         className={`globe-stats-marker globe-trend-marker globe-trend-${glyph.kind}`}
         label={glyph.summary}
         onClick={() => state.onSelectLocation(glyph.placeId)}
-        style={{ color, width: glyph.lengthPx, height: glyph.lengthPx }}
+        style={{
+          color: glyph.kind === "nodata" ? "#8b96a5" : color,
+          width: glyph.lengthPx,
+          height: glyph.lengthPx,
+          opacity: glyph.kind === "unreliable" ? 0.62 : 1,
+        }}
       >
         {glyph.kind === "nodata" ? (
           <span aria-hidden="true">●</span>
@@ -136,30 +142,6 @@ function GapMarks({ state }: { state: GlobeStatsState }) {
   });
 }
 
-function arcPoints(
-  sourceLat: number,
-  sourceLon: number,
-  targetLat: number,
-  targetLon: number,
-): Vector3[] {
-  const sourceData = latLonToVector3(sourceLat, sourceLon, 1.012);
-  const targetData = latLonToVector3(targetLat, targetLon, 1.012);
-  const source = new Vector3(sourceData.x, sourceData.y, sourceData.z);
-  const target = new Vector3(targetData.x, targetData.y, targetData.z);
-  const control = source.clone().add(target);
-  if (control.lengthSq() < 1e-8) control.set(0, 1, 0);
-  control.normalize().multiplyScalar(1.22);
-  return Array.from({ length: 33 }, (_, index) => {
-    const amount = index / 32;
-    const inverse = 1 - amount;
-    return source
-      .clone()
-      .multiplyScalar(inverse * inverse)
-      .addScaledVector(control, 2 * inverse * amount)
-      .addScaledVector(target, amount * amount);
-  });
-}
-
 function AlikeMarks({ state }: { state: GlobeStatsState }) {
   const drawn = state.alikeArcs.filter(
     (arc) =>
@@ -170,12 +152,12 @@ function AlikeMarks({ state }: { state: GlobeStatsState }) {
       arc.targetLon !== null,
   );
   return drawn.map((arc) => {
-    const points = arcPoints(
+    const points = greatCircleArcPoints(
       arc.sourceLat as number,
       arc.sourceLon as number,
       arc.targetLat as number,
       arc.targetLon as number,
-    );
+    ).map((point) => new Vector3(point.x, point.y, point.z));
     const position = latLonToVector3(
       arc.targetLat as number,
       arc.targetLon as number,
