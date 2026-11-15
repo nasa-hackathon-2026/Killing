@@ -9,7 +9,17 @@ export default defineConfig({
   build: {
     // Third-party code is split from the app's own, so a change to the app
     // does not make visitors download three.js again (#201).
+    // The four pages of the site. They must be under rolldownOptions: with
+    // both keys set, Vite 8 reads only rolldownOptions, and an `input` under
+    // rollupOptions was silently dropped, so the deployed site had no
+    // /mining/, /lab/ or /compare/ (#223).
     rolldownOptions: {
+      input: {
+        main: "index.html",
+        lab: "lab/index.html",
+        mining: "mining/index.html",
+        compare: "compare/index.html",
+      },
       output: {
         codeSplitting: {
           groups: [
@@ -38,14 +48,6 @@ export default defineConfig({
             },
           ],
         },
-      },
-    },
-    rollupOptions: {
-      input: {
-        main: "index.html",
-        lab: "lab/index.html",
-        mining: "mining/index.html",
-        compare: "compare/index.html",
       },
     },
   },
