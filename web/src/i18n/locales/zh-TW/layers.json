@@ -20,5 +20,8 @@
   "display": "顯示設定",
   "opacity": "透明度",
   "sidebarOpen": "開啟圖層與資料夥伴",
-  "sidebarClose": "收起圖層與資料夥伴"
+  "sidebarClose": "收起圖層與資料夥伴",
+  "view": "顯示在左側",
+  "viewAria": "{{name}}：左側要顯示什麼",
+  "viewOff": "關閉"
 }

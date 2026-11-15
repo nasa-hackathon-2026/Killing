@@ -10,7 +10,20 @@ import {
   type ReactNode,
 } from "react";
 import { prefersReducedMotion } from "../forms/reducedMotion";
-import { requestedChart, requestedMonth, requestedPlay } from "../urlParams";
+import {
+  chartIdOf,
+  closeUpIdOf,
+  initialLeftView,
+  withChart,
+  withCloseUp,
+  type LeftView,
+} from "../leftPanel/leftView";
+import {
+  requestedChart,
+  requestedCloseUp,
+  requestedMonth,
+  requestedPlay,
+} from "../urlParams";
 import {
   clampIndex,
   DEFAULT_SPEED,
@@ -41,9 +54,17 @@ export type Timeline = {
   // Months per second while playing.
   speed: number;
   setSpeed: (speed: number) => void;
-  // The variable the time series chart shows; null = chart closed.
+  // What the left side shows (leftPanel/leftView.ts): nothing, a layer's
+  // chart, or a layer's close-up, never two of them.
+  leftView: LeftView;
+  setLeftView: (view: LeftView) => void;
+  // The variable the time series chart shows; null = chart closed. Setting it
+  // replaces a close-up; setting null closes the chart only.
   selectedVariableId: string | null;
   setSelectedVariableId: (id: string | null) => void;
+  // The layer whose close-up is open; null = none. Same rules.
+  closeUpId: string | null;
+  setCloseUpId: (id: string | null) => void;
   // The place whose series the months come from.
   locationId: string;
 };
@@ -73,8 +94,18 @@ export function TimelineProvider({
     () => askedPlay && !prefersReducedMotion(),
   );
   const [speed, setSpeed] = useState<number>(DEFAULT_SPEED);
-  const [selectedVariableId, setSelectedVariableId] = useState<string | null>(
-    requestedChart,
+  const [leftView, setLeftView] = useState<LeftView>(() =>
+    initialLeftView(requestedChart(), requestedCloseUp()),
+  );
+  const selectedVariableId = chartIdOf(leftView);
+  const closeUpId = closeUpIdOf(leftView);
+  const setSelectedVariableId = useCallback(
+    (id: string | null) => setLeftView((view) => withChart(view, id)),
+    [],
+  );
+  const setCloseUpId = useCallback(
+    (id: string | null) => setLeftView((view) => withCloseUp(view, id)),
+    [],
   );
   // ?play=1 without ?month starts from the first month, so there is
   // something to play through.
@@ -136,8 +167,12 @@ export function TimelineProvider({
       setPlaying,
       speed,
       setSpeed,
+      leftView,
+      setLeftView,
       selectedVariableId,
       setSelectedVariableId,
+      closeUpId,
+      setCloseUpId,
       locationId,
     }),
     [
@@ -151,7 +186,11 @@ export function TimelineProvider({
       playing,
       setPlaying,
       speed,
+      leftView,
       selectedVariableId,
+      setSelectedVariableId,
+      closeUpId,
+      setCloseUpId,
       locationId,
     ],
   );

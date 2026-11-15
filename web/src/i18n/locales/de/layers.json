@@ -20,5 +20,8 @@
   "display": "Anzeige",
   "opacity": "Deckkraft",
   "sidebarOpen": "Ebenen und Begleiter öffnen",
-  "sidebarClose": "Ebenen und Begleiter schließen"
+  "sidebarClose": "Ebenen und Begleiter schließen",
+  "view": "Links anzeigen",
+  "viewAria": "{{name}}: was links angezeigt wird",
+  "viewOff": "Aus"
 }

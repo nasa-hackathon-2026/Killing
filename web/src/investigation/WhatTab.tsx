@@ -14,6 +14,7 @@ import {
   type ChartMode,
 } from "../timeline/seriesMath";
 import { BarChart, SeasonChart, TimeChart } from "./charts";
+import { Segmented } from "../ui/segmented";
 import { Fold, ReadingNote } from "./Fold";
 import type { SeriesModel } from "./InvestigationPanel";
 import { groupOf } from "./logic";
@@ -78,22 +79,16 @@ export function WhatTab({
   const place = locationName;
   return (
     <>
-      <div
-        className="timeline-modes"
-        role="group"
+      <Segmented
+        className="my-2"
         aria-label={t("chart.modesAria")}
-      >
-        {MODES.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={mode === id}
-            onClick={() => setMode(id)}
-          >
-            {chartModeLabel(id)}
-          </button>
-        ))}
-      </div>
+        value={mode}
+        onValueChange={setMode}
+        options={MODES.map((id) => ({
+          value: id,
+          label: chartModeLabel(id),
+        }))}
+      />
       <TimeChart
         months={model.months}
         values={shown}

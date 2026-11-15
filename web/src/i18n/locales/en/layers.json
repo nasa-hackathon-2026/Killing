@@ -20,5 +20,8 @@
   "display": "Display",
   "opacity": "Opacity",
   "sidebarOpen": "Open layers and companions",
-  "sidebarClose": "Close layers and companions"
+  "sidebarClose": "Close layers and companions",
+  "view": "Show on the left",
+  "viewAria": "{{name}}: what to show on the left",
+  "viewOff": "Off"
 }
