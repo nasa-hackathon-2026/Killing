@@ -50,8 +50,12 @@ export type TrendGlyph = {
 
 export const MIN_LENGTH_PX = 12;
 export const MAX_LENGTH_PX = 46;
-// A change that is not significant is drawn short.
+// An outline (not significant after FDR correction, including significant
+// before it only) is drawn short and thin, so it never draws more attention
+// than a filled arrow. The legend says "Outline only and shorter".
 export const NOT_SIGNIFICANT_MAX_PX = 18;
+// Stroke of an outline arrow in screen pixels (not scaled with its length).
+export const OUTLINE_STROKE_PX = 1.25;
 export const SCALE_QUANTILE = 0.9;
 
 // The 90th percentile of the absolute changes (linear interpolation), so one
@@ -76,16 +80,10 @@ export function normalizedMagnitude(slope: number, scale: number): number {
   return Math.min(1, Math.abs(slope) / scale);
 }
 
-export function glyphLength(
-  magnitude: number,
-  kind: GlyphKind,
-  significant = false,
-): number {
+export function glyphLength(magnitude: number, kind: GlyphKind): number {
   if (kind === "nodata") return 0;
   const full = MIN_LENGTH_PX + (MAX_LENGTH_PX - MIN_LENGTH_PX) * magnitude;
-  return kind === "hollow" && !significant
-    ? Math.min(full, NOT_SIGNIFICANT_MAX_PX)
-    : full;
+  return kind === "hollow" ? Math.min(full, NOT_SIGNIFICANT_MAX_PX) : full;
 }
 
 type Classified = {
@@ -174,7 +172,7 @@ export function buildTrendGlyphs(
     const magnitude =
       row.slope === null ? 0 : normalizedMagnitude(row.slope, scale);
     const analyzed = row.entry?.status === "analyzed" ? row.entry : null;
-    const lengthPx = glyphLength(magnitude, row.kind, row.significant);
+    const lengthPx = glyphLength(magnitude, row.kind);
     const unit = row.entry?.unit ?? "";
     const changeText = analyzed
       ? formatChangePerDecade(
@@ -244,4 +242,70 @@ export function countGlyphs(glyphs: TrendGlyph[]): GlyphCounts {
     else counts.nodata += 1;
   }
   return counts;
+}
+
+// Which variable the marks follow: the charted one, else the open layer
+// with the most places drawn filled (significant after FDR correction and
+// reliable); the first open layer on a tie. `filledPlaces` counts them.
+export function followedVariable(
+  chartId: string | null,
+  openIds: string[],
+  filledPlaces: (variableId: string) => number,
+): string | null {
+  if (chartId) return chartId;
+  let best: string | null = null;
+  let bestCount = -1;
+  for (const id of openIds) {
+    const count = filledPlaces(id);
+    if (count > bestCount) {
+      best = id;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+// Degrees between two places on the sphere.
+export function angularDistanceDeg(
+  aLat: number,
+  aLon: number,
+  bLat: number,
+  bLon: number,
+): number {
+  const rad = Math.PI / 180;
+  const cos =
+    Math.sin(aLat * rad) * Math.sin(bLat * rad) +
+    Math.cos(aLat * rad) * Math.cos(bLat * rad) * Math.cos((aLon - bLon) * rad);
+  return Math.acos(Math.min(1, Math.max(-1, cos))) / rad;
+}
+
+// How far apart (in degrees) two marks must be to both be drawn, per unit of
+// camera distance above the surface (globe radius 1). From the starting view
+// (distance 3.2) that is about 3.5 degrees, so the five Taiwan places share
+// one mark; closer in they separate.
+export const SEPARATION_DEG_PER_DISTANCE = 1.6;
+
+export function minSeparationDeg(cameraDistance: number): number {
+  return Math.max(0, (cameraDistance - 1) * SEPARATION_DEG_PER_DISTANCE);
+}
+
+// The marks to draw: the selected place first, then the others in order,
+// each only when it is at least `minDeg` from every mark already kept.
+// Returned in the original order.
+export function spreadMarks<
+  T extends { placeId: string; lat: number; lon: number },
+>(marks: T[], selectedId: string, minDeg: number): T[] {
+  const ordered = [
+    ...marks.filter((mark) => mark.placeId === selectedId),
+    ...marks.filter((mark) => mark.placeId !== selectedId),
+  ];
+  const kept = new Set<T>();
+  for (const mark of ordered) {
+    const clear = [...kept].every(
+      (other) =>
+        angularDistanceDeg(mark.lat, mark.lon, other.lat, other.lon) >= minDeg,
+    );
+    if (clear) kept.add(mark);
+  }
+  return marks.filter((mark) => kept.has(mark));
 }

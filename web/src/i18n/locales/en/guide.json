@@ -78,6 +78,7 @@
     "welcome": "Hi, I'm Rain, one of the data companions. This site shows up to 25 years of NASA Earth data at one place, and whether each measurement has changed.",
     "place": "Right now you are looking at {{place}} in {{month}}. You can pick another place in the Layers panel and another month on the timeline.",
     "particles": "The particles around the globe show one number per layer for this place and month. More or faster particles mean a higher value. They are not a map.",
+    "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
     "enter": "Each measurement belongs to a height, from the ozone layer down to the soil. Let's visit them from top to bottom.",
     "trendMap": "That was one place. To see where on Earth a measurement is changing, open Global trend map at the top.",
     "research": "For the full statistics, such as confidence intervals and test names, switch to Researcher at the top. Now it's your turn."

@@ -17,6 +17,38 @@
   display: none;
 }
 
+/* A map legend (the trend map, the global distribution) comes first and
+   gets the whole height between the HUD and the timeline bar, so it is
+   seen in full without scrolling; the globe statistics and the particle
+   note follow. */
+.app .map-legends:has(> .trendmap, > .field-legend) {
+  max-height: calc(
+    100% - 64px - var(--timeline-bottom, 72px) - var(--timeline-height, 108px) -
+      24px
+  );
+}
+
+.map-legends > .trendmap {
+  order: -2;
+}
+
+.map-legends > .field-legend {
+  order: -1;
+}
+
+.map-legends > .particle-note {
+  order: 1;
+}
+
+.globe-stats-paused {
+  margin: 0;
+  color: #b7c6da;
+}
+
+.globe-stats-short {
+  color: #d4deec;
+}
+
 .app .map-legends > .particle-note {
   position: static;
   flex: none;
@@ -309,9 +341,30 @@
   box-shadow: 0 0 0 1px #fff;
 }
 
+/* Narrow windows: the chart is a drawer above the timeline bar, so the
+   legend column moves up under the HUD with a short, scrollable window
+   (the chart is shortened by the same amount in index.css). */
+@media (max-width: 1180px) {
+  .app:has(.timeline-chart) .map-legends {
+    top: 64px;
+    bottom: auto;
+    max-height: 150px;
+  }
+}
+
 @media (max-width: 700px) {
+  /* The selected place sits at the middle of the screen: the column stops
+     below it (24px under the centre) and scrolls. */
   .map-legends {
-    max-height: 28vh;
+    max-height: min(
+      28vh,
+      calc(50% - var(--timeline-bottom) - var(--timeline-height) - 48px)
+    );
+  }
+
+  .globe-stats-selectors label {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
   }
 
   .globe-stats-panel {

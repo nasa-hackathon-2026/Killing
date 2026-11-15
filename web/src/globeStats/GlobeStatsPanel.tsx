@@ -256,23 +256,35 @@ function dataStatus(state: GlobeStatsState): string | null {
   return state.alikeArcs.length === 0 ? T.alikeNone : null;
 }
 
+// The one line shown while the legend is collapsed.
+function shortKey(mode: GlobeStatsState["mode"]): string {
+  if (mode === "trend") return T.trendKeyShort;
+  if (mode === "gap") return T.gapHalves;
+  return T.alikeColour;
+}
+
 export function GlobeStatsPanel({ state }: { state: GlobeStatsState }) {
-  useI18n();
-  const [legendOpen, setLegendOpen] = useState(true);
+  const { role } = useI18n();
+  // Collapsed by default: the selector above and one line of key, so the
+  // panel does not cover the globe or the selected place.
+  const [legendOpen, setLegendOpen] = useState(false);
   const [tableOpen, setTableOpen] = useState(false);
-  if (state.hidden || state.mode === "none") return null;
+  if (state.hidden || state.legendHidden || state.mode === "none") return null;
   const notice = dataStatus(state);
 
   return (
     <aside className="globe-stats-panel" aria-label={T.overlayLabel}>
       <header className="globe-stats-header">
-        <strong>
-          {
-            T[
-              `mode${state.mode[0]?.toUpperCase()}${state.mode.slice(1)}` as keyof typeof T
-            ]
-          }
-        </strong>
+        {/* Everyone: the selector above already names the mode. */}
+        {role === "everyone" ? null : (
+          <strong>
+            {
+              T[
+                `mode${state.mode[0]?.toUpperCase()}${state.mode.slice(1)}` as keyof typeof T
+              ]
+            }
+          </strong>
+        )}
         <div>
           <button
             type="button"
@@ -298,6 +310,9 @@ export function GlobeStatsPanel({ state }: { state: GlobeStatsState }) {
           : state.selectedVariableName}
         {state.mode === "alike" ? ` · ${state.selectedLocationName}` : ""}
       </p>
+      {legendOpen ? null : (
+        <p className="globe-stats-short">{shortKey(state.mode)}</p>
+      )}
       {legendOpen ? (
         <div className="globe-stats-legend">
           {state.mode === "trend" ? <TrendLegend state={state} /> : null}

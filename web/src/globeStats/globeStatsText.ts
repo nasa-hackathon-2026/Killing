@@ -70,6 +70,12 @@ export const GLOBE_STATS_TEXT = {
   get trendNoData() {
     return t("globeStats.trendNoData");
   },
+  get trendKeyShort() {
+    return t("globeStats.trendKeyShort");
+  },
+  get pausedForTrendMap() {
+    return t("globeStats.pausedForTrendMap");
+  },
   get trendLengthScale() {
     return t("globeStats.trendLengthScale");
   },

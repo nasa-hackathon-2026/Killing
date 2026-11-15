@@ -19,7 +19,11 @@ import { buildTrendGlyphs, type TrendGlyph } from "./trendGlyphs";
 const MODEL_TEMPERATURES = ["gldas_tair", "merra2_t2m", "power_t2m"];
 
 export type GlobeStatsState = {
+  // Nothing drawn: no marks, no legend.
   hidden: boolean;
+  // The marks stay, the selector and legend give their place to another
+  // left-hand panel (the chart, the start card, the tour).
+  legendHidden: boolean;
   mode: GlobeMode;
   setMode: (mode: GlobeMode) => void;
   selectedVariableId: string | null;
@@ -41,6 +45,7 @@ export type GlobeStatsState = {
 
 type UseGlobeStatsArgs = {
   hidden: boolean;
+  legendHidden: boolean;
   places: PointPlace[];
   selectedLocationId: string;
   selectedVariableId: string | null;
@@ -51,6 +56,7 @@ type UseGlobeStatsArgs = {
 
 export function useGlobeStats({
   hidden,
+  legendHidden,
   places,
   selectedLocationId,
   selectedVariableId,
@@ -147,6 +153,7 @@ export function useGlobeStats({
 
   return {
     hidden,
+    legendHidden,
     mode,
     setMode,
     selectedVariableId,

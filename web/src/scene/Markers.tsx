@@ -83,7 +83,9 @@ function SelectedPlace({ location }: { location: MockLocation }) {
       </mesh>
       <Html
         position={position}
-        zIndexRange={[0, 0]}
+        // Above the statistics marks on the globe (zIndexRange 0), so the
+        // name of the selected place is never covered.
+        zIndexRange={[1, 1]}
         style={{ pointerEvents: "none" }}
       >
         <p ref={label} className="place-label">
