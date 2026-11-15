@@ -262,6 +262,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **台詞的限制（不可放寬）**：只能是資料事實——變數、地點、月份、數值與單位、與同月份平均的差、每十年變化量與顯著性、已知問題的警語、資料性質。**不寫原因、不下結論、不寫情緒性的判斷**；官方規定點子不能由 AI 產生，詮釋留給隊伍。表情只有姿態三級，不做哭笑臉。
 - **角色必須原創**：不重現任何既有動漫、遊戲、品牌角色的外形、名字、配色或招牌表情；名字用形態本身的英文。全部用程式畫，不加外部圖片、字型、音檔；語音只用瀏覽器的 `speechSynthesis`（`speech.ts`），預設關閉，只在使用者點擊或播放暫停時念。
 - **並存與互動**：面板依 `altitudeOrder` 由上而下排，5 隻以上改兩欄（`ONE_COLUMN_MAX`，為了不蓋到下方的時間軸列）。相鄰兩隻的互動規則是資料（`interactions.ts` 的 `INTERACTION_RULES`：滴水、上升的小珠、氣溫角色的暖光），只是示意，不代表因果，面板底部有註明；兩欄時不顯示互動。
+- **面板的內容**（`CompanionControls.tsx`，有測試）：最上面三個固定名稱的開關「語音／解說／合影」（`CompanionToolbar`，圖示加文字，開著時亮起並 `aria-pressed`，狀態不寫在字裡；沒有語音合成的瀏覽器沒有語音那顆；合影那顆本身就是開關，點亮時再點一次收回）；每隻夥伴名稱下方是當月數值與單位（`formatMeasurement`，和圖層面板同一個函式）與資料來源小標籤（衛星／模式／測站，`common.dataKind.*.short`；`CompanionCaption`）；底部只有一句 `companions.foot`。頭上 ◇▲▼ 的 tooltip 是 `Companion.tsx` 的 `TrendGlyph` 的 `<title>`，用 `trendMark` 的 label（與圖層面板 `TrendMarkIcon` 同一個來源），另有透明感應區（空心標記只有線條會吃滑鼠）。面板寬 240 px（雙欄 264 px）。
 - **Gather**：`gather.ts` 的 `gatherLayout` 把 12 隻排成借用拉斐爾〈雅典學院〉構圖意象的畫面（中央一隻 `sky`／`air` 指上、一隻 `surface`／`ground` 手掌向下，優先選已開啟的圖層；其餘依高度站兩側台階），背景只有幾條拱門與台階線，畫面上註明出處。不貼原畫。
 - **分層視圖開著時**（`compact`）面板自動收合（同一批角色已站在各層上；頭像列由 `strata.css` 隱藏，只留標題），仍可按 + 展開。
 - **目前月份**：`useCurrentMonth.ts` 是唯一的轉接點，讀時間軸的 `useTimeline()`（`month`、`playing`），所以 `<CompanionDock />` 要放在 `TimelineProvider` 裡面。播放中只更新外形，不念語音；暫停時才念選取角色的那句話。

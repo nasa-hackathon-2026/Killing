@@ -36,7 +36,7 @@
   "dataKind": {
     "in_situ": {
       "label": "In situ",
-      "short": "In situ",
+      "short": "Station",
       "general": "Measured by an instrument at the place.",
       "expert": "Data kind: in situ."
     },

@@ -868,11 +868,11 @@ html {
 /* Beside the bottom-left legends (globeStats/globeStats.css .map-legends,
    min(360px, …) wide) when the trend map legend is open, so the chart does
    not reach down over it; narrower when the window has no room for the
-   legends, the chart, the companions (8 + 188 + 8) and the drawer (318 + 8)
-   side by side. */
+   legends, the chart, the companions (8 + 240 + 8) and the drawer with its
+   handle (12 + 306 + 28) side by side. */
 .app:has(.trendmap) {
   --chart-left: calc(12px + min(360px, calc(100% - 24px)) + 8px);
-  --chart-width: min(440px, calc(100% - var(--chart-left) - 530px));
+  --chart-width: min(440px, calc(100% - var(--chart-left) - 602px));
 }
 
 /* Where the panels of the top-left corner end (the companions, the start

@@ -146,6 +146,16 @@ function TrendGlyph({ signal }: { signal: TrendSignal }) {
   return (
     <g className="companion-trend">
       <title>{label}</title>
+      {/* A hollow mark only takes the pointer on its outline; this square
+          makes the tooltip appear anywhere over the mark. */}
+      <rect
+        className="companion-trend-hit"
+        x={CENTER_X - 10}
+        y={y - 10}
+        width={20}
+        height={20}
+        fill="transparent"
+      />
       {shape}
     </g>
   );

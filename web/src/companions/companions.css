@@ -155,7 +155,8 @@
   right: 326px;
   z-index: 1;
   box-sizing: border-box;
-  width: 188px;
+  /* Wide enough for the three switches and the one-line foot. */
+  width: 240px;
   /* Ends above the timeline bar (variables set on .app in index.css). */
   max-height: calc(
     100% - 64px - var(--timeline-bottom, 72px) - var(--timeline-height, 108px) -
@@ -210,10 +211,47 @@
   font-size: 13px;
 }
 
-.companion-voice {
+/* The switches on top: Voice, Guide, Gather, in one row. Each has a fixed
+   name and lights up while it is on (aria-pressed). */
+.companion-tools:has(.companion-switch) {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.companion-switch {
   display: inline-flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.companion-dock button.companion-switch-on[aria-pressed="true"] {
+  color: #0b1220;
+  background: #cfe3ff;
+  border-color: #cfe3ff;
+}
+
+/* Under a companion: name, the month's value, the data source as a tag. */
+.companion-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.companion-value {
+  color: #d5e4f5;
+  font-size: 12px;
+}
+
+.companion-kind {
+  padding: 0 6px;
+  color: #b7c6da;
+  font-size: 10px;
+  line-height: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
 }
 
 .companion-dock-collapsed {
@@ -262,7 +300,7 @@
 }
 
 .companion-dock-wide {
-  width: 236px;
+  width: 264px;
 }
 
 .companion-item {
@@ -589,6 +627,10 @@
 /* Phone widths: the panel is a chip under the HUD on the left (the Layers
    chip is on the right); unfolded, it ends above the timeline bar. */
 @media (max-width: 700px) {
+  .companion-tools:has(.companion-switch) {
+    flex-wrap: wrap;
+  }
+
   .companion-dock:not(.companion-gather, .companion-gallery) {
     top: 60px;
     right: auto;
