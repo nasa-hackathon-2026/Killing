@@ -50,6 +50,7 @@ describe("dock narration", () => {
       nextDockNarration(open, { ...open, locationId: "q" }, null, ["b", "a"], {
         enabled: true,
         collapsed: true,
+        compact: false,
       }),
     ).toEqual({ speaker: "b", expand: true });
   });
@@ -59,6 +60,17 @@ describe("dock narration", () => {
       nextDockNarration(open, { ...open, playing: true }, null, ["b", "a"], {
         enabled: true,
         collapsed: true,
+        compact: false,
+      }),
+    ).toEqual({ speaker: null, expand: false });
+  });
+
+  it("does not open the compact dock over companions in the layer view", () => {
+    expect(
+      nextDockNarration(open, { ...open, locationId: "q" }, null, ["b", "a"], {
+        enabled: true,
+        collapsed: true,
+        compact: true,
       }),
     ).toEqual({ speaker: null, expand: false });
   });

@@ -232,6 +232,7 @@ export function CompanionDock({
       {
         enabled: narrate && autoIntro && !gathered && !gallery,
         collapsed,
+        compact,
       },
     );
     setNarration(next);
