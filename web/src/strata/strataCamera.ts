@@ -1,5 +1,10 @@
 // Camera math of the layer view. Pure functions, no three.js objects.
-import { LAYER_GAP, PLATFORM_DEPTH, PLATFORM_WIDTH } from "./strataLayout";
+import {
+  LAYER_GAP,
+  PLATFORM_DEPTH,
+  PLATFORM_WIDTH,
+  type CompanionPlacement,
+} from "./strataLayout";
 import { strata } from "./strataSpec";
 
 export type Vec3 = [number, number, number];
@@ -202,10 +207,31 @@ export const CHART_COLUMN = 392;
 // stops above on a wide screen.
 export const CREDIT_RESERVE = 78;
 
+// Room right of the stack for the companions standing beside it (up to three
+// per stratum, strataLayout.ts companionRowXs), and the narrowest the stack
+// itself may get before they go back onto the platforms.
+export const COMPANION_COLUMN = 252;
+export const MIN_STACK_WIDTH = 300;
+
+// Beside the stack on a wide screen while the stack keeps at least
+// MIN_STACK_WIDTH after reserving their column (the docked chart takes
+// room too); on the platforms otherwise.
+export function companionPlacement(
+  width: number,
+  height: number,
+  chartOpen = false,
+): CompanionPlacement {
+  if (!(width > MEDIUM_WIDTH)) return "on";
+  const insets = viewInsets(width, height, chartOpen);
+  const stack = width - insets.left - insets.right - COMPANION_COLUMN;
+  return stack >= MIN_STACK_WIDTH ? "beside" : "on";
+}
+
 export function viewInsets(
   width: number,
   height: number,
   chartOpen = false,
+  companions: CompanionPlacement = "on",
 ): ViewInsets {
   if (!(width > 0) || !(height > 0)) {
     return { top: 0, right: 0, bottom: 0, left: 0 };
@@ -221,9 +247,11 @@ export function viewInsets(
     };
   }
   const chart = chartOpen && width > MEDIUM_WIDTH ? CHART_COLUMN : 0;
+  const beside =
+    companions === "beside" && width > MEDIUM_WIDTH ? COMPANION_COLUMN : 0;
   return {
     top: HUD_RESERVE,
-    right: PANEL_COLUMN + chart,
+    right: PANEL_COLUMN + chart + beside,
     bottom: Math.min(TIMELINE_RESERVE, height * 0.3),
     left: LABEL_COLUMN,
   };

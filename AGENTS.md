@@ -225,15 +225,15 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **卡片文字**在 `GuideCard.tsx`：一句話說明與三個步驟只描述工具做什麼，「How to read this」只講怎麼讀圖（粒子、▲▼◇、Not significant、資料性質、警語），措辭沿用圖層面板；**不寫科學結論**。開圖表、近看、趨勢地圖或進分層視圖時卡片會自動收起（它們用同一個左側位置），不算關閉。
 - **HUD 只有一列、不換行**（`index.css` 的 `.hud`）：? Guide、Layer view、Global trend map、Fly to Taiwan、More。次要連結（Model vs observation、Data mining、Form lab）與除錯資訊（Renderer、FPS、Force WebGL）在 More 的 `<details>` 裡。所有面板從 `top: 64px` 開始，所以 HUD 不能長到第二列；要加按鈕就放進 More，或在窄螢幕的 media query 裡把別的收掉。
 - **面板的位置（主畫面）**：左側是開始卡片／趨勢地圖圖例（290 px）／時間序列圖（440 px，圖例開著時排在它右邊並視窗寬度縮窄）；右側是 Layers 面板（306 px，`border-box`，可收合）與它左邊的 Companions（`right: 326px`）；下方中央是時間軸列。夥伴的那句話開在 Companions 面板裡面（不再浮在面板左邊），所以不會蓋到圖。1180 px 以下時間軸列與圖改靠左、圖是時間軸列上方的抽屜（寬度留給 Companions；圖例同時開著時圖例縮成 150 px 高、可捲動）；900 px 以下圖開著時 Companions 讓位；近看檢視（`.closeup`）是蓋在左側的一張，會蓋住時間序列圖，高度停在時間軸列上方，1180 px 以下開著時 Companions 讓位；700 px 以下 Layers 與 Companions 預設收合成 HUD 下方左右兩個小方塊，Layers 展開時是蓋住畫面的一張，按 Chart 或 Close-up 會自動收起。
-- **分層視圖開著時的停靠規則**（CSS 在 `strata.css` 的「Docking」一段，鏡頭留白在 `strataCamera.ts` 的 `viewInsets`，兩邊的數字要對得上：`LABEL_COLUMN`、`PANEL_COLUMN`、`CHART_COLUMN`、`HUD_RESERVE`、`TIMELINE_RESERVE`）：
+- **分層視圖開著時的停靠規則**（CSS 在 `strata.css` 的「Docking」一段，鏡頭留白在 `strataCamera.ts` 的 `viewInsets`，兩邊的數字要對得上：`LABEL_COLUMN`、`PANEL_COLUMN`、`CHART_COLUMN`、`COMPANION_COLUMN`、`HUD_RESERVE`、`TIMELINE_RESERVE`）：
 
   | 視窗寬度 | 左欄 | 中間 | 右側 |
   |---|---|---|---|
-  | > 1180 px | 圖例（`.strata-header`）與六個層標籤 | 層疊，置中於剩下的區域 | Layers 面板；時間序列圖開著時停在它左邊（380 px），層疊往左讓，Companions 隱藏 |
+  | > 1180 px | 圖例（`.strata-header`）與六個層標籤 | 層疊，置中於剩下的區域 | 資料夥伴列（層疊右側，見下）與 Layers 面板；時間序列圖開著時停在 Layers 面板左邊（380 px），層疊往左讓，Companions 隱藏 |
   | 701–1180 px | 同上（高度文字隱藏） | 層疊 | Layers 面板；時間序列圖開著時取代它，關掉圖就回來 |
   | ≤ 700 px | 圖例在上、標籤只列數值 | 層疊 | Layers 是時間軸列上方的一小片；Companions 隱藏；圖是蓋住層疊的抽屜 |
 
-  平台上只站角色，名稱在滑鼠移上或鍵盤聚焦時才出現（左欄已經列了每個變數與數值）。左欄標籤的位置由 `strataLayout.ts` 的 `stackLabelTops` 決定（純函式，有測試）：對齊各層高度、不壓到圖例、彼此不重疊、不超過 `labelCeiling`（寬螢幕是左下角出處文字的上緣，其他是時間軸列的上緣）。趨勢地圖的圖例在分層視圖開著時隱藏（地球被蓋住）；收合的 Companions 只留標題與 + 鈕（一排頭像會壓到最上面的平台）。
+  資料夥伴的位置（#172）：`strataCamera.ts` 的 `companionPlacement` 判定為 `beside`（寬度 > 1180，且留出 `COMPANION_COLUMN` 後層疊仍有 `MIN_STACK_WIDTH`）時，夥伴排在層疊右側，每層一列、身體中心對齊該層平台的高度，下方寫名稱與數值，一條虛線連回平台右緣；`viewInsets` 同時多留這一欄。場景座標由 `strataLayout.ts` 的 `companionSpot` 給，像素位置由 `companionRowXs`（同列不重疊、不進平台、不進 Layers 面板）與 `stackLabelTops`（各列上下不重疊、在 Companions 小方塊下方、時間軸列上方）決定，都是有測試的純函式。判定為 `on` 時（中等寬度以下、或圖表開著讓層疊太窄），夥伴站在平台上，名稱在滑鼠移上或鍵盤聚焦時才出現（左欄已經列了每個變數與數值）。左欄標籤的位置由 `strataLayout.ts` 的 `stackLabelTops` 決定（純函式，有測試）：對齊各層高度、不壓到圖例、彼此不重疊、不超過 `labelCeiling`（寬螢幕是左下角出處文字的上緣，其他是時間軸列的上緣）。趨勢地圖的圖例在分層視圖開著時隱藏（地球被蓋住）；收合的 Companions 只留標題與 + 鈕（一排頭像會壓到最上面的平台）。
 - **無障礙**：`index.css` 最上面的 `:focus-visible` 給所有控制項同一個焦點框，不要在個別元件把 outline 拿掉；新的互動元素用 `<button>`、`<a>`、`<details>`，不要用可點的 `<div>`。
 - **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
@@ -256,6 +256,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
   - `Companion.tsx`：`<Companion variableId value anomalyZ trend significant size mood? />`，純呈現的 SVG，不抓資料。`value` 是 0 到 1 的正規化數值（與粒子圖層同一個數，`null` 表示該月沒有資料）；`trend` 是每十年變化量的正負號、`significant` 是 FDR 校正後是否顯著，也可以改傳 `signal`（`trendSignal` 的結果）讓標記與圖層面板完全一致；另有 `warning`、`showLabel`、`animate`、`gesture`（`up`／`down`，Gather 用）。
   - `companionSpec.ts`：`companionFor(variableId)`、`COMPANIONS`、`byAltitude(ids)`（由高到低）、`companionTitle`。每筆有 `id`、`name`、`tag`、`kind`、`variant`、`baseColor`、`layer`（`sky`／`air`／`surface`／`ground`）、`altitudeOrder`、`dataKind`。
   - `companionLine.ts`：`companionLine(input)` 產生那句話；`spokenLine` 只把符號換成念得出來的字。
+  - `companionTexts.ts`：`companionTexts(input)` 算出每隻的讀數與那句話；Companions 面板與分層視圖都從這裡取，兩邊說的是同一句。
 - **角色對應表只有一處**：`companionSpec.ts` 的 `ROWS`，一個變數一列。顏色不是新配色，`baseColor` 取自 `formColor`（與粒子同色）；`layer` 與 `altitudeOrder` 的先後以分層視圖的 `strata/strataSpec.ts` 為準（`STRATUM_LAYER`、`stratumRank`），同一層內再依 `formMapping.ts` 高度帶的中點（有測試），同高時用 `tieBreak`；`dataKind` 抄自 `data/analysis/cleaning.json` 的 `data_kinds`，那邊改了這裡要跟著改。新增圖層變數時要加一列（測試會檢查 12 個圖層各有一隻）。
 - **資料怎麼變成外形**（`companionData.ts`，純函式，有測試）：大小 ← 正規化數值（`BODY_SCALE`）；呼吸速度 ← 該變數在 `formMapping.ts` 的速度對應（含氣溫的平方根律），取對數後落在 `BREATH_LIMITS`；姿態 ← 當月值與「同一個月份在整段紀錄的平均」相比的標準化距平，只分三級（`MOOD_THRESHOLD_Z`，預設 0.5 個標準差；同月份有值的年數少於 `MIN_CLIMATOLOGY_YEARS` 就不算）；頭頂標記 ← `trendSignal`，符號與圖層面板相同；警示標記 ← `trendCaveats.ts`。氣溫角色的身體顏色用趨勢地圖的藍—白—紅色階讀距平（`anomalyTint`）。葉片數、土壤水透鏡數、雨滴數、氣膠顆粒數都隨正規化數值（`detailCount`）。
 - **外形的畫法**在 `companionShape.ts`（一圈控制點的平滑閉合曲線，`bodyOutline` 依形態與姿態變形）與 `Companion.tsx`（各形態的細節）。氣體角色體內的分子用 `chemistry/molecules.ts` 的 `atomPositions` 與 CPK 配色，不另畫一套。
@@ -273,7 +274,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **層與變數的對應只有一處**：`strataSpec.ts`。`strata` 是由上到下的六層（名稱、高度文字、顏色），`strataAssignments` 一個變數一列：屬於哪一層（`stratum`）、跨層流到哪一層（`flowsTo`：降水往下到地表、蒸散往上到近地面）、是不是整個氣柱的總量（`columnTotal`）。測試檢查每個圖層變數恰好屬於一層、跨層的方向和 `formMapping.ts` 的 `fall`／`rise` 一致。**高度文字只寫有把握的常識範圍，沒把握就填 `null`（不顯示數字）**；圖例三句（`STRATA_NOTES`：高度不照比例、柱總量畫在氣體最多的那層、流動方向是示意）有測試。
 - **幾何、鏡頭、粒子位置都是純函式**：`strataLayout.ts`（`layoutStrata(spread)`、`particleRange`：變數的粒子可以待的垂直範圍、`companionSpot`）、`strataCamera.ts`（`entryPose`／`entrySpread` 進場路徑、`fitDistance`、`viewInsets`／`insetView` 讓出 HUD 與窄螢幕的面板、`approachPosition` 地球場景裡沿大圓弧飛、俯角與縮放的上下限）、`strataMotion.ts`（`slabParticleState`：和 `forms/motions.ts` 同一組運動方式，改成限制在平台上方的薄盒裡）、`surfaceCrop.ts`（地表層貼圖的裁切：台灣細部地表涵蓋得到就用它，否則 Blue Marble）。平台大小、層距、俯角範圍等常數都在這幾個檔的開頭。
 - **粒子沿用既有形態與預算**：`StrataParticles.tsx` 用 `forms/geometries.ts` 的形狀（`dropletGeometry`、`roundAirGeometry` 為此從元件搬到那裡）、`formColor`、`encodeForm` 與 `layerParticleCap`（依圖層面板開著的層數平分 `TOTAL_PARTICLE_BUDGET`），只畫面板裡開著的變數；地球 canvas 暫停時不畫，所以總數不會超過預算（有測試）。形狀放大 `PARTICLE_SCALE` 倍。
-- **標籤與角色是疊在 canvas 上的 HTML**（`StrataView.tsx`）：`StrataScene` 每一幀投影定位；左欄的層標籤跟著該層的高度，但不會壓到圖例、彼此重疊或蓋到左下角的出處文字（`stackLabelTops`）；平台上的角色不帶文字標籤，名稱在滑鼠移上或聚焦時才出現。點平台、標籤或角色會展開該層（鏡頭靠近、其他層變淡），側邊的數值、趨勢、顯著性與警語直接用圖層面板的 `readings`、`trends`、`signals`、`trendCaveat`，不重算。
+- **標籤與角色是疊在 canvas 上的 HTML**（`StrataView.tsx`）：`StrataScene` 每一幀投影定位；左欄的層標籤跟著該層的高度，但不會壓到圖例、彼此重疊或蓋到左下角的出處文字（`stackLabelTops`）；角色站在哪裡見上面「分層視圖開著時的停靠規則」。點平台、標籤或角色會展開該層（鏡頭靠近、其他層變淡），點角色另外在該層面板最上面顯示它的那句話（`companionTexts`），側邊的數值、趨勢、顯著性與警語直接用圖層面板的 `readings`、`trends`、`signals`、`trendCaveat`，不重算。
 - **兩個轉接檔**：
   - `useCurrentMonth.ts`：已接上時間軸，回傳 `useTimeline().month`（沒有月份時退回 `AppView` 傳下來的月份），所以時間軸播放時分層視圖跟著更新。只能在 `TimelineProvider` 裡用。
   - `companionSlot.tsx`：`CompanionSlot` 直接畫資料夥伴（`web/src/companions/` 的 `<Companion />`，不帶腳下標籤）；`StrataView` 的 `anomalyZ` prop（`App.tsx` 用 `monthlyAnomaly` 算）決定姿態，該月沒有資料時 `value` 傳 `null`。角色站在哪一層以 `strataSpec.ts` 為準，`companionSpec.ts` 的 `layer` 與 `altitudeOrder` 也從這張表讀。

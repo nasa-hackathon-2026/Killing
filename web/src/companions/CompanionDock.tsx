@@ -5,19 +5,18 @@
 // ?companions=gallery lays them out for a screenshot.
 import { useEffect, useRef, useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
-import { trendKey, type TrendsFile } from "../analysis/trends";
+import type { TrendsFile } from "../analysis/trends";
 import { rememberFlag, storedFlag, useI18n } from "../i18n";
-import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
-import { companionReading, type CompanionReading } from "./companionData";
-import { companionSpeechParts, spokenLine } from "./companionLine";
+import type { CompanionReading } from "./companionData";
+import { spokenLine } from "./companionLine";
+import { companionTexts } from "./companionTexts";
 import { GROUND_Y, VIEW_HEIGHT_BARE } from "./companionShape";
 import {
   byAltitude,
   COMPANIONS,
-  companionName,
   companionTitle,
   companionVariable,
   dataKindShort,
@@ -161,42 +160,15 @@ export function CompanionDock({
   const [gallery, setGallery] = useState(mode === "gallery");
   const canSpeak = speechAvailable();
 
-  const readings: Record<string, CompanionReading> = {};
-  const lines: Record<string, string> = {};
-  const displayParts: Record<string, string[]> = {};
-  for (const spec of COMPANIONS) {
-    const found = series.find((item) => item.variableId === spec.id);
-    const trend = trends?.series[trendKey(spec.id, locationId, aggregation)];
-    const reading = companionReading(
-      spec.id,
-      found,
-      month,
-      trend,
-      trends?.known_issues,
-    );
-    readings[spec.id] = reading;
-    displayParts[spec.id] = companionSpeechParts(
-      {
-        companionName: companionName(spec),
-        definition: variableDefinition(spec.id, "general"),
-        variableName: companionVariable(spec),
-        place: locationName,
-        month,
-        value: reading.raw,
-        unit: reading.unit,
-        anomaly: reading.anomaly,
-        trend,
-        alpha: trends?.parameters.alpha,
-        caveatSummary: reading.caveat?.summary,
-        unreliableReason: reading.signal.unreliable
-          ? (reading.caveat?.reason ?? t("caveats.genericReason"))
-          : null,
-        dataKind: spec.dataKind,
-      },
-      voice,
-    );
-    lines[spec.id] = displayParts[spec.id].join(" ");
-  }
+  const { readings, displayParts, lines } = companionTexts({
+    series,
+    month,
+    locationId,
+    locationName,
+    aggregation,
+    trends,
+    voice,
+  });
 
   const shown = byAltitude(visibleIds);
   const selected =
