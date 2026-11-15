@@ -4,8 +4,7 @@
     "tabsAria": "Four questions about this series",
     "expand": "Expand",
     "narrow": "Narrow",
-    "expandAria": "Make the panel wider",
-    "loading": "Reading the analysis results…"
+    "expandAria": "Make the panel wider"
   },
   "tabs": {
     "what": {
@@ -85,8 +84,7 @@
       "periodLine": "{{first}} to {{last}}"
     },
     "groupsTitle": "Explore by question",
-    "groupsNote": "Other questions",
-    "chartNote": "Click the chart to jump the timeline to that month."
+    "groupsNote": "Other questions"
   },
   "groups": {
     "water": "Water: is it getting wetter or drier here?",
@@ -95,7 +93,7 @@
     "other": "Plants: is it getting greener or browner here?"
   },
   "where": {
-    "title": "Monthly anomalies and trend line at every place",
+    "title": "Every place: monthly anomalies and trend",
     "sameScale": "Same scale",
     "ownScale": "Own scale",
     "scaleAria": "Y scale of the small charts",
@@ -122,7 +120,6 @@
     "tableTitle": "Numbers",
     "table": {
       "change": "Change per decade",
-      "ci": "{{level}}% CI",
       "p": "p (OLS, autocorrelation-corrected)",
       "period": "Analysed period",
       "valid": "Valid months",
@@ -135,7 +132,6 @@
     "mkTitle": "Mann-Kendall (rank-based; no straight line assumed)",
     "rows": {
       "ttest": "t-test of the slope",
-      "q": "q (FDR-adjusted p)",
       "neff": "Effective sample size",
       "r1": "Lag-1 autocorrelation",
       "original": "Original",
@@ -177,8 +173,6 @@
     "acfNote": "Descriptive only, computed here from the series. The file's lag-1 value pairs adjacent months without a gap (Pearson r); this chart uses the whole-series mean and variance, so the two can differ slightly. Test p values always come from the results file.",
     "histTitle": "Distribution of monthly anomalies",
     "histAria": "Histogram of {{n}} monthly anomalies.",
-    "rangeTitle": "Spread within each calendar month",
-    "rangeAria": "Lowest, average and highest value of each calendar month.",
     "annualTitle": "Yearly means (complete years only)",
     "annualAria": "Mean of each complete year from {{first}} to {{last}}.",
     "annualNote": "Does it look like a straight line, a step or a curve?",

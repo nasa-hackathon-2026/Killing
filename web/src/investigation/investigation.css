@@ -12,9 +12,10 @@
 }
 
 .investigation-definition {
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   margin: 4px 0 6px;
   color: #b7c6da;
   font-size: 12px;
@@ -244,6 +245,15 @@
   margin: 0;
 }
 
+.investigation-where-head .investigation-subtitle {
+  margin: 0;
+}
+
+.timeline-chart .investigation-where-head button {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
 .investigation-place-group {
   margin: 8px 0 4px;
   color: #b7c6da;
@@ -255,7 +265,7 @@
 
 .investigation-cells {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 4px;
   margin: 0;
   padding: 0;

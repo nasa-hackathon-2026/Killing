@@ -25,7 +25,7 @@ import {
 import { useTimeline } from "../timeline/TimelineContext";
 import { loadPanelFacts } from "./data";
 import { nextTab, TABS, type TabId } from "./logic";
-import { WhatTab } from "./WhatTab";
+import { QuestionGroups, WhatTab } from "./WhatTab";
 import { WhereTab } from "./WhereTab";
 import { HowMuchTab } from "./HowMuchTab";
 import { SignificantTab } from "./SignificantTab";
@@ -164,10 +164,14 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
       />
     );
   } else if (!series || !model) {
+    // The answer line already says there is no data; the groups offer
+    // other variables to look at.
     body = (
-      <p className="timeline-chart-note">
-        {t("investigation.answer.noSeries", { place: locationName })}
-      </p>
+      <QuestionGroups
+        variableId={variableId}
+        variables={props.variables}
+        onSelectVariable={props.onSelectVariable}
+      />
     );
   } else if (tab === "what") {
     body = (
@@ -250,7 +254,7 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
       {collapsed ? null : (
         <>
           {definition ? (
-            <p className="investigation-definition">
+            <p className="investigation-definition" title={definition}>
               <TrendMarkIcon signal={signal} /> {definition}
             </p>
           ) : null}

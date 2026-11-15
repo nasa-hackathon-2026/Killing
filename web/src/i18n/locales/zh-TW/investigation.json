@@ -4,8 +4,7 @@
     "tabsAria": "關於這條序列的四個問題",
     "expand": "加寬",
     "narrow": "還原",
-    "expandAria": "把面板加寬",
-    "loading": "正在讀取分析結果…"
+    "expandAria": "把面板加寬"
   },
   "tabs": {
     "what": {
@@ -85,8 +84,7 @@
       "periodLine": "{{first}} 至 {{last}}"
     },
     "groupsTitle": "用問題找變數",
-    "groupsNote": "其他問題",
-    "chartNote": "點圖可以把時間軸跳到那個月。"
+    "groupsNote": "其他問題"
   },
   "groups": {
     "water": "水：這裡變濕還是變乾？",
@@ -95,7 +93,7 @@
     "other": "植物：這裡變綠還是變黃？"
   },
   "where": {
-    "title": "每個地點的月距平與趨勢線",
+    "title": "每個地點：月距平與趨勢線",
     "sameScale": "同一比例尺",
     "ownScale": "各自縮放",
     "scaleAria": "小圖的縱軸比例尺",
@@ -122,7 +120,6 @@
     "tableTitle": "數字",
     "table": {
       "change": "每 10 年變化",
-      "ci": "{{level}}% 信賴區間",
       "p": "p（OLS，自相關修正）",
       "period": "分析期間",
       "valid": "有效月數",
@@ -135,7 +132,6 @@
     "mkTitle": "Mann-Kendall（以排序為基礎，不假設是直線）",
     "rows": {
       "ttest": "斜率的 t 檢定",
-      "q": "q（FDR 校正後的 p）",
       "neff": "有效樣本數",
       "r1": "lag-1 自相關",
       "original": "原始",
@@ -177,8 +173,6 @@
     "acfNote": "只是描述性的圖，由這裡從序列算出。結果檔的 lag-1 只配對中間沒有缺月的相鄰月份（Pearson r）；這張圖用整條序列的平均與變異數，所以兩者可能略有不同。檢定的 p 值一律來自結果檔。",
     "histTitle": "月距平的分布",
     "histAria": "{{n}} 個月距平的直方圖。",
-    "rangeTitle": "每個日曆月內的分散",
-    "rangeAria": "每個日曆月的最低、平均與最高值。",
     "annualTitle": "逐年平均（只計完整年份）",
     "annualAria": "{{first}} 至 {{last}} 每個完整年份的平均。",
     "annualNote": "看起來像一條直線、一個階梯，還是一條曲線？",

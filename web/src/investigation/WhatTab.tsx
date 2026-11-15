@@ -67,7 +67,6 @@ export function WhatTab({
   const bins = useMemo(() => histogram(model.anomalies), [model.anomalies]);
   const unit = displayUnit(model.unit);
   const kind = companionFor(variableId)?.dataKind;
-  const group = groupOf(variableId);
   const first =
     model.trend?.status === "analyzed"
       ? model.trend.data.first_month
@@ -211,38 +210,58 @@ export function WhatTab({
           />
         </>
       ) : null}
-      {group ? (
-        <div className="investigation-groups">
-          <h4 className="investigation-subtitle">
-            {t("investigation.what.groupsTitle")}
-          </h4>
-          <p className="investigation-group-question">
-            {t(`investigation.groups.${group.id}`)}
-          </p>
-          <div className="investigation-chips">
-            {group.variables.map((id) => {
-              const known = variables.find((item) => item.id === id);
-              if (!known) return null;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={id === variableId}
-                  onClick={() => onSelectVariable(id)}
-                >
-                  {variableName(id, known.nameEn)}
-                </button>
-              );
-            })}
-          </div>
-          <OtherGroups
-            current={group.id}
-            variables={variables}
-            onSelectVariable={onSelectVariable}
-          />
-        </div>
-      ) : null}
+      <QuestionGroups
+        variableId={variableId}
+        variables={variables}
+        onSelectVariable={onSelectVariable}
+      />
     </>
+  );
+}
+
+// The variable's question group as chips that switch the chart to another
+// variable, and the other groups folded below.
+export function QuestionGroups({
+  variableId,
+  variables,
+  onSelectVariable,
+}: {
+  variableId: string;
+  variables: { id: string; nameEn: string }[];
+  onSelectVariable: (id: string) => void;
+}) {
+  const group = groupOf(variableId);
+  if (!group) return null;
+  return (
+    <div className="investigation-groups">
+      <h4 className="investigation-subtitle">
+        {t("investigation.what.groupsTitle")}
+      </h4>
+      <p className="investigation-group-question">
+        {t(`investigation.groups.${group.id}`)}
+      </p>
+      <div className="investigation-chips">
+        {group.variables.map((id) => {
+          const known = variables.find((item) => item.id === id);
+          if (!known) return null;
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={id === variableId}
+              onClick={() => onSelectVariable(id)}
+            >
+              {variableName(id, known.nameEn)}
+            </button>
+          );
+        })}
+      </div>
+      <OtherGroups
+        current={group.id}
+        variables={variables}
+        onSelectVariable={onSelectVariable}
+      />
+    </div>
   );
 }
 

@@ -239,7 +239,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
 ## 前端的時間軸與時間序列圖（#99）
-主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
+主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`（面板內容見「前端的調查面板」）。
 
 - **「目前月份」只有一個來源**：`web/src/timeline/TimelineContext.tsx` 的 `TimelineProvider`（`App.tsx` 最外層）與 `useTimeline()`。其他元件要知道或改變月份，一律 `const { month, monthIndex, months, setMonthIndex, setMonth, step, playing, setPlaying, speed, setSpeed, selectedVariableId, setSelectedVariableId, locationId, defaultMonth } = useTimeline()`，不要另外存一份月份的 state。`month` 是快照的 `"YYYY-MM-01"` 字串（還沒載入時是 null、`monthIndex` 是 −1）；`months` 是目前地點所有序列月份的聯集；`speed` 是每秒幾個月（`TIMELINE_SPEEDS`：0.5、2、6，預設 2）；`selectedVariableId` 是時間序列圖顯示的變數（null 表示沒開）；`defaultMonth` 是 Latest 回到的月份（`bestDefaultMonth`）。圖層面板原本的 Month 滑桿也讀寫這個 context。
 - **播放**：provider 裡一個 `setTimeout` 鏈，每 1000 ÷ speed 毫秒前進一個月，到最後一個月自動停；在最後一個月按播放會從第一個月重來。粒子圖層本來就在 `useFrame` 裡讀 `intensity`，換月只是換 props，不重建幾何。系統開「減少動態效果」時 `?play=1` 不自動播放（手動按仍可）。鍵盤（`TimelineBar.tsx`）：空白鍵播放／暫停、左右鍵前後一個月；焦點在 input、select、textarea、button、連結上時不攔截。
@@ -250,6 +250,17 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **距平條**（時間軸滑桿上方）：跟著時間序列圖的變數，沒開圖時用第一個開著的圖層；高度除以絕對距平的第 98 百分位數（`STRIP_QUANTILE`）。已知跳變月份來自該序列在 `trends.json` 的 `known_issues` → 最上層 `known_issues[*].break_months`（源頭是 `data/seed/cleaning.json`），圖上與距平條上都畫虛線。`web/src/analysis/trendCaveats.ts` 有警語的變數照樣顯示 `TrendCaveatNote`。
 - **版面**：CSS 類別一律 `timeline-` 前綴，集中在 `index.css` 最後一段；時間軸列的位置與高度是 `.app` 上的 `--timeline-bottom`、`--timeline-height`，其他面板要避開它就用這兩個變數。寬螢幕時圖在左側面板；1180px 以下時間軸列與圖改靠左、讓出右側圖層面板；700px 以下滿寬。和其他面板怎麼並排、分層視圖開著時圖停在哪裡，見上面「首次使用引導與面板停靠」。
 - 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有地點選單裡的地點（台灣 5 點、世界城市、全球平均，見「世界子集與地點選單」）；觸控裝置上沒有 hover，點一下就是跳到該月。
+## 前端的調查面板（#167）
+圖層的 Chart 按鈕（或 `?chart=<變數>`）開的面板，依題目四個問題分成四個編號分頁；`?tab=what|where|howmuch|significant` 直接開到某一頁。程式全在 `web/src/investigation/`，樣式在同目錄的 `investigation.css`（類別 `investigation-` 開頭；面板外框與位置仍是 `index.css` 的 `.timeline-chart`），文字在 i18n 的 `investigation` 命名空間。`TimelineDock` 渲染它並保存分頁、加寬、收合的狀態；原本的 `TimeSeriesPanel.tsx` 不再被渲染。
+
+- **一句話答案**（`answers.ts`）只用 `trendSignal`、`significanceOutcome` 與結果檔的數字組成；不寫原因，「不顯著」不寫成「沒有變化」，不可靠的趨勢用 `unreliable*` 的說法與斜線底色。
+- **變數分組是資料**：`groups.json`（水、熱、空氣、植物），測試檢查每個圖層變數恰好屬於一組；新增圖層變數要加進去。組名是只問不答的問句。
+- **一致性判斷**（`logic.ts` 的 `agreement`）：OLS 的 `significant` 與 Mann-Kendall（Hamed-Rao，沒有 p 時用 Seasonal）的 `significant` 比較（FDR 校正前、同一個 alpha），都顯著且同向、都不顯著算一致，其餘算不一致並顯示提示。2026-11-15：核心 130 條有分析的序列有 15 條不一致、世界子集 128 條有 17 條。
+- **前端只算描述性統計**（`stats.ts`，有測試）：季節循環、以結果檔斜率重建的殘差、穩健標準差與離群月、殘差 ACF、直方圖、逐年平均、區間圖座標、CSV。檢定的 p、q 一律讀自結果檔；ACF 的 lag 1 與結果檔的 `lag1_autocorrelation` 算法不同（後者只配對相鄰無缺口的月份、Pearson r），兩者略有差異是預期的。
+- **FDR 家族**由 `data.ts` 讀兩份結果檔判斷（世界子集的鍵自成一族），家族大小用各檔的 `summary.n_analyzed`。
+- **三種身分**：Everyone 只有主圖與答案、其餘收在 Details；Student 另展開季節循環、定義與「為什麼」；Researcher 全部展開並多出殘差、ACF、直方圖、逐年平均、下載與方法（`Fold.tsx` 依 `fullStatistics`、`readingAid` 決定）。
+- 選地點用 `App.tsx` 傳進 `TimelineDock` 的 `onSelectLocation`（與地點選單同一個 `selectPlace`，世界城市鏡頭會飛過去）。
+
 ## 資料夥伴（#100）
 主畫面 Layers 面板左邊的「Companions」面板：每個開啟的圖層一隻原創角色，外形由該地點、該月份的資料決定，點一下用一句話說出數字。程式都在 `web/src/companions/`，CSS 在同目錄的 `companions.css`（類別一律 `companion-` 開頭），`App.tsx` 只掛一個 `<CompanionDock />`。網址參數 `?companions=gallery`（12 隻總覽）、`gather`（直接開 Gather）、`collapsed`（收合）。
 
