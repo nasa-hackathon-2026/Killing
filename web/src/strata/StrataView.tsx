@@ -139,11 +139,17 @@ export function StrataView({
       (window.innerWidth > MEDIUM_WIDTH && window.innerHeight >= 800),
   );
   const [selected, setSelected] = useState<StratumId | null>(focus ?? null);
+  // Expanding a stratum by any way other than a companion clears the
+  // companion sentence; a companion click sets both (see the companions).
+  const choose = (id: StratumId | null) => {
+    setSelected(id);
+    setSpeaking(null);
+  };
   // A tour step moves the expanded stratum; the visitor can still change it.
   const [lastFocus, setLastFocus] = useState(focus);
   if (focus !== lastFocus) {
     setLastFocus(focus);
-    if (focus !== undefined) setSelected(focus);
+    if (focus !== undefined) choose(focus);
   }
   const notes = strataNotes();
   const when = month ? monthYear(month, "short") : null;
@@ -223,26 +229,41 @@ export function StrataView({
   };
 
   const chosen = selected ? stratum(selected) : undefined;
+  // The companion's sentence shows while its layer is still switched on and
+  // its stratum is the one expanded.
   const spoken =
     speaking &&
     chosen &&
+    open(speaking) &&
     strataAssignments.some(
       (row) => row.variableId === speaking && row.stratum === chosen.id,
     )
       ? speaking
       : null;
-  const sentence =
-    spoken && series && locationId
-      ? (companionTexts({
-          series,
-          month,
-          locationId,
-          locationName: place.nameEn,
-          aggregation,
-          trends: trendsFile,
-          voice,
-        }).lines[spoken] ?? null)
-      : null;
+  const sentence = useMemo(
+    () =>
+      spoken && series && locationId
+        ? (companionTexts({
+            series,
+            month,
+            locationId,
+            locationName: place.nameEn,
+            aggregation,
+            trends: trendsFile,
+            voice,
+          }).lines[spoken] ?? null)
+        : null,
+    [
+      spoken,
+      series,
+      month,
+      locationId,
+      place.nameEn,
+      aggregation,
+      trendsFile,
+      voice,
+    ],
+  );
   const beside = placement === "beside";
   const arriving = selected
     ? strataAssignments.filter((row) => row.flowsTo === selected)
@@ -258,7 +279,7 @@ export function StrataView({
           camera={{ position: [0, 3.4, 0.3], fov: FOV_DEG, near: 0.1, far: 80 }}
           dpr={[1, 1.5]}
           gl={{ antialias: true, powerPreference: "low-power" }}
-          onPointerMissed={() => setSelected(null)}
+          onPointerMissed={() => choose(null)}
         >
           <StrataScene
             layers={sceneLayers}
@@ -270,7 +291,7 @@ export function StrataView({
             surface={surface}
             chartOpen={chartOpen}
             placement={placement}
-            onSelect={setSelected}
+            onSelect={choose}
             onClosed={onClosed}
           />
         </Canvas>
@@ -303,7 +324,7 @@ export function StrataView({
             className={selected ? "strata-label strata-hidden" : "strata-label"}
             style={{ borderLeftColor: item.color }}
             aria-pressed={selected === item.id}
-            onClick={() => setSelected(selected === item.id ? null : item.id)}
+            onClick={() => choose(selected === item.id ? null : item.id)}
           >
             <span className="strata-label-head">
               <strong>{stratumName(item.id)}</strong>
@@ -402,7 +423,7 @@ export function StrataView({
                 <p>{stratumHeight(chosen.id)}</p>
               ) : null}
             </div>
-            <button type="button" onClick={() => setSelected(null)}>
+            <button type="button" onClick={() => choose(null)}>
               {t("common.action.close")}
             </button>
           </header>
