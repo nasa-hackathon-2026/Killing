@@ -216,7 +216,13 @@ export function Tour({
         ? bubblePlacement({
             bubble: { width: bubble.width, height: bubble.height },
             viewport: { width: window.innerWidth, height: window.innerHeight },
-            targets: rings,
+            // The ring is drawn 4 px outside the region; keep clear of it.
+            targets: rings.map((ring) => ({
+              left: ring.left - 8,
+              top: ring.top - 8,
+              width: ring.width + 16,
+              height: ring.height + 16,
+            })),
             panels,
             top: 64,
             margin: MARGIN,
