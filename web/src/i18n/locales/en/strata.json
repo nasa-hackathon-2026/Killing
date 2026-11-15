@@ -4,7 +4,8 @@
   "hint": "Enter layer view at {{place}}",
   "noLayer": "No layer is on. Tick one in the Layers panel to see it here.",
   "about": "About this view",
-  "controls": "Drag to turn, scroll to zoom, click a layer for its numbers.",
+  "controls": "Drag or swipe to turn, scroll or pinch to zoom, double-click to reset, click a layer for its numbers.",
+  "reset": "Reset view",
   "names": {
     "stratosphere": "Stratosphere",
     "troposphere-air": "Troposphere: gases and aerosols",

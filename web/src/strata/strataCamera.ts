@@ -1,5 +1,10 @@
 // Camera math of the layer view. Pure functions, no three.js objects.
-import { LAYER_GAP, PLATFORM_DEPTH, PLATFORM_WIDTH } from "./strataLayout";
+import {
+  LAYER_GAP,
+  PLATFORM_DEPTH,
+  PLATFORM_WIDTH,
+  type CompanionPlacement,
+} from "./strataLayout";
 import { strata } from "./strataSpec";
 
 export type Vec3 = [number, number, number];
@@ -42,6 +47,46 @@ export function clampDepression(value: number): number {
 
 export function clampZoom(value: number): number {
   return clamp(value, MIN_ZOOM, MAX_ZOOM);
+}
+
+// Two fingers: the picture follows the distance between them. Fingers
+// moving apart (distance grows) bring the camera closer (zoom shrinks).
+export function pinchZoom(
+  zoom: number,
+  previousDistance: number,
+  distance: number,
+): number {
+  if (!(previousDistance > 0) || !(distance > 0)) return clampZoom(zoom);
+  return clampZoom(zoom * (previousDistance / distance));
+}
+
+// A pointer has to move this far (pixels) before a touch counts as a drag;
+// less is a tap (selecting a layer). The same value R3F uses for clicks.
+export const TAP_SLOP = 5;
+
+// The orbit the view starts with and "Reset view" returns to. Fresh object
+// each call: the caller mutates it.
+export function defaultOrbit() {
+  return {
+    azimuth: DEFAULT_AZIMUTH,
+    depression: DEFAULT_DEPRESSION,
+    zoom: 1,
+    pointerFraction: 0.5,
+  };
+}
+
+// Up and down arrow keys move between the six layers (top first). Returns
+// the index of the next one, never past the ends; `current` -1 (nothing
+// focused yet) goes to the first on "down" and the last on "up".
+export function nextLayerIndex(
+  count: number,
+  current: number,
+  direction: "up" | "down",
+): number {
+  if (count <= 0) return -1;
+  if (current < 0) return direction === "down" ? 0 : count - 1;
+  const next = direction === "down" ? current + 1 : current - 1;
+  return Math.min(count - 1, Math.max(0, next));
 }
 
 export function easeInOut(t: number): number {
@@ -175,8 +220,15 @@ export const NEAR_HINT_DISTANCE = 1.9;
 //                      timeline bar at the bottom.
 //   medium (≤ 1180 px) the same, but an open chart takes the place of the
 //                      Layers panel, so the free area does not change.
-//   narrow (≤ 700 px)  legend on top, labels on the left, the timeline bar
-//                      and the short sheet of the Layers panel at the bottom.
+//   compact (≤ 900 px) the labels shrink to values only, a narrower column.
+//   narrow (≤ 700 px)  legend on top, the six layer chips in a row under it
+//                      (scrolls sideways), the stack across the full width,
+//                      the timeline bar and the short sheet of the Layers
+//                      panel at the bottom.
+//   short (height ≤ 500 px, wider than narrow: a phone turned sideways)
+//                      the labels are left out so the stack, the timeline
+//                      bar and the Layers panel all fit; the legend shrinks
+//                      to its title row.
 export type ViewInsets = {
   top: number;
   right: number;
@@ -186,6 +238,10 @@ export type ViewInsets = {
 
 export const NARROW_WIDTH = 700;
 export const MEDIUM_WIDTH = 1180;
+// Up to this width the labels show values only and the column narrows.
+export const COMPACT_WIDTH = 900;
+// At or below this height (and wider than NARROW_WIDTH) the layout is "short".
+export const SHORT_HEIGHT = 500;
 // Height kept free at the bottom for the timeline bar (index.css:
 // --timeline-bottom + --timeline-height, plus a gap).
 export const TIMELINE_RESERVE = 192;
@@ -194,6 +250,13 @@ export const TIMELINE_RESERVE_NARROW = 216;
 export const HUD_RESERVE = 64;
 // Left column: 12px margin + the 270px labels + a gap (strata.css).
 export const LABEL_COLUMN = 294;
+// Compact labels (values only): 12px margin + 168px + a gap (strata.css).
+export const LABEL_COLUMN_COMPACT = 188;
+// Short (a phone turned sideways): the legend shrinks to a title pill.
+export const LEGEND_COLUMN_SHORT = 212;
+// Narrow: legend (12px + one row + details line) and the row of layer chips
+// under it (strata.css .strata-labelbar).
+export const PHONE_TOP = 164;
 // Right column: the Layers panel (306px with its padding) + margins.
 export const PANEL_COLUMN = 326;
 // The chart docked left of the Layers panel: 380px + a gap (strata.css).
@@ -202,31 +265,133 @@ export const CHART_COLUMN = 392;
 // stops above on a wide screen.
 export const CREDIT_RESERVE = 78;
 
+// Room right of the stack for the companions standing beside it (up to three
+// per stratum, strataLayout.ts companionRowXs), and the narrowest the stack
+// itself may get before they go back onto the platforms.
+export const COMPANION_COLUMN = 252;
+export const MIN_STACK_WIDTH = 300;
+
+// How big the companions beside the stack are, from the largest to the
+// smallest. Each tier is a figure size (px) and how many caption lines sit
+// under it (2 = name and value, 1 = value only; the name stays in the left
+// column, the tooltip and the accessible name). `rowHeight` is the height of
+// one row with its caption, matching strata.css (12px caption text, figure
+// height = 124/120 × size).
+export type CompanionTier = {
+  id: "full" | "medium" | "compact";
+  figure: number;
+  captionLines: 1 | 2;
+  rowHeight: number;
+};
+export const COMPANION_TIERS: readonly CompanionTier[] = [
+  { id: "full", figure: 60, captionLines: 2, rowHeight: 94 },
+  { id: "medium", figure: 48, captionLines: 2, rowHeight: 82 },
+  { id: "compact", figure: 40, captionLines: 1, rowHeight: 59 },
+];
+// Gap kept between two rows (the same one stackLabelTops uses).
+export const COMPANION_ROW_GAP = 4;
+// The first row starts below the folded Companions chip: the HUD row plus
+// the chip's height and a gap (StrataScene measures the chip itself).
+export const COMPANION_TOP_RESERVE = HUD_RESERVE + 50;
+
+// Height the rows of companions beside the stack may take: between the
+// Companions chip and the timeline bar.
+export function companionRowsSpace(width: number, height: number): number {
+  const bottom = viewInsets(width, height).bottom;
+  return Math.max(0, height - bottom - COMPANION_TOP_RESERVE);
+}
+
+export function companionRowsHeight(rows: number, tier: CompanionTier): number {
+  if (rows <= 0) return 0;
+  return rows * tier.rowHeight + (rows - 1) * COMPANION_ROW_GAP;
+}
+
+// How the companions are laid out: beside the stack in the largest tier
+// whose `rows` rows (one per stratum that has a switched-on layer) fit
+// between the Companions chip and the timeline bar; the smaller tiers only
+// when the larger do not fit. When even the smallest does not fit, or the
+// width does not allow a column beside the stack, they stand on the
+// platforms (where the layer view stood before the row existed).
+export type CompanionFit =
+  | { placement: "beside"; tier: CompanionTier }
+  | { placement: "on"; tier: null };
+
+export function companionFit(
+  width: number,
+  height: number,
+  chartOpen = false,
+  rows: number = strata.length,
+): CompanionFit {
+  const on: CompanionFit = { placement: "on", tier: null };
+  if (!(width > MEDIUM_WIDTH)) return on;
+  const insets = viewInsets(width, height, chartOpen);
+  const stack = width - insets.left - insets.right - COMPANION_COLUMN;
+  if (stack < MIN_STACK_WIDTH) return on;
+  const space = companionRowsSpace(width, height);
+  const tier = COMPANION_TIERS.find(
+    (item) => companionRowsHeight(rows, item) <= space,
+  );
+  return tier ? { placement: "beside", tier } : on;
+}
+
+// Beside the stack on a wide screen while the stack keeps at least
+// MIN_STACK_WIDTH after reserving their column (the docked chart takes
+// room too) and the rows fit in the height; on the platforms otherwise.
+export function companionPlacement(
+  width: number,
+  height: number,
+  chartOpen = false,
+  rows: number = strata.length,
+): CompanionPlacement {
+  return companionFit(width, height, chartOpen, rows).placement;
+}
+
 export function viewInsets(
   width: number,
   height: number,
   chartOpen = false,
+  companions: CompanionPlacement = "on",
 ): ViewInsets {
   if (!(width > 0) || !(height > 0)) {
     return { top: 0, right: 0, bottom: 0, left: 0 };
   }
-  if (width <= NARROW_WIDTH) {
-    // Legend at the top; labels on the left; the timeline bar and, above
-    // it, the short sheet of the layer panel at the bottom.
+  const mode = layoutMode(width, height);
+  if (mode === "phone") {
+    // Legend and the row of layer chips at the top; the timeline bar and,
+    // above it, the short sheet of the layer panel at the bottom.
     return {
-      top: Math.min(150, height * 0.18),
+      top: Math.min(PHONE_TOP, height * 0.3),
       right: 0,
       bottom: Math.min(TIMELINE_RESERVE_NARROW + height * 0.17, height * 0.5),
-      left: width * 0.34,
+      left: 0,
     };
   }
   const chart = chartOpen && width > MEDIUM_WIDTH ? CHART_COLUMN : 0;
+  const beside =
+    companions === "beside" && width > MEDIUM_WIDTH ? COMPANION_COLUMN : 0;
   return {
     top: HUD_RESERVE,
-    right: PANEL_COLUMN + chart,
-    bottom: Math.min(TIMELINE_RESERVE, height * 0.3),
-    left: LABEL_COLUMN,
+    right: PANEL_COLUMN + chart + beside,
+    bottom: TIMELINE_RESERVE,
+    left:
+      mode === "short"
+        ? LEGEND_COLUMN_SHORT
+        : mode === "compact"
+          ? LABEL_COLUMN_COMPACT
+          : LABEL_COLUMN,
   };
+}
+
+export type LayoutMode = "wide" | "medium" | "compact" | "phone" | "short";
+
+// Which of the docking layouts above a window gets. strata.css has the same
+// breakpoints (media queries) and has to agree.
+export function layoutMode(width: number, height: number): LayoutMode {
+  if (width <= NARROW_WIDTH) return "phone";
+  if (height <= SHORT_HEIGHT) return "short";
+  if (width <= COMPACT_WIDTH) return "compact";
+  if (width <= MEDIUM_WIDTH) return "medium";
+  return "wide";
 }
 
 // The lowest screen height (pixels from the top) the label column may reach:

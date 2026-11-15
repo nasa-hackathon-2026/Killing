@@ -30,17 +30,21 @@ import {
   fitDistance,
   FOCUS_ZOOM,
   posePosition,
+  HUD_RESERVE,
   insetView,
   labelCeiling,
   viewInsets,
   zoomTargetY,
 } from "./strataCamera";
 import {
+  companionRowXs,
   layoutStrata,
   PLATFORM_DEPTH,
   PLATFORM_WIDTH,
   stackExtent,
+  platformCompanionScale,
   stackLabelTops,
+  type CompanionPlacement,
   type StratumBox,
 } from "./strataLayout";
 import { StrataParticles } from "./StrataParticles";
@@ -61,9 +65,19 @@ export type StrataAnchor = {
   key: string;
   stratum: StratumId;
   // "label": only the height is used (the element stays in the left column).
-  // "spot": a point on the platform, [x, z].
+  // "spot": a point at the height of the platform, [x, z].
   spot: [number, number] | null;
 };
+
+// Rows of companions beside the stack, in pixels.
+// Between two companions of one row.
+const ROW_GAP = 6;
+// Between the platform's rightmost corner and the row.
+const ROW_EDGE = 14;
+// Kept clear left of the Layers panel (or the docked chart).
+const ROW_MARGIN = 10;
+// The first row starts this far below the folded Companions chip.
+const ROW_BELOW_CHIP = 8;
 
 export type SceneLayer = {
   id: string;
@@ -79,8 +93,11 @@ type StrataSceneProps = {
   closing: boolean;
   orbit: RefObject<StrataOrbit>;
   anchors: StrataAnchor[];
-  elements: RefObject<Map<string, HTMLElement>>;
+  elements: RefObject<Map<string, Element>>;
   surface: SurfaceImage;
+  // Companions in a row right of the stack, or on their platforms
+  // (strataCamera.ts companionPlacement).
+  placement: CompanionPlacement;
   // True while the time series chart is open: on a wide screen it is docked
   // beside the Layers panel and the stack moves over (strataCamera.ts).
   chartOpen: boolean;
@@ -173,6 +190,7 @@ export function StrataScene({
   elements,
   surface,
   chartOpen,
+  placement,
   onSelect,
   onClosed,
 }: StrataSceneProps) {
@@ -204,9 +222,9 @@ export function StrataScene({
       insetView(
         size.width,
         size.height,
-        viewInsets(size.width, size.height, chartOpen),
+        viewInsets(size.width, size.height, chartOpen, placement),
       ),
-    [size.width, size.height, chartOpen],
+    [size.width, size.height, chartOpen, placement],
   );
   useEffect(() => {
     camera.setViewOffset(
@@ -284,38 +302,189 @@ export function StrataScene({
       }
     });
 
-    // Companions stand on their platform; the labels stay in the left
-    // column at the height of their stratum, but never under the legend, on
-    // top of each other, or over the credit and the timeline bar.
-    const header = elements.current?.get("header");
+    // The labels stay in the left column at the height of their stratum,
+    // but never under the legend, on top of each other, or over the credit
+    // and the timeline bar. Companions stand on their platform, or (beside)
+    // in one row per stratum right of the stack, kept the same way: at the
+    // height of their stratum, apart, below the companion chip, above the
+    // timeline bar and left of the Layers panel. Every read of the page
+    // comes first; the writes are queued and applied at the end, so a frame
+    // lays the page out once.
+    const writes: (() => void)[] = [];
+    const html = (key: string) => {
+      const element = elements.current?.get(key);
+      return element instanceof HTMLElement ? element : undefined;
+    };
+    const header = html("header");
     const floor = header ? header.offsetTop + header.offsetHeight + 6 : 0;
-    const labels: { element: HTMLElement; center: number }[] = [];
+    const labels: { element: HTMLElement; center: number; height: number }[] =
+      [];
+    const rows = new Map<
+      StratumId,
+      {
+        // The middle of the platform's right edge (where the line starts)
+        // and the rightmost of its corners on screen (the row starts right
+        // of it, whatever way the stack is turned).
+        edge: [number, number];
+        right: number;
+        items: { element: HTMLElement; x: number; width: number }[];
+      }
+    >();
+    // Companions standing on the platforms: placed after the loop, once all
+    // positions are known (platformCompanionScale).
+    const feet: {
+      element: HTMLElement;
+      x: number;
+      y: number;
+      visible: boolean;
+    }[] = [];
+    const toScreen = (x: number, y: number, z: number) => {
+      const point = projected.current;
+      point.set(x, y, z).project(camera);
+      return {
+        x: (point.x * 0.5 + 0.5) * size.width,
+        y: (-point.y * 0.5 + 0.5) * size.height,
+        visible: point.z < 1,
+      };
+    };
     for (const anchor of anchors) {
-      const element = elements.current?.get(anchor.key);
+      const element = html(anchor.key);
       const box = layout.find((item) => item.id === anchor.stratum);
       if (!element || !box) continue;
-      const point = projected.current;
-      if (anchor.spot) point.set(anchor.spot[0], box.y, anchor.spot[1]);
-      else point.set(0, (box.y + box.top) / 2, 0);
-      point.project(camera);
-      const px = (point.x * 0.5 + 0.5) * size.width;
-      const py = (-point.y * 0.5 + 0.5) * size.height;
-      if (anchor.spot) {
-        element.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) translate(-50%, -100%)`;
-      } else {
-        labels.push({ element, center: py });
+      const at = anchor.spot
+        ? toScreen(anchor.spot[0], box.y, anchor.spot[1])
+        : toScreen(0, (box.y + box.top) / 2, 0);
+      const visibility = at.visible ? "visible" : "hidden";
+      writes.push(() => {
+        element.style.visibility = visibility;
+      });
+      if (!anchor.spot) {
+        labels.push({ element, center: at.y, height: element.offsetHeight });
+        continue;
       }
-      element.style.visibility = point.z < 1 ? "visible" : "hidden";
+      if (placement === "on") {
+        feet.push({ element, x: at.x, y: at.y, visible: at.visible });
+        continue;
+      }
+      let row = rows.get(anchor.stratum);
+      if (!row) {
+        const edge = toScreen(PLATFORM_WIDTH / 2, box.y, 0);
+        let right = edge.x;
+        for (const sx of [-1, 1]) {
+          for (const sz of [-1, 1]) {
+            const corner = toScreen(
+              (sx * PLATFORM_WIDTH) / 2,
+              box.y,
+              (sz * PLATFORM_DEPTH) / 2,
+            );
+            right = Math.max(right, corner.x);
+          }
+        }
+        row = { edge: [edge.x, edge.y], right, items: [] };
+        rows.set(anchor.stratum, row);
+      }
+      row.items.push({ element, x: at.x, width: element.offsetWidth });
+    }
+    if (feet.length > 0) {
+      const scale = platformCompanionScale(feet);
+      for (const foot of feet) {
+        const transform = `translate(${foot.x.toFixed(1)}px, ${foot.y.toFixed(1)}px) translate(-50%, -100%) scale(${(scale ?? 1).toFixed(3)})`;
+        const hidden = scale === null || !foot.visible;
+        writes.push(() => {
+          foot.element.style.transform = transform;
+          foot.element.style.visibility = hidden ? "hidden" : "visible";
+        });
+      }
     }
     const tops = stackLabelTops(
       labels.map((label) => label.center),
-      labels.map((label) => label.element.offsetHeight),
+      labels.map((label) => label.height),
       floor,
       labelCeiling(size.width, size.height),
     );
     labels.forEach((label, index) => {
-      label.element.style.transform = `translate(0, ${(tops[index] ?? 0).toFixed(1)}px)`;
+      const transform = `translate(0, ${(tops[index] ?? 0).toFixed(1)}px)`;
+      writes.push(() => {
+        label.element.style.transform = transform;
+      });
     });
+
+    if (placement === "beside") {
+      const ordered = strata.flatMap((item) => {
+        const row = rows.get(item.id);
+        return row ? [{ id: item.id, row }] : [];
+      });
+      const chip = document.querySelector(".companion-dock");
+      const rowFloor = Math.max(
+        HUD_RESERVE,
+        chip ? chip.getBoundingClientRect().bottom + ROW_BELOW_CHIP : 0,
+      );
+      const base = viewInsets(size.width, size.height, chartOpen);
+      const rowCeiling = size.height - base.bottom;
+      const rowRight = size.width - base.right - ROW_MARGIN;
+      const heights = ordered.map(({ row }) =>
+        Math.max(...row.items.map((item) => item.element.offsetHeight)),
+      );
+      // Each row is placed so the middle of the figures (not of the figure
+      // and its caption) is at the height of the platform.
+      const figureMiddles = ordered.map(({ row }) => {
+        const figure = row.items[0]?.element.querySelector("svg");
+        return figure instanceof SVGElement
+          ? figure.getBoundingClientRect().height / 2
+          : (row.items[0]?.element.offsetHeight ?? 0) / 2;
+      });
+      const rowTops = stackLabelTops(
+        ordered.map(
+          ({ row }, index) =>
+            row.edge[1] -
+            (figureMiddles[index] ?? 0) +
+            (heights[index] ?? 0) / 2,
+        ),
+        heights,
+        rowFloor,
+        rowCeiling,
+      );
+      const linked = new Set<StratumId>();
+      ordered.forEach(({ id, row }, index) => {
+        const top = rowTops[index] ?? 0;
+        const width = Math.max(...row.items.map((item) => item.width));
+        const xs = companionRowXs(
+          row.items.map((item) => item.x),
+          width,
+          ROW_GAP,
+          row.right + ROW_EDGE,
+          rowRight,
+        );
+        row.items.forEach((item, at) => {
+          const transform = `translate(${((xs[at] ?? 0) - item.width / 2).toFixed(1)}px, ${top.toFixed(1)}px)`;
+          writes.push(() => {
+            item.element.style.transform = transform;
+          });
+        });
+        const link = elements.current?.get(`link:${id}`);
+        if (!link) return;
+        linked.add(id);
+        const ends = {
+          x1: row.edge[0].toFixed(1),
+          y1: row.edge[1].toFixed(1),
+          x2: ((xs[0] ?? 0) - width / 2).toFixed(1),
+          y2: (top + (figureMiddles[index] ?? 0)).toFixed(1),
+        };
+        writes.push(() => {
+          for (const [name, value] of Object.entries(ends)) {
+            link.setAttribute(name, value);
+          }
+          link.setAttribute("visibility", "visible");
+        });
+      });
+      for (const item of strata) {
+        const link = elements.current?.get(`link:${item.id}`);
+        if (link && !linked.has(item.id)) {
+          writes.push(() => link.setAttribute("visibility", "hidden"));
+        }
+      }
+    }
+    for (const write of writes) write();
   });
 
   return (

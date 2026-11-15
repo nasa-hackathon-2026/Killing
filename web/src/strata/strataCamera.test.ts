@@ -3,22 +3,40 @@ import {
   approachPosition,
   clampDepression,
   clampZoom,
+  DEFAULT_AZIMUTH,
   DEFAULT_DEPRESSION,
   ENTRY_DEPRESSION,
   ENTRY_DISTANCE,
   entryPose,
   entrySpread,
   CHART_COLUMN,
+  COMPANION_COLUMN,
+  COMPANION_ROW_GAP,
+  COMPANION_TIERS,
+  COMPANION_TOP_RESERVE,
+  companionFit,
+  companionPlacement,
+  companionRowsHeight,
   CREDIT_RESERVE,
   fitDistance,
   HUD_RESERVE,
   insetView,
   LABEL_COLUMN,
   labelCeiling,
+  pinchZoom,
+  defaultOrbit,
+  nextLayerIndex,
+  layoutMode,
+  COMPACT_WIDTH,
+  SHORT_HEIGHT,
+  LABEL_COLUMN_COMPACT,
+  LEGEND_COLUMN_SHORT,
+  PHONE_TOP,
   MEDIUM_WIDTH,
   PANEL_COLUMN,
   MAX_DEPRESSION,
   MIN_DEPRESSION,
+  MAX_ZOOM,
   MIN_ZOOM,
   NARROW_WIDTH,
   posePosition,
@@ -127,7 +145,9 @@ describe("fitDistance and insets", () => {
     // by height and sits in the middle of that area.
     expect(1400 - wide.left - wide.right).toBeGreaterThan(600);
     const narrow = viewInsets(NARROW_WIDTH - 1, 844);
-    expect(narrow.left).toBeGreaterThan(0);
+    // Narrow: no side column, the stack gets the whole width.
+    expect(narrow.left).toBe(0);
+    expect(narrow.right).toBe(0);
     expect(narrow.bottom).toBeGreaterThan(narrow.top);
     expect(viewInsets(0, 0)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
   });
@@ -211,5 +231,198 @@ describe("approachPosition", () => {
         expect(Math.hypot(...point)).toBeGreaterThanOrEqual(nearest - 1e-9);
       }
     }
+  });
+});
+
+describe("where the layer view's companions stand", () => {
+  it("lines them up beside the stack on a wide screen", () => {
+    expect(companionPlacement(1440, 900)).toBe("beside");
+    expect(companionPlacement(MEDIUM_WIDTH + 1, 768)).toBe("beside");
+  });
+
+  it("keeps them on the platforms at 1180 px and narrower", () => {
+    expect(companionPlacement(MEDIUM_WIDTH, 900)).toBe("on");
+    expect(companionPlacement(1000, 800)).toBe("on");
+    expect(companionPlacement(NARROW_WIDTH, 844)).toBe("on");
+  });
+
+  it("keeps them on the platforms when the docked chart leaves no room beside the stack", () => {
+    expect(companionPlacement(1400, 900, true)).toBe("on");
+    expect(companionPlacement(1920, 1080, true)).toBe("beside");
+  });
+
+  it("reserves a column right of the stack only while they stand beside it", () => {
+    expect(viewInsets(1440, 900, false, "beside").right).toBe(
+      PANEL_COLUMN + COMPANION_COLUMN,
+    );
+    expect(viewInsets(1440, 900, false, "on")).toEqual(viewInsets(1440, 900));
+    expect(viewInsets(1920, 1080, true, "beside").right).toBe(
+      PANEL_COLUMN + CHART_COLUMN + COMPANION_COLUMN,
+    );
+  });
+});
+
+describe("how many companion rows fit beside the stack", () => {
+  // 3 layers on (3 strata), then 6 and 12 layers (every stratum).
+  const rowCounts = [3, 6, 6];
+  const heights = [900, 720, 600];
+  const widths = [1440, 1366, 1280];
+
+  it("never lets a row run under the timeline bar or up into the HUD", () => {
+    for (const width of widths) {
+      for (const height of heights) {
+        for (const rows of rowCounts) {
+          const fit = companionFit(width, height, false, rows);
+          if (fit.placement === "on") continue;
+          const top = COMPANION_TOP_RESERVE;
+          const bottom = top + companionRowsHeight(rows, fit.tier);
+          const timelineTop = height - viewInsets(width, height).bottom;
+          expect(top).toBeGreaterThanOrEqual(HUD_RESERVE);
+          expect(bottom).toBeLessThanOrEqual(timelineTop);
+        }
+      }
+    }
+  });
+
+  it("uses the largest tier that fits and shrinks before leaving the row", () => {
+    // 6 rows: full size at 900 px, a smaller tier at 720 px, the platforms
+    // at 600 px.
+    expect(companionFit(1440, 900, false, 6)).toMatchObject({
+      placement: "beside",
+      tier: { id: "full" },
+    });
+    expect(companionFit(1280, 720, false, 6)).toMatchObject({
+      placement: "beside",
+      tier: { id: "compact" },
+    });
+    expect(companionFit(1280, 600, false, 6).placement).toBe("on");
+    // Three rows keep full size at 720 px.
+    expect(companionFit(1280, 720, false, 3)).toMatchObject({
+      placement: "beside",
+      tier: { id: "full" },
+    });
+  });
+
+  it("goes down the tiers in order and the platforms are the last resort", () => {
+    const ids: string[] = [];
+    for (let height = 1000; height >= 400; height -= 10) {
+      const fit = companionFit(1440, height, false, 6);
+      ids.push(fit.tier ? fit.tier.id : "on");
+    }
+    const order = ["full", "medium", "compact", "on"];
+    const ranks = ids.map((id) => order.indexOf(id));
+    expect([...ranks].sort((a, b) => a - b)).toEqual(ranks);
+    expect(new Set(ids)).toEqual(new Set(order));
+  });
+
+  it("lists the tiers from the largest to the smallest, each shorter than the last", () => {
+    for (let index = 1; index < COMPANION_TIERS.length; index += 1) {
+      const larger = COMPANION_TIERS[index - 1];
+      const smaller = COMPANION_TIERS[index];
+      expect(smaller?.figure).toBeLessThan(larger?.figure ?? 0);
+      expect(smaller?.rowHeight).toBeLessThan(larger?.rowHeight ?? 0);
+    }
+    expect(companionRowsHeight(0, COMPANION_TIERS[0]!)).toBe(0);
+    expect(companionRowsHeight(2, COMPANION_TIERS[0]!)).toBe(
+      2 * COMPANION_TIERS[0]!.rowHeight + COMPANION_ROW_GAP,
+    );
+  });
+
+  it("keeps them on the platforms on the narrow and medium widths whatever the height", () => {
+    for (const [width, height] of [
+      [1024, 768],
+      [768, 1024],
+      [390, 844],
+      [844, 390],
+    ] as const) {
+      expect(companionFit(width, height, false, 3).placement).toBe("on");
+    }
+  });
+});
+
+describe("layout modes and the free area of the stack", () => {
+  it("names the mode of a window by width and height", () => {
+    expect(layoutMode(1440, 900)).toBe("wide");
+    expect(layoutMode(MEDIUM_WIDTH + 1, 720)).toBe("wide");
+    expect(layoutMode(1024, 768)).toBe("medium");
+    expect(layoutMode(COMPACT_WIDTH + 1, 1024)).toBe("medium");
+    expect(layoutMode(768, 1024)).toBe("compact");
+    expect(layoutMode(NARROW_WIDTH + 1, 1024)).toBe("compact");
+    expect(layoutMode(NARROW_WIDTH, 844)).toBe("phone");
+    expect(layoutMode(390, 844)).toBe("phone");
+    // A phone turned sideways is wider than narrow but not tall.
+    expect(layoutMode(844, 390)).toBe("short");
+    expect(layoutMode(1024, SHORT_HEIGHT)).toBe("short");
+    expect(layoutMode(1024, SHORT_HEIGHT + 1)).toBe("medium");
+  });
+
+  it("gives the compact, short and narrow layouts the columns they need", () => {
+    expect(viewInsets(768, 1024).left).toBe(LABEL_COLUMN_COMPACT);
+    expect(viewInsets(844, 390).left).toBe(LEGEND_COLUMN_SHORT);
+    expect(viewInsets(390, 844).top).toBe(PHONE_TOP);
+  });
+
+  it("keeps the timeline bar's room whatever the height", () => {
+    for (const [width, height] of [
+      [1440, 900],
+      [1280, 720],
+      [1024, 768],
+      [768, 1024],
+      [844, 390],
+    ] as const) {
+      expect(viewInsets(width, height).bottom).toBe(TIMELINE_RESERVE);
+    }
+  });
+
+  it("leaves a free area for the stack in every size that is tested", () => {
+    for (const [width, height] of [
+      [1440, 900],
+      [1366, 768],
+      [1280, 720],
+      [1024, 768],
+      [768, 1024],
+      [390, 844],
+      [844, 390],
+    ] as const) {
+      const insets = viewInsets(width, height);
+      expect(width - insets.left - insets.right).toBeGreaterThanOrEqual(240);
+      expect(height - insets.top - insets.bottom).toBeGreaterThanOrEqual(120);
+    }
+  });
+});
+
+describe("touch and keyboard helpers", () => {
+  it("zooms in when the fingers move apart and out when they come together", () => {
+    expect(pinchZoom(1, 100, 125)).toBeCloseTo(0.8);
+    expect(pinchZoom(0.8, 100, 80)).toBeCloseTo(1);
+  });
+
+  it("keeps a pinch inside the zoom limits and ignores a broken distance", () => {
+    expect(pinchZoom(1, 100, 10000)).toBe(MIN_ZOOM);
+    expect(pinchZoom(1, 10000, 1)).toBe(MAX_ZOOM);
+    expect(pinchZoom(0.9, 0, 50)).toBe(0.9);
+    expect(pinchZoom(0.9, 50, Number.NaN)).toBe(0.9);
+  });
+
+  it("starts a reset from the view the layer view opens with", () => {
+    const orbit = defaultOrbit();
+    expect(orbit).toEqual({
+      azimuth: DEFAULT_AZIMUTH,
+      depression: DEFAULT_DEPRESSION,
+      zoom: 1,
+      pointerFraction: 0.5,
+    });
+    orbit.zoom = 0.5;
+    expect(defaultOrbit().zoom).toBe(1);
+  });
+
+  it("walks the six layers with the arrow keys and stops at the ends", () => {
+    expect(nextLayerIndex(6, -1, "down")).toBe(0);
+    expect(nextLayerIndex(6, -1, "up")).toBe(5);
+    expect(nextLayerIndex(6, 2, "down")).toBe(3);
+    expect(nextLayerIndex(6, 2, "up")).toBe(1);
+    expect(nextLayerIndex(6, 5, "down")).toBe(5);
+    expect(nextLayerIndex(6, 0, "up")).toBe(0);
+    expect(nextLayerIndex(0, 0, "down")).toBe(-1);
   });
 });

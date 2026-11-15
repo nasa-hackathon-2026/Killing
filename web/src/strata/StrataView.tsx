@@ -3,23 +3,28 @@
 // stratum. Numbers and wording come from the layer panel's data unchanged;
 // nothing is computed or interpreted here.
 import { Canvas } from "@react-three/fiber";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TrendBlock } from "../analysis/TrendBlock";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
-import type { TrendSummary } from "../analysis/trends";
+import type { TrendSummary, TrendsFile } from "../analysis/trends";
+import { companionTexts } from "../companions/companionTexts";
 import type { TrendSignal } from "../forms/encoding";
 import { monthYear, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
 import type { LayerControl } from "../layers/LayerPanel";
 import { layerRegistry } from "../layers/registry";
+import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { UnitText } from "../snapshot/UnitText";
 import { CompanionSlot } from "./companionSlot";
 import "./strata.css";
 import {
   clampDepression,
   clampZoom,
-  DEFAULT_AZIMUTH,
-  DEFAULT_DEPRESSION,
+  defaultOrbit,
+  nextLayerIndex,
+  pinchZoom,
+  companionFit,
+  type CompanionFit,
   FOV_DEG,
   MEDIUM_WIDTH,
 } from "./strataCamera";
@@ -64,7 +69,47 @@ type StrataViewProps = {
   anomalyZ?: Record<string, number | null>;
   trends?: Record<string, TrendSummary | null>;
   signals?: Record<string, TrendSignal>;
+  // For a companion's sentence of data facts (companions/companionTexts.ts):
+  // the place's series, its id and aggregation, and the trends file.
+  series?: LoadedSeries[];
+  locationId?: string;
+  aggregation?: string;
+  trendsFile?: TrendsFile | null;
 };
+
+// Beside the stack or on the platforms, following the window size and the
+// docked chart (strataCamera.ts companionPlacement).
+// `rows` is the number of strata with a switched-on layer: a row of
+// companions each, which have to fit the height (strataCamera.ts
+// companionFit picks the size, or the platforms).
+function useCompanionFit(chartOpen: boolean, rows: number): CompanionFit {
+  const measure = useCallback(
+    (): CompanionFit =>
+      typeof window === "undefined"
+        ? { placement: "on", tier: null }
+        : companionFit(window.innerWidth, window.innerHeight, chartOpen, rows),
+    [chartOpen, rows],
+  );
+  const [fit, setFit] = useState<CompanionFit>(measure);
+  useEffect(() => {
+    const update = () =>
+      setFit((previous) => {
+        const next = measure();
+        return previous.placement === next.placement &&
+          previous.tier?.id === next.tier?.id
+          ? previous
+          : next;
+      });
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [measure]);
+  return fit;
+}
+
+// Size of a companion figure on a platform. Beside the stack it follows the
+// tier (strataCamera.ts COMPANION_TIERS).
+const ON_PLATFORM_SIZE = 40;
 
 function nameOf(variableId: string): string {
   return variableName(
@@ -87,10 +132,25 @@ export function StrataView({
   trends,
   signals,
   focus,
+  series,
+  locationId,
+  aggregation = "point",
+  trendsFile = null,
 }: StrataViewProps) {
-  const { t } = useI18n();
+  const { t, voice } = useI18n();
   const month = useCurrentMonth(appMonth);
   const chartOpen = useChartOpen();
+  const fit = useCompanionFit(
+    chartOpen,
+    strata.filter((item) =>
+      variablesOf(item.id).some((id) =>
+        controls.some((control) => control.id === id && control.visible),
+      ),
+    ).length,
+  );
+  const placement = fit.placement;
+  // The companion last clicked: its sentence shows in the stratum's panel.
+  const [speaking, setSpeaking] = useState<string | null>(null);
   // The three notes of the legend start open where there is room for them
   // beside the six labels (a tall, wide window).
   const [notesOpen] = useState(
@@ -99,23 +159,24 @@ export function StrataView({
       (window.innerWidth > MEDIUM_WIDTH && window.innerHeight >= 800),
   );
   const [selected, setSelected] = useState<StratumId | null>(focus ?? null);
+  // Expanding a stratum by any way other than a companion clears the
+  // companion sentence; a companion click sets both (see the companions).
+  const choose = (id: StratumId | null) => {
+    setSelected(id);
+    setSpeaking(null);
+  };
   // A tour step moves the expanded stratum; the visitor can still change it.
   const [lastFocus, setLastFocus] = useState(focus);
   if (focus !== lastFocus) {
     setLastFocus(focus);
-    if (focus !== undefined) setSelected(focus);
+    if (focus !== undefined) choose(focus);
   }
   const notes = strataNotes();
   const when = month ? monthYear(month, "short") : null;
-  const orbit = useRef<StrataOrbit>({
-    azimuth: DEFAULT_AZIMUTH,
-    depression: DEFAULT_DEPRESSION,
-    zoom: 1,
-    pointerFraction: 0.5,
-  });
-  const elements = useRef(new Map<string, HTMLElement>());
+  const orbit = useRef<StrataOrbit>(defaultOrbit());
+  const elements = useRef(new Map<string, Element>());
   const register = useCallback(
-    (key: string) => (node: HTMLElement | null) => {
+    (key: string) => (node: Element | null) => {
       if (node) elements.current.set(key, node);
       else elements.current.delete(key);
     },
@@ -146,26 +207,60 @@ export function StrataView({
       anchors.push({
         key,
         stratum: item.id,
-        spot: companionSpot(index, shown.length),
+        spot: companionSpot(index, shown.length, placement),
       });
       companions.push({ variableId, key });
     });
   }
 
-  const drag = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    let lastX = event.clientX;
-    let lastY = event.clientY;
-    const move = (next: PointerEvent) => {
-      const view = orbit.current;
-      view.azimuth -= (next.clientX - lastX) * 0.008;
-      view.depression = clampDepression(
-        view.depression + (next.clientY - lastY) * 0.005,
-      );
-      lastX = next.clientX;
-      lastY = next.clientY;
+  // One pointer turns the stack; two (a pinch on a touch screen) zoom it.
+  // The pointers stay in a map while they are down, so a second finger
+  // takes over from the rotation without a jump.
+  // A finger that lands on a label or a figure (not on the picture itself)
+  // only counts towards a pinch: it never turns the stack.
+  const pointers = useRef(
+    new Map<number, { x: number; y: number; turns: boolean }>(),
+  );
+  const drag = (
+    event: React.PointerEvent<HTMLElement>,
+    turns: boolean = true,
+  ) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const active = pointers.current;
+    active.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+      turns,
+    });
+    const spread = () => {
+      const [a, b] = [...active.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
     };
-    const stop = () => {
+    const move = (next: PointerEvent) => {
+      const last = active.get(next.pointerId);
+      if (!last) return;
+      const view = orbit.current;
+      if (active.size >= 2) {
+        const before = spread();
+        active.set(next.pointerId, {
+          ...last,
+          x: next.clientX,
+          y: next.clientY,
+        });
+        view.zoom = pinchZoom(view.zoom, before, spread());
+        return;
+      }
+      if (last.turns) {
+        view.azimuth -= (next.clientX - last.x) * 0.008;
+        view.depression = clampDepression(
+          view.depression + (next.clientY - last.y) * 0.005,
+        );
+      }
+      active.set(next.pointerId, { ...last, x: next.clientX, y: next.clientY });
+    };
+    const stop = (end: PointerEvent) => {
+      if (end.pointerId !== event.pointerId) return;
+      active.delete(event.pointerId);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
       window.removeEventListener("pointercancel", stop);
@@ -173,6 +268,11 @@ export function StrataView({
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
     window.addEventListener("pointercancel", stop);
+  };
+  // Back to the view the layer view opened with, no layer expanded.
+  const resetView = () => {
+    orbit.current = defaultOrbit();
+    choose(null);
   };
   const wheel = (event: React.WheelEvent<HTMLDivElement>) => {
     const view = orbit.current;
@@ -183,6 +283,75 @@ export function StrataView({
   };
 
   const chosen = selected ? stratum(selected) : undefined;
+  // The companion's sentence shows while its layer is still switched on and
+  // its stratum is the one expanded.
+  const spoken =
+    speaking &&
+    chosen &&
+    open(speaking) &&
+    strataAssignments.some(
+      (row) => row.variableId === speaking && row.stratum === chosen.id,
+    )
+      ? speaking
+      : null;
+  const sentence = useMemo(
+    () =>
+      spoken && series && locationId
+        ? (companionTexts({
+            series,
+            month,
+            locationId,
+            locationName: place.nameEn,
+            aggregation,
+            trends: trendsFile,
+            voice,
+          }).lines[spoken] ?? null)
+        : null,
+    [
+      spoken,
+      series,
+      month,
+      locationId,
+      place.nameEn,
+      aggregation,
+      trendsFile,
+      voice,
+    ],
+  );
+  const beside = placement === "beside";
+  // Escape folds the expanded layer, or leaves the layer view when none is
+  // expanded. A menu or the tour that is open takes the key first.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || closing) return;
+      const active = document.activeElement;
+      if (
+        active &&
+        active !== document.body &&
+        !active.closest(".strata, .app > .hud")
+      ) {
+        return;
+      }
+      if (document.querySelector(".guide-tour")) return;
+      if (selected) choose(null);
+      else onExit();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+  // Up and down arrows move the focus between the layer labels.
+  const arrowBetweenLayers = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    const labels = [
+      ...event.currentTarget.querySelectorAll<HTMLElement>(".strata-label"),
+    ];
+    const at = labels.indexOf(document.activeElement as HTMLElement);
+    if (at < 0) return;
+    event.preventDefault();
+    labels[
+      nextLayerIndex(labels.length, at, event.key === "ArrowUp" ? "up" : "down")
+    ]?.focus();
+  };
   const arriving = selected
     ? strataAssignments.filter((row) => row.flowsTo === selected)
     : [];
@@ -191,13 +360,29 @@ export function StrataView({
     <section
       className={closing ? "strata strata-closing" : "strata"}
       aria-label={t("strata.title")}
+      onKeyDown={arrowBetweenLayers}
+      onPointerDown={(event) => {
+        const target = event.target as Element;
+        if (event.pointerType !== "touch") return;
+        // On the picture the canvas handles it; the panels scroll by
+        // themselves; a label or a figure may be the second finger.
+        if (target.closest(".strata-canvas, .strata-detail, .strata-header"))
+          return;
+        if (target.closest(".strata-labelbar, .strata-reset")) return;
+        drag(event, false);
+      }}
     >
-      <div className="strata-canvas" onPointerDown={drag} onWheel={wheel}>
+      <div
+        className="strata-canvas"
+        onPointerDown={(event) => drag(event, true)}
+        onWheel={wheel}
+        onDoubleClick={resetView}
+      >
         <Canvas
           camera={{ position: [0, 3.4, 0.3], fov: FOV_DEG, near: 0.1, far: 80 }}
           dpr={[1, 1.5]}
           gl={{ antialias: true, powerPreference: "low-power" }}
-          onPointerMissed={() => setSelected(null)}
+          onPointerMissed={() => choose(null)}
         >
           <StrataScene
             layers={sceneLayers}
@@ -208,43 +393,77 @@ export function StrataView({
             elements={elements}
             surface={surface}
             chartOpen={chartOpen}
-            onSelect={setSelected}
+            placement={placement}
+            onSelect={choose}
             onClosed={onClosed}
           />
         </Canvas>
       </div>
-      <div className="strata-overlay">
-        {strata.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            ref={register(`label:${item.id}`)}
-            className={selected ? "strata-label strata-hidden" : "strata-label"}
-            style={{ borderLeftColor: item.color }}
-            aria-pressed={selected === item.id}
-            onClick={() => setSelected(selected === item.id ? null : item.id)}
-          >
-            <span className="strata-label-head">
-              <strong>{stratumName(item.id)}</strong>
-              {stratumHeight(item.id) ? (
-                <span className="strata-height">{stratumHeight(item.id)}</span>
-              ) : null}
-            </span>
-            {variablesOf(item.id).map((variableId) => (
-              <span
-                key={variableId}
+      <div
+        className={
+          fit.tier
+            ? `strata-overlay strata-beside strata-tier-${fit.tier.id}`
+            : "strata-overlay"
+        }
+      >
+        {beside ? (
+          // One thin line per stratum from the platform's right edge to its
+          // row of companions; StrataScene sets the ends every frame.
+          <svg className="strata-links" aria-hidden="true">
+            {strata.map((item) => (
+              <line
+                key={item.id}
+                ref={register(`link:${item.id}`)}
+                stroke={item.color}
+                visibility="hidden"
                 className={
-                  open(variableId) ? "strata-value" : "strata-value strata-off"
+                  selected && selected !== item.id ? "strata-dim" : undefined
                 }
-              >
-                <span className="strata-value-name">{nameOf(variableId)}</span>
-                <b>
-                  <UnitText text={readings[variableId] ?? ""} />
-                </b>
-              </span>
+              />
             ))}
-          </button>
-        ))}
+          </svg>
+        ) : null}
+        <div className="strata-labelbar">
+          {strata.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              ref={register(`label:${item.id}`)}
+              className={
+                selected ? "strata-label strata-hidden" : "strata-label"
+              }
+              style={{ borderLeftColor: item.color }}
+              aria-pressed={selected === item.id}
+              onClick={() => choose(selected === item.id ? null : item.id)}
+            >
+              <span className="strata-label-head">
+                <strong>{stratumName(item.id)}</strong>
+                {stratumHeight(item.id) ? (
+                  <span className="strata-height">
+                    {stratumHeight(item.id)}
+                  </span>
+                ) : null}
+              </span>
+              {variablesOf(item.id).map((variableId) => (
+                <span
+                  key={variableId}
+                  className={
+                    open(variableId)
+                      ? "strata-value"
+                      : "strata-value strata-off"
+                  }
+                >
+                  <span className="strata-value-name">
+                    {nameOf(variableId)}
+                  </span>
+                  <b>
+                    <UnitText text={readings[variableId] ?? ""} />
+                  </b>
+                </span>
+              ))}
+            </button>
+          ))}
+        </div>
         {companions.map(({ variableId, key }) => {
           const assignment = strataAssignments.find(
             (row) => row.variableId === variableId,
@@ -262,8 +481,13 @@ export function StrataView({
                   : "strata-companion"
               }
               aria-label={`${info.name}: ${readings[variableId] ?? ""}`}
+              aria-pressed={spoken === variableId}
               title={`${info.name}: ${readings[variableId] ?? ""}`}
-              onClick={() => assignment && setSelected(assignment.stratum)}
+              onClick={() => {
+                if (!assignment) return;
+                setSelected(assignment.stratum);
+                setSpeaking(variableId);
+              }}
             >
               <CompanionSlot
                 variableId={variableId}
@@ -272,11 +496,20 @@ export function StrataView({
                 }
                 anomalyZ={anomalyZ?.[variableId] ?? null}
                 signal={signal}
-                size={40}
+                size={fit.tier ? fit.tier.figure : ON_PLATFORM_SIZE}
               />
-              {/* The name shows on hover or keyboard focus only: the left
-                  column already lists every variable and its value. */}
-              <span className="strata-companion-name">{info.name}</span>
+              {beside ? (
+                <span className="strata-companion-caption" aria-hidden="true">
+                  <span>{info.name}</span>
+                  <b>
+                    <UnitText text={readings[variableId] ?? ""} />
+                  </b>
+                </span>
+              ) : (
+                // On a platform the name shows on hover or keyboard focus
+                // only: the left column already lists every variable.
+                <span className="strata-companion-name">{info.name}</span>
+              )}
             </button>
           );
         })}
@@ -290,6 +523,7 @@ export function StrataView({
           </button>
         </p>
         {openCount === 0 ? <p>{t("strata.noLayer")}</p> : null}
+
         <details open={notesOpen}>
           <summary>
             {notes[0]} {t("strata.about")}
@@ -299,6 +533,9 @@ export function StrataView({
           </p>
         </details>
       </header>
+      <button type="button" className="strata-reset" onClick={resetView}>
+        {t("strata.reset")}
+      </button>
       {chosen ? (
         <aside
           className="strata-detail"
@@ -311,7 +548,7 @@ export function StrataView({
                 <p>{stratumHeight(chosen.id)}</p>
               ) : null}
             </div>
-            <button type="button" onClick={() => setSelected(null)}>
+            <button type="button" onClick={() => choose(null)}>
               {t("common.action.close")}
             </button>
           </header>
@@ -323,6 +560,11 @@ export function StrataView({
             })}{" "}
             {notes[0]}
           </p>
+          {sentence ? (
+            <p className="strata-companion-line" aria-live="polite">
+              {sentence}
+            </p>
+          ) : null}
           <ul>
             {variablesOf(chosen.id).map((variableId) => {
               const assignment = strataAssignments.find(
