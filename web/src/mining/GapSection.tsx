@@ -12,20 +12,16 @@ import {
   type GapTreeFile,
   type GapValidation,
 } from "../analysis/miningPlus";
+import { carryChoices, t, useI18n } from "../i18n";
 import { MethodDetails } from "./parts";
 
+// Labels are messages: mining.gap.grouping.<id>.
 const GROUPINGS = [
-  { id: "by_product_season", label: "Season" },
-  { id: "by_product_segment", label: "GLDAS segment" },
-  { id: "by_product_station", label: "Station" },
-  { id: "by_product", label: "All months" },
+  { id: "by_product_season" },
+  { id: "by_product_segment" },
+  { id: "by_product_station" },
+  { id: "by_product" },
 ];
-
-const VARIANT_LABELS: Record<string, string> = {
-  with_segment: "main run (with GLDAS segment number)",
-  without_segment: "without GLDAS segment number",
-  with_target_lag: "reference: also uses the previous month's class",
-};
 
 function GapBars({ file, grouping }: { file: GapTreeFile; grouping: string }) {
   const rows: GapStat[] = file.descriptive[grouping] ?? [];
@@ -36,14 +32,14 @@ function GapBars({ file, grouping }: { file: GapTreeFile; grouping: string }) {
       <table className="gap-bars">
         <thead>
           <tr>
-            <th>Model</th>
-            <th>Group</th>
+            <th>{t("mining.extra.model")}</th>
+            <th>{t("mining.extra.group")}</th>
             <th className="bar-cell">
-              Mean absolute difference (°C), with 95% interval
+              {t("mining.extra.mean_absolute_difference_c_with_95_interval")}
             </th>
-            <th className="number">Mean</th>
-            <th className="number">95% interval</th>
-            <th className="number">Months</th>
+            <th className="number">{t("mining.extra.mean")}</th>
+            <th className="number">{t("mining.extra.95_interval")}</th>
+            <th className="number">{t("mining.extra.months")}</th>
           </tr>
         </thead>
         <tbody>
@@ -73,7 +69,10 @@ function GapBars({ file, grouping }: { file: GapTreeFile; grouping: string }) {
                 <td className="number">{row.mean_abs_difference.toFixed(2)}</td>
                 <td className="number">
                   {low !== null && high !== null
-                    ? `${low.toFixed(2)} to ${high.toFixed(2)}`
+                    ? t("mining.gap.detail.range", {
+                        first: low.toFixed(2),
+                        last: high.toFixed(2),
+                      })
                     : "–"}
                 </td>
                 <td className="number">{row.n_months}</td>
@@ -88,9 +87,14 @@ function GapBars({ file, grouping }: { file: GapTreeFile; grouping: string }) {
 
 function foldLabel(file: GapTreeFile, fold: GapFold): string {
   if (fold.held_out_station) {
-    return `${stationName(file, fold.held_out_station)} held out`;
+    return t("mining.gap.detail.heldOut", {
+      station: stationName(file, fold.held_out_station),
+    });
   }
-  return `${fold.test_first_month?.slice(0, 7)} to ${fold.test_last_month?.slice(0, 7)}`;
+  return t("mining.gap.detail.range", {
+    first: fold.test_first_month?.slice(0, 7) ?? "",
+    last: fold.test_last_month?.slice(0, 7) ?? "",
+  });
 }
 
 function FoldTable({
@@ -108,14 +112,16 @@ function FoldTable({
         <thead>
           <tr>
             <th>{firstColumn}</th>
-            <th className="number">Training rows</th>
-            <th className="number">Test rows</th>
-            <th className="number">Tree, test accuracy</th>
-            <th className="number">Tree, macro-F1</th>
-            <th className="number">Training-majority guess</th>
-            <th className="number">Persistence guess</th>
-            <th className="number">Calendar-month guess</th>
-            <th>Tree against baselines</th>
+            <th className="number">{t("mining.extra.training_rows")}</th>
+            <th className="number">{t("mining.extra.test_rows")}</th>
+            <th className="number">{t("mining.extra.tree_test_accuracy")}</th>
+            <th className="number">{t("mining.extra.tree_macro_f1")}</th>
+            <th className="number">
+              {t("mining.extra.training_majority_guess")}
+            </th>
+            <th className="number">{t("mining.extra.persistence_guess")}</th>
+            <th className="number">{t("mining.extra.calendar_month_guess")}</th>
+            <th>{t("mining.extra.tree_against_baselines")}</th>
           </tr>
         </thead>
         <tbody>
@@ -147,7 +153,7 @@ function FoldTable({
             </tr>
           ))}
           <tr className="mean-row">
-            <td>Mean</td>
+            <td>{t("mining.extra.mean")}</td>
             <td />
             <td />
             <td className="number">
@@ -166,8 +172,10 @@ function FoldTable({
               {formatShare(validation.summary.mean_calendar_month_accuracy)}
             </td>
             <td>
-              above all three in {validation.summary.n_folds_above_all} of{" "}
-              {validation.summary.n_folds}
+              {t("mining.gap.detail.aboveFolds", {
+                count: validation.summary.n_folds_above_all,
+                total: validation.summary.n_folds,
+              })}
             </td>
           </tr>
         </tbody>
@@ -189,12 +197,12 @@ function Stability({
       <table>
         <thead>
           <tr>
-            <th>Feature</th>
-            <th className="number">Mean importance</th>
-            <th className="number">Lowest</th>
-            <th className="number">Highest</th>
-            <th className="number">Used in</th>
-            <th className="number">Ranked first in</th>
+            <th>{t("mining.extra.feature")}</th>
+            <th className="number">{t("mining.extra.mean_importance")}</th>
+            <th className="number">{t("mining.extra.lowest")}</th>
+            <th className="number">{t("mining.extra.highest")}</th>
+            <th className="number">{t("mining.extra.used_in")}</th>
+            <th className="number">{t("mining.extra.ranked_first_in")}</th>
           </tr>
         </thead>
         <tbody>
@@ -205,10 +213,16 @@ function Stability({
               <td className="number">{item.min.toFixed(3)}</td>
               <td className="number">{item.max.toFixed(3)}</td>
               <td className="number">
-                {item.n_folds_used} of {validation.summary.n_folds}
+                {t("mining.gap.detail.of", {
+                  count: item.n_folds_used,
+                  total: validation.summary.n_folds,
+                })}
               </td>
               <td className="number">
-                {item.n_folds_top} of {validation.summary.n_folds}
+                {t("mining.gap.detail.of", {
+                  count: item.n_folds_top,
+                  total: validation.summary.n_folds,
+                })}
               </td>
             </tr>
           ))}
@@ -219,6 +233,7 @@ function Stability({
 }
 
 export function GapSection({ file }: { file: GapTreeFile }) {
+  const { t } = useI18n();
   const [grouping, setGrouping] = useState("by_product_season");
   const [variantId, setVariantId] = useState(file.primary_variant);
   const variant = file.variants[variantId];
@@ -231,35 +246,34 @@ export function GapSection({ file }: { file: GapTreeFile }) {
 
   return (
     <section id="gap" aria-labelledby="gap-title">
-      <h2 id="gap-title">Where do models and observations differ?</h2>
+      <h2 id="gap-title">{t("mining.sections.gap")}</h2>
       <p className="asks">
-        <strong>What this asks:</strong> in which months, at which stations and
-        for which model product is the monthly difference between a model
-        temperature anomaly and the station anomaly larger?
+        <strong>{t("mining.label.asks")}</strong> {t("mining.gap.asks")}
       </p>
       <p className="note">
-        <strong>Method and limits:</strong> {file.pairs.length} pairs of a
-        Taiwan weather station with GLDAS or MERRA-2 at the same place (
-        {stations.length} stations, {totalMonths} pair-months). A table of group
-        means comes first; a decision tree then tries to predict whether the
-        difference of a month is small, medium or large and is compared with
-        three simple guesses. {file.note} The pairs and their time series are on
-        the{" "}
-        <a href={`${import.meta.env.BASE_URL}compare/`}>Model vs observation</a>{" "}
-        page.
+        <strong>{t("mining.label.method")}</strong>{" "}
+        {t("mining.gap.method", {
+          pairs: file.pairs.length,
+          stations: stations.length,
+          months: totalMonths,
+          note: file.note,
+        })}{" "}
+        <a href={carryChoices(`${import.meta.env.BASE_URL}compare/`)}>
+          {t("mining.gap.compareLink")}
+        </a>
       </p>
 
-      <h3>Mean size of the difference by group</h3>
+      <h3>{t("mining.gap.meansTitle")}</h3>
       <div className="controls">
         <label>
-          Group by{" "}
+          {t("mining.control.groupBy")}{" "}
           <select
             value={grouping}
             onChange={(event) => setGrouping(event.target.value)}
           >
             {GROUPINGS.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.label}
+                {t(`mining.gap.grouping.${item.id}`)}
               </option>
             ))}
           </select>
@@ -267,16 +281,14 @@ export function GapSection({ file }: { file: GapTreeFile }) {
       </div>
       <GapBars file={file} grouping={grouping} />
       <p className="note">
-        The bar is the mean of |model anomaly − station anomaly| over the months
-        of the group; the line on it is a 95% interval from a bootstrap that
-        resamples whole calendar years. GLDAS segments start at the documented
-        step months of the GLDAS air temperature (
-        {file.gldas_break_months.map((month) => month.slice(0, 7)).join(", ")});
-        MERRA-2 is split at the same months only for comparison. GLDAS has no
-        land cell at Lanyu, so that station has a MERRA-2 pair only.
+        {t("mining.gap.detail.barNote", {
+          months: file.gldas_break_months
+            .map((month) => month.slice(0, 7))
+            .join(", "),
+        })}
       </p>
 
-      <h3>Decision tree: small, medium or large difference</h3>
+      <h3>{t("mining.gap.treeTitle")}</h3>
       <p
         className={
           walk.summary.n_folds_above_all === walk.summary.n_folds
@@ -284,7 +296,8 @@ export function GapSection({ file }: { file: GapTreeFile }) {
             : "verdict warn"
         }
       >
-        <strong>Forward in time:</strong> {walk.summary.text_en}
+        <strong>{t("mining.extra.forward_in_time")}</strong>{" "}
+        {walk.summary.text_en}
       </p>
       <p
         className={
@@ -293,73 +306,72 @@ export function GapSection({ file }: { file: GapTreeFile }) {
             : "verdict warn"
         }
       >
-        <strong>New station:</strong> {held.summary.text_en}
+        <strong>{t("mining.extra.new_station")}</strong> {held.summary.text_en}
       </p>
       <div className="controls">
         <label>
-          Run{" "}
+          {t("mining.control.run")}{" "}
           <select
             value={variantId}
             onChange={(event) => setVariantId(event.target.value)}
           >
             {file.variants_run.map((id) => (
               <option key={id} value={id}>
-                {VARIANT_LABELS[id] ?? id}
+                {t(`mining.gap.variants.${id}`)}
               </option>
             ))}
           </select>
         </label>
         <span className="note">
-          {variant.n_rows} rows, {variant.first_month.slice(0, 7)} to{" "}
-          {variant.last_month.slice(0, 7)}
+          {t("mining.gap.detail.runRange", {
+            rows: variant.n_rows,
+            first: variant.first_month.slice(0, 7),
+            last: variant.last_month.slice(0, 7),
+          })}
         </span>
       </div>
       <p className="note">
-        All {file.variants_run.length} runs that were made are listed here; no
-        other settings were tried. {variant.note}
+        {t("mining.gap.detail.runsNote", { count: file.variants_run.length })}{" "}
+        {variant.note}
       </p>
 
-      <h4>Forward in time (train on earlier months, test on later months)</h4>
-      <FoldTable file={file} validation={walk} firstColumn="Test months" />
       <h4>
-        New station (train on the other stations, test on the one held out)
+        {t(
+          "mining.extra.forward_in_time_train_on_earlier_months_test_on_later_months",
+        )}
       </h4>
-      <FoldTable file={file} validation={held} firstColumn="Station" />
-      <p className="note">
-        Accuracy is the share of test rows put in the right class; with three
-        classes of about equal size a blind guess is right about a third of the
-        time. The three guesses use no other variable: the most common class of
-        the training rows, the pair&apos;s class of the previous month
-        (persistence), and the most common training class of the same calendar
-        month. Training and test rows of the new-station check cover the same
-        months, so it checks a new place, not the future.
-      </p>
+      <FoldTable
+        file={file}
+        validation={walk}
+        firstColumn={t("mining.extra.test_months")}
+      />
+      <h4>{t("mining.gap.detail.newStationTitle")}</h4>
+      <FoldTable
+        file={file}
+        validation={held}
+        firstColumn={t("mining.gap.detail.station")}
+      />
+      <p className="note">{t("mining.gap.detail.accuracyNote")}</p>
 
       {last ? (
         <>
           <h4>
-            Tree of the last forward fold (trained on{" "}
-            {last.train_first_month?.slice(0, 7)} to{" "}
-            {last.train_last_month?.slice(0, 7)})
+            {t("mining.gap.detail.lastTree", {
+              first: last.train_first_month?.slice(0, 7) ?? "",
+              last: last.train_last_month?.slice(0, 7) ?? "",
+            })}
           </h4>
           <pre>{labelGapTreeText(file, last.tree_text)}</pre>
-          <p className="note">
-            States are −1 (low), 0 (normal), 1 (high); a test like &quot;station
-            is Taipei &lt;= 0.5&quot; is true for every other station. The
-            counts at the leaves are training rows.
-          </p>
-          <h4>
-            Last forward fold, test rows: actual class (rows) against predicted
-            class
-          </h4>
+          <p className="note">{t("mining.gap.detail.treeNote")}</p>
+          <h4>{t("mining.gap.detail.confusionTitle")}</h4>
           <div className="scroll">
             <table>
               <thead>
                 <tr>
-                  <th>Actual</th>
+                  <th>{t("mining.extra.actual")}</th>
                   {file.classes.map((name) => (
                     <th key={name} className="number">
-                      predicted {name}
+                      {t("mining.gap.detail.predicted", { name })}
                     </th>
                   ))}
                 </tr>
@@ -381,9 +393,13 @@ export function GapSection({ file }: { file: GapTreeFile }) {
         </>
       ) : null}
 
-      <h4>Which features the trees use, fold by fold (forward in time)</h4>
+      <h4>
+        {t(
+          "mining.extra.which_features_the_trees_use_fold_by_fold_forward_in_time",
+        )}
+      </h4>
       <Stability file={file} validation={walk} />
-      <h4>Which features the trees use (new station)</h4>
+      <h4>{t("mining.extra.which_features_the_trees_use_new_station")}</h4>
       <Stability file={file} validation={held} />
 
       <MethodDetails>
@@ -394,14 +410,14 @@ export function GapSection({ file }: { file: GapTreeFile }) {
               <dd>{text}</dd>
             </div>
           ))}
-          <dt>leakage guards</dt>
+          <dt>{t("mining.extra.leakage_guards")}</dt>
           <dd>{file.leakage_guards.join("; ")}.</dd>
-          <dt>context variables</dt>
+          <dt>{t("mining.extra.context_variables")}</dt>
           <dd>
             {file.context_variables
               .map((id) => file.variable_names[id] ?? id)
               .join(", ")}{" "}
-            at the nearest core point (
+            {t("mining.gap.detail.nearestPoint")} (
             {[
               ...new Set(
                 file.pairs.map(
@@ -410,10 +426,10 @@ export function GapSection({ file }: { file: GapTreeFile }) {
                 ),
               ),
             ].join("; ")}
-            ). Not used (temperature):{" "}
+            ). {t("mining.gap.detail.notUsedTemperature")}{" "}
             {file.excluded_temperature_variables.join(", ")}.
           </dd>
-          <dt>rows left out</dt>
+          <dt>{t("mining.extra.rows_left_out")}</dt>
           <dd>
             {Object.entries(variant.rows_dropped)
               .map(([reason, count]) => `${reason}: ${count}`)

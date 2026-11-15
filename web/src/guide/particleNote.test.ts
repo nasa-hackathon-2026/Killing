@@ -24,7 +24,7 @@ describe("particleNote", () => {
         trendMap: false,
       }),
     ).toBe(
-      "Particles show one value per layer: the selected layers at Tokyo, Dec 2024. They are not a map.",
+      "Particles show one value per layer at Tokyo, Dec 2024. They are not a map.",
     );
   });
 
@@ -38,7 +38,7 @@ describe("particleNote", () => {
       }),
     ).toBe(
       "Particles show one value: 2 m air temperature at Taichung, Jun 2025. They are not a map. " +
-        "The coloured map is a map: per-grid-cell trend.",
+        "The coloured overlay is a map: the trend in each grid cell.",
     );
   });
 

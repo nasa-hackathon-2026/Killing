@@ -1,0 +1,63 @@
+{
+  "appName": "地球系統趨勢偵探",
+  "language": {
+    "label": "語言"
+  },
+  "role": {
+    "label": "讀者身分",
+    "everyone": {
+      "name": "一般",
+      "hint": "一般：文字最少，由夥伴帶你看。"
+    },
+    "student": {
+      "name": "學生",
+      "hint": "學生：白話說明，加上定義與閱讀提示。"
+    },
+    "researcher": {
+      "name": "研究者",
+      "hint": "研究者：完整的統計數字與術語。"
+    }
+  },
+  "action": {
+    "close": "關閉",
+    "details": "詳細資料",
+    "howToRead": "怎麼看這個畫面",
+    "next": "下一步",
+    "back": "上一步",
+    "skip": "跳過"
+  },
+  "status": {
+    "loading": "載入中…",
+    "noData": "沒有資料",
+    "noDataAtPlace": "這個地點沒有資料",
+    "snapshotError": "讀不到資料",
+    "notAvailable": "無"
+  },
+  "dataKind": {
+    "in_situ": {
+      "label": "現地觀測",
+      "short": "現地",
+      "general": "由現場的儀器直接量到。",
+      "expert": "資料性質：現地觀測。"
+    },
+    "satellite_retrieval": {
+      "label": "衛星反演",
+      "short": "衛星",
+      "general": "從衛星感測器看到的訊號推算出來，不是在地面量的。",
+      "expert": "資料性質：衛星反演。"
+    },
+    "model": {
+      "label": "模式",
+      "short": "模式",
+      "general": "這是電腦模式推算的，不是直接量到的。",
+      "expert": "資料性質：模式。"
+    },
+    "unknown": {
+      "label": "未分類",
+      "short": "未分類",
+      "general": "資料性質尚未分類。",
+      "expert": "資料性質：未分類。"
+    }
+  },
+  "partial": "這一頁目前只有部分翻譯，技術性文字維持英文。"
+}

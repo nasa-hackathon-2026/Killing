@@ -1,0 +1,24 @@
+{
+  "aria": "時間軸",
+  "play": "播放",
+  "pause": "暫停",
+  "playTitle": "播放或暫停（空白鍵）",
+  "speed": "速度",
+  "speedTitle": "每秒前進的月數：{{count}}",
+  "latest": "最新",
+  "latestTitle": "回到多數圖層都有資料的最新月份",
+  "slider": "時間軸月份",
+  "strip": {
+    "aria": "{{name}}的月距平",
+    "ariaFallback": "選取的圖層",
+    "above": "高於",
+    "below": {
+      "general": "低於同月份的平常值：{{name}}",
+      "expert": "低於同月份平均：{{name}}"
+    },
+    "step": {
+      "general": "資料產品曾更換",
+      "expert": "已記錄的跳變"
+    }
+  }
+}

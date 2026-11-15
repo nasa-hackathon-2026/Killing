@@ -3,10 +3,14 @@ import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import {
   formatChangePerDecade,
+  formatChangePlain,
   significanceText,
   type TestResult,
   type TrendEntry,
 } from "../analysis/trends";
+import { companionFor } from "../companions/companionSpec";
+import { formatCount, localNumber, t, useI18n } from "../i18n";
+import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
 import {
   formatTick,
@@ -22,6 +26,7 @@ import {
   alignCoverage,
   alignValues,
   calendarAnomalies,
+  chartModeLabel,
   CHART_MODES,
   displayUnit,
   displayValue,
@@ -62,14 +67,18 @@ type TimeSeriesPanelProps = {
 };
 
 function verdict(test: TestResult, alpha: number): string {
-  if (test.p === null) return "p not available";
-  const fdr =
-    test.p_fdr === null
-      ? ""
-      : `, FDR-adjusted ${formatP(test.p_fdr)} (${
-          test.significant_fdr ? "significant" : "not significant"
-        } at ${alpha})`;
-  return `p ${formatP(test.p)}${fdr}`;
+  if (test.p === null) return t("chart.stats.pNone");
+  if (test.p_fdr === null) return t("chart.stats.p", { p: formatP(test.p) });
+  return t("chart.stats.pFdr", {
+    p: formatP(test.p),
+    fdr: formatP(test.p_fdr),
+    verdict: t(
+      test.significant_fdr
+        ? "chart.stats.significant"
+        : "chart.stats.notSignificant",
+    ),
+    alpha: localNumber(String(alpha)),
+  });
 }
 
 // The chart of one variable at the current place over the whole record, with
@@ -88,6 +97,7 @@ export function TimeSeriesPanel({
   onClose,
 }: TimeSeriesPanelProps) {
   const { months, monthIndex, setMonthIndex, setPlaying } = useTimeline();
+  const { tm, settings, voice } = useI18n();
   const [mode, setMode] = useState<ChartMode>("values");
   const [collapsed, setCollapsed] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
@@ -156,37 +166,104 @@ export function TimeSeriesPanel({
   const focus = hover ?? monthIndex;
   const focusMonth = months[focus];
   const analyzed = trend?.status === "analyzed" ? trend : null;
-  const caveat = trendCaveat(variableId);
+  const caveat = trendCaveat(variableId, voice);
+  const dataKind = companionFor(variableId)?.dataKind;
+  const definition = settings.definitions
+    ? variableDefinition(variableId, voice)
+    : null;
   const axisUnit = displayUnit(unit);
+  const unitNote = axisUnit ? ` (${axisUnit})` : "";
+  // The full statistics: shown as they are for a researcher, folded under
+  // "Details" otherwise.
+  const statistics = analyzed ? (
+    <>
+      <dl className="timeline-stats">
+        <dt>{t("chart.stats.change")}</dt>
+        <dd>
+          {formatChangePerDecade(
+            analyzed.ols.slope_per_decade,
+            analyzed.ols.ci_per_decade,
+            analyzed.unit,
+            alpha,
+          )}
+        </dd>
+        <dt>{t("chart.stats.ttest")}</dt>
+        <dd>
+          {verdict(analyzed.ols, alpha)};{" "}
+          {significanceText(analyzed.ols, unreliable)}
+          {analyzed.ols.n_effective !== undefined
+            ? `. ${t("chart.stats.neff", {
+                n: formatCount(Math.round(analyzed.ols.n_effective)),
+                r:
+                  analyzed.ols.lag1_autocorrelation === undefined
+                    ? t("common.status.notAvailable")
+                    : localNumber(analyzed.ols.lag1_autocorrelation.toFixed(2)),
+              })}`
+            : ""}
+        </dd>
+        <dt>{t("chart.stats.mk")}</dt>
+        <dd>
+          {t("chart.stats.mkLine", {
+            hamedRao: verdict(analyzed.mann_kendall.hamed_rao, alpha),
+            seasonal: verdict(analyzed.mann_kendall.seasonal, alpha),
+          })}
+        </dd>
+        <dt>{t("chart.stats.sen")}</dt>
+        <dd>
+          {formatChangePerDecade(
+            analyzed.sen.slope_per_decade,
+            analyzed.sen.ci_per_decade,
+            analyzed.unit,
+            alpha,
+          )}
+        </dd>
+        <dt>{t("chart.stats.period")}</dt>
+        <dd>
+          {t("chart.stats.periodLine", {
+            first: analyzed.data.first_month.slice(0, 7),
+            last: analyzed.data.last_month.slice(0, 7),
+            count: formatCount(analyzed.data.n_valid),
+          })}
+        </dd>
+      </dl>
+      {!analyzed.ols.significant_fdr ? (
+        <p className="timeline-chart-note">{tm("trend.notSignificantNote")}</p>
+      ) : null}
+      <p className="timeline-chart-note">{t("chart.stats.method")}</p>
+    </>
+  ) : null;
 
   return (
     <section
       className={`timeline-chart${collapsed ? " timeline-chart-collapsed" : ""}`}
-      aria-label={`Time series of ${variableName}`}
+      aria-label={t("chart.aria", { name: variableName })}
     >
       <header>
         <h2>
-          {variableName} <span>at {locationName}</span>
+          {variableName} <span>{t("chart.at", { place: locationName })}</span>
         </h2>
         <button
           type="button"
           aria-expanded={!collapsed}
           onClick={() => setCollapsed((value) => !value)}
         >
-          {collapsed ? "Show chart" : "Hide chart"}
+          {t(collapsed ? "chart.show" : "chart.hide")}
         </button>
-        <button type="button" aria-label="Close chart" onClick={onClose}>
-          Close
+        <button type="button" aria-label={t("chart.close")} onClick={onClose}>
+          {t("common.action.close")}
         </button>
       </header>
       {collapsed ? null : !series ? (
         <p className="timeline-chart-note">
-          No data at this place: this variable has no series at {locationName}{" "}
-          in the snapshot.
+          {t("chart.noSeries", { place: locationName })}
         </p>
       ) : (
         <>
-          <div className="timeline-modes" role="group" aria-label="Chart mode">
+          <div
+            className="timeline-modes"
+            role="group"
+            aria-label={t("chart.modesAria")}
+          >
             {CHART_MODES.map((item) => (
               <button
                 key={item.id}
@@ -194,7 +271,7 @@ export function TimeSeriesPanel({
                 aria-pressed={mode === item.id}
                 onClick={() => setMode(item.id)}
               >
-                {item.label}
+                {chartModeLabel(item.id)}
               </button>
             ))}
           </div>
@@ -203,7 +280,13 @@ export function TimeSeriesPanel({
               className="timeline-plot"
               viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
               role="img"
-              aria-label={`${CHART_MODES.find((item) => item.id === mode)?.label} of ${variableName} at ${locationName}, ${months[0]?.slice(0, 7)} to ${months.at(-1)?.slice(0, 7)}`}
+              aria-label={t("chart.plotAria", {
+                mode: chartModeLabel(mode),
+                name: variableName,
+                place: locationName,
+                first: months[0]?.slice(0, 7) ?? "",
+                last: months.at(-1)?.slice(0, 7) ?? "",
+              })}
               onPointerMove={(event) =>
                 setHover(pointAt(event.clientX, event.currentTarget))
               }
@@ -320,118 +403,94 @@ export function TimeSeriesPanel({
               ) : null}
             </svg>
           ) : (
-            <p className="timeline-chart-note">No values to draw.</p>
+            <p className="timeline-chart-note">{t("chart.noValues")}</p>
           )}
           {chart && focusMonth ? (
             <p className="timeline-readout">
-              <strong>{focusMonth.slice(0, 7)}</strong> · value{" "}
-              {formatMeasurement(chart.raw[focus] ?? null, unit)} · anomaly{" "}
-              {formatAnomaly(chart.departures[focus] ?? null, unit)} · coverage{" "}
-              {chart.coverage[focus] === null ||
-              chart.coverage[focus] === undefined
-                ? "not available"
-                : `${Math.round((chart.coverage[focus] ?? 0) * 100)}%`}
-              {hover === null ? " (timeline month)" : ""}
+              <strong>{focusMonth.slice(0, 7)}</strong> ·{" "}
+              {tm("chart.readout", {
+                value: formatMeasurement(chart.raw[focus] ?? null, unit),
+                anomaly: formatAnomaly(chart.departures[focus] ?? null, unit),
+                coverage:
+                  chart.coverage[focus] === null ||
+                  chart.coverage[focus] === undefined
+                    ? t("common.status.notAvailable")
+                    : `${Math.round((chart.coverage[focus] ?? 0) * 100)}%`,
+              })}
+              {hover === null ? ` ${t("chart.readout.timelineMonth")}` : ""}
             </p>
+          ) : null}
+          {definition ? (
+            <p className="timeline-chart-note">{definition}</p>
           ) : null}
           <p className="timeline-chart-note">
             <i className="timeline-key timeline-key-series" />
             {mode === "values"
-              ? `Monthly values${axisUnit ? ` (${axisUnit})` : ""}`
-              : mode === "anomalies"
-                ? `Anomalies${axisUnit ? ` (${axisUnit})` : ""}: value minus the mean of the same calendar month`
-                : `Centred 12-month mean${axisUnit ? ` (${axisUnit})` : ""}; needs all 12 months, so gaps stay gaps`}
+              ? t("chart.key.values", { unit: unitNote })
+              : tm(`chart.key.${mode}`, { unit: unitNote })}
             {chart?.line ? (
               <>
                 {" "}
                 <i className="timeline-key timeline-key-trend" />
-                Linear trend of the monthly anomalies (slope from the analysis,
-                drawn through the mean of the analysed months).{" "}
+                {tm("chart.key.trend")}{" "}
                 <i className="timeline-key timeline-key-band" />
-                {level}% CI of the slope, not a prediction interval.
+                {tm("chart.key.band", { level })}
               </>
             ) : null}
             {breaks.length > 0 ? (
               <>
                 {" "}
                 <i className="timeline-key timeline-key-break" />
-                Documented step month (
-                {breaks.map((month) => month.slice(0, 7)).join(", ")}).
+                {tm("chart.key.break", {
+                  months: breaks.map((month) => month.slice(0, 7)).join(", "),
+                })}
               </>
             ) : null}{" "}
             <i className="timeline-key timeline-key-cursor" />
-            Timeline month; click the chart to jump.
+            {t("chart.key.cursor")}
           </p>
-          {analyzed ? (
-            <dl className="timeline-stats">
-              <dt>Change per decade</dt>
+          {analyzed && !settings.fullStatistics ? (
+            <dl className="timeline-stats timeline-plain">
+              <dt>{t("chart.plain.change")}</dt>
               <dd>
-                {formatChangePerDecade(
+                {formatChangePlain(
                   analyzed.ols.slope_per_decade,
                   analyzed.ols.ci_per_decade,
                   analyzed.unit,
-                  alpha,
                 )}
               </dd>
-              <dt>t-test of the slope</dt>
+              <dt>{t("chart.plain.holds")}</dt>
+              <dd>{significanceText(analyzed.ols, unreliable, "general")}</dd>
+              <dt>{t("chart.plain.reliable")}</dt>
               <dd>
-                {verdict(analyzed.ols, alpha)};{" "}
-                {significanceText(analyzed.ols, unreliable)}
-                {analyzed.ols.n_effective !== undefined
-                  ? `. Effective sample size ${Math.round(analyzed.ols.n_effective)} (lag-1 autocorrelation ${analyzed.ols.lag1_autocorrelation?.toFixed(2) ?? "n/a"})`
+                {unreliable ? t("trend.reliable.bad") : t("trend.reliable.ok")}
+                {dataKind && dataKind !== "unknown"
+                  ? ` ${t(`common.dataKind.${dataKind}.general`)}`
                   : ""}
               </dd>
-              <dt>Mann-Kendall</dt>
-              <dd>
-                Hamed-Rao: {verdict(analyzed.mann_kendall.hamed_rao, alpha)}.
-                Seasonal: {verdict(analyzed.mann_kendall.seasonal, alpha)}
-              </dd>
-              <dt>Sen slope</dt>
-              <dd>
-                {formatChangePerDecade(
-                  analyzed.sen.slope_per_decade,
-                  analyzed.sen.ci_per_decade,
-                  analyzed.unit,
-                  alpha,
-                )}
-              </dd>
-              <dt>Period</dt>
-              <dd>
-                {analyzed.data.first_month.slice(0, 7)} to{" "}
-                {analyzed.data.last_month.slice(0, 7)}, {analyzed.data.n_valid}{" "}
-                valid months
-              </dd>
             </dl>
-          ) : trend?.status === "insufficient" ? (
-            <p className="timeline-chart-note">
-              Trend not analyzed: {trend.reason.text_en}
-            </p>
-          ) : (
-            <p className="timeline-chart-note">
-              No trend statistics for this series.
-            </p>
-          )}
-          {analyzed && !analyzed.ols.significant_fdr ? (
-            <p className="timeline-chart-note">
-              Not significant does not mean no change; the record may be too
-              short or too variable to tell.
-            </p>
           ) : null}
           {analyzed ? (
+            settings.fullStatistics ? (
+              statistics
+            ) : (
+              <details className="timeline-details">
+                <summary>{t("common.action.details")}</summary>
+                {statistics}
+              </details>
+            )
+          ) : trend?.status === "insufficient" ? (
             <p className="timeline-chart-note">
-              Method: least-squares slope of monthly anomalies; the t-test and
-              CI use an effective sample size from the lag-1 autocorrelation of
-              the residuals; FDR is Benjamini-Hochberg across the analysed
-              series of one family (Taiwan&apos;s series are one family, the
-              world cities and the global mean another). The Sen slope CI has no
-              autocorrelation correction.
+              {t("chart.stats.notAnalyzed", { reason: trend.reason.text_en })}
             </p>
-          ) : null}
+          ) : (
+            <p className="timeline-chart-note">{t("chart.stats.none")}</p>
+          )}
           {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
           {similarHref && series ? (
             <p className="timeline-chart-note">
-              <a href={similarHref}>Similar series</a> (exploratory): which
-              other variables went above and below normal in the same months.
+              <a href={similarHref}>{t("chart.similar.link")}</a>{" "}
+              {tm("chart.similar.text")}
             </p>
           ) : null}
         </>

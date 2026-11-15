@@ -1,0 +1,37 @@
+{
+  "title": "Layer view",
+  "back": "Back to the globe",
+  "hint": "Enter layer view at {{place}}",
+  "noLayer": "No layer is on. Tick one in the Layers panel to see it here.",
+  "about": "About this view",
+  "controls": "Drag to turn, scroll to zoom, click a layer for its numbers.",
+  "names": {
+    "stratosphere": "Stratosphere",
+    "troposphere-air": "Troposphere: gases and aerosols",
+    "troposphere-water": "Troposphere: water vapor and rain",
+    "near-surface": "Near-surface air",
+    "land-surface": "Land surface",
+    "top-soil": "Top soil"
+  },
+  "heights": {
+    "stratosphere": "roughly 15–50 km up",
+    "troposphere-air": "ground to roughly 10–15 km",
+    "troposphere-water": "ground to roughly 10–15 km",
+    "near-surface": "about 2 m above the ground",
+    "top-soil": "0–10 cm below the ground"
+  },
+  "notes": {
+    "scale": "Heights are not to scale.",
+    "columnTotals": "Column totals are shown in the layer where most of the gas sits.",
+    "flow": "Flow directions are illustrative; there is no wind data."
+  },
+  "columnTotal": {
+    "general": "This counts the gas in the whole column of air above the place. It is drawn in the layer that holds most of it.",
+    "expert": "A total over the whole air column, shown in the layer where most of the gas sits."
+  },
+  "flow": "Particles travel from “{{from}}” to “{{to}}”; the path is illustrative.",
+  "valuesAria": "{{name}}: values",
+  "valuesAt": "Values at {{where}}.",
+  "off": "Switched off in the Layers panel; no particles drawn.",
+  "listedUnder": "{{name}} is listed under “{{stratum}}”."
+}

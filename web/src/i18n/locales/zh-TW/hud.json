@@ -1,0 +1,28 @@
+{
+  "guide": "導覽",
+  "guideAria": "導覽：帶看、範例與怎麼看這個畫面",
+  "layerView": "分層視圖",
+  "backToGlobe": "回到地球",
+  "needsPlace": "分層視圖需要選一個地點",
+  "trendMap": "全球趨勢地圖",
+  "trendMapOff": "趨勢地圖：關",
+  "flyTaiwan": "飛到臺灣",
+  "more": "更多",
+  "compare": "模式與觀測比較",
+  "mining": "資料探勘",
+  "lab": "形態實驗場",
+  "renderer": "繪圖引擎：{{name}}",
+  "forceWebgl": "強制使用 WebGL",
+  "autoRenderer": "改回自動選擇",
+  "particles": {
+    "one": "粒子只代表一個數值：{{where}}的{{layer}}。它們不是地圖。",
+    "many": "粒子代表{{where}}每個圖層各一個數值。它們不是地圖。",
+    "trendMap": "有顏色的那一層才是地圖：每個格點的趨勢。"
+  },
+  "credit": {
+    "surface": "地表影像：Blue Marble，",
+    "detail": "臺灣近景：Blue Marble 地形暈渲，",
+    "snapshot": "資料快照 {{date}}。",
+    "insignia": "未使用 NASA 徽章。"
+  }
+}

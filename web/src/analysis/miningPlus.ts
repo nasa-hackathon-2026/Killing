@@ -3,6 +3,7 @@
 // similar-series lists (similar_series.json). This module only reads, lays
 // out and formats them; every number comes from the files.
 import { strata, strataAssignment, type StratumId } from "../strata/strataSpec";
+import { t } from "../i18n";
 import { analysisUrl } from "./trends";
 
 async function defaultFetch<T>(url: string): Promise<T> {
@@ -524,10 +525,13 @@ export function segmentLabel(file: GapTreeFile, segment: string): string {
   if (index < 0) return segment;
   const start = file.segments[index]?.first_month;
   const next = file.segments[index + 1]?.first_month;
-  if (!start) return next ? `before ${monthOf(next)}` : "all months";
+  if (!start)
+    return next
+      ? t("mining.format.before", { month: monthOf(next) })
+      : t("mining.format.allMonths");
   return next
-    ? `${monthOf(start)} up to ${monthOf(next)}`
-    : `from ${monthOf(start)}`;
+    ? t("mining.format.upTo", { first: monthOf(start), last: monthOf(next) })
+    : t("mining.format.from", { month: monthOf(start) });
 }
 
 export function gapGroupLabel(
@@ -537,23 +541,25 @@ export function gapGroupLabel(
 ): string {
   if (grouping === "by_product_station") return stationName(file, group);
   if (grouping === "by_product_segment") return segmentLabel(file, group);
-  if (grouping === "by_product") return "all months";
+  if (grouping === "by_product") return t("mining.format.allMonths");
   return group;
 }
 
 // A feature of the gap tree in words.
 export function gapFeatureLabel(file: GapTreeFile, feature: string): string {
-  if (feature === "calendar_month") return "calendar month";
-  if (feature === "model_is_gldas") return "model is GLDAS (1) or MERRA-2 (0)";
-  if (feature === "gldas_segment") return "GLDAS segment number";
-  if (feature === "obs_state") return "state of the station anomaly";
-  if (feature === "prev_gap_class") return "class of the previous month";
+  if (feature === "calendar_month") return t("mining.format.calendarMonth");
+  if (feature === "model_is_gldas") return t("mining.format.modelFeature");
+  if (feature === "gldas_segment") return t("mining.format.segmentFeature");
+  if (feature === "obs_state") return t("mining.format.stationAnomalyState");
+  if (feature === "prev_gap_class") return t("mining.format.previousClass");
   if (feature.startsWith("station:")) {
-    return `station is ${stationName(file, feature.slice(8))}`;
+    return t("mining.format.stationIs", {
+      station: stationName(file, feature.slice(8)),
+    });
   }
   if (feature.startsWith("ctx:")) {
     const id = feature.slice(4);
-    return `state of ${file.variable_names[id] ?? id}`;
+    return t("mining.format.stateOf", { name: file.variable_names[id] ?? id });
   }
   return feature;
 }
@@ -568,13 +574,13 @@ export function labelGapTreeText(file: GapTreeFile, text: string): string {
 
 export function gapFoldVerdict(fold: GapFold): string {
   const notAbove = [
-    fold.above_train_majority ? null : "training-majority guess",
-    fold.above_persistence ? null : "persistence guess",
-    fold.above_calendar_month ? null : "calendar-month guess",
+    fold.above_train_majority ? null : t("mining.format.trainingGuess"),
+    fold.above_persistence ? null : t("mining.format.persistenceGuess"),
+    fold.above_calendar_month ? null : t("mining.format.calendarGuess"),
   ].filter((name) => name !== null);
   return notAbove.length
-    ? `not above: ${notAbove.join(", ")}`
-    : "above all three baselines";
+    ? t("mining.format.notAbove", { names: notAbove.join(", ") })
+    : t("mining.format.aboveAll");
 }
 
 // Width of a bar as a share of the largest upper bound in the table.

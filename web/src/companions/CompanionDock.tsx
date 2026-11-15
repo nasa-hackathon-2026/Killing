@@ -6,24 +6,25 @@
 import { useEffect, useRef, useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendKey, type TrendsFile } from "../analysis/trends";
+import { rememberFlag, storedFlag, useI18n } from "../i18n";
+import { variableDefinition } from "../i18n/names";
 import { formatMeasurement } from "../snapshot/reading";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
-import {
-  companionReading,
-  type CompanionMood,
-  type CompanionReading,
-} from "./companionData";
-import { companionLine, spokenLine } from "./companionLine";
+import { companionReading, type CompanionReading } from "./companionData";
+import { companionSpeech, spokenLine } from "./companionLine";
 import { GROUND_Y, VIEW_HEIGHT_BARE } from "./companionShape";
 import {
   byAltitude,
   COMPANIONS,
+  companionName,
   companionTitle,
-  DATA_KIND_SHORT,
+  companionVariable,
+  dataKindShort,
   type CompanionSpec,
 } from "./companionSpec";
-import { GATHER_CREDIT, gatherLayout } from "./gather";
+import { gatherLayout } from "./gather";
+import { nextNarration, type NarrationState } from "./narration";
 import { interactionsFor } from "./interactions";
 import { speak, speechAvailable, stopSpeaking } from "./speech";
 import { useCurrentMonth } from "./useCurrentMonth";
@@ -45,9 +46,9 @@ export type CompanionDockProps = {
   compact?: boolean;
 };
 
-export const INTERACTION_NOTE =
-  "Interactions are illustrative; they do not show cause and effect.";
-export const EMPTY_NOTE = "Turn on a layer to meet its companion";
+// Whether companions speak up by themselves (the "Guide on/off" button); a
+// stored choice wins over the role's default.
+export const NARRATION_STORAGE_KEY = "estd.narrate";
 
 // At or below this width the panel starts collapsed, as a chip under the HUD.
 const NARROW_WIDTH = 700;
@@ -66,12 +67,6 @@ function figureSize(count: number): number {
   if (count <= ONE_COLUMN_MAX) return 60;
   return 52;
 }
-
-const MOOD_TEXT: Record<CompanionMood, string> = {
-  above: "above its usual for the month",
-  near: "near its usual for the month",
-  below: "below its usual for the month",
-};
 
 function Figure({
   spec,
@@ -146,7 +141,12 @@ export function CompanionDock({
   compact = false,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
+  const { t, voice, settings } = useI18n();
   const [mode] = useState(requestedMode);
+  const [narrateChoice, setNarrateChoice] = useState(() =>
+    storedFlag(NARRATION_STORAGE_KEY),
+  );
+  const narrate = narrateChoice ?? settings.narration;
   const [compactOpen, setCompactOpen] = useState(false);
   const [userCollapsed, setCollapsed] = useState(
     () =>
@@ -174,21 +174,26 @@ export function CompanionDock({
       trends?.known_issues,
     );
     readings[spec.id] = reading;
-    lines[spec.id] = companionLine({
-      variableName: spec.variableName,
-      place: locationName,
-      month,
-      value: reading.raw,
-      unit: reading.unit,
-      anomaly: reading.anomaly,
-      trend,
-      alpha: trends?.parameters.alpha,
-      caveatSummary: reading.caveat?.summary,
-      unreliableReason: reading.signal.unreliable
-        ? (reading.caveat?.reason ?? "it has a documented data issue.")
-        : null,
-      dataKind: spec.dataKind,
-    });
+    lines[spec.id] = companionSpeech(
+      {
+        companionName: companionName(spec),
+        definition: variableDefinition(spec.id, "general"),
+        variableName: companionVariable(spec),
+        place: locationName,
+        month,
+        value: reading.raw,
+        unit: reading.unit,
+        anomaly: reading.anomaly,
+        trend,
+        alpha: trends?.parameters.alpha,
+        caveatSummary: reading.caveat?.summary,
+        unreliableReason: reading.signal.unreliable
+          ? (reading.caveat?.reason ?? t("caveats.genericReason"))
+          : null,
+        dataKind: spec.dataKind,
+      },
+      voice,
+    );
   }
 
   const shown = byAltitude(visibleIds);
@@ -202,6 +207,49 @@ export function CompanionDock({
   const oneColumn = shown.length <= ONE_COLUMN_MAX;
   const interactions = oneColumn ? interactionsFor(shown) : [];
   const size = figureSize(shown.length);
+
+  // Narration: a companion speaks up when a layer is turned on, the place
+  // changes or the timeline pauses (narration.ts decides; this only applies
+  // it). The comparison runs while rendering, the way React recommends for
+  // state derived from props.
+  const [narration, setNarration] = useState<NarrationState>({
+    visibleIds,
+    locationId,
+    playing,
+  });
+  if (
+    narration.visibleIds !== visibleIds ||
+    narration.locationId !== locationId ||
+    narration.playing !== playing
+  ) {
+    const next = { visibleIds, locationId, playing };
+    const speaker =
+      narrate && !collapsed && !gathered && !gallery
+        ? nextNarration(
+            narration,
+            next,
+            selectedId,
+            shown.map((s) => s.id),
+          )
+        : null;
+    setNarration(next);
+    if (speaker && speaker !== selectedId) {
+      setSelectedId(speaker);
+      setCaveatOpen(false);
+    }
+  }
+  // The voice follows what the bubble shows, when it is on.
+  const spokenFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!voiceOn || playing || !selectedId) return;
+    const key = `${selectedId}|${locationId}`;
+    if (spokenFor.current === key) return;
+    spokenFor.current = key;
+    const line = lines[selectedId];
+    if (line) speak(spokenLine(line));
+    // `lines` is rebuilt every render; the key above is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voiceOn, playing, selectedId, locationId]);
 
   // Speak when playback pauses, never on every month while it runs.
   const wasPlaying = useRef(playing);
@@ -230,7 +278,11 @@ export function CompanionDock({
     setSelectedId(closing ? null : id);
     setCaveatOpen(withCaveat);
     if (closing) stopSpeaking();
-    else if (voiceOn && !playing) speak(spokenLine(lines[id] ?? ""));
+  }
+
+  function toggleNarrate() {
+    rememberFlag(NARRATION_STORAGE_KEY, !narrate);
+    setNarrateChoice(!narrate);
   }
 
   function toggleVoice() {
@@ -245,7 +297,7 @@ export function CompanionDock({
         {companionTitle(selected)}
         <button
           type="button"
-          aria-label="Close"
+          aria-label={t("common.action.close")}
           onClick={() => {
             setSelectedId(null);
             stopSpeaking();
@@ -256,7 +308,7 @@ export function CompanionDock({
       </p>
       <p className="companion-bubble-line">{selectedLine}</p>
       <p className="companion-bubble-pose">
-        Shape: {MOOD_TEXT[readings[selected.id]?.mood ?? "near"]}.
+        {t(`companions.shape.${readings[selected.id]?.mood ?? "near"}`)}
       </p>
       {caveatOpen && readings[selected.id]?.caveat ? (
         <TrendCaveatNote
@@ -279,7 +331,7 @@ export function CompanionDock({
           type="button"
           className="companion-voice"
           aria-pressed={voiceOn}
-          title="Read the selected companion's sentence aloud (browser voice)"
+          title={t("companions.voiceTitle")}
           onClick={toggleVoice}
         >
           <svg viewBox="0 0 20 16" width="15" height="12" aria-hidden="true">
@@ -301,9 +353,18 @@ export function CompanionDock({
               />
             )}
           </svg>
-          {voiceOn ? "Voice on" : "Voice off"}
+          {t(voiceOn ? "companions.voiceOn" : "companions.voiceOff")}
         </button>
       ) : null}
+      <button
+        type="button"
+        className="companion-narrate"
+        aria-pressed={narrate}
+        title={t("companions.narrateTitle")}
+        onClick={toggleNarrate}
+      >
+        {t(narrate ? "companions.narrateOn" : "companions.narrateOff")}
+      </button>
     </>
   );
 
@@ -311,15 +372,15 @@ export function CompanionDock({
     return (
       <section
         className="companion-dock companion-gallery"
-        aria-label="Data companions gallery"
+        aria-label={t("companions.gallery.aria")}
       >
         <header className="companion-head">
           <p className="companion-heading">
-            Data companions · {locationName}
+            {t("companions.gallery.title")} · {locationName}
             {month ? ` · ${month.slice(0, 7)}` : ""}
           </p>
           <button type="button" onClick={() => setGallery(false)}>
-            Close
+            {t("common.action.close")}
           </button>
         </header>
         <ul className="companion-gallery-grid">
@@ -331,17 +392,14 @@ export function CompanionDock({
                 <Figure spec={spec} reading={reading} size={128} />
                 <p className="companion-name">{companionTitle(spec)}</p>
                 <p className="companion-sub">
-                  {spec.variableName} ·{" "}
+                  {companionVariable(spec)} ·{" "}
                   {formatMeasurement(reading.raw, reading.unit)}
                 </p>
               </li>
             );
           })}
         </ul>
-        <p className="companion-heading">
-          Posture (same companion): below usual, near usual, above usual, no
-          data
-        </p>
+        <p className="companion-heading">{t("companions.gallery.postures")}</p>
         <ul className="companion-gallery-grid companion-gallery-postures">
           {(["below", "near", "above"] as const).map((mood, index) => (
             <li key={mood}>
@@ -354,13 +412,16 @@ export function CompanionDock({
                 size={96}
               />
               <p className="companion-sub">
-                {mood} · value {[0.1, 0.5, 1][index]}
+                {t(`companions.gallery.${mood}`)} ·{" "}
+                {t("companions.gallery.value", {
+                  value: [0.1, 0.5, 1][index] ?? 0.5,
+                })}
               </p>
             </li>
           ))}
           <li>
             <Companion variableId="imerg_precip" value={null} size={96} />
-            <p className="companion-sub">no data</p>
+            <p className="companion-sub">{t("companions.gallery.noData")}</p>
           </li>
           {([-2, -1, 0, 1, 2] as const).map((z) => (
             <li key={z}>
@@ -370,16 +431,14 @@ export function CompanionDock({
                 anomalyZ={z}
                 size={96}
               />
-              <p className="companion-sub">anomaly z = {z}</p>
+              <p className="companion-sub">
+                {t("companions.gallery.anomaly", { z })}
+              </p>
             </li>
           ))}
         </ul>
         <p className="companion-foot">
-          Drawn by code (SVG). Size: value within the series&apos; own range.
-          Posture: month against the mean of the same calendar month. Mark: ▲ ▼
-          significant trend, ◇ not significant, a crossed-out triangle for a
-          significant trend that is not reliable as a climate signal.{" "}
-          {INTERACTION_NOTE}
+          {t("companions.gallery.foot")} {t("companions.interactionNote")}
         </p>
       </section>
     );
@@ -391,14 +450,16 @@ export function CompanionDock({
     <>
       <aside
         className={`companion-dock${collapsed ? " companion-dock-collapsed" : oneColumn ? "" : " companion-dock-wide"}`}
-        aria-label="Data companions"
+        aria-label={t("companions.aria")}
       >
         <header className="companion-head">
-          <p className="companion-heading">Companions</p>
+          <p className="companion-heading">{t("companions.heading")}</p>
           <button
             type="button"
             aria-expanded={!collapsed}
-            aria-label={collapsed ? "Expand companions" : "Collapse companions"}
+            aria-label={t(
+              collapsed ? "companions.expand" : "companions.collapse",
+            )}
             onClick={() =>
               compact ? setCompactOpen(!compactOpen) : setCollapsed(!collapsed)
             }
@@ -423,7 +484,7 @@ export function CompanionDock({
               ) : null;
             })}
             {shown.length === 0 ? (
-              <li className="companion-sub">No layer on</li>
+              <li className="companion-sub">{t("companions.noLayer")}</li>
             ) : null}
           </ul>
         ) : (
@@ -431,7 +492,7 @@ export function CompanionDock({
             <div className="companion-tools">
               {controls}
               <button type="button" onClick={() => setGathered(true)}>
-                Gather
+                {t("companions.gather.open")}
               </button>
             </div>
             {shown.length === 0 ? (
@@ -442,7 +503,7 @@ export function CompanionDock({
                   size={76}
                   showLabel={false}
                 />
-                <p>{EMPTY_NOTE}</p>
+                <p>{t("companions.empty")}</p>
               </div>
             ) : (
               <ol
@@ -462,13 +523,19 @@ export function CompanionDock({
                     <li
                       key={spec.id}
                       className={`companion-item${lit ? " companion-lit" : ""}${selectedId === spec.id ? " companion-selected" : ""}`}
-                      title={lit?.note}
+                      title={
+                        lit
+                          ? t(`companions.interactions.${lit.key}`)
+                          : undefined
+                      }
                     >
                       <button
                         type="button"
                         className="companion-figure"
                         aria-pressed={selectedId === spec.id}
-                        aria-label={`${companionTitle(spec)}: say the numbers`}
+                        aria-label={t("companions.sayAria", {
+                          name: companionTitle(spec),
+                        })}
                         onClick={() => select(spec.id)}
                       >
                         <Figure
@@ -482,7 +549,7 @@ export function CompanionDock({
                           {companionTitle(spec)}
                           <span className="companion-sub">
                             {" "}
-                            {DATA_KIND_SHORT[spec.dataKind]}
+                            {dataKindShort(spec.dataKind)}
                           </span>
                         </span>
                       </button>
@@ -490,8 +557,10 @@ export function CompanionDock({
                         <button
                           type="button"
                           className="companion-caution"
-                          aria-label={`${companionTitle(spec)}: known problem, show the caution`}
-                          title="Known problem with this trend"
+                          aria-label={t("companions.cautionAria", {
+                            name: companionTitle(spec),
+                          })}
+                          title={t("companions.cautionTitle")}
                           onClick={() => select(spec.id, true)}
                         >
                           !
@@ -500,7 +569,7 @@ export function CompanionDock({
                       {below ? (
                         <span
                           className={`companion-link companion-link-${below.effect}`}
-                          title={below.note}
+                          title={t(`companions.interactions.${below.key}`)}
                           aria-hidden="true"
                         />
                       ) : null}
@@ -510,7 +579,7 @@ export function CompanionDock({
               </ol>
             )}
             <p className="companion-foot">
-              Click one for its numbers. {INTERACTION_NOTE}
+              {t("companions.foot")} {t("companions.interactionNote")}
             </p>
           </>
         )}
@@ -519,11 +588,11 @@ export function CompanionDock({
       {gathered ? (
         <section
           className="companion-dock companion-gather"
-          aria-label="Gather: all companions"
+          aria-label={t("companions.gather.aria")}
         >
           <header className="companion-head">
             <p className="companion-heading">
-              Gather · {locationName}
+              {t("companions.gather.open")} · {locationName}
               {month ? ` · ${month.slice(0, 7)}` : ""}
             </p>
             <div className="companion-tools">
@@ -536,7 +605,7 @@ export function CompanionDock({
                   stopSpeaking();
                 }}
               >
-                Close
+                {t("common.action.close")}
               </button>
             </div>
           </header>
@@ -551,7 +620,9 @@ export function CompanionDock({
                   key={place.id}
                   type="button"
                   className={`companion-gather-figure${selectedId === place.id ? " companion-selected" : ""}`}
-                  aria-label={`${companionTitle(spec)}: say the numbers`}
+                  aria-label={t("companions.sayAria", {
+                    name: companionTitle(spec),
+                  })}
                   aria-pressed={selectedId === place.id}
                   style={{
                     left: `${place.x * 100}%`,
@@ -577,10 +648,7 @@ export function CompanionDock({
           </div>
           {bubble}
           <p className="companion-foot">
-            In the middle, a form of the sky or air points up and a form of the
-            surface or ground holds a palm down; higher forms stand on the upper
-            steps. The arrangement is illustrative and shows no cause and
-            effect. {GATHER_CREDIT}
+            {t("companions.gather.foot")} {t("companions.gather.credit")}
           </p>
         </section>
       ) : null}

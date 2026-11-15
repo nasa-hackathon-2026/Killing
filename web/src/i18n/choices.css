@@ -1,0 +1,55 @@
+/* The language menu and the role switch (ChoiceControls.tsx), on every
+   page. Classes start with "choice-". */
+.choice-mode {
+  display: inline-flex;
+  gap: 0;
+}
+
+.choice-mode button {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  border-radius: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.choice-mode button + button {
+  margin-left: -1px;
+}
+
+.choice-mode button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.choice-mode button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.choice-mode button[aria-pressed="true"] {
+  position: relative;
+  color: #0b1220;
+  font-weight: 700;
+  background: #cfe3ff;
+  border-color: #cfe3ff;
+  outline: none;
+}
+
+.choice-mode button:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+.choice-language {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.hud .choice-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

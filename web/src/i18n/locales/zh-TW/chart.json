@@ -1,0 +1,81 @@
+{
+  "aria": "{{name}}的時間序列",
+  "at": "{{place}}",
+  "show": "顯示圖表",
+  "hide": "隱藏圖表",
+  "close": "關閉圖表",
+  "noSeries": "這個變數在{{place}}沒有資料。",
+  "noValues": "沒有可以畫的數值。",
+  "modesAria": "圖表模式",
+  "modes": {
+    "values": "月數值",
+    "anomalies": {
+      "general": "與平常的差",
+      "expert": "距平"
+    },
+    "running": {
+      "general": "12 個月平均",
+      "expert": "12 個月移動平均"
+    }
+  },
+  "plotAria": "{{place}}的{{name}}：{{mode}}，{{first}} 至 {{last}}",
+  "readout": {
+    "general": "數值 {{value}} · 與同月份平常值相差 {{anomaly}}",
+    "expert": "數值 {{value}} · 距平 {{anomaly}} · 涵蓋率 {{coverage}}",
+    "timelineMonth": "（時間軸月份）"
+  },
+  "key": {
+    "values": "月數值{{unit}}",
+    "anomalies": {
+      "general": "每個月減去同月份的平常值{{unit}}",
+      "expert": "距平{{unit}}：數值減去同一日曆月的平均"
+    },
+    "running": {
+      "general": "每個月前後共 12 個月的平均{{unit}}",
+      "expert": "置中的 12 個月平均{{unit}}；12 個月都有值才畫，缺月不連線"
+    },
+    "trend": {
+      "general": "趨勢線。",
+      "expert": "月距平的線性趨勢（斜率來自分析結果，通過納入分析月份的平均點）。"
+    },
+    "band": {
+      "general": "色帶：斜率的不確定範圍，不是預測。",
+      "expert": "斜率的 {{level}}% 信賴區間，不是預測區間。"
+    },
+    "break": {
+      "general": "虛線：資料產品更換的月份（{{months}}）。",
+      "expert": "已記錄的跳變月份（{{months}}）。"
+    },
+    "cursor": "時間軸月份；點圖表可跳到該月。"
+  },
+  "plain": {
+    "change": "每十年的變化",
+    "holds": "這個變化站得住嗎？",
+    "reliable": "資料可靠嗎？"
+  },
+  "stats": {
+    "change": "每十年的變化",
+    "ttest": "斜率的 t 檢定",
+    "p": "p {{p}}",
+    "pFdr": "p {{p}}，FDR 校正後 {{fdr}}（在 {{alpha}} 下{{verdict}}）",
+    "pNone": "沒有 p 值",
+    "significant": "顯著",
+    "notSignificant": "不顯著",
+    "neff": "有效樣本數 {{n}}（lag-1 自相關 {{r}}）",
+    "mk": "Mann-Kendall",
+    "mkLine": "Hamed-Rao：{{hamedRao}}。季節性：{{seasonal}}",
+    "sen": "Sen 斜率",
+    "period": "分析期間",
+    "periodLine": "{{first}} 至 {{last}}，有效月數 {{count}}",
+    "notAnalyzed": "未分析趨勢：{{reason}}",
+    "none": "這個序列沒有趨勢統計。",
+    "method": "方法：月距平的最小平方法斜率。t 檢定與信賴區間使用由殘差 lag-1 自相關算出的有效樣本數。FDR 是 Benjamini-Hochberg，對同一族的序列一起校正（臺灣的序列是一族，世界城市與全球平均是另一族）。Sen 斜率的信賴區間沒有自相關修正。"
+  },
+  "similar": {
+    "link": "相似序列",
+    "text": {
+      "general": "（探索性）：其他在相同月份一起偏高或偏低的測量。",
+      "expert": "（探索性）：哪些變數在相同月份高於或低於平常。"
+    }
+  }
+}

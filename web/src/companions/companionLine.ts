@@ -7,38 +7,34 @@
 // RULE: facts only. No cause, no conclusion, no feeling. Do not add words
 // such as "because", "due to", "worrying" or "healthy" here; the reading of
 // the numbers belongs to the team, not to this code.
-import { DATA_KIND_LABELS, type DataKind } from "../analysis/modelVsObs";
+import type { DataKind } from "../analysis/modelVsObs";
 import {
   deltaUnit,
   formatChangePerDecade,
+  formatSlope,
+  significanceOutcome,
   significanceText,
   type TrendEntry,
 } from "../analysis/trends";
+import {
+  getLocale,
+  getVoice,
+  localNumber,
+  monthName,
+  monthYear,
+  t,
+  type Voice,
+} from "../i18n";
 import { formatMeasurement } from "../snapshot/reading";
 
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-// "2024-06-01" -> { name: "June", label: "June 2024" }.
+// "2024-06-01" -> { name: "June", label: "June 2024" } in the active
+// language.
 export function monthLabel(month: string): { name: string; label: string } {
-  const name = MONTH_NAMES[Number(month.slice(5, 7)) - 1] ?? month.slice(5, 7);
-  return { name, label: `${name} ${month.slice(0, 4)}` };
+  return { name: monthName(month), label: monthYear(month) };
 }
 
 export type CompanionLineInput = {
-  // The variable's English name, e.g. "Precipitation".
+  // The variable's name in the active language, e.g. "Precipitation".
   variableName: string;
   place: string;
   // "YYYY-MM" or "YYYY-MM-DD"; null when no month is selected.
@@ -68,53 +64,172 @@ export type CompanionLineInput = {
 // is said in words, so the number is shown unsigned.
 export function formatDifference(difference: number, unit: string): string {
   const size = Math.abs(difference);
-  if (deltaUnit(unit) === "°C") return `${size.toFixed(1)} °C`;
+  if (deltaUnit(unit) === "°C") return `${localNumber(size.toFixed(1))} °C`;
   return formatMeasurement(size, unit);
 }
 
+// The full sentence with the statistical terms (expert voice).
 export function companionLine(input: CompanionLineInput): string {
-  const where = `${input.variableName} at ${input.place}`;
-  if (!input.month) return `${where}: no month selected.`;
+  const who = { name: input.variableName, place: input.place };
+  if (!input.month) return t("companions.line.noMonth", who);
   const { name, label } = monthLabel(input.month);
   const parts: string[] = [];
   if (input.value === null) {
-    parts.push(`${where}, ${label}: no data for this month.`);
+    parts.push(t("companions.line.noData", { ...who, month: label }));
   } else {
     parts.push(
-      `${where}, ${label}: ${formatMeasurement(input.value, input.unit)}.`,
+      t("companions.line.value", {
+        ...who,
+        month: label,
+        value: formatMeasurement(input.value, input.unit),
+      }),
     );
     const anomaly = input.anomaly;
     if (anomaly) {
       const size = formatDifference(anomaly.difference, input.unit);
-      const usual = formatMeasurement(anomaly.mean, input.unit);
-      const record = `${anomaly.firstYear} to ${anomaly.lastYear}`;
       const zero = formatDifference(0, input.unit);
       parts.push(
-        size === zero
-          ? `That equals the ${name} mean of this record (${usual}, ${record}).`
-          : `That is ${size} ${anomaly.difference > 0 ? "above" : "below"} the ${name} mean of this record (${usual}, ${record}).`,
+        t(
+          `companions.line.${size === zero ? "equal" : anomaly.difference > 0 ? "above" : "below"}`,
+          {
+            size,
+            monthName: name,
+            usual: formatMeasurement(anomaly.mean, input.unit),
+            first: anomaly.firstYear,
+            last: anomaly.lastYear,
+          },
+        ),
       );
     }
   }
   const trend = input.trend;
   if (trend?.status === "analyzed") {
     parts.push(
-      `Trend ${trend.data.first_month.slice(0, 7)} to ${trend.data.last_month.slice(0, 7)}: ` +
-        `${formatChangePerDecade(trend.ols.slope_per_decade, trend.ols.ci_per_decade, trend.unit, input.alpha)}, ` +
-        `${significanceText(trend.ols)}.`,
+      t("companions.line.trend", {
+        first: trend.data.first_month.slice(0, 7),
+        last: trend.data.last_month.slice(0, 7),
+        change: formatChangePerDecade(
+          trend.ols.slope_per_decade,
+          trend.ols.ci_per_decade,
+          trend.unit,
+          input.alpha,
+        ),
+        significance: significanceText(trend.ols),
+      }),
     );
   } else if (trend?.status === "insufficient") {
-    parts.push(`Trend not analyzed: ${trend.reason.text_en}`);
+    parts.push(
+      t("companions.line.notAnalyzed", { reason: trend.reason.text_en }),
+    );
   }
   if (trend?.status === "analyzed" && input.unreliableReason) {
-    parts.push(
-      `This trend is not reliable as a climate signal: ${input.unreliableReason}`,
-    );
+    parts.push(t("caveats.unreliable", { reason: input.unreliableReason }));
   } else if (input.caveatSummary) parts.push(input.caveatSummary);
   if (input.dataKind && input.dataKind !== "unknown") {
-    parts.push(`Data kind: ${DATA_KIND_LABELS[input.dataKind].toLowerCase()}.`);
+    parts.push(t(`common.dataKind.${input.dataKind}.expert`));
   }
   return parts.join(" ");
+}
+
+// ---- Plain short sentences (general voice) --------------------------------
+// The same facts, one short sentence each, so a companion can say them one
+// at a time: what it is, what it reads now, whether it has changed and
+// whether that number can be trusted, and what kind of data it is.
+
+export type CompanionSayInput = CompanionLineInput & {
+  // The companion's own name ("Rain").
+  companionName: string;
+  // The variable's one-sentence definition (general voice).
+  definition?: string | null;
+};
+
+export type CompanionSentences = {
+  who: string;
+  now: string;
+  // Null when there is no trend result.
+  trend: string | null;
+  kind: string | null;
+};
+
+export function companionSentences(
+  input: CompanionSayInput,
+): CompanionSentences {
+  const who = t("companions.say.who", {
+    name: input.companionName,
+    definition: input.definition ?? input.variableName,
+  });
+  let now: string;
+  if (!input.month) {
+    now = t("companions.say.noMonth");
+  } else {
+    const { name, label } = monthLabel(input.month);
+    if (input.value === null) {
+      now = t("companions.say.noData", { place: input.place, month: label });
+    } else {
+      now = t("companions.say.value", {
+        place: input.place,
+        month: label,
+        value: formatMeasurement(input.value, input.unit),
+      });
+      const anomaly = input.anomaly;
+      if (anomaly) {
+        const size = formatDifference(anomaly.difference, input.unit);
+        const zero = formatDifference(0, input.unit);
+        now += ` ${t(
+          `companions.say.${size === zero ? "equal" : anomaly.difference > 0 ? "above" : "below"}`,
+          { size, monthName: name },
+        )}`;
+      }
+    }
+  }
+  let trend: string | null = null;
+  const entry = input.trend;
+  if (entry?.status === "insufficient") {
+    trend = t("companions.say.insufficient");
+  } else if (entry?.status === "analyzed") {
+    const outcome = significanceOutcome(entry.ols, !!input.unreliableReason);
+    const rising = entry.ols.slope_per_decade > 0;
+    const year = entry.data.first_month.slice(0, 4);
+    const size = (sign: boolean) =>
+      formatSlope(
+        entry.ols.slope_per_decade,
+        entry.ols.ci_per_decade,
+        entry.unit,
+        sign,
+      );
+    if (outcome === "unreliableFdr" || outcome === "unreliableRawOnly") {
+      trend = t("companions.say.unreliable", {
+        year,
+        change: size(true),
+        reason: input.unreliableReason ?? t("caveats.genericReason"),
+      });
+    } else if (outcome === "fdr" || outcome === "rawOnly") {
+      trend = t(
+        `companions.say.${rising ? "rising" : "falling"}${outcome === "rawOnly" ? "RawOnly" : ""}`,
+        { year, change: size(false) },
+      );
+    } else if (outcome === "notSignificant") {
+      trend = t("companions.say.notSignificant", { year });
+    }
+  }
+  const kind =
+    input.dataKind && input.dataKind !== "unknown"
+      ? t(`common.dataKind.${input.dataKind}.general`)
+      : null;
+  return { who, now, trend, kind };
+}
+
+// What a companion says when asked for its numbers: the expert sentence, or
+// the plain ones in a row.
+export function companionSpeech(
+  input: CompanionSayInput,
+  voice: Voice = getVoice(),
+): string {
+  if (voice === "expert") return companionLine(input);
+  const say = companionSentences(input);
+  return [say.now, say.trend, say.kind]
+    .filter((part): part is string => !!part)
+    .join(" ");
 }
 
 const SPOKEN: [RegExp, string][] = [
@@ -131,6 +246,8 @@ const SPOKEN: [RegExp, string][] = [
 // The same sentence with symbols spelled out for the browser's voice. It
 // changes how the text is read aloud, never what it says.
 export function spokenLine(line: string): string {
+  // The replacements are English words; other languages are read as written.
+  if (getLocale() !== "en") return line.replace(/ · /g, ", ");
   return SPOKEN.reduce(
     (text, [pattern, replacement]) => text.replace(pattern, replacement),
     line,

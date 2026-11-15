@@ -7,6 +7,8 @@
 // `heightEn: null` means no number is shown. The platforms are NOT drawn to
 // scale (the legend says so).
 
+import { t, tm, tOptional } from "../i18n";
+
 export type StratumId =
   | "stratosphere"
   | "troposphere-air"
@@ -131,8 +133,30 @@ export const STRATA_NOTES = [
 export const COLUMN_TOTAL_NOTE =
   "A total over the whole air column, shown in the layer where most of the gas sits.";
 
+// ---- Wording in the active language (the `strata` namespace) --------------
+// The English strings above stay as the reference the tests read.
+
+export function stratumName(id: StratumId): string {
+  return t(`strata.names.${id}`);
+}
+
+// Null where no height is given (the land surface).
+export function stratumHeight(id: StratumId): string | null {
+  return stratum(id)?.heightEn ? tOptional(`strata.heights.${id}`) : null;
+}
+
+export function strataNotes(): [string, string, string] {
+  return [
+    t("strata.notes.scale"),
+    t("strata.notes.columnTotals"),
+    t("strata.notes.flow"),
+  ];
+}
+
+export function columnTotalNote(): string {
+  return tm("strata.columnTotal");
+}
+
 export function flowNote(from: StratumId, to: StratumId): string {
-  const a = stratum(from)?.nameEn ?? from;
-  const b = stratum(to)?.nameEn ?? to;
-  return `Particles travel from "${a}" to "${b}"; the path is illustrative.`;
+  return t("strata.flow", { from: stratumName(from), to: stratumName(to) });
 }

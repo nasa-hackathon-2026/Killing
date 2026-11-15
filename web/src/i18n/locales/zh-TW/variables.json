@@ -1,0 +1,130 @@
+{
+  "imerg_precip": {
+    "name": "降水",
+    "short": "雨和雪",
+    "definition": {
+      "general": "降水是從天空落到地面的雨和雪，這裡是整個月平均下來每小時幾毫米。",
+      "expert": "GPM IMERG Final 月平均降水率（衛星反演，經雨量站校正），mm/hr。"
+    }
+  },
+  "gldas_tair": {
+    "name": "近地面氣溫",
+    "short": "靠近地面的氣溫",
+    "definition": {
+      "general": "這是靠近地面的空氣有多熱，由陸地模式結合觀測算出。",
+      "expert": "GLDAS-2.1 Noah 近地面氣溫（陸面模式的驅動場），單位 K，以 °C 顯示。"
+    }
+  },
+  "gldas_soilmoist": {
+    "name": "表層土壤水",
+    "short": "表層土壤裡的水",
+    "definition": {
+      "general": "表層土壤水是地表往下 10 公分的土壤裡含有多少水，每平方公尺幾公斤。",
+      "expert": "GLDAS-2.1 Noah 土壤含水量，0–10 cm 層（陸面模式），kg m-2。"
+    }
+  },
+  "gldas_evap": {
+    "name": "蒸散",
+    "short": "回到空氣中的水",
+    "definition": {
+      "general": "蒸散是水回到空氣中的速度：土壤和水面的蒸發，加上植物葉片散出的水氣。",
+      "expert": "GLDAS-2.1 Noah 蒸散通量（陸面模式），kg m-2 s-1。"
+    }
+  },
+  "airs_tsurf": {
+    "name": "地表氣溫（AIRS）",
+    "short": "靠近地面的氣溫",
+    "definition": {
+      "general": "這是衛星上的紅外線儀器量到的近地面氣溫，時間約在當地下午一點半。",
+      "expert": "AIRS Level 3 地表氣溫，升軌（白天，當地約 13:30）過境（衛星反演），單位 K，以 °C 顯示。"
+    }
+  },
+  "airs_h2ovap": {
+    "name": "大氣總水氣",
+    "short": "空氣中的水氣",
+    "definition": {
+      "general": "大氣總水氣是一平方公尺地面上方整柱空氣裡的水氣，換算成幾公斤的水。",
+      "expert": "AIRS Level 3 整層水氣量（衛星反演），kg/m2。"
+    }
+  },
+  "merra2_t2m": {
+    "name": "2 m 氣溫（MERRA-2）",
+    "short": "離地 2 公尺的氣溫",
+    "definition": {
+      "general": "這是離地 2 公尺高的氣溫，由 NASA 的 MERRA-2 把全球觀測和天氣模式合起來算出。",
+      "expert": "MERRA-2 再分析 2 m 氣溫（T2M），單位 K，以 °C 顯示。"
+    }
+  },
+  "omi_no2": {
+    "name": "對流層 NO₂",
+    "short": "二氧化氮",
+    "definition": {
+      "general": "這是大氣最底層裡二氧化氮（NO₂）的量；燃料燃燒時會排出這種氣體。",
+      "expert": "OMI 對流層 NO₂ 垂直柱濃度（衛星反演），molecules/cm^2。"
+    }
+  },
+  "omi_o3": {
+    "name": "臭氧總量",
+    "short": "臭氧",
+    "definition": {
+      "general": "臭氧總量是一個地點上方整柱空氣裡的臭氧，單位是多布森單位（DU）；大部分在高空的臭氧層。",
+      "expert": "OMI 臭氧總量（衛星反演），多布森單位（DU）。"
+    }
+  },
+  "omi_aerosol": {
+    "name": "UV 氣膠指數",
+    "short": "沙塵和煙",
+    "definition": {
+      "general": "UV 氣膠指數表示空氣中會吸收紫外線的沙塵和煙有多少，沒有單位。",
+      "expert": "OMI UV 氣膠指數（衛星反演），無單位；主要反映吸收紫外線的氣膠與其高度。"
+    }
+  },
+  "modis_ndvi": {
+    "name": "植生綠度",
+    "short": "地面有多綠",
+    "definition": {
+      "general": "植生綠度（NDVI）是從太空看地面有多綠：植物茂密時接近 1，裸地和都市接近 0。",
+      "expert": "MODIS Terra NDVI，(NIR − red) / (NIR + red)（衛星反演），無單位。"
+    }
+  },
+  "modis_lst": {
+    "name": "地表溫度",
+    "short": "地面的溫度",
+    "definition": {
+      "general": "地表溫度是地面本身有多熱（不是空氣），由衛星在當地上午十點半左右量到。",
+      "expert": "MODIS Terra 白天地表溫度，當地約 10:30 過境（衛星反演），單位 K，以 °C 顯示。"
+    }
+  },
+  "station_temp": {
+    "name": "測站月均溫",
+    "short": "測站氣溫",
+    "definition": {
+      "general": "這是氣象站的溫度計實際量到的氣溫，平均成一個月。",
+      "expert": "NOAA GHCNh 測站氣溫，日平均的月平均（現地觀測），°C。"
+    }
+  },
+  "power_t2m": {
+    "name": "2 m 氣溫（NASA POWER）",
+    "short": "離地 2 公尺的氣溫",
+    "definition": {
+      "general": "這是離地 2 公尺高的氣溫，和 MERRA-2 是同一套資料，從 NASA POWER 服務取得。",
+      "expert": "NASA POWER 2 m 氣溫（MERRA-2 再分析），°C。"
+    }
+  },
+  "modis_lst_pc": {
+    "name": "地表溫度",
+    "short": "地面的溫度",
+    "definition": {
+      "general": "地表溫度是地面本身有多熱（不是空氣），由衛星在當地上午十點半左右量到。",
+      "expert": "MODIS Terra 白天地表溫度，經 Planetary Computer 取得（衛星反演），單位 K，以 °C 顯示。"
+    }
+  },
+  "modis_ndvi_pc": {
+    "name": "植生綠度",
+    "short": "地面有多綠",
+    "definition": {
+      "general": "植生綠度（NDVI）是從太空看地面有多綠：植物茂密時接近 1，裸地和都市接近 0。",
+      "expert": "MODIS Terra NDVI，250 m 16 天合成，經 Planetary Computer 取得（衛星反演），無單位。"
+    }
+  }
+}

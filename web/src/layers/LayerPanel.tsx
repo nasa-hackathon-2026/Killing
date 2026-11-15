@@ -1,11 +1,17 @@
 import { useState } from "react";
 import type { CompareLink } from "../analysis/modelVsObs";
-import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
-import { trendCaveat } from "../analysis/trendCaveats";
+import { TrendBlock } from "../analysis/TrendBlock";
 import type { TrendSummary } from "../analysis/trends";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
 import type { TrendSignal } from "../forms/encoding";
-import { groupedPlaces, type Place } from "../snapshot/places";
+import { carryChoices, useI18n } from "../i18n";
+import { variableName } from "../i18n/names";
+import {
+  displayPlaceName,
+  groupedPlaces,
+  placeGroupLabel,
+  type Place,
+} from "../snapshot/places";
 import type { LayerDefinition } from "./registry";
 
 export type LayerControl = {
@@ -41,6 +47,8 @@ type LayerPanelProps = {
   // button is hidden without it. `chartId` is the layer charted now.
   chartId?: string | null;
   onChart?: (id: string | null) => void;
+  // Opens "How to read this" (the guide card); the link is hidden without it.
+  onHowTo?: () => void;
 };
 
 // At or below this width the panel starts folded (the globe would be hidden
@@ -71,20 +79,22 @@ export function LayerPanel({
   onCloseUp,
   chartId,
   onChart,
+  onHowTo,
 }: LayerPanelProps) {
+  const { t, tm, settings } = useI18n();
   const monthIndex = month ? months.indexOf(month) : -1;
   const [collapsed, setCollapsed] = useState(isNarrow);
   const onCount = controls.filter((control) => control.visible).length;
   const head = (
     <p className="layers-title">
       <span>
-        Layers
-        {collapsed ? ` · ${onCount} on` : ""}
+        {t("layers.title")}
+        {collapsed ? ` · ${t("layers.onCount", { count: onCount })}` : ""}
       </span>
       <button
         type="button"
         aria-expanded={!collapsed}
-        aria-label={collapsed ? "Expand layers" : "Collapse layers"}
+        aria-label={t(collapsed ? "layers.expand" : "layers.collapse")}
         onClick={() => setCollapsed(!collapsed)}
       >
         {collapsed ? "+" : "–"}
@@ -93,28 +103,28 @@ export function LayerPanel({
   );
   if (collapsed) {
     return (
-      <aside className="layers layers-collapsed" aria-label="Layers">
+      <aside className="layers layers-collapsed" aria-label={t("layers.title")}>
         {head}
       </aside>
     );
   }
 
   return (
-    <aside className="layers" aria-label="Layers">
+    <aside className="layers" aria-label={t("layers.title")}>
       {head}
       {places && places.length > 0 && onLocation ? (
         <label className="layers-place">
-          <span>Values at</span>
+          <span>{t("layers.valuesAt")}</span>
           <select
             value={locationId}
-            aria-label="Place"
+            aria-label={t("layers.place")}
             onChange={(event) => onLocation(event.target.value)}
           >
             {groupedPlaces(places).map((group) => (
-              <optgroup key={group.id} label={group.label}>
+              <optgroup key={group.id} label={placeGroupLabel(group.id)}>
                 {group.places.map((place) => (
                   <option key={place.id} value={place.id}>
-                    {place.nameEn}
+                    {displayPlaceName(place)}
                   </option>
                 ))}
               </optgroup>
@@ -122,19 +132,21 @@ export function LayerPanel({
           </select>
         </label>
       ) : (
-        <p className="layers-note">Values at {locationName}</p>
+        <p className="layers-note">
+          {t("layers.valuesAtPlace", { place: locationName })}
+        </p>
       )}
       {placeNote ? <p className="layers-note">{placeNote}</p> : null}
       {monthIndex >= 0 ? (
         <label className="month">
-          Month
+          {t("layers.month")}
           <input
             type="range"
             min={0}
             max={months.length - 1}
             step={1}
             value={monthIndex}
-            aria-label="Month"
+            aria-label={t("layers.month")}
             onChange={(event) => {
               const next = months[Number(event.target.value)];
               if (next) onMonth(next);
@@ -144,20 +156,18 @@ export function LayerPanel({
         </label>
       ) : null}
       <p className="layers-note">
-        Count, size and speed of each form follow this place&apos;s own record.
-        Kelvin is shown as °C. Each slider sets opacity. Flow direction is
-        illustrative; no wind data.
+        {tm("layers.note")}
+        {onHowTo ? (
+          <>
+            {" "}
+            <button type="button" className="layers-howto" onClick={onHowTo}>
+              {t("common.action.howToRead")}
+            </button>
+          </>
+        ) : null}
       </p>
-      {trends ? (
-        <p className="layers-note">
-          Trend: linear change of monthly anomalies over each record. Not
-          significant does not mean no change; the record may be too short or
-          too variable to tell. ▲ ▼ and the arrows above a layer (away from the
-          Earth = rising, towards it = falling) mark significant trends only; ◇
-          is not significant. A crossed-out triangle marks a significant trend
-          that is not reliable as a climate signal (documented data issue; see
-          its caution).
-        </p>
+      {trends && settings.readingAid ? (
+        <p className="layers-note">{t("layers.trendNote")}</p>
       ) : null}
       <ul>
         {layers.map((layer) => {
@@ -165,7 +175,7 @@ export function LayerPanel({
           if (!control) return null;
           const trend = trends?.[layer.id];
           const signal = signals?.[layer.id];
-          const caveat = trend ? trendCaveat(layer.id) : null;
+          const name = variableName(layer.id, layer.nameEn);
           return (
             <li key={layer.id}>
               <label>
@@ -174,54 +184,49 @@ export function LayerPanel({
                   checked={control.visible}
                   onChange={() => onToggle(layer.id)}
                 />
-                <span>{layer.nameEn}</span>
+                <span>{name}</span>
                 {signal ? <TrendMarkIcon signal={signal} /> : null}
                 <span className="reading">{readings[layer.id]}</span>
               </label>
-              {trend ? (
-                <p className="trend">
-                  {trend.headline}
-                  <span>
-                    {trend.significance}
-                    {trend.period ? ` · ${trend.period}` : ""}
-                  </span>
-                </p>
-              ) : null}
-              {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
+              <TrendBlock variableId={layer.id} trend={trend} signal={signal} />
               <div className="timeline-layer-actions">
                 {onCloseUp ? (
                   <button
                     type="button"
                     className="closeup-open"
-                    aria-label={`${layer.nameEn} close-up`}
+                    aria-label={t("layers.closeUpAria", { name })}
                     onClick={() => {
                       if (isNarrow()) setCollapsed(true);
                       onCloseUp(layer.id);
                     }}
                   >
-                    Close-up
+                    {t("layers.closeUp")}
                   </button>
                 ) : null}
                 {onChart ? (
                   <button
                     type="button"
                     className="closeup-open"
-                    aria-label={`${layer.nameEn} time series chart`}
+                    aria-label={t("layers.chartAria", { name })}
                     aria-pressed={chartId === layer.id}
                     onClick={() => {
                       if (isNarrow()) setCollapsed(true);
                       onChart(chartId === layer.id ? null : layer.id);
                     }}
                   >
-                    Chart
+                    {t("layers.chart")}
                   </button>
                 ) : null}
                 {compareLinks?.[layer.id] ? (
                   <a
                     className="closeup-open layers-compare"
-                    href={compareLinks[layer.id]?.href}
+                    href={carryChoices(compareLinks[layer.id]?.href ?? "")}
                   >
-                    {compareLinks[layer.id]?.label}
+                    {t(
+                      compareLinks[layer.id]?.label === "Compare with station"
+                        ? "layers.compareStation"
+                        : "layers.compareObservations",
+                    )}
                   </a>
                 ) : null}
               </div>
@@ -231,7 +236,7 @@ export function LayerPanel({
                 max={1}
                 step={0.05}
                 value={control.opacity}
-                aria-label={`${layer.nameEn} opacity`}
+                aria-label={t("layers.opacityAria", { name })}
                 onChange={(event) =>
                   onOpacity(layer.id, Number(event.target.value))
                 }
