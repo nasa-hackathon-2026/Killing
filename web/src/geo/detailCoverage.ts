@@ -14,10 +14,13 @@ export const TAIWAN_DETAIL = {
 export const GIBS_TILE_DEGREES = 2.25;
 export const GIBS_LEVEL = 7;
 
+// Camera distance (globe radius 1) below which the close-up images start
+// loading: the Taiwan and city close-ups (scene/TaiwanDetail.tsx) and the 8K Blue Marble
+// (scene/earthTexture.ts). A little farther than where the detail fades in.
+export const DETAIL_LOAD_DISTANCE = 1.7;
+
 const FAR_DISTANCE = 1.6;
 const NEAR_DISTANCE = 1.28;
-// Start the download slightly before the fade, so the image is ready.
-export const LOAD_DISTANCE = 1.7;
 
 export type LonLatBounds = {
   south: number;
@@ -113,7 +116,7 @@ export function detailImageAt(lat: number, lon: number): DetailImage | null {
 }
 
 export function shouldLoadDetail(distance: number, inside: boolean): boolean {
-  return inside && Number.isFinite(distance) && distance < LOAD_DISTANCE;
+  return inside && Number.isFinite(distance) && distance < DETAIL_LOAD_DISTANCE;
 }
 
 export function detailOpacity(distance: number): number {

@@ -893,7 +893,7 @@ function AppView({
       ) : null}
       <p className="credit">
         {t("hud.credit.surface")}{" "}
-        <a href="https://visibleearth.nasa.gov/images/57730/blue-marble-land-surface-ocean-color-sea-ice-and-clouds">
+        <a href="https://visibleearth.nasa.gov/images/57730/the-blue-marble-land-surface-ocean-color-and-sea-ice">
           NASA Visible Earth
         </a>
         . {t("hud.credit.detail")}{" "}
