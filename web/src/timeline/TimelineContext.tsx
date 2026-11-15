@@ -13,12 +13,12 @@ import { prefersReducedMotion } from "../forms/reducedMotion";
 import { requestedChart, requestedMonth, requestedPlay } from "../urlParams";
 import {
   clampIndex,
+  DEFAULT_SPEED,
   nextPlayIndex,
   playStartIndex,
   parseMonthParam,
   playIntervalMs,
   resolveMonth,
-  TIMELINE_SPEEDS,
 } from "./timelineMath";
 
 // The single source of "which month is shown". Read it with useTimeline();
@@ -72,7 +72,7 @@ export function TimelineProvider({
   const [playing, setPlayingState] = useState(
     () => askedPlay && !prefersReducedMotion(),
   );
-  const [speed, setSpeed] = useState<number>(TIMELINE_SPEEDS[1]);
+  const [speed, setSpeed] = useState<number>(DEFAULT_SPEED);
   const [selectedVariableId, setSelectedVariableId] = useState<string | null>(
     requestedChart,
   );

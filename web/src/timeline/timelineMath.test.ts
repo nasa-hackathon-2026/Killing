@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   clampIndex,
+  clampSpeed,
+  DEFAULT_SPEED,
   monthFromNumber,
   monthLabel,
   monthNumber,
@@ -10,16 +12,30 @@ import {
   parseMonthParam,
   playIntervalMs,
   resolveMonth,
-  TIMELINE_SPEEDS,
+  SPEED_MAX,
+  SPEED_MIN,
+  SPEED_STEP,
 } from "./timelineMath";
 
 describe("playback speeds", () => {
-  it("offers half the previous rates and waits 1000 / speed", () => {
-    expect(TIMELINE_SPEEDS).toEqual([0.5, 2, 6]);
-    expect(TIMELINE_SPEEDS[1]).toBe(2);
+  it("runs from half a month to a year per second in steps of 0.5", () => {
+    expect([SPEED_MIN, SPEED_MAX, SPEED_STEP]).toEqual([0.5, 12, 0.5]);
+    expect(DEFAULT_SPEED).toBe(2);
+    expect(clampSpeed(DEFAULT_SPEED)).toBe(DEFAULT_SPEED);
     expect(playIntervalMs(0.5)).toBe(2000);
     expect(playIntervalMs(2)).toBe(500);
-    expect(playIntervalMs(6)).toBeCloseTo(1000 / 6);
+    expect(playIntervalMs(12)).toBeCloseTo(1000 / 12);
+  });
+
+  it("snaps a typed speed to the nearest allowed one", () => {
+    expect(clampSpeed(2.5)).toBe(2.5);
+    expect(clampSpeed(1.3)).toBe(1.5);
+    expect(clampSpeed(1.2)).toBe(1);
+    expect(clampSpeed(0)).toBe(0.5);
+    expect(clampSpeed(-4)).toBe(0.5);
+    expect(clampSpeed(50)).toBe(12);
+    expect(clampSpeed(Number.NaN)).toBeNull();
+    expect(clampSpeed(Number(""))).toBe(0.5);
   });
 });
 
@@ -31,8 +47,12 @@ describe("month numbers", () => {
     expect(monthFromNumber(monthNumber("2001-11-01") + 3)).toBe("2002-02-01");
   });
 
-  it("labels a month", () => {
-    expect(monthLabel("2015-07-01")).toEqual({ year: "2015", name: "Jul" });
+  it("labels a month with the year marked", () => {
+    expect(monthLabel("2015-07-01")).toEqual([
+      { text: "Jul", year: false },
+      { text: " ", year: false },
+      { text: "2015", year: true },
+    ]);
   });
 });
 

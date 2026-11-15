@@ -1025,7 +1025,59 @@ body,
 
 .timeline-speed {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.timeline-speed button {
+  width: 28px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.timeline-speed input[type="range"] {
+  width: 96px;
+  margin: 0 2px;
+}
+
+.timeline-speed-value {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The typed speed: wide enough for "11.5", no spinner arrows (− / + and the
+   slider already step it). */
+.timeline-speed-value input[type="number"] {
+  width: 3.4em;
+  padding: 3px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.timeline-speed-value input[type="number"]::-webkit-inner-spin-button,
+.timeline-speed-value input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* Phone width: the slider and the box only, so "Latest" still fits. */
+@media (max-width: 520px) {
+  .timeline-speed button {
+    display: none;
+  }
+
+  .timeline-speed input[type="range"] {
+    width: 56px;
+  }
 }
 
 .timeline-track {
