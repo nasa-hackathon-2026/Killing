@@ -31,7 +31,7 @@
 
 | 本隊做法 | 狀態 | 現況 |
 |---|---|---|
-| 專案 README 加「SI Usage」段落，說明 Claude Code、Copilot 等協助了哪些部分 | 已具備 | README 有 "Use of AI (SI) — disclosure"。工具只有 Claude Code 與 Cursor（隊伍負責人 2026-11-15 確認；提交紀錄的作者標記也只有這兩個，沒有 Copilot）。段落裡仍有 4 個 `TODO(team)` 等隊伍處理（點子來源的聲明、issue 與 spec 是否由 AI 草擬與 demo 的素材、header 註解、教科書出處）。 |
+| 專案 README 加「SI Usage」段落，說明 Claude Code、Copilot 等協助了哪些部分 | 已具備 | README 有 "Use of AI (SI) — disclosure"。工具是 Claude Code、Cursor 與 Codex 三個（隊伍負責人 2026-11-15 確認的是 Claude Code 與 Cursor；Codex 見於後來的提交紀錄與 PR 描述，沒有 Copilot；demo 若另外用到工具由隊伍補上）。段落裡仍有 4 個 `TODO(team)` 等隊伍處理（點子來源的聲明、issue 與 spec 是否由 AI 草擬與 demo 的素材、header 註解、教科書出處）。 |
 | SI 生成的程式檔加 header 註解 | **未做** | README 自己也記了這項尚未做（`TODO(team)`）。隊伍決定：README 的揭露夠不夠，或要加註解。 |
 | SI 生成的圖、icon、影片片段加「AI-generated」浮水印 | 待隊伍處理 | repo 內沒有這類檔案的紀錄；`web/public/favicon.svg` 是一個圓加一條折線的 SVG 程式碼，`git log` 顯示它在 `d36dc0e`（#77）加入，該提交帶 Claude 的 co-author 標記；要不要當成「SI 生成的 icon」加註，由隊伍決定（草稿第 6 節問題 8）；demo 的素材要隊伍確認。 |
 | 不用 SI 生成任何含 NASA logo 的素材 | 已具備（repo 範圍） | 追蹤檔案裡沒有 logo 或 insignia 檔；網站出處行寫明 "NASA insignia is not used"。demo 的素材由隊伍確認。 |
