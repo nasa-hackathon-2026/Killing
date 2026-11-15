@@ -3,6 +3,7 @@ name = "trend-detective"
 version = "0.1.0"
 description = "Earth System Trend Detective 的資料層：把 NASA 時間序列轉成統一格式的靜態快照"
 requires-python = ">=3.11"
+license = "Apache-2.0"
 dependencies = [
     "httpx>=0.28.1",
     "mlxtend>=0.25.0",

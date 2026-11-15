@@ -105,7 +105,7 @@ How much data there is:
 | **Global grids** (`data/raw/grid/`) | 345 monthly cubes at native resolution (about 90 GB); 4,499 area-mean series for the globe, world regions and Taiwan boxes computed from them | No | No |
 | **Grid files for the web** (`data/grid/`) | Seven variables reduced to about 1°: annual mean, monthly climatology, and the per-cell trend maps (slope per decade and its significance after FDR correction) | Yes | The trend maps only (Global trend map) |
 
-The core data is also available as a SQLite file (about 44 MB) on the [releases page](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15); see [docs/data/sqlite.md](docs/data/sqlite.md) for the tables and example queries. Where raw downloads are kept and how each source is fetched is in [docs/data/raw-data.md](docs/data/raw-data.md). Both pages are in Traditional Chinese.
+The core data is also available as a SQLite file (about 44 MB) on the [releases page](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15); see [docs/data/sqlite.md](docs/data/sqlite.md) for the tables and example queries. The same release also holds the cleaned data of all tiers (6,889 series): `clean_observations.csv.gz` (the cleaned monthly observations with their quality flags, about 55 MB), `clean_series.csv` (one row per series), `trend_detective_pg17_2026-11-15.dump` (a `pg_dump` of the PostgreSQL cleaning database, about 447 MB) and `SHA256SUMS`. The tables and columns are described in [docs/data/database-schema.md](docs/data/database-schema.md), and how to restore the dump in [docs/data/database-backup.md](docs/data/database-backup.md). Where raw downloads are kept and how each source is fetched is in [docs/data/raw-data.md](docs/data/raw-data.md). These pages are in Traditional Chinese.
 
 ## Methods
 
@@ -256,35 +256,58 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 | `docs/agents/`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/` | Instructions and configuration for the coding agents used in development; see [docs/agents/README.md](docs/agents/README.md). |
 | `.github/` | Issue and pull-request templates, and the GitHub Pages workflow. |
 
-## Use of AI (SI) — disclosure (draft)
+## Use of AI (SI) — disclosure
 
-Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section is a draft assembled from the repository's own record (commit trailers, pull-request descriptions, issue comments). Items the record cannot settle are marked for the team.
+Space Apps 2026 calls AI tools "Super Intelligence (SI)". In short: AI tools wrote the code and the documentation of this project and helped define and tune parameters; the direction and the decisions are the team's. Two AI tools were used, **Claude Code (Anthropic)** and **Cursor**; the team owner (GitHub account [Grasonyang](https://github.com/Grasonyang)) confirmed on 2026-11-15 that there were no others. The details below come from the repository's own record (commit trailers, pull-request descriptions, issue comments) and from the "決定的分工" paragraph at the end of each record in [docs/adr/](docs/adr/) (in Traditional Chinese), which the team owner checked item by item on 2026-11-15.
 
-What was done with AI tools:
+### Which tools were used, and for what
 
-- **Data layer** (`src/`, `tests/`, the fetch scripts, the common format, trend statistics, data mining, SQLite export), the data documentation and this README: written by **Claude Code (Anthropic)** under a team member's direction. Those commits carry a `Co-Authored-By: Claude` trailer and the pull requests say "Generated with Claude Code".
-- **Web front end, main structure** (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44): developed by a team member using **Cursor**. Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
-- **Web front end, later parts** (trend summary in the layer panel, the mining page, the ten additional particle forms, the close-up views and their text; pull requests #57, #58, #62, #65): implemented by Claude Code. The mapping from each variable to a particle shape and the wording and reaction equations in the close-ups were first drafted by the tool as defaults for the team to change ([#60](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/60)).
-- **Web front end, parts added on 2026-11-15** (the global trend map, the timeline and time series chart, the layer view, the start card and its examples, the world cities and the global mean in the place menu, and the model vs observation page; issues [#72](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/72), [#97](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/97), [#99](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/99), [#101](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/101), [#105](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/105), [#107](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/107)): implemented by Claude Code; those commits carry the same `Co-authored-by: Claude` trailer.
-- **Data companions** (the characters in the companion panel): the idea of one pet-like character per form of matter, shown together in a composition after *The School of Athens*, is the team's; the code that draws the characters and fills in their sentences was written by an AI tool (Claude Code) following the team's design. The characters are drawn by that code as SVG shapes; no AI-generated image, no external image, font or audio file is used, and the voice is the browser's built-in speech synthesis. The sentences are templates filled with numbers from the data; they state no cause and no conclusion.
-- **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files ([#59](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/59)).
-- **Data-mining additions** (the model-versus-station tree and its table of group means, the variable network, the similar-series lists, and the reworked mining page; [#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)): the direction — to use the decision tree on the difference between models and observations, and to put the database's similar-series and variable-graph results on the site — is the team's; the code, the fixed parameters and the page text were written by Claude Code following that direction. The page gives numbers and methods and states no cause and no conclusion.
+**Claude Code** wrote the code, tests, data-processing scripts and documentation, and the interface elements and characters that are drawn by program code. Its commits carry a `Co-Authored-By: Claude` trailer and its pull requests say "Generated with Claude Code".
 
-What was decided by team members, as recorded in the issues:
+- **Data layer** (`src/`, `tests/`, the fetch scripts, the common format, trend statistics, data mining, the SQLite export and the PostgreSQL cleaning database), the data documentation and this README: written by Claude Code under a team member's direction.
+- **Web front end, later parts** (trend summary in the layer panel, the mining page, the ten additional particle forms, the close-up views and their text; pull requests #57, #58, #62, #65): implemented by Claude Code.
+- **Web front end, parts added on 2026-11-15** (the global trend map, the timeline and time series chart, the layer view, the start card and its examples, the world cities and the global mean in the place menu, and the model vs observation page; issues [#72](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/72), [#97](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/97), [#99](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/99), [#101](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/101), [#105](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/105), [#107](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/107)): implemented by Claude Code.
+- **Data companions** (the characters in the companion panel): the code that draws the characters and fills in their sentences was written by Claude Code following the team's design. The characters are drawn by that code as SVG shapes; no AI-generated image, no external image, font or audio file is used, and the voice is the browser's built-in speech synthesis. The sentences are templates filled with numbers from the data; they state no cause and no conclusion.
+- **Data-mining additions** (the model-versus-station tree and its table of group means, the variable network, the similar-series lists, and the reworked mining page; [#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)): the code and the page text were written by Claude Code following the team's direction. The page gives numbers and methods and states no cause and no conclusion.
+
+**Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
+
+### What the team decided
+
+The direction, the ideas and the trade-offs are the team's. The decisions recorded in the data-layer spec ([#4](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/4)) and in the decision records in [docs/adr/](docs/adr/) were made by the team (confirmed by the team owner on 2026-11-15); the team's discussion of the project's direction is in [#3](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/3).
 
 - The layered-globe design, one glass-and-particle layer per variable ([#19](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/19)), and the first two particle forms ([#20](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/20)).
 - The visual direction of a far view of particles and a close-up of molecules and processes, with values driving count, size and speed ([#60](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/60)).
-- Starting with Taiwan, and using decision trees and FP-growth as the data-mining methods ([#55](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/55)).
+- Starting with Taiwan, and using decision trees and FP-growth as the data-mining methods ([#55](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/55)); later, using the decision tree on the difference between models and observations and putting the database's similar-series and variable-graph results on the site ([#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)).
+- The presentation ideas of the data companions (one pet-like character per form of matter, shown together in a composition after *The School of Athens*) and of the layer view.
+- A public site that reads only static files ([#4](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/4)), and PostgreSQL with its extensions as the one place where data of different sources and shapes are put in order ([ADR 0001](docs/adr/0001-postgres-as-rebuildable-working-database.md), [ADR 0005](docs/adr/0005-postgres-extensions-and-portability.md)).
+- Cleaning the whole database and handling missing values, including the two candidate ways of filling them that the tool was asked to choose between ([ADR 0002](docs/adr/0002-raw-values-never-overwritten.md), [ADR 0003](docs/adr/0003-missing-value-policy.md)).
+- Dividing the data into model output and observations, keeping GLDAS in the project with cautions next to its trends instead of removing it, and which observation sources to add (GISTEMP, GHCNm, Taiwan stations, SMAP) ([ADR 0004](docs/adr/0004-tiers-data-kind-model-vs-observation.md)).
 
-What is not AI-generated:
+### What the tools helped define and tune
+
+Within those decisions, the following details were worked out with Claude Code:
+
+- **Cleaning rules**: raw values are never overwritten, the kinds of quality flag and their thresholds, verified data problems stored as rows, and steps in the data flagged but not corrected. Reviewed and adopted by the team owner on 2026-11-15 ([ADR 0002](docs/adr/0002-raw-values-never-overwritten.md)).
+- **Missing values**: the team proposed two candidate approaches and left the choice to the tool. The tool chose the one closer to "use the mean" and refined it: short gaps are interpolated linearly, longer gaps are set to the monthly climatology, and nothing is filled for the trend tests. The team can change this ([ADR 0003](docs/adr/0003-missing-value-policy.md)).
+- **Multiple-testing parameters**: Benjamini-Hochberg FDR, α = 0.05, and which series are corrected together as one family. Reviewed and adopted by the team owner on 2026-11-15 ([ADR 0006](docs/adr/0006-fdr-families.md)).
+- **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files ([#59](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/59)); the fixed parameters of the later mining additions were set by the tool before each run ([#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)).
+- **Proposed by the tool** and recorded as such in the ADRs: applying one shared cleaning function to the series files instead of reading the database tables (ADR 0001), the wording "model vs observation" and the form of the GLDAS cautions after the checks (ADR 0004), and the list of candidate PostgreSQL extensions with their uses (ADR 0005).
+- **Defaults drafted by the tool for the team to change**: the mapping from each variable to a particle shape, and the wording and reaction equations in the close-ups ([#60](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/60)).
+
+### What is not AI-generated
 
 - **All data values** come from the NASA products, NASA POWER and NOAA GHCNh listed above, through the scripts in this repository. No value is generated or filled in by an AI model. The statistics are computed by ordinary code (NumPy, SciPy, pymannkendall, mlxtend, scikit-learn).
 - The screenshots are captures of the running site. The globe textures are NASA imagery. No NASA logo or insignia is used.
 - The repository and the site contain no AI-generated image, video or audio file: the tracked media are the three screenshots, the two NASA textures and the page icon (`web/public/favicon.svg`, a circle and a line written as SVG code in a commit co-authored by Claude Code).
 
+### Still open
+
 > TODO(team): confirm that the idea for the project came from the team's own brainstorm ([#3](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/3)) and say so here in your own words. The rules state that SI must not be used to come up with the idea.
 
-> TODO(team): confirm the list above is complete. In particular: were other AI tools used (for example for the demo slides or video, images, translation, or research)? Were issue texts and specifications drafted with an AI tool? Is any image, icon, audio or video in the submission AI-generated (these need a visible watermark)? Who made the decisions recorded in the data-layer spec ([#4](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/4))?
+For reference when writing that statement: the items under "What the team decided" above are the ones the issues and the ADRs record as proposed and decided by the team.
+
+> TODO(team): two questions about this disclosure are still unanswered. Were issue texts and specifications drafted with an AI tool? Does the demo (slides or video, which does not exist yet) use any AI tool or AI-generated image, audio or video? Those need a visible watermark, and any further tool has to be added to the list above.
 
 > TODO(team): the team's own checklist proposed a header comment in AI-written source files. This has not been done; decide whether this section is enough.
 
@@ -292,11 +315,16 @@ What is not AI-generated:
 
 ## Team
 
-> TODO(team): team name, members, and roles.
+Members, by public GitHub account:
+
+- [Grasonyang](https://github.com/Grasonyang)
+- [Laurence-R](https://github.com/Laurence-R)
+
+> TODO(team): team name, and what each member did.
 
 ## License
 
-> TODO(team): this repository has no `LICENSE` file yet. According to our notes on the 2026 Participant Terms & Conditions (<https://www.spaceappschallenge.org/legal/>), original content is treated as open source, and NASA distributes it under Apache 2.0 when no OSI licence is specified. Choose a licence and add the file.
+The original code and documentation in this repository are licensed under the Apache License, Version 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). The data and third-party content are not covered by this licence: data values remain subject to the terms of each source (listed in [docs/data/nasa-data.md](docs/data/nasa-data.md) and [docs/data/references.md](docs/data/references.md)), and third-party packages are used under their own licences.
 
 ## Acknowledgements and data notices
 
@@ -316,4 +344,4 @@ What is not AI-generated:
 
 目前的限制：台灣以外是 12 個世界城市與全球平均，只有 12 個圖層變數中的 10 個（兩個 MODIS 圖層只有台灣）；流動方向是示意（沒有風向資料）；全球格點只有 7 個變數的趨勢地圖接到畫面（地球上方的 Global trend map 選單）；探勘是探索性的，不代表因果——關聯規則、變數關聯圖與相似序列都只是共同變動，兩棵決策樹（預測植被指數、預測模式與測站氣溫差距的大小）在走動驗證的 3 折中都沒有任何一折高於全部基準。
 
-資料來源、方法、重現步驟與 AI（SI）使用揭露的草稿見上方各節；標有 `TODO(team)` 的地方需要隊伍確認或補充。開發用的 agent 設定說明在 [docs/agents/README.md](docs/agents/README.md)。
+授權是 Apache-2.0（見 [LICENSE](LICENSE)；資料與第三方內容依各自來源的條款）。資料來源、方法、重現步驟與 AI（SI）使用揭露見上方各節；標有 `TODO(team)` 的地方需要隊伍確認或補充。開發用的 agent 設定說明在 [docs/agents/README.md](docs/agents/README.md)。

@@ -48,8 +48,9 @@
 
 - Live website (static, no login, no server): <https://nasa-hackathon-2026.github.io/earth-system-trend-detective/>
 - Source code repository (public): <https://github.com/nasa-hackathon-2026/earth-system-trend-detective>
+- Licence: Apache License 2.0 for the original code and documentation (`LICENSE`, `NOTICE`). The data and third-party content are not covered by it and remain under the terms of each source.
 
-> 提示：兩個連結 2026-11-15 用 `curl` 確認回應 HTTP 200，不需登入（細節見 [checklist.md](./checklist.md)）。送件前請再用無痕視窗開一次。repo 目前沒有 `LICENSE` 檔（官方條款：沒有指定 OSI 授權時，NASA 以 Apache 2.0 散布原創內容），這件事要由隊伍決定。
+> 提示：兩個連結 2026-11-15 用 `curl` 確認回應 HTTP 200，不需登入（細節見 [checklist.md](./checklist.md)）。送件前請再用無痕視窗開一次。授權是 Apache-2.0（confirmed by the team owner on 2026-11-15；repo 根目錄的 `LICENSE` 與 `NOTICE`）。
 
 ---
 
@@ -107,7 +108,7 @@ The challenge text (`challenge-resources.md`, in the team's `resources` reposito
    - Result of the latest run (`data/analysis/trends.run.json`, 133 series, snapshot of 2026-11-14): 130 analysed, 3 not analysed because too many months were missing. Series with p < 0.05 and still below 0.05 after FDR: linear trend with autocorrelation correction 83 and 74; Mann-Kendall original 88 and 86; Hamed-Rao 69 and 65 (of 129 tested); seasonal Mann-Kendall 89 and 86. These are counts of series, and many are closely related (the same variable at neighbouring places, products derived from the same source), so they are not independent findings.
 6. **Global trend maps** (`src/trend_detective/grid_trends.py`, `data/grid/`): the same monthly-anomaly trend, computed per cell on grids reduced to about 1 degree, with Benjamini-Hochberg across the cells of one map. Detail inside a cell is averaged out.
 7. **Publishing.** The site is built with Vite and published to GitHub Pages from `main`; the build copies `data/snapshot/`, `data/analysis/` and the trend-map files, so the site needs no server. The front end does not redo any test; every statistic shown comes from `data/analysis/trends.json`.
-8. **Unified database for the team (not used by the public site).** A local PostgreSQL database (PostGIS and TimescaleDB, plus further extensions) holds the snapshot, extended series, raw per-source tables, quality flags and analysis results, and is used to cross-check Python results with independent SQL implementations (`docs/data/postgres.md`). A SQLite export of the core data (about 44 MB) is available on the releases page (`docs/data/sqlite.md`).
+8. **Unified database for the team (not used by the public site).** A local PostgreSQL database (PostGIS and TimescaleDB, plus further extensions) holds the snapshot, extended series, raw per-source tables, quality flags and analysis results, and is used to cross-check Python results with independent SQL implementations (`docs/data/postgres.md`). A SQLite export of the core data (about 44 MB) is available on the releases page (`docs/data/sqlite.md`). Since 2026-11-15 the same release (`data-2026-11-15`) also holds the cleaned data of all tiers (6,889 series) as `clean_observations.csv.gz` and `clean_series.csv`, and a `pg_dump` of the database (`trend_detective_pg17_2026-11-15.dump`, about 447 MB), with `SHA256SUMS` (`docs/data/database-schema.md`, `docs/data/database-backup.md`).
 
 **Exploratory data mining** (`src/trend_detective/mining.py`, results in `data/analysis/fpgrowth.json` and `decision_tree.json`, both marked `exploratory: true`; shown on the `/mining/` page):
 
@@ -185,30 +186,44 @@ Read from `pyproject.toml`, `web/package.json` and `db/` (version constraints as
 
 ## 6. Use of Super Intelligence (SI)
 
-Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section is assembled from the repository's own record: commit trailers, pull request descriptions, issue comments and `README.md` ("Use of AI (SI) — disclosure (draft)"). Every statement below has a source; open questions are listed at the end.
+Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section says the same as `README.md` ("Use of AI (SI) — disclosure") and the "決定的分工" paragraph at the end of each record in `docs/adr/`; keep the three in step when one changes. Sources: commit trailers, pull request descriptions, issue comments, the ADRs, and the team owner's answers of 2026-11-15. Open questions are listed at the end.
 
-**Which tools were used.** Claude Code (Anthropic) and Cursor. Commit trailers name "Claude Fable 5.2" (94 trailer lines in the history of `main` at commit `15fb4de` on 2026-11-15; the number grows with every commit), "Claude Sonnet 5.5" (2) and "Cursor" (7). Count source: `git log` of the `main` branch.
+**In short.** AI tools wrote the code and the documentation of this project and helped define and tune parameters; the direction and the decisions are the team's.
 
-**What was written with AI tools**
+**Which tools were used.** Claude Code (Anthropic) and Cursor, and no others (confirmed by the team owner on 2026-11-15; if the demo uses a further tool, the team adds it). Commit trailers name "Claude Fable 5.2" (94 trailer lines in the history of `main` at commit `15fb4de` on 2026-11-15; the number grows with every commit), "Claude Sonnet 5.5" (2) and "Cursor" (7). Count source: `git log` of the `main` branch.
 
-- **Data layer**: the code in `src/` and `tests/`, the fetch scripts, the common data format, the trend statistics, the data-mining code, the SQLite export and the PostgreSQL database setup were written by Claude Code under a team member's direction. Commits carry a `Co-Authored-By: Claude` trailer and pull requests say "Generated with Claude Code".
-- **Documentation**: the data documentation in `docs/` and the `README.md` were written by Claude Code.
-- **Web front end, main structure** (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44): developed by a team member using Cursor. Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
-- **Web front end, later parts** (trend summary in the layer panel, the data-mining page, the additional particle forms, the close-up views and their text, the timeline and time series chart, the layer view, the global trend map, the first-use guide, the data companions; for example pull requests #57, #58, #62, #65 and the work of issues #99, #100, #101 and #105): implemented by Claude Code. The mapping from each variable to a particle shape, and the wording and reaction equations in the close-up views, were first drafted by the tool as defaults for the team to change (issue #60).
-- **Data companions**: the idea of one pet-like character per form of matter, shown together in a composition after *The School of Athens*, is the team's; the code that draws the characters and fills in their sentences was written by an AI tool following the team's design. The characters are drawn by that code as SVG shapes. The sentences are templates filled with numbers from the data and state no cause and no conclusion.
-- **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files (issue #59).
+**What the tools were used for**
 
-**What the team decided**, as recorded in the issues:
+- **Claude Code** wrote the code, tests, data-processing scripts and documentation, and the interface elements and characters that are drawn by program code. Commits carry a `Co-Authored-By: Claude` trailer and pull requests say "Generated with Claude Code".
+  - **Data layer**: the code in `src/` and `tests/`, the fetch scripts, the common data format, the trend statistics, the data-mining code, the SQLite export and the PostgreSQL database setup, under a team member's direction.
+  - **Documentation**: the data documentation in `docs/` and the `README.md`.
+  - **Web front end, later parts** (trend summary in the layer panel, the data-mining page, the additional particle forms, the close-up views and their text, the timeline and time series chart, the layer view, the global trend map, the first-use guide, the data companions; for example pull requests #57, #58, #62, #65 and the work of issues #99, #100, #101 and #105).
+  - **Data companions**: the code that draws the characters and fills in their sentences, following the team's design. The characters are drawn by that code as SVG shapes. The sentences are templates filled with numbers from the data and state no cause and no conclusion.
+- **Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
+
+**What the team decided.** The direction, the ideas and the trade-offs. The decisions recorded in the data-layer spec (issue #4) and in the decision records in `docs/adr/` were made by the team (confirmed by the team owner on 2026-11-15); the team's discussion of the project's direction is in issue #3.
 
 - The layered-globe design, one glass-and-particle layer per variable (issue #19), and the first two particle forms (issue #20).
 - The visual direction of a far view of particles and a close-up of molecules and processes, with values driving count, size and speed (issue #60).
-- Starting with Taiwan, and using decision trees and FP-growth as the data-mining methods (issue #55).
-- The idea of the data companions and their composition (as written in `README.md`; the issue record of this decision was not checked, needs team check).
+- Starting with Taiwan, and using decision trees and FP-growth as the data-mining methods (issue #55); later, using the decision tree on the difference between models and observations and putting the database's similar-series and variable-graph results on the site (issue #111).
+- The presentation ideas of the data companions (one pet-like character per form of matter, shown together in a composition after *The School of Athens*) and of the layer view (confirmed by the team owner on 2026-11-15).
+- A public site that reads only static files (issue #4), and PostgreSQL with its extensions as the one place where data of different sources and shapes are put in order (ADR 0001, ADR 0005).
+- Cleaning the whole database and handling missing values, including the two candidate ways of filling them that the tool was asked to choose between (ADR 0002, ADR 0003).
+- Dividing the data into model output and observations, keeping GLDAS in the project with cautions next to its trends instead of removing it, and which observation sources to add (GISTEMP, GHCNm, Taiwan stations, SMAP) (ADR 0004).
+
+**What the tools helped define and tune**, within those decisions:
+
+- **Cleaning rules**: raw values are never overwritten, the kinds of quality flag and their thresholds, verified data problems stored as rows, and steps in the data flagged but not corrected. Reviewed and adopted by the team owner on 2026-11-15 (ADR 0002).
+- **Missing values**: the team proposed two candidate approaches and left the choice to the tool. The tool chose the one closer to "use the mean" and refined it: short gaps are interpolated linearly, longer gaps are set to the monthly climatology, and nothing is filled for the trend tests. The team can change this (ADR 0003).
+- **Multiple-testing parameters**: Benjamini-Hochberg FDR, α = 0.05, and which series are corrected together as one family. Reviewed and adopted by the team owner on 2026-11-15 (ADR 0006).
+- **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files (issue #59); the fixed parameters of the later mining additions were set by the tool before each run (issue #111).
+- **Proposed by the tool** and recorded as such in the ADRs: applying one shared cleaning function to the series files instead of reading the database tables (ADR 0001), the wording "model vs observation" and the form of the GLDAS cautions after the checks (ADR 0004), and the list of candidate PostgreSQL extensions with their uses (ADR 0005).
+- **Defaults drafted by the tool for the team to change**: the mapping from each variable to a particle shape, and the wording and reaction equations in the close-up views (issue #60).
 
 **What is not AI-generated**
 
 - All data values come from the NASA products, NASA POWER and the NOAA station data listed in sections 7 and 8, through the scripts in this repository. No value is generated or filled in by an AI model. The statistics are computed by ordinary code (NumPy, SciPy, pymannkendall, mlxtend, scikit-learn).
-- No AI-generated image, video or audio file is used in the website. The characters and the close-up views are drawn by program code (SVG and three.js); no external image, font or audio file is used for them. The favicon is a small hand-written SVG file made of a circle and a line (see open question 8). The voice of the companions is the browser's built-in speech synthesis, off by default.
+- No AI-generated image, video or audio file is used in the website. The characters and the close-up views are drawn by program code (SVG and three.js); no external image, font or audio file is used for them. The favicon is a small SVG file made of a circle and a line, written as code in a commit co-authored by Claude Code (see open question 8). The voice of the companions is the browser's built-in speech synthesis, off by default.
 - The screenshots in `docs/images/` are captures of the running site. The globe textures (`web/public/textures/`) are NASA imagery (Blue Marble from NASA Visible Earth, and NASA GIBS tiles). No NASA logo or insignia is used, and no SI-generated content modifies NASA branding.
 
 **Reminders from the official rules** (`official-guides.md`, "SI usage rules")
@@ -219,16 +234,16 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section is assemb
 - If the demo slides or video use any AI-generated image, video, audio or text, they must be disclosed separately, with a visible watermark on images and video. This is not covered by this repository's record.
 - SI-generated content must not use or modify NASA branding (logo, flag, mission insignia).
 
-**Open questions for the team (needs team check; the repository cannot answer them)**
+**Questions for the team** (the numbering is kept from the earlier draft; 2 and 5 are answered, the others are still open)
 
 1. [TEAM: Confirm that the idea of the project came from the team's own brainstorm (issue #3), and say so in your own words.] The `README.md` has the same unresolved `TODO(team)`.
-2. [TEAM: Were other AI tools used, for example for the demo slides or video, images, translation or research?]
+2. Answered: no other AI tool was used; the tools are Claude Code and Cursor (confirmed by the team owner on 2026-11-15). This covers the repository and the site. The demo does not exist yet; see question 4.
 3. [TEAM: Were issue texts and specifications drafted with an AI tool?]
-4. [TEAM: Is any image, icon, audio or video in the submission (including the slides or video) AI-generated? Those need a visible watermark.]
-5. [TEAM: Who made the decisions recorded in the data-layer spec (issue #4)?]
+4. [TEAM: Is any image, icon, audio or video in the submission (including the slides or video) AI-generated, or is a further AI tool used for the demo? Those need a visible watermark, and the tool has to be added above.]
+5. Answered: the decisions recorded in the data-layer spec (issue #4) and in the ADRs were made by the team (confirmed by the team owner on 2026-11-15).
 6. [TEAM: The team's own checklist proposed a header comment in AI-written source files. This has not been done; decide whether the README disclosure is enough.]
 7. [TEAM: The textbook references and size figures in the close-up views were drafted by the tool and have not been checked against the books. Check them, or mark them on the page.]
-8. [TEAM: The favicon (`web/public/favicon.svg`) is a hand-written SVG; the repository does not say who drew it.]
+8. [TEAM: The favicon (`web/public/favicon.svg`) is SVG code added in a commit co-authored by Claude Code; decide whether to note it as an SI-generated icon.]
 9. [TEAM: Whether the 7-page slides or the video use a generator, template or stock images with their own licence.]
 
 ---
@@ -320,10 +335,12 @@ Official prompt: list all data, code, text and images used; material under copyr
 
 ## 9. Team and roles (not a form field in `official-guides.md`)
 
-> 提示：`official-guides.md` 列的 8 個表單欄位裡沒有隊伍成員欄，但**slides 必須包含隊名、成員名字、所選挑戰**，而且 Team Owner 要在 About 頁填 Team Contact Information。這個 repo 是公開的，所以草稿不放任何姓名、email 或帳號。
+> 提示：`official-guides.md` 列的 8 個表單欄位裡沒有隊伍成員欄，但**slides 必須包含隊名、成員名字、所選挑戰**，而且 Team Owner 要在 About 頁填 Team Contact Information。這個 repo 是公開的，所以草稿不放任何姓名或 email；下面兩個公開的 GitHub 帳號是隊伍負責人 2026-11-15 提供的（confirmed by the team owner on 2026-11-15）。隊名、成員名字與分工沒有提供，仍由隊伍填。
 
 [TEAM: Team name.]
 
-[TEAM: Members and what each person did, in your own words.]
+Members, by public GitHub account: [Grasonyang](https://github.com/Grasonyang) and [Laurence-R](https://github.com/Laurence-R).
+
+[TEAM: Members' names as they should appear on the slides, and what each person did, in your own words.]
 
 [TEAM: Mentors, organisers or others to thank (README `TODO(team)`).]

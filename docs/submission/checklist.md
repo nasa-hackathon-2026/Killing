@@ -6,7 +6,7 @@
 - **每次修改後都要再按一次 Submit for Judging**；只按 Save Progress 不算送出。評審只看最後一次儲存的版本。
 - 條目的依據是 `resources` repo 的 `official-guides.md`（官方指南原文標 2026-11-13，整理日 2026-11-14）。**這份檢查表沒有重新讀官方網站**（用 `curl` 開官方網站時沒有回應，所以沒有重新核對）；官方規則若在這之後有變動，以官方頁面為準。
 - 狀態的意思：**已具備**＝repo 或網站上已經有，並且這次確認過；**待隊伍處理**＝repo 做不到或需要隊伍決定、填寫；**未查證**＝沒有依據可以判斷。
-- 確認日期：2026-11-15。第一次確認時 `origin/main` 的最新提交是 `d4b3b3f`；同日送件前的全站總檢查（#124）再確認一次，當時 `origin/main` 是 `15fb4de`，線上網站是 `9f6c63d` 的部署（之後的提交只動文件與資料庫說明，不觸發部署）。
+- 確認日期：2026-11-15。第一次確認時 `origin/main` 的最新提交是 `d4b3b3f`；同日送件前的全站總檢查（#124）再確認一次，當時 `origin/main` 是 `15fb4de`，線上網站是 `9f6c63d` 的部署（之後的提交只動文件與資料庫說明，不觸發部署）。同日 #129 依隊伍負責人的答覆補上 `LICENSE`、成員帳號與 AI 使用揭露，下面相關的條目已更新。
 
 ---
 
@@ -15,23 +15,23 @@
 | # | 官方項目 | 狀態 | repo 現況與依據 |
 |---|---|---|---|
 | 1 | 全隊（含 Team Owner）都註冊在**台中場**，而且不是 waitlist | 待隊伍處理 | repo 裡沒有這項資訊。請 Team Owner 在平台上逐一確認每位成員的狀態；被列入 waitlist 要聯絡 Local Lead。 |
-| 2 | 隊伍 1 至 6 人；**送件截止後不能加人** | 待隊伍處理 | 人數與名單只有隊伍知道。公開 repo 與草稿都不放姓名。 |
+| 2 | 隊伍 1 至 6 人；**送件截止後不能加人** | 待隊伍處理 | 人數與名單只有隊伍知道。公開 repo 與草稿都不放姓名；README 的 Team 一節只列隊伍負責人提供的兩個公開 GitHub 帳號。 |
 | 3 | Demo 是 **7 頁以內 slides（含標題與介紹頁）或 30 秒以內影片**，二選一；超過就沒有 Global Judging 資格 | 待隊伍處理 | 目前沒有 demo。README 的第一個 `TODO(team)` 就是 demo 連結。結構建議見 [demo-outline.md](./demo-outline.md)。Slides 必須含隊名、成員名字、所選挑戰、NASA data 如何讓方案成為可能。 |
 | 4 | 全部英文；影片可講其他語言但**必須有英文字幕** | 待隊伍處理 | 英文表單草稿在 [form-draft.md](./form-draft.md)。網站介面與 README 本文是英文。`docs/` 裡大部分資料說明、`AGENTS.md` 是繁體中文；官方「全部英文」是否涵蓋 repo 內的文件，`official-guides.md` 沒寫，**未查證**，由隊伍決定要不要補英文。 |
 | 5 | Demo 與 Final Project 連結**公開、不需登入**；用無痕視窗測過 | 部分已具備 | Final Project 兩個連結已用 `curl` 確認不需登入就回應 HTTP 200，網站另外用沒有任何儲存資料的 headless Chromium 實際開啟並操作過（結果見下方第 2 節）。**這仍不等於隊伍自己的無痕視窗**，請隊伍親自開一次。Demo 連結還沒有，待隊伍處理。 |
 | 6 | NASA Data 欄位列出使用的 NASA 資料（至少一項才有 Global Award 資格） | 已具備（草稿） | [form-draft.md](./form-draft.md) 第 7 節逐項列出產品、版本、DOI、取得管道；題目點名的六個（MODIS、OMI、AIRS、GPM、MERRA-2、GLDAS）都有用到並已標出。資料來源檔：`docs/data/nasa-data.md`。FLDAS 的 DOI、GIBS 的圖層名稱 repo 沒有記錄，草稿已標 needs team check。 |
 | 7 | References 欄位列出**所有**外部資料、程式碼、圖片、字型（開源的也要） | 部分已具備（草稿） | 草稿第 8 節列了非 NASA 資料、方法文獻、程式庫、圖資、字型（沒有載入外部字型）、〈雅典學院〉構圖靈感。需要隊伍補：各套件的授權沒有逐一檢查；ColorBrewer 與方法文獻的完整引用 repo 沒有；demo 用到的模板、圖片、音樂、字型。 |
-| 8 | SI 使用如實揭露：程式與資料寫在描述與 metadata，SI 生成的圖片或影片加可見浮水印 | 部分已具備 | README 有 "Use of AI (SI) — disclosure (draft)" 一節，草稿第 6 節據此整理。repo 追蹤的媒體檔只有 3 張網站截圖、2 張 NASA 影像貼圖與 1 個頁面圖示 `web/public/favicon.svg`（`git ls-files`），沒有 AI 生成的圖片、影片或音訊的紀錄；資料夥伴由程式畫成 SVG，語音是瀏覽器內建的語音合成，README 的揭露一節都有寫。待隊伍處理：回答草稿第 6 節末的 9 個問題（特別是 demo 有沒有用 AI 生成的素材）；README 的 4 個 SI 相關 `TODO(team)`。 |
+| 8 | SI 使用如實揭露：程式與資料寫在描述與 metadata，SI 生成的圖片或影片加可見浮水印 | 部分已具備 | README 有 "Use of AI (SI) — disclosure" 一節，草稿第 6 節與它、`docs/adr/` 各篇結尾的「決定的分工」是同一個說法（#129）：AI 工具撰寫程式與文件、協助定義參數與微調，方向與決定是隊伍的；工具只有 Claude Code 與 Cursor（隊伍負責人 2026-11-15 確認）。repo 追蹤的媒體檔只有 3 張網站截圖、2 張 NASA 影像貼圖與 1 個頁面圖示 `web/public/favicon.svg`（`git ls-files`），沒有 AI 生成的圖片、影片或音訊的紀錄；資料夥伴由程式畫成 SVG，語音是瀏覽器內建的語音合成，README 的揭露一節都有寫。待隊伍處理：草稿第 6 節末的 9 個問題已回答 2 個（第 2、5 題），還剩 7 個（特別是 demo 有沒有用 AI 生成的素材）；README 的 4 個 SI 相關 `TODO(team)`。 |
 | 9 | 勾選 Terms and Conditions 與「Confirm All Work is Original」，按 **Submit for Judging** | 待隊伍處理 | 只有隊伍能在平台上做。要確認「All Work is Original」成立，請先處理第 8 項的開放問題。 |
 | 10 | **台灣時間 2026-11-15 23:59 前**送出，建議 23:00 前 | 待隊伍處理 | 見第 4 節的建議順序。 |
 | 11 | 作品中沒有未滿 18 歲者的影像或聲音，沒有商業推銷內容 | 部分已具備 | repo 追蹤的圖片只有網站截圖與 NASA 影像貼圖，沒有人像、影片或音訊；網站沒有商業內容。demo（slides 或影片）的內容、隊員照片與旁白由隊伍自己確認。未滿 18 歲者要由家長或監護人註冊並全程陪同（FAQ）。 |
-| 12 | repo 有 LICENSE（未指定時 NASA 以 Apache 2.0 散布原創內容） | **未具備** | 2026-11-15 `ls LICENSE*` 查不到檔案，`gh repo view` 的 `licenseInfo` 也是 `null`；README 的 `TODO(team)` 也寫「沒有 LICENSE」。待隊伍決定授權後加入（要不要明確指定授權是隊伍的決定；官方條款是沒有指定 OSI 授權時，NASA 以 Apache 2.0 散布）。 |
+| 12 | repo 有 LICENSE（未指定時 NASA 以 Apache 2.0 散布原創內容） | 已具備 | 隊伍負責人 2026-11-15 決定用 Apache-2.0。根目錄有 `LICENSE`（Apache License 2.0 全文）與 `NOTICE`（#129）；README 的 License 一節寫明資料與第三方內容不在這個授權之下，各依來源條款。`gh repo view` 的 `licenseInfo` 要等合併到 `main` 之後才會顯示。
 
 ### 官方「SI 使用規定」的本隊做法（來自 `official-guides.md`）
 
 | 本隊做法 | 狀態 | 現況 |
 |---|---|---|
-| 專案 README 加「SI Usage」段落，說明 Claude Code、Copilot 等協助了哪些部分 | 已具備（草稿狀態） | README 有 "Use of AI (SI) — disclosure (draft)"。提交紀錄的作者標記是 Claude 與 Cursor，沒有看到 Copilot；隊伍有沒有用過其他工具要自己確認。段落裡仍有 `TODO(team)` 等隊伍確認。 |
+| 專案 README 加「SI Usage」段落，說明 Claude Code、Copilot 等協助了哪些部分 | 已具備 | README 有 "Use of AI (SI) — disclosure"。工具只有 Claude Code 與 Cursor（隊伍負責人 2026-11-15 確認；提交紀錄的作者標記也只有這兩個，沒有 Copilot）。段落裡仍有 4 個 `TODO(team)` 等隊伍處理（點子來源的聲明、issue 與 spec 是否由 AI 草擬與 demo 的素材、header 註解、教科書出處）。 |
 | SI 生成的程式檔加 header 註解 | **未做** | README 自己也記了這項尚未做（`TODO(team)`）。隊伍決定：README 的揭露夠不夠，或要加註解。 |
 | SI 生成的圖、icon、影片片段加「AI-generated」浮水印 | 待隊伍處理 | repo 內沒有這類檔案的紀錄；`web/public/favicon.svg` 是一個圓加一條折線的 SVG 程式碼，`git log` 顯示它在 `d36dc0e`（#77）加入，該提交帶 Claude 的 co-author 標記；要不要當成「SI 生成的 icon」加註，由隊伍決定（草稿第 6 節問題 8）；demo 的素材要隊伍確認。 |
 | 不用 SI 生成任何含 NASA logo 的素材 | 已具備（repo 範圍） | 追蹤檔案裡沒有 logo 或 insignia 檔；網站出處行寫明 "NASA insignia is not used"。demo 的素材由隊伍確認。 |
@@ -61,20 +61,19 @@
 
 ## 3. repo 現況：還需要隊伍處理的事
 
-### 3.1 README 還剩 8 個 `TODO(team)`
+### 3.1 README 還剩 7 個 `TODO(team)`
 
-2026-11-15 在 #124 的分支的 README 上 `grep -n "TODO(team)"`；另有 1 行只是在繁體中文摘要裡提到這個標記。行號會隨 README 修改而移動。
+2026-11-15 在 #129 的分支的 README 上 `grep -n "TODO(team)"`；另有 1 行只是在繁體中文摘要裡提到這個標記。行號會隨 README 修改而移動。#129 已處理的：授權（Apache-2.0，`LICENSE` 已加）、成員（兩個公開 GitHub 帳號）、AI 工具清單與 #4 的決策者。
 
 | README 行 | 內容 |
 |---|---|
 | 9 | 隊名、一段用自己的話寫的專案說明、demo 連結 |
-| 285 | 確認專案點子來自隊伍自己的 brainstorm（#3），並用自己的話寫下 |
-| 287 | 確認 SI 清單完整：有沒有用其他 AI 工具（demo、圖片、翻譯、研究）、issue 與 spec 是不是用 AI 草擬、有沒有 AI 生成的圖片或影片、#4 的決策是誰做的 |
-| 289 | AI 撰寫的原始碼要不要加 header 註解 |
-| 291 | 近看檢視裡的教科書出處與尺寸數字還沒有逐頁核對 |
-| 295 | 隊名、成員、分工 |
-| 299 | 沒有 LICENSE，選授權並加檔案 |
-| 311 | 要感謝的導師、主辦方等 |
+| 306 | 確認專案點子來自隊伍自己的 brainstorm（#3），並用自己的話寫下 |
+| 310 | SI 揭露還沒有答案的兩題：issue 與 spec 是不是用 AI 草擬、demo 有沒有用 AI 工具或 AI 生成的圖片、音訊、影片 |
+| 312 | AI 撰寫的原始碼要不要加 header 註解 |
+| 314 | 近看檢視裡的教科書出處與尺寸數字還沒有逐頁核對 |
+| 323 | 隊名、每位成員做了什麼 |
+| 339 | 要感謝的導師、主辦方等 |
 
 ### 3.2 README 的數字與結果檔（已一致）
 
@@ -107,14 +106,13 @@
 | 順序 | 事項 | 為什麼只能由隊伍做 | 建議完成時間 |
 |---|---|---|---|
 | 1 | 確認全隊在台中場且不是 waitlist、人數 1 到 6 | 平台帳號 | 現在 |
-| 2 | 決定授權並加 `LICENSE`（官方檢查項目 12） | 授權是隊伍的決定 | 18:00 前 |
-| 3 | 回答 SI 揭露的開放問題（form-draft 第 6 節的 9 題），並確認「點子來自隊伍自己的 brainstorm」 | 只有隊伍知道 | 18:00 前 |
-| 4 | 用自己的話寫所有 `[TEAM]` 欄位：作品名稱與 tagline、High-Level Summary、動機、效益、目標、對象、未來願景、隊伍介紹與分工 | 官方規定點子不能由 SI 產生；這些是評分 Impact 與 Creativity 的內容 | 20:00 前 |
-| 5 | 做 demo（slides 或影片，二選一），放到公開連結，用無痕視窗測過；影片要有英文字幕 | 內容是隊伍的創作 | 20:00 前 |
-| 6 | 補 README 的 `TODO(team)`（隊名、專案說明、demo 連結、隊伍、致謝）；決定 README 的數字要不要更新 | 隊伍的決定 | 21:00 前 |
-| 7 | 把草稿貼到表單，每欄存檔（Save Progress）；表單頁面只能上傳圖片（JPG、PNG、GIF，每張 10 MB 以內），影片與文件用外部連結 | 平台帳號；有編輯鎖，別人可以強制解鎖，貼上時不要同時有兩個人編輯 | 21:30 前 |
-| 8 | 兩個人交叉核對表單：每個連結、每個數字、NASA Data 與 References 是否齊全 | 品質把關 | 22:30 前 |
-| 9 | 勾選 Terms and Conditions 與「Confirm All Work is Original」，按 **Submit for Judging** | 只有隊伍能按 | **23:00 前** |
-| 10 | 送出後用無痕視窗再開一次所有連結。之後若再改任何內容，**要再按一次 Submit** | 同上 | 23:30 前結束，不要拖到 23:59 |
+| 2 | 回答 SI 揭露還開放的問題（form-draft 第 6 節還剩 7 題；工具清單與 #4 的決策者已回答），並用自己的話確認「點子來自隊伍自己的 brainstorm」 | 只有隊伍知道 | 18:00 前 |
+| 3 | 用自己的話寫所有 `[TEAM]` 欄位：作品名稱與 tagline、High-Level Summary、動機、效益、目標、對象、未來願景、隊伍介紹與分工 | 官方規定點子不能由 SI 產生；這些是評分 Impact 與 Creativity 的內容 | 20:00 前 |
+| 4 | 做 demo（slides 或影片，二選一），放到公開連結，用無痕視窗測過；影片要有英文字幕 | 內容是隊伍的創作 | 20:00 前 |
+| 5 | 補 README 的 `TODO(team)`（隊名、專案說明、demo 連結、分工、致謝）；決定 README 的數字要不要更新 | 隊伍的決定 | 21:00 前 |
+| 6 | 把草稿貼到表單，每欄存檔（Save Progress）；表單頁面只能上傳圖片（JPG、PNG、GIF，每張 10 MB 以內），影片與文件用外部連結 | 平台帳號；有編輯鎖，別人可以強制解鎖，貼上時不要同時有兩個人編輯 | 21:30 前 |
+| 7 | 兩個人交叉核對表單：每個連結、每個數字、NASA Data 與 References 是否齊全 | 品質把關 | 22:30 前 |
+| 8 | 勾選 Terms and Conditions 與「Confirm All Work is Original」，按 **Submit for Judging** | 只有隊伍能按 | **23:00 前** |
+| 9 | 送出後用無痕視窗再開一次所有連結。之後若再改任何內容，**要再按一次 Submit** | 同上 | 23:30 前結束，不要拖到 23:59 |
 
 草稿與表單的字數限制：`official-guides.md` 沒有記載任何欄位的字數上限，**未查證**；貼上時以表單顯示的限制為準，超過的欄位先刪「How it works」裡的細節，保留 NASA Data 與 SI 的完整揭露。

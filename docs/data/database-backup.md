@@ -1,6 +1,6 @@
 # 清洗資料庫的備份與還原
 
-清洗資料庫（[postgres.md](./postgres.md)）只在 gx10 本機的 Docker 容器裡，沒有同步到雲端。這份文件說明目前有哪一份備份、怎麼自己做一份、怎麼還原，以及不靠備份的重建路徑。
+清洗資料庫（[postgres.md](./postgres.md)）只在 gx10 本機的 Docker 容器裡，沒有同步到雲端（2026-11-15 起有一份備份放在 GitHub Release，見「目前的備份」）。這份文件說明目前有哪一份備份、怎麼自己做一份、怎麼還原，以及不靠備份的重建路徑。
 
 限制先講：
 
@@ -18,6 +18,8 @@
 | 位置 | gx10 本機、repo 之外的備份目錄（不在 git、不在雲端） |
 | 對應的程式 | main `fd4e4f0` |
 | 列數 | `meta.series` 6,889、`obs.observations` 2,376,450、`clean.observations` 2,379,422、`analysis.trends` 6,889、`analysis.model_obs_pairs` 97 |
+
+2026-11-15 起，這份 dump（`trend_detective_pg17_2026-11-15.dump`）與下面兩個 CSV（檔名改成 `clean_observations.csv.gz`、`clean_series.csv`）連同 `SHA256SUMS` 也放在 GitHub Release [`data-2026-11-15`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15)，所以不再只有本機這一份。
 
 同一時間另匯出了給機器學習實驗用的 `data/ml-export/observations.csv.gz`（清洗後觀測，2,379,422 列）與 `data/ml-export/series.csv`（6,889 條），在主 checkout、不進 git（見 #112）。
 

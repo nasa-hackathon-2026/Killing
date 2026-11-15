@@ -2,7 +2,7 @@
 
 快照之外，同一批資料也可以整理成一個 SQLite 檔，方便用 SQL 查、並從統一表追回每個來源的原始資料。公開 demo 不讀它。
 
-**直接下載**：建好的檔案放在 [GitHub Releases](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases)（最新一版是 [`data-2026-11-15`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15)，約 44 MB，只含核心資料：台灣的 16 個變數、128 條序列與各來源表；含擴充資料的完整版約 1.5 GB，沒有放上去，要用請在本機重建）。不想下載、或想用最新的快照自己建，就跑下面的指令。
+**直接下載**：建好的檔案放在 [GitHub Releases](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases)（最新一版是 [`data-2026-11-15`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15)，約 44 MB，只含核心資料：台灣的 16 個變數、128 條序列與各來源表；含擴充資料的完整版約 1.5 GB，沒有放上去，要用請在本機重建）。同一個 Release 自 2026-11-15 起另有 PostgreSQL 清洗資料庫的內容：清洗後的觀測 `clean_observations.csv.gz`、序列清單 `clean_series.csv`（涵蓋全部 6,889 條序列）與整個資料庫的 dump `trend_detective_pg17_2026-11-15.dump`；欄位意義見 [database-schema.md](./database-schema.md)，還原見 [database-backup.md](./database-backup.md)。不想下載、或想用最新的快照自己建，就跑下面的指令。
 
 ```bash
 uv run python -m trend_detective.sqlite_export
@@ -99,7 +99,7 @@ WHERE o.variable_id = 'omi_o3' AND o.location_id = 'taichung'
 
 | | SQLite | PostgreSQL |
 |---|---|---|
-| 用途 | 發佈格式：單一檔案放在 GitHub Release，下載就能查 | 本機的工作資料庫：清洗結果、空間查詢、時間骨架 |
+| 用途 | 發佈格式：單一檔案放在 GitHub Release，下載就能查 | 本機的工作資料庫：清洗結果、空間查詢、時間骨架（2026-11-15 起 Release 另有一份 dump 與清洗後的 CSV） |
 | 需要 | 不需要伺服器 | Docker 容器（`db/compose.yaml`） |
 | 內容 | 統一表、各來源表、`trends` | 同樣的內容，加上 `clean.*`（品質旗標、距平、補值）、`geo.*`（PostGIS）、`meta.known_issues`、`analysis.*`（趨勢、規則、決策樹各折、執行紀錄） |
 | 怎麼建 | `uv run python -m trend_detective.sqlite_export` | `uv run python -m trend_detective.pg load`、`clean`、`analysis` |

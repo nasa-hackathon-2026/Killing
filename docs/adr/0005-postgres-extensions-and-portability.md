@@ -32,7 +32,7 @@ date: 2026-11-15
 
 ## 後果
 
-- 資料庫目前只在 gx10 本機，尚未同步到雲端；還沒有實際搬過，替代做法是依 schema 推斷的。
+- 資料庫目前只在 gx10 本機，尚未同步到雲端；還沒有實際搬過，替代做法是依 schema 推斷的。2026-11-15 起另有一份備份（`pg_dump`）與清洗後的 CSV 放在 GitHub Release [`data-2026-11-15`](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15)。
 - dump 只能還原到同樣有這些擴充的 PostgreSQL；最可攜的路徑是帶著檔案重跑 `load`（見 `docs/data/database-backup.md`）。
 - `geo.locations`、`geo.grid_cells` 的 H3 generated column 讓 `pg_restore` 需要一個額外步驟（同一份文件）。
 

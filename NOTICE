@@ -1,0 +1,12 @@
+Earth System Trend Detective
+Copyright 2026 the Earth System Trend Detective contributors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This licence covers the original code and documentation in this repository.
+It does not cover the data or third-party material:
+
+- Data values come from NASA, NOAA and other providers and remain subject to
+  each source's own terms of use and citation requirements. The sources are
+  listed in docs/data/nasa-data.md and docs/data/references.md.
+- Third-party software packages are used under their own licences.

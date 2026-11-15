@@ -719,7 +719,7 @@ Cloud SQL：清單有 `btree_gist`。`unit` 不在協調者提供的清單裡（
 
 ## 與 SQLite 的關係
 
-SQLite（`docs/data/sqlite.md`）仍是放在 GitHub Release 的發佈格式：單一檔案、不需要伺服器。PostgreSQL 是本機的工作資料庫，多了清洗結果、空間查詢與時間骨架。兩者由同一批序列檔與原始檔各自建立；`raw.*` 直接重用 SQLite 匯出的解析（`load` 會先在暫存目錄建一個 SQLite 再搬進來），所以來源表的內容一致。
+SQLite（`docs/data/sqlite.md`）仍是放在 GitHub Release 的發佈格式：單一檔案、不需要伺服器。PostgreSQL 是本機的工作資料庫，多了清洗結果、空間查詢與時間骨架。2026-11-15 起，Release `data-2026-11-15` 另有這個資料庫的一份 dump 與清洗後的 CSV（`clean_observations.csv.gz`、`clean_series.csv`），見 [database-backup.md](./database-backup.md)。兩者由同一批序列檔與原始檔各自建立；`raw.*` 直接重用 SQLite 匯出的解析（`load` 會先在暫存目錄建一個 SQLite 再搬進來），所以來源表的內容一致。
 
 ## 實測（2026-11-15）
 
