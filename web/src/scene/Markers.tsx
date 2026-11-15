@@ -19,6 +19,10 @@ type MarkersProps = {
 // the surface, so it stays about the same size on screen.
 const RING_REFERENCE_DISTANCE = 3.2;
 const PULSE_SECONDS = 2.4;
+// Radius of a place's dot at the starting distance, and of the selected one.
+const DOT_RADIUS = 0.011;
+const DOT_SELECTED = 0.013;
+const HALO_RATIO = 1.8;
 const OUTWARD = new Vector3(0, 0, 1);
 
 // A ring around the selected place and its name, so the place the panels
@@ -125,8 +129,21 @@ function PlaceDot({
         onSelect(location.id);
       }}
     >
-      <sphereGeometry args={[selected ? 0.01 : 0.006, 12, 12]} />
+      <sphereGeometry args={[selected ? DOT_SELECTED : DOT_RADIUS, 16, 16]} />
       <meshBasicMaterial color={selected ? "#ffffff" : "#ffd166"} />
+      {/* A dark halo behind the dot, so it stands out on bright land,
+          clouds and the trend map. */}
+      <mesh renderOrder={-1}>
+        <sphereGeometry
+          args={[(selected ? DOT_SELECTED : DOT_RADIUS) * HALO_RATIO, 16, 16]}
+        />
+        <meshBasicMaterial
+          color="#08101f"
+          transparent
+          opacity={0.6}
+          depthWrite={false}
+        />
+      </mesh>
     </mesh>
   );
 }

@@ -48,12 +48,12 @@ export type TrendGlyph = {
   reliabilityText: string;
 };
 
-export const MIN_LENGTH_PX = 12;
-export const MAX_LENGTH_PX = 46;
+export const MIN_LENGTH_PX = 8;
+export const MAX_LENGTH_PX = 28;
 // An outline (not significant after FDR correction, including significant
 // before it only) is drawn short and thin, so it never draws more attention
 // than a filled arrow. The legend says "Outline only and shorter".
-export const NOT_SIGNIFICANT_MAX_PX = 18;
+export const NOT_SIGNIFICANT_MAX_PX = 12;
 // Stroke of an outline arrow in screen pixels (not scaled with its length).
 export const OUTLINE_STROKE_PX = 1.25;
 export const SCALE_QUANTILE = 0.9;

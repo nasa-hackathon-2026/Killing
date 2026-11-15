@@ -2,10 +2,10 @@
 // as a multiple of its size at the starting distance. A thing of world size s
 // looks s / (distance - 1) across, so an exponent of 1 would keep the dot the
 // same size on screen; above 1 it gets smaller on screen as the camera comes
-// closer (#197) instead of growing into a blob. Kept gentle (1.25) and
-// floored, so the dot never becomes too small to click.
+// closer (#197) instead of growing into a blob. Kept gentle (1.1), so the dot
+// stays easy to see and to click at every distance the camera can reach.
 export const MARKER_REFERENCE_DISTANCE = 3.2;
-export const MARKER_EXPONENT = 1.25;
+export const MARKER_EXPONENT = 1.1;
 export const MARKER_MIN_RATIO = 0.05;
 
 export function markerScale(distance: number): number {
