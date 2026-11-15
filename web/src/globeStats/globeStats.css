@@ -17,6 +17,25 @@
   display: none;
 }
 
+.app .map-legends > .particle-note {
+  position: static;
+  flex: none;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 8px 12px;
+  text-align: left;
+  transform: none;
+}
+
+.map-legends > .particle-note p {
+  margin: 0;
+}
+
+.map-legends > .particle-note p + p {
+  margin-top: 8px;
+}
+
 .app .map-legends > .trendmap,
 .app .map-legends > .field-legend,
 .app .map-legends > .globe-stats-panel {
@@ -159,8 +178,13 @@
 
 .globe-stats-table table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 11px;
+}
+
+.globe-stats-table-scroll {
+  overflow-x: auto;
 }
 
 .globe-stats-table caption {
@@ -248,6 +272,14 @@
   );
   clip-path: inset(0 50% 0 0);
   content: "";
+}
+
+.globe-gap-unreliable {
+  position: absolute;
+  bottom: -10px;
+  left: -8px;
+  width: 20px;
+  height: 20px;
 }
 
 .globe-gap-observation-warning::after {

@@ -1,7 +1,7 @@
-import { Html, Line } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { Vector3 } from "three";
+import { Quaternion, Vector3 } from "three";
 import { latLonToVector3 } from "../geo/latLon";
 import { greatCircleArcPoints } from "./greatCircleArc";
 import { css, directionColor, paletteFor, slopeColor } from "./globePalette";
@@ -41,7 +41,7 @@ function FrontFacingButton({
   });
 
   return (
-    <Html position={position} center occlude zIndexRange={[0, 0]}>
+    <Html position={position} center zIndexRange={[0, 0]}>
       <button
         ref={button}
         type="button"
@@ -83,6 +83,22 @@ function TrendMarks({ state }: { state: GlobeStatsState }) {
       >
         {glyph.kind === "nodata" ? (
           <span aria-hidden="true">●</span>
+        ) : glyph.kind === "unreliable" ? (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M12 3 22 21H2Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="3 2"
+            />
+            <path
+              d="M3 22 21 4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
         ) : (
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -91,7 +107,6 @@ function TrendMarks({ state }: { state: GlobeStatsState }) {
               fill={glyph.kind === "solid" ? "currentColor" : "none"}
               stroke="currentColor"
               strokeWidth="2"
-              strokeDasharray={glyph.kind === "unreliable" ? "3 2" : undefined}
               strokeLinejoin="round"
             />
           </svg>
@@ -137,7 +152,55 @@ function GapMarks({ state }: { state: GlobeStatsState }) {
             "--globe-gap-ring": `${glyph.ringWidthPx}px`,
           } as React.CSSProperties
         }
-      />
+      >
+        {glyph.modelUnreliable || glyph.observationUnreliable ? (
+          <svg
+            className="globe-gap-unreliable"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 3 22 21H2Z"
+              fill="#101a2b"
+              stroke="#ffd166"
+              strokeWidth="2"
+            />
+            <path d="M3 22 21 4" stroke="#ffd166" strokeWidth="2" />
+          </svg>
+        ) : null}
+      </FrontFacingButton>
+    );
+  });
+}
+
+function ArcStroke({
+  points,
+  color,
+  width,
+  dashed,
+}: {
+  points: Vector3[];
+  color: string;
+  width: number;
+  dashed: boolean;
+}) {
+  return points.slice(1).map((end, index) => {
+    if (dashed && index % 2 === 1) return null;
+    const start = points[index];
+    if (!start) return null;
+    const direction = end.clone().sub(start);
+    const length = direction.length();
+    if (length < 1e-8) return null;
+    const position = start.clone().add(end).multiplyScalar(0.5);
+    const quaternion = new Quaternion().setFromUnitVectors(
+      new Vector3(0, 1, 0),
+      direction.normalize(),
+    );
+    return (
+      <mesh key={index} position={position} quaternion={quaternion}>
+        <cylinderGeometry args={[width * 0.001, width * 0.001, length, 6]} />
+        <meshBasicMaterial color={color} transparent opacity={0.88} />
+      </mesh>
     );
   });
 }
@@ -165,15 +228,11 @@ function AlikeMarks({ state }: { state: GlobeStatsState }) {
     );
     return (
       <group key={arc.seriesKey}>
-        <Line
+        <ArcStroke
           points={points}
           color={arc.positive ? "#ffd166" : "#f472b6"}
-          lineWidth={arc.widthPx}
+          width={arc.widthPx}
           dashed={arc.dashed}
-          dashSize={0.035}
-          gapSize={0.022}
-          transparent
-          opacity={0.88}
         />
         <FrontFacingButton
           position={[position.x, position.y, position.z]}

@@ -53,7 +53,14 @@ function TrendLegend({ state }: { state: GlobeStatsState }) {
             className="globe-key-mark globe-key-unreliable"
             aria-hidden="true"
           >
-            ↑
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path
+                d="M12 3 22 21H2Z M3 22 21 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
           </span>
           {T.trendUnreliable} ({counts.unreliable})
         </li>

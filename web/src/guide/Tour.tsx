@@ -119,9 +119,7 @@ export function Tour({
           showLabel={false}
         />
       </div>
-      {/* Clicking the bubble itself also moves on; the buttons are the
-          keyboard path. */}
-      <div className="guide-tour-bubble" onClick={next}>
+      <div className="guide-tour-bubble">
         <p className="guide-tour-head">
           <strong>{spec ? companionTitle(spec) : ""}</strong>
           {current.stratum ? (
@@ -142,7 +140,7 @@ export function Tour({
             <p key={line}>{line}</p>
           ))}
         </div>
-        <footer onClick={(event) => event.stopPropagation()}>
+        <footer>
           <button type="button" className="guide-tour-skip" onClick={onEnd}>
             {t("common.action.skip")}
           </button>

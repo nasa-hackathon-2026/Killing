@@ -717,6 +717,12 @@ function AppView({
           opacity={trendMapOpacity}
           onOpacity={setTrendMapOpacity}
         />
+        {particleLine ? (
+          <aside className="particle-note" role="note">
+            <p>{particleLine}</p>
+            {fieldNote ? <p>{fieldNote}</p> : null}
+          </aside>
+        ) : null}
       </div>
       {closeUpLayer ? (
         <CloseUpPanel
@@ -741,12 +747,6 @@ function AppView({
           }
           onClose={() => setCloseUpId(null)}
         />
-      ) : null}
-      {particleLine && strata.phase === "off" ? (
-        <p className="particle-note" role="note">
-          {particleLine}
-          {fieldNote ? ` ${fieldNote}` : ""}
-        </p>
       ) : null}
       <p className="credit">
         {t("hud.credit.surface")}{" "}

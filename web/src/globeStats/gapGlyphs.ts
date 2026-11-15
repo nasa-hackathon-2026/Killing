@@ -143,15 +143,17 @@ export function buildGapGlyphs(
       ringWidthPx: ringWidth(correlation),
       modelUnreliable,
       observationUnreliable,
-      summary: gapSummary(
-        placeName(pair.location_id, location?.name_en ?? undefined),
-        modelName,
-        observationName,
-        modelSlope,
-        observationSlope,
-        correlation,
-        unit,
-      ),
+      summary:
+        gapSummary(
+          placeName(pair.location_id, location?.name_en ?? undefined),
+          modelName,
+          observationName,
+          modelSlope,
+          observationSlope,
+          correlation,
+          unit,
+        ) +
+        (modelUnreliable || observationUnreliable ? ` ${T.notReliable}.` : ""),
     };
   });
 }

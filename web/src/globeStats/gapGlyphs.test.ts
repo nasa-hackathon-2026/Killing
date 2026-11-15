@@ -140,5 +140,6 @@ describe("model–station globe glyphs", () => {
       modelUnreliable: true,
       observationUnreliable: true,
     });
+    expect(glyph?.summary).toContain("not reliable as a climate signal");
   });
 });
