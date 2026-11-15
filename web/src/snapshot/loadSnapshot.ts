@@ -1,3 +1,4 @@
+import { isBbox } from "../geo/regionFrame";
 import { isPlaceGroup, type Place, type PlaceGroup } from "./places";
 import type { SeriesPoint } from "./reading";
 
@@ -9,6 +10,16 @@ export const placeIds = [
   "yushan",
 ] as const;
 
+// The five regions of the core catalog (`kind = "region"`), in menu order:
+// the whole island, then north to south, then east.
+export const regionIds = [
+  "taiwan",
+  "north",
+  "central",
+  "south",
+  "east",
+] as const;
+
 export type Catalog = {
   locations: {
     id: string;
@@ -17,6 +28,10 @@ export type Catalog = {
     group?: string;
     lat?: number | null;
     lon?: number | null;
+    // Core catalog: "point" or "region"; a region has a bbox
+    // [west, south, east, north].
+    kind?: string;
+    bbox?: number[];
   }[];
   series: {
     variable_id: string;
@@ -47,8 +62,8 @@ export type PendingSeries = {
 export type PlaceSnapshot = {
   generatedAt: string;
   places: Place[];
-  // Series read so far: Taiwan's from the start, a world place's once it
-  // has been picked (`loaded` lists the places whose series are all here).
+  // Series read so far: the Taiwan points' from the start, a region's or a
+  // world place's once it has been picked (`loaded` lists the places whose series are all here).
   series: LoadedSeries[];
   loaded: string[];
   pending: PendingSeries[];
@@ -95,6 +110,63 @@ export function taiwanPlaces(catalog: Catalog): Place[] {
         lon: location.lon,
         group: "taiwan" as const,
         aggregation: "point",
+      },
+    ];
+  });
+}
+
+// The Taiwan regions that have a bbox and at least one area-mean series.
+// Each is read as the area mean of its data area; it has no single point
+// (lat and lon stay null), the bbox is kept for the globe.
+export function taiwanRegions(catalog: Catalog): Place[] {
+  return regionIds.flatMap((id) => {
+    const location = catalog.locations.find((item) => item.id === id);
+    if (!location || location.kind !== "region" || !isBbox(location.bbox)) {
+      return [];
+    }
+    const hasSeries = catalog.series.some(
+      (entry) => entry.location_id === id && entry.aggregation === "area_mean",
+    );
+    if (!hasSeries) return [];
+    return [
+      {
+        id: location.id,
+        nameEn: location.name_en,
+        lat: null,
+        lon: null,
+        group: "taiwan_region" as const,
+        aggregation: "area_mean",
+        bbox: location.bbox,
+      },
+    ];
+  });
+}
+
+// Area-mean series of the regions, for the variables the points have too
+// (the layers). The auxiliary variants (`modis_*_pc`) are left out so the
+// month range of a region is that of the layers. Read when a region is
+// picked, like the world places.
+export function regionPending(
+  catalog: Catalog,
+  regions: Place[],
+): PendingSeries[] {
+  const layerVariables = new Set(
+    pointSeriesEntries(catalog).map((entry) => entry.variable_id),
+  );
+  return catalog.series.flatMap((entry) => {
+    const region = regions.find((item) => item.id === entry.location_id);
+    if (
+      !region ||
+      entry.aggregation !== region.aggregation ||
+      !layerVariables.has(entry.variable_id)
+    ) {
+      return [];
+    }
+    return [
+      {
+        variableId: entry.variable_id,
+        locationId: entry.location_id,
+        url: snapshotUrl(entry.file),
       },
     ];
   });
@@ -152,9 +224,11 @@ export async function loadPlaceSnapshot(
     fetchJson<Catalog>(worldSnapshotUrl("catalog.json")).catch(() => null),
   ]);
   const taiwan = taiwanPlaces(catalog);
+  const regions = taiwanRegions(catalog);
   const elsewhere = world
     ? worldPlaces(world).filter(
-        (place) => !taiwan.some((item) => item.id === place.id),
+        (place) =>
+          ![...taiwan, ...regions].some((item) => item.id === place.id),
       )
     : [];
   const series = await Promise.all(
@@ -170,10 +244,13 @@ export async function loadPlaceSnapshot(
   );
   return {
     generatedAt: catalog.snapshot.generated_at,
-    places: [...taiwan, ...elsewhere],
+    places: [...taiwan, ...regions, ...elsewhere],
     series,
     loaded: taiwan.map((place) => place.id),
-    pending: world ? worldPending(world, elsewhere) : [],
+    pending: [
+      ...regionPending(catalog, regions),
+      ...(world ? worldPending(world, elsewhere) : []),
+    ],
   };
 }
 
