@@ -18,5 +18,6 @@
   "companions": "Data companion names and factual speech templates.",
   "compare": "Model and observation comparison page.",
   "mining": "Exploratory data-mining page and statistical terms.",
-  "lab": "Form laboratory labels and controls."
+  "lab": "Form laboratory labels and controls.",
+  "investigation": "Investigation panel (the Chart panel): four numbered tabs for the four questions (what, where, how much, significant). Answers state test results only; never write 'no change' for 'not significant', never write causes."
 }

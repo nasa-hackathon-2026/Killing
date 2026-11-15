@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { trendUnreliable } from "../analysis/trendReliability";
+import { useMemo, useState } from "react";
 import { trendKey, type TrendsFile } from "../analysis/trends";
 import {
   useAnalysisFile,
@@ -19,7 +18,10 @@ import { variableName } from "../i18n/names";
 import { similarLink } from "../analysis/miningPlus";
 import { TimelineBar } from "./TimelineBar";
 import { useTimeline } from "./TimelineContext";
-import { TimeSeriesPanel } from "./TimeSeriesPanel";
+import { InvestigationPanel } from "../investigation/InvestigationPanel";
+import { parseTab, type TabId } from "../investigation/logic";
+import type { Place } from "../snapshot/places";
+import { requestedTab } from "../urlParams";
 
 type TimelineDockProps = {
   // Point series of the current place.
@@ -33,6 +35,10 @@ type TimelineDockProps = {
   // for the global mean).
   aggregation?: string;
   trends: AnalysisState<TrendsFile>;
+  // Every place of the menu, for the "Where" tab's small charts, and the
+  // place menu's own action (the camera flies there).
+  places?: Place[];
+  onSelectLocation?: (id: string) => void;
 };
 
 // Everything the timeline adds to the main view: the bar at the bottom and,
@@ -46,10 +52,17 @@ export function TimelineDock({
   locationName,
   aggregation = "point",
   trends,
+  places = [],
+  onSelectLocation,
 }: TimelineDockProps) {
   const { months, locationId, selectedVariableId, setSelectedVariableId } =
     useTimeline();
   useI18n();
+  // The investigation panel's tab, width and folding outlive a change of
+  // variable or place.
+  const [tab, setTab] = useState<TabId>(() => parseTab(requestedTab()));
+  const [wide, setWide] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const anomaliesFile = useAnalysisFile(loadAnomalies);
   const anomalies =
     anomaliesFile.status === "ready" ? anomaliesFile.data.series : null;
@@ -88,27 +101,35 @@ export function TimelineDock({
   };
 
   const key = selected ? trendKey(selected.id, locationId, aggregation) : "";
-  const trend = selected ? trendsData?.series[key] : undefined;
 
   return (
     <>
       {selected ? (
-        <TimeSeriesPanel
-          key={selected.id}
+        <InvestigationPanel
           variableId={selected.id}
           variableName={variableName(selected.id, selected.nameEn)}
+          locationId={locationId}
           locationName={locationName}
+          aggregation={aggregation}
           series={
             series.find((item) => item.variableId === selected.id) ?? null
           }
-          anomalies={anomalies?.[key] ?? null}
-          trend={trend}
-          alpha={trendsData?.parameters.alpha ?? 0.05}
-          unreliable={trendUnreliable(trend, trendsData?.known_issues)}
+          anomalies={anomalies}
+          trends={trendsData}
           breaks={stepsOf(key)}
           similarHref={carryChoices(
             similarLink(import.meta.env.BASE_URL, locationId, selected.id),
           )}
+          places={places}
+          variables={variables}
+          tab={tab}
+          onTab={setTab}
+          wide={wide}
+          onWide={setWide}
+          collapsed={collapsed}
+          onCollapsed={setCollapsed}
+          onSelectVariable={setSelectedVariableId}
+          onSelectLocation={onSelectLocation}
           onClose={() => setSelectedVariableId(null)}
         />
       ) : null}
