@@ -247,7 +247,13 @@ function monthDate(month: string): Date | null {
   return new Date(Date.UTC(year, index, 1));
 }
 
-// "2024-06" or "2024-06-01" -> "June" / "Jun" in the active language.
+// Languages whose month labels put a space between digits and CJK characters
+// (Taiwanese typography: "2024 年 6 月"); Japanese keeps "2024年6月". Every
+// month on the site goes through monthName, monthYear or monthYearParts, so
+// this is the one place that decides it.
+const SPACED_CJK: ReadonlySet<Locale> = new Set(["zh-TW"]);
+
+// "2024-06" or "2024-06-01" -> "June" / "Jun" (en), "6 月" (zh-TW), "6月" (ja).
 export function monthName(
   month: string,
   width: "long" | "short" = "long",
@@ -255,25 +261,69 @@ export function monthName(
 ): string {
   const date = monthDate(month);
   if (!date) return month.slice(5, 7);
-  return dateFormat(`month-${width}`, { month: width }, targetLocale).format(
-    date,
-  );
+  const name = dateFormat(
+    `month-${width}`,
+    { month: width },
+    targetLocale,
+  ).format(date);
+  return SPACED_CJK.has(targetLocale) ? spaceCjk(name) : name;
 }
 
-// "2024-06-01" -> "June 2024" (en), "2024年6月" (zh-TW, ja), "Juni 2024" (de).
+// "2024-06-01" -> "June 2024" (en), "2024 年 6 月" (zh-TW), "2024年6月" (ja),
+// "Juni 2024" (de).
 export function monthYear(
   month: string,
   width: "long" | "short" = "long",
   targetLocale: Locale = locale,
 ): string {
+  return monthYearParts(month, width, targetLocale)
+    .map((part) => part.text)
+    .join("");
+}
+
+// The same label as monthYear, split so the year can be styled on its own:
+// [{ text: "Jun", year: false }, { text: " ", year: false },
+//  { text: "2024", year: true }] in English, "2024 年 6 月" in zh-TW.
+export function monthYearParts(
+  month: string,
+  width: "long" | "short" = "long",
+  targetLocale: Locale = locale,
+): { text: string; year: boolean }[] {
   const date = monthDate(month);
-  if (!date) return month.slice(0, 7);
-  return dateFormat(
+  if (!date) return [{ text: month.slice(0, 7), year: false }];
+  const parts = dateFormat(
     `month-year-${width}`,
-    {
-      month: width,
-      year: "numeric",
-    },
+    { month: width, year: "numeric" },
     targetLocale,
-  ).format(date);
+  )
+    .formatToParts(date)
+    .map((part) => ({ text: part.value, year: part.type === "year" }));
+  return SPACED_CJK.has(targetLocale) ? spaceCjkParts(parts) : parts;
+}
+
+// A digit next to a Han character (such as 年 or 月), in either order.
+const DIGIT_HAN_PAIR = /\d\p{sc=Han}|\p{sc=Han}\d/u;
+
+// A space wherever a digit meets a Han character: "6月" -> "6 月".
+function spaceCjk(text: string): string {
+  return text
+    .replace(/(\d)(?=\p{sc=Han})/gu, "$1 ")
+    .replace(/(\p{sc=Han})(?=\d)/gu, "$1 ");
+}
+
+// The same inside each part and across two parts; across parts the space goes
+// into the part that is not the year.
+function spaceCjkParts(
+  parts: { text: string; year: boolean }[],
+): { text: string; year: boolean }[] {
+  const spaced = parts.map((part) => ({ ...part, text: spaceCjk(part.text) }));
+  for (let i = 1; i < spaced.length; i += 1) {
+    const before = spaced[i - 1];
+    const after = spaced[i];
+    const seam = `${before.text.slice(-1)}${after.text.slice(0, 1)}`;
+    if (!DIGIT_HAN_PAIR.test(seam)) continue;
+    if (after.year) before.text = `${before.text} `;
+    else after.text = ` ${after.text}`;
+  }
+  return spaced;
 }
