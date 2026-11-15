@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n";
 import { formatSigned } from "../analysis/modelVsObs";
-import { GLOBE_STATS_TEXT as T } from "./globeStatsText";
+import { GLOBE_STATS_TEXT as T, modeLabel } from "./globeStatsText";
 import type { GlobeStatsState } from "./useGlobeStats";
 import { countGlyphs } from "./trendGlyphs";
 import "./globeStats.css";
@@ -262,13 +262,7 @@ export function GlobeStatsPanel({ state }: { state: GlobeStatsState }) {
   return (
     <aside className="globe-stats-panel" aria-label={T.overlayLabel}>
       <header className="globe-stats-header">
-        <strong>
-          {
-            T[
-              `mode${state.mode[0]?.toUpperCase()}${state.mode.slice(1)}` as keyof typeof T
-            ]
-          }
-        </strong>
+        <strong>{modeLabel(state.mode)}</strong>
         <div>
           <button
             type="button"

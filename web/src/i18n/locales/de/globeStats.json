@@ -71,5 +71,8 @@
   "columnOther": "Similar series",
   "columnSimilarity": "Similarity",
   "columnDetrended": "After detrending",
-  "columnDashed": "Drawn dashed"
+  "columnDashed": "Drawn dashed",
+  "sectionFolded": "{{title}}: {{mode}}",
+  "sectionExpand": "Expand the statistics on the globe",
+  "sectionCollapse": "Collapse the statistics on the globe"
 }

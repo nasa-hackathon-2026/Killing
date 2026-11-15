@@ -49,10 +49,13 @@ type LayerPanelProps = {
   onChart?: (id: string | null) => void;
   // Opens "How to read this" (the guide card); the link is hidden without it.
   onHowTo?: () => void;
+  // On a narrow screen, called before a chart or a close-up opens: the
+  // drawer around the panel gets out of the way.
+  onNarrowOpen?: () => void;
 };
 
-// At or below this width the panel starts folded (the globe would be hidden
-// behind it) and folds again when it opens a chart or a close-up.
+// At or below this width the drawer is a sheet over the globe, so it closes
+// when the panel opens a chart or a close-up.
 const NARROW_WIDTH = 700;
 
 function isNarrow(): boolean {
@@ -80,10 +83,11 @@ export function LayerPanel({
   chartId,
   onChart,
   onHowTo,
+  onNarrowOpen,
 }: LayerPanelProps) {
   const { t } = useI18n();
   const monthIndex = month ? months.indexOf(month) : -1;
-  const [collapsed, setCollapsed] = useState(isNarrow);
+  const [collapsed, setCollapsed] = useState(false);
   // The one layer whose details are open (layerAccordion.ts); none at first.
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const onCount = controls.filter((control) => control.visible).length;
@@ -186,7 +190,7 @@ export function LayerPanel({
               onChart={onChart}
               compareLink={compareLinks?.[layer.id]}
               onBeforeOpen={() => {
-                if (isNarrow()) setCollapsed(true);
+                if (isNarrow()) onNarrowOpen?.();
               }}
             />
           );

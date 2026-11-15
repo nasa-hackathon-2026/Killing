@@ -16,5 +16,6 @@
   "compareStation": "Compare with station",
   "compareObservations": "Compare with observations",
   "cautionHint": "Known data issue: open this layer to read the caution.",
-  "showAria": "Show {{name}}"
+  "showAria": "Show {{name}}",
+  "drawerHandle": "Layers and statistics"
 }

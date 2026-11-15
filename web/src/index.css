@@ -199,39 +199,29 @@ body,
   }
 }
 
+/* The Layers section of the right drawer (drawer/drawer.css places the
+   drawer and scrolls it). */
 .layers {
-  position: absolute;
-  top: 64px;
-  right: 12px;
-  z-index: 1;
-  box-sizing: border-box;
-  width: min(306px, calc(100% - 24px));
-  max-height: calc(100% - 76px);
-  overflow: auto;
   margin: 0;
-  padding: 12px;
-  color: #e8eef7;
-  background: rgba(8, 14, 28, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  font:
-    13px/1.35 system-ui,
-    sans-serif;
 }
 
 .layers-title,
-.layers-note {
+.layers-note,
+.drawer-section-title {
   margin: 0 0 8px;
 }
 
-.layers-title {
+.layers-title,
+.drawer-section-title {
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
+  font-weight: 600;
 }
 
-.layers-title button {
+.layers-title button,
+.drawer-section-title button {
   padding: 1px 8px;
   color: inherit;
   font: inherit;
@@ -239,11 +229,6 @@ body,
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 6px;
   cursor: pointer;
-}
-
-.layers.layers-collapsed {
-  width: auto;
-  padding: 8px 12px;
 }
 
 .layers-collapsed .layers-title {
@@ -1297,19 +1282,8 @@ body,
     );
   }
 
-  /* Folded: a chip in the top-right corner, beside the companions' chip.
-     Unfolded: a sheet over the page, down to the timeline bar. */
-  .layers {
-    top: 60px;
-    z-index: 4;
-  }
-
-  .layers.layers-collapsed {
-    z-index: 1;
-  }
-
-  /* The unfolded Layers sheet starts right under the HUD row, so the More
-     menu, which drops down from that row, has to open above the sheet. */
+  /* The open drawer starts right under the HUD row (drawer/drawer.css), so
+     the More menu, which drops down from that row, has to open above it. */
   .hud {
     z-index: 5;
   }
@@ -1320,12 +1294,6 @@ body,
 
   .timeline-strip-key {
     display: none;
-  }
-
-  .app:has(.timeline-bar) .layers {
-    max-height: calc(
-      100% - 60px - var(--timeline-bottom) - var(--timeline-height) - 8px
-    );
   }
 }
 
