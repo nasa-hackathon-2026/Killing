@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MiningPage } from "./mining/MiningPage";
 import "./index.css";
+import "./theme/controls.css";
 import "./mining/mining.css";
 
 const root = document.getElementById("root");
