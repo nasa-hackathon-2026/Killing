@@ -14,8 +14,17 @@
   width: min(720px, calc(100% - 384px - 574px));
 }
 
-.investigation header button {
-  white-space: nowrap;
+/* The header and the tabs stay in place; the page under them scrolls (the
+   tab page is the Radix Tabs.Content in InvestigationPanel.tsx). */
+.timeline-chart.investigation {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.timeline-chart.investigation > header,
+.timeline-chart.investigation > .investigation-definition {
+  flex: none;
 }
 
 .investigation-definition {
@@ -26,42 +35,6 @@
   margin: 4px 0 6px;
   color: #b7c6da;
   font-size: 12px;
-}
-
-.investigation-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin: 6px 0 8px;
-}
-
-.timeline-chart .investigation-tabs button {
-  white-space: nowrap;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 3px;
-  font-size: 11.5px;
-  line-height: 1.1;
-}
-
-.timeline-chart .investigation-tabs button[aria-selected="true"] {
-  color: #0b1220;
-  background: #cfe3ff;
-  border-color: #cfe3ff;
-  font-weight: 600;
-}
-
-.investigation-tab-number {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 17px;
-  height: 17px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 11px;
 }
 
 .investigation-question {
@@ -250,10 +223,6 @@
   gap: 6px;
   align-items: center;
   justify-content: space-between;
-}
-
-.investigation-where-head .timeline-modes {
-  margin: 0;
 }
 
 .investigation-where-head .investigation-subtitle {

@@ -13,6 +13,7 @@ import {
 } from "../snapshot/places";
 import { stratumName } from "../strata/strataSpec";
 import { toggleExpanded } from "./layerAccordion";
+import type { LeftView } from "../leftPanel/leftView";
 import { isNarrowScreen, setSidebarOpen } from "../sidebar/sidebarStore";
 import { groupLayers } from "./layerGroups";
 import { LayerRow } from "./LayerRow";
@@ -42,12 +43,10 @@ type LayerPanelProps = {
   compareLinks?: Record<string, CompareLink>;
   onToggle: (id: string) => void;
   onOpacity: (id: string, opacity: number) => void;
-  // Opens the close-up view of a layer; the button is hidden without it.
-  onCloseUp?: (id: string) => void;
-  // Opens (or closes, with null) the time series chart of a layer; the
-  // button is hidden without it. `chartId` is the layer charted now.
-  chartId?: string | null;
-  onChart?: (id: string | null) => void;
+  // What the left side shows, and the handler for changing it (the close-up
+  // and the chart of a layer are one slot: leftPanel/leftView.ts).
+  view: LeftView;
+  onView: (view: LeftView) => void;
   // Opens "How to read this" (the guide card); the link is hidden without it.
   onHowTo?: () => void;
 };
@@ -68,9 +67,8 @@ export function LayerPanel({
   compareLinks,
   onToggle,
   onOpacity,
-  onCloseUp,
-  chartId,
-  onChart,
+  view,
+  onView,
   onHowTo,
 }: LayerPanelProps) {
   const { t } = useI18n();
@@ -213,9 +211,8 @@ export function LayerPanel({
                       }
                       onToggle={onToggle}
                       onOpacity={onOpacity}
-                      onCloseUp={onCloseUp}
-                      chartId={chartId}
-                      onChart={onChart}
+                      view={view}
+                      onView={onView}
                       compareLink={compareLinks?.[layer.id]}
                       // On a phone the sidebar covers the page, so it slides
                       // away when a chart or a close-up opens.

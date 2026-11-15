@@ -12,10 +12,13 @@ describe("initialSidebarOpen", () => {
     expect(initialSidebarOpen({ ...base, width: 390 })).toBe(false);
   });
 
-  it("opens for a link that sets the view, even on a narrow screen", () => {
+  it("opens for a link that sets the view, except on a phone", () => {
+    expect(
+      initialSidebarOpen({ ...base, hasViewParams: true, width: 1000 }),
+    ).toBe(true);
     expect(
       initialSidebarOpen({ ...base, hasViewParams: true, width: 390 }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("keeps what the reader chose before, over everything else", () => {

@@ -7,6 +7,7 @@ import {
 } from "./analysis/trends";
 import { HudIcon } from "./hud/icons";
 import { CompanionDock } from "./companions/CompanionDock";
+import { leftContent } from "./leftPanel/leftView";
 import { RightSidebar } from "./sidebar/RightSidebar";
 import { companionReading, monthlyAnomaly } from "./companions/companionData";
 import { companionSentences } from "./companions/companionLine";
@@ -93,7 +94,6 @@ import {
   followedVariable,
 } from "./globeStats/trendGlyphs";
 import {
-  requestedCloseUp,
   requestedPlace,
   requestedStrata,
   requestedTrendMap,
@@ -265,6 +265,8 @@ function AppView({
   setLocationId: (id: string) => void;
 }) {
   const timeline = useTimeline();
+  // The close-up and the chart share one slot on the left (leftPanel/leftView).
+  const { closeUpId, setCloseUpId } = timeline;
   const { settings, voice } = useI18n();
   const moreMenuRef = useRef<HTMLDetailsElement>(null);
   useDismissOpenDetails(moreMenuRef);
@@ -276,7 +278,6 @@ function AppView({
   const strata = useStrataMode(requestedStrata());
   const [nearGround, setNearGround] = useState(false);
   const [controls, setControls] = useState(initialControls);
-  const [closeUpId, setCloseUpId] = useState<string | null>(requestedCloseUp);
   const [trendMapId, setTrendMapId] = useState<string | null>(initialTrendMap);
   const [trendMapOpacity, setTrendMapOpacity] = useState(
     DEFAULT_OVERLAY_OPACITY,
@@ -500,13 +501,19 @@ function AppView({
   // close-up. The trend map replaces the per-place trend marks (two trend
   // pictures at once read as one). The chart, the start card and the tour
   // take the left side, so the selector and legend give way to them.
-  const legendsHidden = strata.phase !== "off" || closeUpId !== null;
   const trendMapOn = trendMapId !== null;
   const chartOpen = timeline.selectedVariableId !== null;
   const guideShown = guideOpen && tourStep === null;
+  const left = leftContent({
+    view: timeline.leftView,
+    guideOpen,
+    tourActive: tourStep !== null,
+    strataOn: strata.phase !== "off",
+  });
+  const legendsHidden = left.legends === "hidden";
   const globeStats = useGlobeStats({
     hidden: legendsHidden || trendMapOn,
-    legendHidden: chartOpen || guideShown || tourStep !== null,
+    legendHidden: left.legends !== "full",
     places: globePlaces,
     selectedLocationId: locationId,
     selectedVariableId: selectedStatsVariableId,
@@ -841,14 +848,10 @@ function AppView({
               ),
             )
           }
-          onCloseUp={(id) => {
-            setGuideOpen(false);
-            setCloseUpId(id);
-          }}
-          chartId={timeline.selectedVariableId}
-          onChart={(id) => {
-            setGuideOpen(false);
-            timeline.setSelectedVariableId(id);
+          view={timeline.leftView}
+          onView={(next) => {
+            if (next.kind !== "none") setGuideOpen(false);
+            timeline.setLeftView(next);
           }}
         />
         <CompanionDock

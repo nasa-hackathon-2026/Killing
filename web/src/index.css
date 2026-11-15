@@ -855,8 +855,7 @@ body,
   align-items: center;
 }
 
-.timeline-bar button,
-.timeline-chart button {
+.timeline-bar button {
   padding: 4px 10px;
   color: inherit;
   background: rgba(8, 14, 28, 0.72);
@@ -866,13 +865,33 @@ body,
   font: inherit;
 }
 
+/* The buttons inside the chart panel keep this look unless a Tailwind class
+   says otherwise: in a cascade layer, so a utility on a button wins (rules
+   outside any layer would win over every utility). */
+@layer components {
+  .timeline-chart button {
+    padding: 4px 10px;
+    color: inherit;
+    background: rgba(8, 14, 28, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .timeline-chart button[aria-pressed="true"] {
+    color: #0b1220;
+    background: #cfe3ff;
+    border-color: #cfe3ff;
+  }
+}
+
 .timeline-bar button:disabled {
   cursor: default;
   opacity: 0.5;
 }
 
 .timeline-bar button[aria-pressed="true"],
-.timeline-chart button[aria-pressed="true"],
 .timeline-layer-actions button[aria-pressed="true"] {
   color: #0b1220;
   background: #cfe3ff;
@@ -1066,23 +1085,6 @@ body,
   .timeline-chart {
   left: 384px;
   width: min(440px, calc(100% - 384px - 574px));
-}
-
-.timeline-chart header {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.timeline-chart h2 {
-  flex: 1;
-  margin: 0;
-  font-size: 15px;
-}
-
-.timeline-chart h2 span {
-  color: #b7c6da;
-  font-weight: 400;
 }
 
 .timeline-modes {

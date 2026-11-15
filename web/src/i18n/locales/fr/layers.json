@@ -20,5 +20,8 @@
   "display": "Affichage",
   "opacity": "Opacité",
   "sidebarOpen": "Ouvrir les couches et les compagnons",
-  "sidebarClose": "Fermer les couches et les compagnons"
+  "sidebarClose": "Fermer les couches et les compagnons",
+  "view": "Afficher à gauche",
+  "viewAria": "{{name}} : ce qui s’affiche à gauche",
+  "viewOff": "Aucun"
 }

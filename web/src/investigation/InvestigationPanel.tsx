@@ -3,7 +3,8 @@
 // with a one-sentence answer generated from the data and the existing
 // trend rules (trendSignal, trendReliability), then a chart. Statistics are
 // read from trends.json only.
-import { useMemo, useRef, type KeyboardEvent, type ReactNode } from "react";
+import * as Tabs from "@radix-ui/react-tabs";
+import { useMemo, type ReactNode } from "react";
 import { trendSignal, type TrendSignal } from "../forms/encoding";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
 import { trendCaveat } from "../analysis/trendCaveats";
@@ -13,6 +14,8 @@ import { useAnalysisFile } from "../analysis/useAnalysisFile";
 import { compareLinksFor, loadModelVsObs } from "../analysis/modelVsObs";
 import { carryChoices, t, tm, useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
+import { cn } from "../lib/cn";
+import { Button } from "../ui/button";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import type { Place } from "../snapshot/places";
 import {
@@ -25,7 +28,7 @@ import {
 } from "../timeline/seriesMath";
 import { useTimeline } from "../timeline/TimelineContext";
 import { loadPanelFacts } from "./data";
-import { nextTab, TABS, type TabId } from "./logic";
+import { TABS, type TabId } from "./logic";
 import { QuestionGroups, WhatTab } from "./WhatTab";
 import { WhereTab } from "./WhereTab";
 import { HowMuchTab } from "./HowMuchTab";
@@ -96,7 +99,6 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
   const { voice } = useI18n();
   const facts = useAnalysisFile(loadPanelFacts);
   const pairs = useAnalysisFile(loadModelVsObs);
-  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const key = trendKey(variableId, locationId, aggregation);
   const model = useMemo<SeriesModel | null>(() => {
@@ -141,14 +143,6 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
           `${import.meta.env.BASE_URL}compare/`,
         )[variableId]
       : undefined;
-
-  const onTabKey = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const next = nextTab(tab, event.key);
-    if (!next) return;
-    event.preventDefault();
-    onTab(next);
-    tabRefs.current[next]?.focus();
-  };
 
   const definition = variableDefinition(variableId, voice);
   const caveat = trendCaveat(variableId, voice);
@@ -227,31 +221,42 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
         place: locationName,
       })}
     >
-      <header>
-        <h2>
-          {variableName} <span>{t("chart.at", { place: locationName })}</span>
+      <header className="flex items-start gap-2">
+        <h2 className="m-0 min-w-0 flex-1 text-[15px] leading-tight font-semibold">
+          {variableName}{" "}
+          <span className="font-normal text-muted">
+            {t("chart.at", { place: locationName })}
+          </span>
         </h2>
-        <button
-          type="button"
-          className="investigation-expand"
-          aria-pressed={wide}
-          aria-label={t("investigation.panel.expandAria")}
-          onClick={() => onWide(!wide)}
-        >
-          {t(
-            wide ? "investigation.panel.narrow" : "investigation.panel.expand",
-          )}
-        </button>
-        <button
-          type="button"
-          aria-expanded={!collapsed}
-          onClick={() => onCollapsed(!collapsed)}
-        >
-          {t(collapsed ? "chart.show" : "chart.hide")}
-        </button>
-        <button type="button" aria-label={t("chart.close")} onClick={onClose}>
-          {t("common.action.close")}
-        </button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          <Button
+            variant={wide ? "pressed" : "outline"}
+            className="investigation-expand whitespace-nowrap"
+            aria-pressed={wide}
+            aria-label={t("investigation.panel.expandAria")}
+            onClick={() => onWide(!wide)}
+          >
+            {t(
+              wide
+                ? "investigation.panel.narrow"
+                : "investigation.panel.expand",
+            )}
+          </Button>
+          <Button
+            className="whitespace-nowrap"
+            aria-expanded={!collapsed}
+            onClick={() => onCollapsed(!collapsed)}
+          >
+            {t(collapsed ? "chart.show" : "chart.hide")}
+          </Button>
+          <Button
+            className="whitespace-nowrap"
+            aria-label={t("chart.close")}
+            onClick={onClose}
+          >
+            {t("common.action.close")}
+          </Button>
+        </div>
       </header>
       {collapsed ? null : (
         <>
@@ -260,78 +265,74 @@ export function InvestigationPanel(props: InvestigationPanelProps) {
               <TrendMarkIcon signal={signal} /> {definition}
             </p>
           ) : null}
-          <div
-            className="investigation-tabs"
-            role="tablist"
-            aria-label={t("investigation.panel.tabsAria")}
-          >
-            {TABS.map((id, index) => (
-              <button
-                key={id}
-                ref={(node) => {
-                  tabRefs.current[id] = node;
-                }}
-                type="button"
-                role="tab"
-                id={`investigation-tab-${id}`}
-                aria-selected={tab === id}
-                aria-controls={`investigation-page-${id}`}
-                tabIndex={tab === id ? 0 : -1}
-                title={t(`investigation.tabs.${id}.question`)}
-                onClick={() => onTab(id)}
-                onKeyDown={onTabKey}
-              >
-                <span className="investigation-tab-number">{index + 1}</span>
-                {t(`investigation.tabs.${id}.short`)}
-              </button>
-            ))}
-          </div>
-          <div
-            className="investigation-page"
-            role="tabpanel"
-            id={`investigation-page-${tab}`}
-            aria-labelledby={`investigation-tab-${tab}`}
-          >
-            <h3 className="investigation-question">
-              {TABS.indexOf(tab) + 1}. {t(`investigation.tabs.${tab}.question`)}
-            </h3>
-            <p
-              className={`investigation-answer${
-                signal.unreliable && tab !== "where"
-                  ? " investigation-answer-unreliable"
-                  : ""
-              }`}
-              aria-live="polite"
+          <Tabs.Root value={tab} onValueChange={(next) => onTab(next as TabId)}>
+            <Tabs.List
+              aria-label={t("investigation.panel.tabsAria")}
+              className="mt-2 mb-3 grid shrink-0 grid-cols-4 gap-1 rounded-lg border border-line bg-white/5 p-1"
             >
-              {answer}
-            </p>
-            {caveat && tab !== "significant" ? (
-              <p className="trend-caveat-line" role="note">
-                {caveat.summary}
+              {TABS.map((id, index) => (
+                <Tabs.Trigger
+                  key={id}
+                  value={id}
+                  title={t(`investigation.tabs.${id}.question`)}
+                  className={cn(
+                    "investigation-tab flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-1 py-1.5 text-[11.5px] leading-none whitespace-nowrap text-muted",
+                    "hover:text-ink data-[state=active]:border-accent-strong data-[state=active]:bg-accent-strong data-[state=active]:font-semibold data-[state=active]:text-on-accent",
+                  )}
+                >
+                  <span className="investigation-tab-number grid size-[17px] flex-none place-items-center rounded-full border border-current text-[11px]">
+                    {index + 1}
+                  </span>
+                  {t(`investigation.tabs.${id}.short`)}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+            <Tabs.Content
+              value={tab}
+              className="min-h-0 flex-1 overflow-y-auto pr-1 outline-none [scrollbar-gutter:stable]"
+            >
+              <h3 className="investigation-question">
+                {TABS.indexOf(tab) + 1}.{" "}
+                {t(`investigation.tabs.${tab}.question`)}
+              </h3>
+              <p
+                className={`investigation-answer${
+                  signal.unreliable && tab !== "where"
+                    ? " investigation-answer-unreliable"
+                    : ""
+                }`}
+                aria-live="polite"
+              >
+                {answer}
               </p>
-            ) : null}
-            {body}
-            {compare || props.similarHref ? (
-              <p className="timeline-chart-note investigation-links">
-                {compare ? (
-                  <a href={carryChoices(compare.href)}>
-                    {t(
-                      compare.label === "Compare with station"
-                        ? "layers.compareStation"
-                        : "layers.compareObservations",
-                    )}
-                  </a>
-                ) : null}
-                {compare && props.similarHref ? " · " : null}
-                {props.similarHref && series ? (
-                  <>
-                    <a href={props.similarHref}>{t("chart.similar.link")}</a>{" "}
-                    {tm("chart.similar.text")}
-                  </>
-                ) : null}
-              </p>
-            ) : null}
-          </div>
+              {caveat && tab !== "significant" ? (
+                <p className="trend-caveat-line" role="note">
+                  {caveat.summary}
+                </p>
+              ) : null}
+              {body}
+              {compare || props.similarHref ? (
+                <p className="timeline-chart-note investigation-links">
+                  {compare ? (
+                    <a href={carryChoices(compare.href)}>
+                      {t(
+                        compare.label === "Compare with station"
+                          ? "layers.compareStation"
+                          : "layers.compareObservations",
+                      )}
+                    </a>
+                  ) : null}
+                  {compare && props.similarHref ? " · " : null}
+                  {props.similarHref && series ? (
+                    <>
+                      <a href={props.similarHref}>{t("chart.similar.link")}</a>{" "}
+                      {tm("chart.similar.text")}
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
+            </Tabs.Content>
+          </Tabs.Root>
         </>
       )}
     </section>

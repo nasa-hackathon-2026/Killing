@@ -29,8 +29,8 @@ const base: LayerRowProps = {
   onExpand: noop,
   onToggle: noop,
   onOpacity: noop,
-  onCloseUp: noop,
-  onChart: noop,
+  view: { kind: "none" },
+  onView: noop,
 };
 
 function render(props: Partial<LayerRowProps> = {}): string {
@@ -100,6 +100,8 @@ describe("the Layers panel", () => {
         readings: { imerg_precip: "0.32 mm/hr", gldas_tair: "28.0 °C" },
         locationName: "Taichung",
         trends: { gldas_tair: base.trend ?? null },
+        view: { kind: "none" },
+        onView: noop,
         onToggle: noop,
         onOpacity: noop,
         onHowTo: noop,
@@ -154,7 +156,7 @@ describe("the Layers panel", () => {
 });
 
 describe("an open layer row", () => {
-  it("shows the trend, the caution, the actions and the opacity slider in the region the button controls", () => {
+  it("shows the trend, the caution, the view choices and the opacity slider in the region the button controls", () => {
     const html = render({ expanded: true });
     expect(html).toContain('aria-expanded="true"');
     const controls = /aria-controls="([^"]+)"/.exec(html)?.[1];
@@ -162,9 +164,39 @@ describe("an open layer row", () => {
     const body = html.slice(html.indexOf(`id="${controls}"`));
     expect(body).toContain("Rising 0.31 °C per decade");
     expect(body).toContain("Caution:");
-    expect(body).toContain("Close-up");
-    expect(body).toContain("Chart");
     expect(body).toContain("Opacity");
     expect(body).toContain('role="slider"');
+    expect(body).toContain('role="radiogroup"');
+  });
+
+  it("offers Off, Close-up and Chart as radio buttons, Off selected when nothing is open", () => {
+    const html = render({ expanded: true });
+    expect(html.match(/role="radio"/g)?.length).toBe(3);
+    expect(html).toContain("Show on the left");
+    expect(html).toContain("Off");
+    expect(html).toContain("Close-up");
+    expect(html).toContain("Chart");
+    expect(html.match(/aria-checked="true"/g)?.filter(Boolean).length).toBe(1);
+    expect(html).toMatch(
+      /value="off"[^>]*aria-checked="true"|aria-checked="true"[^>]*value="off"/,
+    );
+  });
+
+  it("selects the choice of the layer that holds the left side, and Off for the others", () => {
+    const own = render({
+      expanded: true,
+      view: { kind: "chart", id: "gldas_tair" },
+    });
+    expect(own).toMatch(
+      /aria-checked="true"[^>]*value="chart"|value="chart"[^>]*aria-checked="true"/,
+    );
+    const other = render({
+      expanded: true,
+      view: { kind: "closeup", id: "imerg_precip" },
+    });
+    expect(other).toMatch(
+      /value="off"[^>]*aria-checked="true"|aria-checked="true"[^>]*value="off"/,
+    );
+    expect(other).not.toMatch(/value="closeup"[^>]*aria-checked="true"/);
   });
 });
