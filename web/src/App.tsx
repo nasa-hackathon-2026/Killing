@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   loadTrends,
   summarizeTrend,
@@ -45,6 +45,8 @@ import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
 import { FieldToggle } from "./fields/FieldToggle";
+import { HudSearch } from "./hud/HudSearch";
+import { useDismissOpenDetails } from "./hud/useDismissOnOutside";
 import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
@@ -205,6 +207,8 @@ function AppView({
 }) {
   const timeline = useTimeline();
   const { settings, voice } = useI18n();
+  const moreMenuRef = useRef<HTMLDetailsElement>(null);
+  useDismissOpenDetails(moreMenuRef);
   const [forceWebGL, setForceWebGL] = useState(false);
   const [askedFlight, setFlyTarget] = useState<FlyTarget | null>(null);
   const [startDone, setStartDone] = useState(false);
@@ -540,6 +544,27 @@ function AppView({
         <StrataHint placeName={placeName} onEnter={enterStrata} />
       ) : null}
       <div className="hud hud-main">
+        <HudSearch
+          places={(strata.phase === "off"
+            ? places
+            : places.filter(hasCoordinates)
+          ).map((place) => ({
+            id: place.id,
+            label: displayPlaceName(place),
+          }))}
+          layers={layerRegistry.map((layer) => ({
+            id: layer.id,
+            label: variableName(layer.id, layer.nameEn),
+          }))}
+          onPlace={(id) => selectPlace(id, true)}
+          onLayer={(id) =>
+            setControls((current) =>
+              current.map((layer) =>
+                layer.id === id ? { ...layer, visible: true } : layer,
+              ),
+            )
+          }
+        />
         {strata.phase === "off" ? (
           <FieldToggle
             openIds={openIds}
@@ -599,7 +624,7 @@ function AppView({
         </button>
         <div className="hud-choices">{roleControls}</div>
         {/* Secondary pages and the renderer diagnostics. */}
-        <details className="hud-more">
+        <details className="hud-more" ref={moreMenuRef}>
           <summary>{t("hud.more")}</summary>
           <div className="hud-menu">
             <div className="hud-menu-choices">{roleControls}</div>
