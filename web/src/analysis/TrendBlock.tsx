@@ -7,6 +7,7 @@ import { trendLabel, type TrendSignal } from "../forms/encoding";
 import { useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import { TrendCaveatNote } from "./TrendCaveatNote";
+import { UnitText } from "../snapshot/UnitText";
 import { shownTrendCaveat } from "./trendCaveats";
 import type { TrendSummary } from "./trends";
 
@@ -24,7 +25,7 @@ export function TrendBlock({ variableId, trend, signal }: TrendBlockProps) {
     : null;
   const full = trend ? (
     <p className="trend">
-      {trend.headline}
+      <UnitText text={trend.headline} />
       <span>
         {trend.significance}
         {trend.period ? ` · ${trend.period}` : ""}
@@ -51,7 +52,11 @@ export function TrendBlock({ variableId, trend, signal }: TrendBlockProps) {
       {signal && trend ? (
         <p className="trend trend-plain">
           {trendLabel(signal, "general")}
-          {supported && trend.plain ? <span>{trend.plain}</span> : null}
+          {supported && trend.plain ? (
+            <span>
+              <UnitText text={trend.plain} />
+            </span>
+          ) : null}
         </p>
       ) : null}
       {caveat ? (

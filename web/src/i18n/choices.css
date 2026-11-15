@@ -18,21 +18,33 @@
   margin-left: -1px;
 }
 
-.choice-mode button:first-child {
+/* .hud button gives every control a 6px radius. These three stay one bar:
+   square joins, round only the outer ends. The selectors are specific
+   enough to win that rule on the main page and the form lab. */
+.hud .choice-mode > button,
+.page-bar .choice-mode > button {
+  border-radius: 0;
+}
+
+.choice-mode > button:first-child,
+.hud .choice-mode > button:first-child,
+.page-bar .choice-mode > button:first-child {
   border-radius: 6px 0 0 6px;
 }
 
-.choice-mode button:last-child {
+.choice-mode > button:last-child,
+.hud .choice-mode > button:last-child,
+.page-bar .choice-mode > button:last-child {
   border-radius: 0 6px 6px 0;
 }
 
 .choice-mode button[aria-pressed="true"] {
   position: relative;
+  z-index: 1;
   color: #0b1220;
   font-weight: 700;
   background: #cfe3ff;
   border-color: #cfe3ff;
-  outline: none;
 }
 
 .choice-mode button:focus-visible {
