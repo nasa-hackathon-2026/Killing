@@ -1,36 +1,36 @@
 {
   "groups": {
-    "taiwan": "Taiwan",
-    "world_city": "World cities",
-    "global": "Global"
+    "taiwan": "台湾",
+    "world_city": "世界の都市",
+    "global": "全球"
   },
   "names": {
-    "taichung": "Taichung",
-    "taipei": "Taipei",
-    "kaohsiung": "Kaohsiung",
-    "hualien": "Hualien",
-    "yushan": "Yushan",
-    "taichung_station": "Taichung station",
-    "taipei_station": "Taipei station",
-    "global": "Global mean",
-    "tokyo": "Tokyo",
-    "delhi": "Delhi",
-    "beijing": "Beijing",
-    "jakarta": "Jakarta",
-    "cairo": "Cairo",
-    "lagos": "Lagos",
-    "london": "London",
-    "moscow": "Moscow",
-    "new_york": "New York",
-    "los_angeles": "Los Angeles",
-    "sao_paulo": "São Paulo",
-    "sydney": "Sydney"
+    "taichung": "台中",
+    "taipei": "台北",
+    "kaohsiung": "高雄",
+    "hualien": "花蓮",
+    "yushan": "玉山",
+    "taichung_station": "台中観測所",
+    "taipei_station": "台北観測所",
+    "global": "全球平均",
+    "tokyo": "東京",
+    "delhi": "デリー",
+    "beijing": "北京",
+    "jakarta": "ジャカルタ",
+    "cairo": "カイロ",
+    "lagos": "ラゴス",
+    "london": "ロンドン",
+    "moscow": "モスクワ",
+    "new_york": "ニューヨーク",
+    "los_angeles": "ロサンゼルス",
+    "sao_paulo": "サンパウロ",
+    "sydney": "シドニー"
   },
   "note": {
     "globalMean": {
-      "general": "This is the average over the whole globe, not the value at one place.",
-      "expert": "Mean of the whole global grid, weighted by cos(latitude), land and ocean together where the product covers both. Not a point value."
+      "general": "これは地球全体の平均で、1か所の値ではありません。",
+      "expert": "全球格子の平均（緯度の余弦で重み付け）。製品が陸と海の両方を含む場合は、陸と海を合わせたもの。地点の値ではありません。"
     }
   },
-  "placeMonth": "{{place}}, {{month}}"
+  "placeMonth": "{{place}}、{{month}}"
 }

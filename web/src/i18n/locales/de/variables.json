@@ -1,130 +1,130 @@
 {
   "imerg_precip": {
-    "name": "Precipitation",
-    "short": "rain and snow",
+    "name": "Niederschlag",
+    "short": "Regen und Schnee",
     "definition": {
-      "general": "Precipitation is the rain and snow that reach the ground, here as the month's average in millimetres per hour.",
-      "expert": "GPM IMERG Final monthly precipitation rate (satellite retrieval, gauge-adjusted), mm/hr."
+      "general": "Niederschlag ist der Regen und Schnee, der den Boden erreicht, hier als Monatsmittel in Millimetern pro Stunde.",
+      "expert": "GPM IMERG Final, monatliche Niederschlagsrate (Satellitenableitung, mit Messstationen angepasst), mm/hr."
     }
   },
   "gldas_tair": {
-    "name": "Near-surface air temperature",
-    "short": "air temperature near the ground",
+    "name": "Lufttemperatur in Bodennähe",
+    "short": "Lufttemperatur nahe dem Boden",
     "definition": {
-      "general": "This is how warm the air near the ground is, computed by a land model that is fed with observations.",
-      "expert": "GLDAS-2.1 Noah near-surface air temperature (forcing field of the land surface model), K, shown as °C."
+      "general": "So warm ist die Luft nahe dem Boden, berechnet von einem Landmodell, das mit Beobachtungen gespeist wird.",
+      "expert": "GLDAS-2.1 Noah, bodennahe Lufttemperatur (Antriebsfeld des Landoberflächenmodells), K, dargestellt in °C."
     }
   },
   "gldas_soilmoist": {
-    "name": "Surface soil moisture",
-    "short": "water in the top soil",
+    "name": "Bodenfeuchte an der Oberfläche",
+    "short": "Wasser im oberen Boden",
     "definition": {
-      "general": "Soil moisture is the water held in the top 10 cm of soil, in kilograms per square metre.",
-      "expert": "GLDAS-2.1 Noah soil moisture content, 0–10 cm layer (land surface model), kg m-2."
+      "general": "Bodenfeuchte ist das Wasser in den obersten 10 cm des Bodens, in Kilogramm pro Quadratmeter.",
+      "expert": "GLDAS-2.1 Noah, Bodenfeuchtegehalt, Schicht 0–10 cm (Landoberflächenmodell), kg m-2."
     }
   },
   "gldas_evap": {
     "name": "Evapotranspiration",
-    "short": "water going back into the air",
+    "short": "Wasser, das in die Luft zurückkehrt",
     "definition": {
-      "general": "Evapotranspiration is how fast water returns to the air: evaporation from soil and water, plus water given off by leaves.",
-      "expert": "GLDAS-2.1 Noah evapotranspiration flux (land surface model), kg m-2 s-1."
+      "general": "Evapotranspiration ist, wie schnell Wasser in die Luft zurückkehrt: Verdunstung aus Boden und Wasser plus das Wasser, das Blätter abgeben.",
+      "expert": "GLDAS-2.1 Noah, Evapotranspirationsfluss (Landoberflächenmodell), kg m-2 s-1."
     }
   },
   "airs_tsurf": {
-    "name": "Surface air temperature",
-    "short": "air temperature near the ground",
+    "name": "Lufttemperatur an der Oberfläche",
+    "short": "Lufttemperatur nahe dem Boden",
     "definition": {
-      "general": "This is the air temperature near the ground as an infrared instrument on a satellite reads it, at about 1:30 pm local time.",
-      "expert": "AIRS Level 3 surface air temperature, ascending (daytime, about 13:30 local) overpass (satellite retrieval), K, shown as °C."
+      "general": "Das ist die Lufttemperatur nahe dem Boden, wie sie ein Infrarotgerät auf einem Satelliten gegen 13:30 Uhr Ortszeit abliest.",
+      "expert": "AIRS Level 3, Lufttemperatur an der Oberfläche, aufsteigender Überflug (tagsüber, etwa 13:30 Ortszeit) (Satellitenableitung), K, dargestellt in °C."
     }
   },
   "airs_h2ovap": {
-    "name": "Total water vapor",
-    "short": "water vapor in the air",
+    "name": "Gesamt-Wasserdampf",
+    "short": "Wasserdampf in der Luft",
     "definition": {
-      "general": "Total water vapor is all the vapor in the air above one square metre of ground, counted as kilograms of water.",
-      "expert": "AIRS Level 3 total column water vapor (satellite retrieval), kg/m2."
+      "general": "Der Gesamt-Wasserdampf ist aller Dampf in der Luft über einem Quadratmeter Boden, angegeben als Kilogramm Wasser.",
+      "expert": "AIRS Level 3, Wasserdampf-Gesamtsäule (Satellitenableitung), kg/m2."
     }
   },
   "merra2_t2m": {
-    "name": "2 m air temperature",
-    "short": "air temperature 2 m above the ground",
+    "name": "Lufttemperatur in 2 m Höhe",
+    "short": "Lufttemperatur 2 m über dem Boden",
     "definition": {
-      "general": "This is the air temperature 2 metres above the ground, computed by NASA's MERRA-2, which blends worldwide observations with a weather model.",
-      "expert": "MERRA-2 reanalysis 2 m air temperature (T2M), K, shown as °C."
+      "general": "Das ist die Lufttemperatur 2 Meter über dem Boden, berechnet von der NASA-Reanalyse MERRA-2, die weltweite Beobachtungen mit einem Wettermodell verbindet.",
+      "expert": "MERRA-2-Reanalyse, Lufttemperatur in 2 m Höhe (T2M), K, dargestellt in °C."
     }
   },
   "omi_no2": {
-    "name": "Tropospheric NO₂",
-    "short": "nitrogen dioxide",
+    "name": "Troposphärisches NO₂",
+    "short": "Stickstoffdioxid",
     "definition": {
-      "general": "This is the amount of nitrogen dioxide (NO₂), a gas given off when fuel burns, in the lowest layer of the atmosphere.",
-      "expert": "OMI tropospheric NO₂ vertical column density (satellite retrieval), molecules/cm^2."
+      "general": "Das ist die Menge an Stickstoffdioxid (NO₂), einem Gas, das beim Verbrennen von Brennstoffen entsteht, in der untersten Schicht der Atmosphäre.",
+      "expert": "OMI, troposphärische NO₂-Vertikalsäulendichte (Satellitenableitung), Moleküle/cm^2."
     }
   },
   "omi_o3": {
-    "name": "Total ozone",
-    "short": "ozone",
+    "name": "Gesamtozon",
+    "short": "Ozon",
     "definition": {
-      "general": "Total ozone is all the ozone in the air above a place, in Dobson units (DU); most of it sits high up in the ozone layer.",
-      "expert": "OMI total column ozone (satellite retrieval), Dobson units (DU)."
+      "general": "Das Gesamtozon ist alles Ozon in der Luft über einem Ort, angegeben in Dobson-Einheiten (DU); der größte Teil sitzt hoch oben in der Ozonschicht.",
+      "expert": "OMI, Ozon-Gesamtsäule (Satellitenableitung), Dobson-Einheiten (DU)."
     }
   },
   "omi_aerosol": {
-    "name": "UV aerosol index",
-    "short": "dust and smoke",
+    "name": "UV-Aerosolindex",
+    "short": "Staub und Rauch",
     "definition": {
-      "general": "The UV aerosol index shows how much dust and smoke that absorb ultraviolet light are in the air; it has no unit.",
-      "expert": "OMI UV aerosol index (satellite retrieval), unitless; responds mainly to UV-absorbing aerosols and their height."
+      "general": "Der UV-Aerosolindex zeigt, wie viel Staub und Rauch, die ultraviolettes Licht schlucken, in der Luft sind; er hat keine Einheit.",
+      "expert": "OMI, UV-Aerosolindex (Satellitenableitung), einheitenlos; reagiert hauptsächlich auf UV-absorbierende Aerosole und deren Höhe."
     }
   },
   "modis_ndvi": {
-    "name": "Vegetation greenness",
-    "short": "how green the land is",
+    "name": "Vegetationsgrün",
+    "short": "wie grün das Land ist",
     "definition": {
-      "general": "Vegetation greenness (NDVI) is how green the land looks from space: near 1 for dense plants, near 0 for bare ground or cities.",
-      "expert": "MODIS Terra NDVI, (NIR − red) / (NIR + red) (satellite retrieval), unitless."
+      "general": "Das Vegetationsgrün (NDVI) beschreibt, wie grün das Land aus dem All aussieht: nahe 1 bei dichtem Pflanzenwuchs, nahe 0 bei kahlem Boden oder Städten.",
+      "expert": "MODIS Terra, NDVI, (NIR − Rot) / (NIR + Rot) (Satellitenableitung), einheitenlos."
     }
   },
   "modis_lst": {
-    "name": "Land surface temperature",
-    "short": "temperature of the ground",
+    "name": "Landoberflächentemperatur",
+    "short": "Temperatur des Bodens",
     "definition": {
-      "general": "Land surface temperature is how hot the ground itself is (not the air), as a satellite reads it at about 10:30 am local time.",
-      "expert": "MODIS Terra daytime land surface temperature, about 10:30 local overpass (satellite retrieval), K, shown as °C."
+      "general": "Die Landoberflächentemperatur sagt, wie heiß der Boden selbst ist (nicht die Luft), wie ein Satellit sie gegen 10:30 Uhr Ortszeit abliest.",
+      "expert": "MODIS Terra, Landoberflächentemperatur am Tag, Überflug gegen 10:30 Ortszeit (Satellitenableitung), K, dargestellt in °C."
     }
   },
   "station_temp": {
-    "name": "Station air temperature",
-    "short": "station temperature",
+    "name": "Lufttemperatur an der Station",
+    "short": "Stationstemperatur",
     "definition": {
-      "general": "This is the air temperature a thermometer at a weather station measured, averaged over the month.",
-      "expert": "NOAA GHCNh station air temperature, monthly mean of daily means (in situ), °C."
+      "general": "Das ist die Lufttemperatur, die ein Thermometer an einer Wetterstation gemessen hat, als Monatsmittel.",
+      "expert": "NOAA GHCNh, Lufttemperatur an der Station, Monatsmittel der Tagesmittel (Messung vor Ort), °C."
     }
   },
   "power_t2m": {
-    "name": "2 m air temperature (NASA POWER)",
-    "short": "air temperature 2 m above the ground",
+    "name": "Lufttemperatur in 2 m Höhe (NASA POWER)",
+    "short": "Lufttemperatur 2 m über dem Boden",
     "definition": {
-      "general": "This is the air temperature 2 metres above the ground from the same MERRA-2 data, obtained through the NASA POWER service.",
-      "expert": "NASA POWER 2 m air temperature (MERRA-2 reanalysis), °C."
+      "general": "Das ist die Lufttemperatur 2 Meter über dem Boden aus denselben MERRA-2-Daten, abgerufen über den Dienst NASA POWER.",
+      "expert": "NASA POWER, Lufttemperatur in 2 m Höhe (MERRA-2-Reanalyse), °C."
     }
   },
   "modis_lst_pc": {
-    "name": "Land surface temperature",
-    "short": "temperature of the ground",
+    "name": "Landoberflächentemperatur",
+    "short": "Temperatur des Bodens",
     "definition": {
-      "general": "Land surface temperature is how hot the ground itself is (not the air), as a satellite reads it at about 10:30 am local time.",
-      "expert": "MODIS Terra daytime land surface temperature via Planetary Computer (satellite retrieval), K, shown as °C."
+      "general": "Die Landoberflächentemperatur sagt, wie heiß der Boden selbst ist (nicht die Luft), wie ein Satellit sie gegen 10:30 Uhr Ortszeit abliest.",
+      "expert": "MODIS Terra, Landoberflächentemperatur am Tag über Planetary Computer (Satellitenableitung), K, dargestellt in °C."
     }
   },
   "modis_ndvi_pc": {
-    "name": "Vegetation greenness",
-    "short": "how green the land is",
+    "name": "Vegetationsgrün",
+    "short": "wie grün das Land ist",
     "definition": {
-      "general": "Vegetation greenness (NDVI) is how green the land looks from space: near 1 for dense plants, near 0 for bare ground or cities.",
-      "expert": "MODIS Terra NDVI, 250 m 16-day composites via Planetary Computer (satellite retrieval), unitless."
+      "general": "Das Vegetationsgrün (NDVI) beschreibt, wie grün das Land aus dem All aussieht: nahe 1 bei dichtem Pflanzenwuchs, nahe 0 bei kahlem Boden oder Städten.",
+      "expert": "MODIS Terra, NDVI, 250-m-Komposite über 16 Tage über Planetary Computer (Satellitenableitung), einheitenlos."
     }
   }
 }
