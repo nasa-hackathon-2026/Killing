@@ -11,17 +11,17 @@ describe("orbitRotateSpeed", () => {
     expect(orbitRotateSpeed(6)).toBe(BASE_ROTATE_SPEED);
   });
 
-  it("slows with the square of distance when closer than the default", () => {
+  it("slows with the cube of distance when closer than the default", () => {
     const nearRatio = 1.18 / DEFAULT_ORBIT_DISTANCE;
     const midRatio = 1.6 / DEFAULT_ORBIT_DISTANCE;
-    expect(orbitRotateSpeed(1.18)).toBeCloseTo(nearRatio * nearRatio);
-    expect(orbitRotateSpeed(1.6)).toBeCloseTo(midRatio * midRatio);
+    expect(orbitRotateSpeed(1.18)).toBeCloseTo(nearRatio ** 3);
+    expect(orbitRotateSpeed(1.6)).toBeCloseTo(midRatio ** 3);
   });
 
-  it("is slower than a linear scale at the same near distance", () => {
+  it("is slower than a squared scale at the same near distance", () => {
     const distance = 1.18;
-    const linear = distance / DEFAULT_ORBIT_DISTANCE;
-    expect(orbitRotateSpeed(distance)).toBeLessThan(linear);
+    const ratio = distance / DEFAULT_ORBIT_DISTANCE;
+    expect(orbitRotateSpeed(distance)).toBeLessThan(ratio * ratio);
   });
 
   it("changes continuously between the closest and default distances", () => {
