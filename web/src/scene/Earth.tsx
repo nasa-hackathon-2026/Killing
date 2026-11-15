@@ -27,35 +27,44 @@ function loadEarthTexture(file: string, onLoad?: (map: Texture) => void) {
 // The globe's surface: the 2K Blue Marble at first, swapped for the 8K
 // version of the same image once the camera comes close (earthTexture.ts).
 // The swap happens after the 8K file has loaded, so the surface never goes
-// blank; the 2K texture is then released.
+// blank. Both textures are released when the globe unmounts; a load that
+// finishes after that is dropped, and a remount (StrictMode, HMR) starts
+// over from the 2K image.
 export function Earth() {
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
   const material = useRef<MeshStandardMaterial>(null);
   const detailed = useRef<Texture | null>(null);
   const requested = useRef(false);
+  const mounted = useRef(false);
+  const limit = useRef<number | null>(null);
   const texture = useMemo(() => loadEarthTexture(EARTH_TEXTURE_2K), []);
 
   useEffect(() => {
+    mounted.current = true;
     return () => {
+      mounted.current = false;
+      requested.current = false;
       texture.dispose();
       detailed.current?.dispose();
+      detailed.current = null;
     };
   }, [texture]);
 
   useFrame(() => {
     if (requested.current) return;
-    const limit = maxTextureSize(
-      gl as unknown as Parameters<typeof maxTextureSize>[0],
-    );
-    if (!shouldLoadDetailedEarth(camera.position.length(), limit)) return;
+    // The GPU limit does not change; read it until the backend reports it.
+    if (limit.current === null) limit.current = maxTextureSize(gl);
+    if (!shouldLoadDetailedEarth(camera.position.length(), limit.current))
+      return;
     requested.current = true;
-    detailed.current = loadEarthTexture(EARTH_TEXTURE_8K, (map) => {
+    const map = loadEarthTexture(EARTH_TEXTURE_8K, () => {
+      if (!mounted.current || detailed.current !== map) return;
       if (!material.current) return;
       material.current.map = map;
       material.current.needsUpdate = true;
-      texture.dispose();
     });
+    detailed.current = map;
   });
 
   return (

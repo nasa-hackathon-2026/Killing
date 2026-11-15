@@ -9,6 +9,11 @@ export const TAIWAN_DETAIL = {
   tileLimit: 12,
 } as const;
 
+// Camera distance (globe radius 1) below which the close-up images start
+// loading: the Taiwan detail (scene/TaiwanDetail.tsx) and the 8K Blue Marble
+// (scene/earthTexture.ts). A little farther than where the detail fades in.
+export const DETAIL_LOAD_DISTANCE = 1.7;
+
 const FAR_DISTANCE = 1.6;
 const NEAR_DISTANCE = 1.28;
 

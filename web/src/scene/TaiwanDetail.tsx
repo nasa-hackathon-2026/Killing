@@ -12,7 +12,7 @@ import {
   type MeshStandardMaterial,
   type Texture,
 } from "three";
-import { detailOpacity } from "../geo/detailCoverage";
+import { DETAIL_LOAD_DISTANCE, detailOpacity } from "../geo/detailCoverage";
 import { detailFadeMask } from "../geo/detailFade";
 import { taiwanPatch } from "../geo/detailPatch";
 
@@ -60,7 +60,7 @@ export function TaiwanDetail() {
 
   useFrame(() => {
     const distance = camera.position.length();
-    if (!requested.current && distance < 1.7) {
+    if (!requested.current && distance < DETAIL_LOAD_DISTANCE) {
       requested.current = true;
       const map = new TextureLoader().load(
         `${import.meta.env.BASE_URL}textures/taiwan-detail.png`,
