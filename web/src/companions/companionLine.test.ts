@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { TrendEntry } from "../analysis/trends";
 import { allTrendCaveats } from "../analysis/trendCaveats";
-import { companionLine, monthLabel, spokenLine } from "./companionLine";
+import {
+  companionLine,
+  companionSpeech,
+  companionSpeechParts,
+  monthLabel,
+  spokenLine,
+} from "./companionLine";
 
 const trend: TrendEntry = {
   status: "analyzed",
@@ -24,6 +30,27 @@ const trend: TrendEntry = {
 };
 
 describe("companionLine", () => {
+  it("keeps missing-month, trend uncertainty and data kind in separate display items", () => {
+    const input = {
+      companionName: "Leaf",
+      variableName: "Vegetation greenness",
+      place: "Kaohsiung",
+      month: "2026-11-01",
+      value: null,
+      unit: "1",
+      trend,
+      dataKind: "satellite_retrieval" as const,
+    };
+    const parts = companionSpeechParts(input, "expert");
+    expect(parts).toHaveLength(3);
+    expect(parts[0]).toContain("no data for this month");
+    expect(parts[1]).toContain("95% CI 0.20 to 0.64");
+    expect(parts[2]).toBe("Data kind: satellite retrieval.");
+    expect(parts.join(" ")).toBe(companionSpeech(input, "expert"));
+    const plain = companionSpeechParts(input, "general");
+    expect(plain).toHaveLength(3);
+    expect(plain.join(" ")).toBe(companionSpeech(input, "general"));
+  });
   it("states the value, the anomaly, the trend and the data kind", () => {
     expect(
       companionLine({

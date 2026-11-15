@@ -12,7 +12,7 @@ import { formatMeasurement } from "../snapshot/reading";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { Companion } from "./Companion";
 import { companionReading, type CompanionReading } from "./companionData";
-import { companionSpeech, spokenLine } from "./companionLine";
+import { companionSpeechParts, spokenLine } from "./companionLine";
 import { GROUND_Y, VIEW_HEIGHT_BARE } from "./companionShape";
 import {
   byAltitude,
@@ -163,6 +163,7 @@ export function CompanionDock({
 
   const readings: Record<string, CompanionReading> = {};
   const lines: Record<string, string> = {};
+  const displayParts: Record<string, string[]> = {};
   for (const spec of COMPANIONS) {
     const found = series.find((item) => item.variableId === spec.id);
     const trend = trends?.series[trendKey(spec.id, locationId, aggregation)];
@@ -174,7 +175,7 @@ export function CompanionDock({
       trends?.known_issues,
     );
     readings[spec.id] = reading;
-    lines[spec.id] = companionSpeech(
+    displayParts[spec.id] = companionSpeechParts(
       {
         companionName: companionName(spec),
         definition: variableDefinition(spec.id, "general"),
@@ -194,6 +195,7 @@ export function CompanionDock({
       },
       voice,
     );
+    lines[spec.id] = displayParts[spec.id].join(" ");
   }
 
   const shown = byAltitude(visibleIds);
@@ -306,7 +308,11 @@ export function CompanionDock({
           ×
         </button>
       </p>
-      <p className="companion-bubble-line">{selectedLine}</p>
+      <ul className="companion-bubble-facts">
+        {(displayParts[selected.id] ?? []).map((part) => (
+          <li key={part}>{part}</li>
+        ))}
+      </ul>
       <p className="companion-bubble-pose">
         {t(`companions.shape.${readings[selected.id]?.mood ?? "near"}`)}
       </p>

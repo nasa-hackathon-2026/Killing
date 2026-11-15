@@ -70,8 +70,12 @@ export function formatDifference(difference: number, unit: string): string {
 
 // The full sentence with the statistical terms (expert voice).
 export function companionLine(input: CompanionLineInput): string {
+  return companionLineParts(input).join(" ");
+}
+
+function companionLineParts(input: CompanionLineInput): string[] {
   const who = { name: input.variableName, place: input.place };
-  if (!input.month) return t("companions.line.noMonth", who);
+  if (!input.month) return [t("companions.line.noMonth", who)];
   const { name, label } = monthLabel(input.month);
   const parts: string[] = [];
   if (input.value === null) {
@@ -128,7 +132,7 @@ export function companionLine(input: CompanionLineInput): string {
   if (input.dataKind && input.dataKind !== "unknown") {
     parts.push(t(`common.dataKind.${input.dataKind}.expert`));
   }
-  return parts.join(" ");
+  return parts;
 }
 
 // ---- Plain short sentences (general voice) --------------------------------
@@ -225,11 +229,18 @@ export function companionSpeech(
   input: CompanionSayInput,
   voice: Voice = getVoice(),
 ): string {
-  if (voice === "expert") return companionLine(input);
+  return companionSpeechParts(input, voice).join(" ");
+}
+
+export function companionSpeechParts(
+  input: CompanionSayInput,
+  voice: Voice = getVoice(),
+): string[] {
+  if (voice === "expert") return companionLineParts(input);
   const say = companionSentences(input);
-  return [say.now, say.trend, say.kind]
-    .filter((part): part is string => !!part)
-    .join(" ");
+  return [say.now, say.trend, say.kind].filter(
+    (part): part is string => !!part,
+  );
 }
 
 const SPOKEN: [RegExp, string][] = [
