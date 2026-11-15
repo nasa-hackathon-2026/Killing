@@ -1,196 +1,196 @@
 {
   "panel": {
-    "aria": "Investigation of {{name}} at {{place}}",
-    "tabsAria": "Four questions about this series",
-    "expand": "Expand",
-    "narrow": "Narrow",
-    "expandAria": "Make the panel wider"
+    "aria": "Untersuchung von {{name}} bei {{place}}",
+    "tabsAria": "Vier Fragen zu dieser Datenreihe",
+    "expand": "Breiter",
+    "narrow": "Schmaler",
+    "expandAria": "Panel breiter machen"
   },
   "tabs": {
     "what": {
-      "short": "What",
-      "question": "What is changing?"
+      "short": "Was",
+      "question": "Was verändert sich?"
     },
     "where": {
-      "short": "Where",
-      "question": "Where is it changing?"
+      "short": "Wo",
+      "question": "Wo verändert es sich?"
     },
     "howmuch": {
-      "short": "How much",
-      "question": "How much?"
+      "short": "Wie stark",
+      "question": "Wie stark?"
     },
     "significant": {
-      "short": "Significant?",
-      "question": "Is the change significant?"
+      "short": "Signifikant?",
+      "question": "Ist die Veränderung signifikant?"
     }
   },
   "answer": {
-    "what": "{{name}} at {{place}}, {{first}} to {{last}}: {{label}}.",
+    "what": "{{name}} bei {{place}}, {{first}} bis {{last}}: {{label}}.",
     "where": {
-      "general": "Here: {{label}}. Of {{total}} places with this variable, {{up}} rising, {{down}} falling, {{flat}} with no clear change, {{bad}} not reliable.",
-      "expert": "Here: {{label}}. Of {{total}} places with this variable: {{up}} rising, {{down}} falling (p < {{alpha}}), {{flat}} not significant or not analysed, {{bad}} not reliable as a climate signal."
+      "general": "Hier: {{label}}. Von {{total}} Orten mit dieser Variable: {{up}} steigend, {{down}} fallend, {{flat}} ohne eindeutige Veränderung, {{bad}} nicht verlässlich.",
+      "expert": "Hier: {{label}}. Von {{total}} Orten mit dieser Variable: {{up}} steigend, {{down}} fallend (p < {{alpha}}), {{flat}} nicht signifikant oder nicht analysiert, {{bad}} nicht als Klimasignal verlässlich."
     },
     "howmuch": {
-      "general": "About {{slope}} per decade; about {{total}} over {{years}} years if the straight line held.",
-      "expert": "{{change}}; {{total}} over {{years}} years as a linear conversion."
+      "general": "Etwa {{slope}} pro Jahrzehnt; etwa {{total}} in {{years}} Jahren, wenn die Gerade über den ganzen Zeitraum zuträfe.",
+      "expert": "{{change}}; {{total}} über {{years}} Jahre als lineare Umrechnung."
     },
     "unreliableSuffix": {
-      "general": "The number is not reliable: the data have a documented problem.",
-      "expert": "Not reliable as a climate signal: documented data issue."
+      "general": "Die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+      "expert": "Nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
     },
     "significant": {
       "fdr": {
-        "general": "Yes: the change holds up in the statistical tests (p {{p}}).",
-        "expert": "Yes: the linear trend is significant after autocorrelation and FDR correction (p {{p}}, q {{q}})."
+        "general": "Ja: Die Veränderung besteht die statistischen Tests (p {{p}}).",
+        "expert": "Ja: Der lineare Trend ist nach Autokorrelations- und FDR-Korrektur signifikant (p {{p}}, q {{q}})."
       },
       "rawOnly": {
-        "general": "Weak evidence: it passes the basic test but not the stricter one (p {{p}}).",
-        "expert": "Only before FDR correction: p {{p}}, q {{q}}."
+        "general": "Schwache Belege: Der einfache Test ist bestanden, der strengere nicht (p {{p}}).",
+        "expert": "Nur vor FDR-Korrektur signifikant: p {{p}}, q {{q}}."
       },
       "notSignificant": {
-        "general": "No clear change shows in this record yet (p {{p}}). That is not the same as no change.",
-        "expert": "Not significant (p {{p}}, q {{q}}). This is not evidence of no change."
+        "general": "In dieser Datenreihe ist bisher keine eindeutige Veränderung erkennbar (p {{p}}). Das ist nicht dasselbe wie keine Veränderung.",
+        "expert": "Nicht signifikant (p {{p}}, q {{q}}). Das ist kein Beleg dafür, dass es keine Veränderung gibt."
       },
       "unreliableFdr": {
-        "general": "The test says significant (p {{p}}), but the number is not reliable: the data have a documented problem.",
-        "expert": "Statistically significant (p {{p}}, q {{q}}), but not to be read as a climate signal: documented data issue."
+        "general": "Der Test sagt signifikant (p {{p}}), aber die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+        "expert": "Statistisch signifikant (p {{p}}, q {{q}}), aber nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
       },
       "unreliableRawOnly": {
-        "general": "The test says significant (p {{p}}), but the number is not reliable: the data have a documented problem.",
-        "expert": "Significant before FDR correction only (p {{p}}, q {{q}}), and not to be read as a climate signal: documented data issue."
+        "general": "Der Test sagt signifikant (p {{p}}), aber die Zahl ist nicht verlässlich: Die Daten selbst haben ein dokumentiertes Problem.",
+        "expert": "Nur vor FDR-Korrektur signifikant (p {{p}}, q {{q}}) und nicht als Klimasignal verlässlich: dokumentiertes Datenproblem."
       },
       "notComputed": {
-        "general": "The test could not be run for this series.",
-        "expert": "The test could not be computed for this series."
+        "general": "Für diese Datenreihe ließ sich der Test nicht durchführen.",
+        "expert": "Für diese Datenreihe war der Test nicht berechenbar."
       }
     },
-    "notAnalyzed": "Not analysed: {{reason}}",
-    "noTrend": "No trend result for this series.",
-    "noSeries": "No data for this variable at {{place}}.",
-    "loading": "Reading the series for {{place}}…"
+    "notAnalyzed": "Nicht analysiert: {{reason}}",
+    "noTrend": "Kein Trendergebnis für diese Datenreihe.",
+    "noSeries": "Für diese Variable gibt es bei {{place}} keine Daten.",
+    "loading": "Datenreihe für {{place}} wird gelesen …"
   },
   "what": {
-    "seasonTitle": "Seasonal cycle: average of each calendar month",
-    "seasonAria": "Average of each calendar month of {{name}} at {{place}}; the line for {{year}} drawn on top.",
-    "seasonKeyMean": "Average over the record",
+    "seasonTitle": "Saisonaler Verlauf: Mittelwert jedes Kalendermonats",
+    "seasonAria": "Mittelwert jedes Kalendermonats von {{name}} bei {{place}}; die Linie für {{year}} darübergezeichnet.",
+    "seasonKeyMean": "Mittelwert über die ganze Datenreihe",
     "seasonKeyYear": "{{year}}",
-    "seasonKeyRange": "Lowest to highest of each month",
-    "why": "Why remove the season first? Most of the swing from month to month is the yearly cycle. Comparing each month with its own long-term average (the anomaly) shows the slower change underneath.",
+    "seasonKeyRange": "Niedrigster bis höchster Wert jedes Monats",
+    "why": "Warum zuerst die Jahreszeit entfernen? Der größte Teil des Auf und Ab von Monat zu Monat ist der Jahreszyklus. Vergleicht man jeden Monat mit seinem eigenen langjährigen Mittel (der Abweichung vom Üblichen), zeigt sich darunter die langsamere Veränderung.",
     "facts": {
       "definition": "Definition",
-      "unit": "Unit",
-      "kind": "Data type",
-      "product": "Product",
-      "period": "Period",
-      "periodLine": "{{first}} to {{last}}"
+      "unit": "Einheit",
+      "kind": "Datentyp",
+      "product": "Produkt",
+      "period": "Zeitraum",
+      "periodLine": "{{first}} bis {{last}}"
     },
-    "groupsTitle": "Explore by question",
-    "groupsNote": "Other questions"
+    "groupsTitle": "Nach Fragen erkunden",
+    "groupsNote": "Weitere Fragen"
   },
   "groups": {
-    "water": "Water: is it getting wetter or drier here?",
-    "heat": "Heat: is it getting warmer or cooler here?",
-    "air": "Air: is what is in the air changing here?",
-    "other": "Plants: is it getting greener or browner here?"
+    "water": "Wasser: Wird es hier feuchter oder trockener?",
+    "heat": "Wärme: Wird es hier wärmer oder kühler?",
+    "air": "Luft: Verändert sich hier, was in der Luft ist?",
+    "other": "Pflanzen: Wird es hier grüner oder brauner?"
   },
   "where": {
-    "title": "Every place: monthly anomalies and trend",
-    "sameScale": "Same scale",
-    "ownScale": "Own scale",
-    "scaleAria": "Y scale of the small charts",
-    "noData": "No data",
-    "here": "here",
-    "cellAria": "{{place}}: {{label}}, {{change}} per decade. Open this place.",
-    "cellAriaNone": "{{place}}: {{label}}. Open this place.",
+    "title": "Jeder Ort: Monatsanomalien und Trend",
+    "sameScale": "Gleiche Skala",
+    "ownScale": "Eigene Skala",
+    "scaleAria": "Y-Skala der kleinen Diagramme",
+    "noData": "Keine Daten",
+    "here": "hier",
+    "cellAria": "{{place}}: {{label}}, {{change}} pro Jahrzehnt. Diesen Ort öffnen.",
+    "cellAriaNone": "{{place}}: {{label}}. Diesen Ort öffnen.",
     "note": {
-      "general": "Each box is one place: the blue line is each month's difference from usual, the yellow line the trend. All boxes share one vertical scale unless 'Own scale' is on. Click a box to go there.",
-      "expert": "Each cell: monthly anomalies (blue) and the OLS trend (yellow); shared y scale unless 'Own scale'. Marks as in the Layers panel. Click a cell to switch place."
+      "general": "Jedes Kästchen ist ein Ort: Die blaue Linie ist die Abweichung jedes Monats vom Üblichen, die gelbe Linie der Trend. Alle Kästchen teilen sich eine senkrechte Skala, außer „Eigene Skala“ ist an. Klicke auf ein Kästchen, um dorthin zu wechseln.",
+      "expert": "Jede Zelle: Monatsanomalien (blau) und OLS-Trend (gelb); gemeinsame y-Skala, außer bei „Eigene Skala“. Markierungen wie im Bereich „Ebenen“. Klick auf eine Zelle wechselt den Ort."
     },
-    "mapHint": "A global map of this trend is under 'Global trend map' at the top."
+    "mapHint": "Eine globale Karte dieses Trends findest du oben unter „Globale Trendkarte“."
   },
   "howmuch": {
-    "anomalyTitle": "Monthly anomalies with the linear trend",
-    "anomalyAria": "Monthly anomalies of {{name}} at {{place}} with the trend line and its confidence band.",
-    "intervalTitle": "Change per decade with its {{level}}% confidence interval",
-    "intervalAria": "Least-squares change per decade {{ols}} and Sen slope {{sen}} on a number line centred on zero.",
+    "anomalyTitle": "Monatsanomalien mit linearem Trend",
+    "anomalyAria": "Monatsanomalien von {{name}} bei {{place}} mit Trendlinie und ihrem Konfidenzband.",
+    "intervalTitle": "Änderung pro Jahrzehnt mit {{level}}-%-Konfidenzintervall",
+    "intervalAria": "Kleinste-Quadrate-Änderung pro Jahrzehnt {{ols}} und Sen-Steigung {{sen}} auf einer um null zentrierten Zahlengeraden.",
     "ols": "Linear (OLS)",
-    "sen": "Sen slope",
-    "zero": "0 = no change",
-    "intervalNote": "If a bar crosses the 0 line, the data are also consistent with no change or the opposite direction.",
-    "total": "Over {{first}} to {{last}} ({{years}} years) the trend line amounts to about {{total}}. This is the slope times the period, a linear conversion, not the observed difference between the first and the last year.",
-    "tableTitle": "Numbers",
+    "sen": "Sen-Steigung",
+    "zero": "0 = keine Veränderung",
+    "intervalNote": "Kreuzt ein Balken die 0-Linie, sind die Daten auch mit keiner Veränderung oder mit der Gegenrichtung vereinbar.",
+    "total": "Von {{first}} bis {{last}} ({{years}} Jahre) entspricht die Trendlinie etwa {{total}}. Das ist die Steigung mal der Zeitraum, eine lineare Umrechnung, nicht der beobachtete Unterschied zwischen dem ersten und dem letzten Jahr.",
+    "tableTitle": "Zahlen",
     "table": {
-      "change": "Change per decade",
-      "p": "p (OLS, autocorrelation-corrected)",
-      "period": "Analysed period",
-      "valid": "Valid months",
-      "missing": "Missing or unusable months"
+      "change": "Änderung pro Jahrzehnt",
+      "p": "p (OLS, autokorrelationskorrigiert)",
+      "period": "Analysierter Zeitraum",
+      "valid": "Gültige Monate",
+      "missing": "Fehlende oder unbrauchbare Monate"
     },
-    "why": "Why per decade? A rate per decade puts records of different length on the same footing."
+    "why": "Warum pro Jahrzehnt? Eine Rate pro Jahrzehnt stellt Datenreihen unterschiedlicher Länge auf dieselbe Grundlage."
   },
   "significant": {
-    "olsTitle": "Linear trend (OLS t-test, lag-1 autocorrelation correction)",
-    "mkTitle": "Mann-Kendall (rank-based; no straight line assumed)",
+    "olsTitle": "Linearer Trend (OLS-t-Test, Korrektur der Autokorrelation bei Lag 1)",
+    "mkTitle": "Mann-Kendall (rangbasiert; keine Gerade vorausgesetzt)",
     "rows": {
-      "ttest": "t-test of the slope",
-      "neff": "Effective sample size",
-      "r1": "Lag-1 autocorrelation",
+      "ttest": "t-Test der Steigung",
+      "neff": "Effektive Stichprobengröße",
+      "r1": "Autokorrelation bei Lag 1",
       "original": "Original",
       "hamedRao": "Hamed-Rao",
-      "seasonal": "Seasonal",
-      "sen": "Sen slope per decade"
+      "seasonal": "Saisonal",
+      "sen": "Sen-Steigung pro Jahrzehnt"
     },
     "pq": "p {{p}} · q {{q}}",
     "light": {
-      "significant": "Significant after FDR",
-      "rawOnly": "Significant before FDR only",
-      "notSignificant": "Not significant",
-      "none": "Not computed"
+      "significant": "Signifikant nach FDR",
+      "rawOnly": "Nur vor FDR signifikant",
+      "notSignificant": "Nicht signifikant",
+      "none": "Nicht berechnet"
     },
     "agreement": {
-      "bothSame": "The two tests agree: both significant, same direction.",
-      "bothNone": "The two tests agree: neither is significant.",
-      "disagree": "The two tests disagree. This can happen when a few unusual months dominate, or when the change is not a straight line.",
-      "unknown": "The two tests cannot be compared for this series."
+      "bothSame": "Die beiden Tests stimmen überein: beide signifikant, gleiche Richtung.",
+      "bothNone": "Die beiden Tests stimmen überein: keiner ist signifikant.",
+      "disagree": "Die beiden Tests widersprechen sich. Das kann vorkommen, wenn einige wenige ungewöhnliche Monate dominieren oder wenn die Veränderung keine Gerade ist.",
+      "unknown": "Für diese Datenreihe lassen sich die beiden Tests nicht vergleichen."
     },
-    "agreementBasis": "Compared at p < {{alpha}} before FDR; Mann-Kendall here is Hamed-Rao (Seasonal when Hamed-Rao has no p).",
-    "notSignificantNote": "Not significant does not mean no change: often the record is not long enough yet, or the variation is too large. This record: {{years}} years, {{months}} valid months.",
-    "fdr": "Multiple testing: q values are Benjamini-Hochberg adjusted across the {{n}} analysed series of the {{family}}, separately for each test.",
+    "agreementBasis": "Verglichen bei p < {{alpha}} vor FDR; Mann-Kendall ist hier Hamed-Rao (Saisonal, wenn Hamed-Rao kein p liefert).",
+    "notSignificantNote": "Nicht signifikant heißt nicht, dass es keine Veränderung gibt: Oft ist die Datenreihe noch nicht lang genug oder die Streuung zu groß. Diese Datenreihe: {{years}} Jahre, {{months}} gültige Monate.",
+    "fdr": "Mehrfachtests: Die q-Werte sind nach Benjamini-Hochberg über die {{n}} analysierten Datenreihen ({{family}}) angepasst, getrennt für jeden Test.",
     "family": {
-      "core": "Taiwan core run",
-      "world": "world subset (world cities and global mean)"
+      "core": "Taiwan-Kernanalyse",
+      "world": "Weltauswahl: Weltstädte und globaler Mittelwert"
     },
-    "pSource": "All p and q values are read from the analysis results file; nothing is re-tested in the browser.",
-    "evidenceAria": "Test results",
-    "chartAria": "p values of the four tests on a logarithmic axis: t-test {{ols}}, Mann-Kendall original {{original}}, Hamed-Rao {{hamedRao}}, seasonal {{seasonal}}.",
+    "pSource": "Alle p- und q-Werte stammen aus der Ergebnisdatei der Analyse; im Browser wird nichts neu getestet.",
+    "evidenceAria": "Testergebnisse",
+    "chartAria": "p-Werte der vier Tests auf einer logarithmischen Achse: t-Test {{ols}}, Mann-Kendall Original {{original}}, Hamed-Rao {{hamedRao}}, saisonal {{seasonal}}.",
     "chartKeyP": "p",
-    "chartKeyQ": "q (after FDR)",
-    "chartKeyZone": "Further right = smaller p; the shaded side of the dashed line is p < {{alpha}}. Values below 1e-6 sit at the edge."
+    "chartKeyQ": "q (nach FDR)",
+    "chartKeyZone": "Weiter rechts = kleineres p; die schattierte Seite der gestrichelten Linie ist p < {{alpha}}. Werte unter 1e-6 liegen am Rand."
   },
   "diag": {
-    "more": "More for researchers",
-    "residualTitle": "Residuals: monthly anomalies minus the trend line",
-    "residualAria": "Residuals of {{name}} at {{place}} over time; {{n}} months beyond three robust standard deviations.",
-    "residualKey": "Dots: months beyond ±3 robust SD (1.4826 × MAD): {{n}}.",
-    "acfTitle": "Autocorrelation of the residuals, lags 1–24 months",
-    "acfAria": "Autocorrelation of the residuals at lags 1 to 24 months; lag 1 is {{here}}.",
-    "acfKey": "Dashed: ±1.96/√n (white noise). Lag 1 in the results file: {{file}}; in this chart: {{here}}.",
-    "acfNote": "Descriptive only, computed here from the series. The file's lag-1 value pairs adjacent months without a gap (Pearson r); this chart uses the whole-series mean and variance, so the two can differ slightly. Test p values always come from the results file.",
-    "histTitle": "Distribution of monthly anomalies",
-    "histAria": "Histogram of {{n}} monthly anomalies.",
-    "annualTitle": "Yearly means (complete years only)",
-    "annualAria": "Mean of each complete year from {{first}} to {{last}}.",
-    "annualNote": "Does it look like a straight line, a step or a curve?",
-    "downloadCsv": "Download this series (CSV)",
-    "downloadJson": "Download the trend result (JSON)",
-    "methods": "Methods",
+    "more": "Mehr für Forschende",
+    "residualTitle": "Residuen: Monatsanomalien minus Trendlinie",
+    "residualAria": "Residuen von {{name}} bei {{place}} über die Zeit; {{n}} Monate jenseits von drei robusten Standardabweichungen.",
+    "residualKey": "Punkte: Monate jenseits von ±3 robusten Standardabweichungen (1,4826 × MAD): {{n}}.",
+    "acfTitle": "Autokorrelation der Residuen, Lag 1–24 Monate",
+    "acfAria": "Autokorrelation der Residuen bei Lag 1 bis 24 Monate; Lag 1 ist {{here}}.",
+    "acfKey": "Gestrichelt: ±1,96/√n (weißes Rauschen). Lag 1 in der Ergebnisdatei: {{file}}; in diesem Diagramm: {{here}}.",
+    "acfNote": "Nur beschreibend, hier aus der Datenreihe berechnet. Der Lag-1-Wert der Datei paart benachbarte Monate ohne Lücke (Pearson-r); dieses Diagramm verwendet Mittelwert und Varianz der gesamten Datenreihe, daher können beide leicht abweichen. Die p-Werte der Tests stammen immer aus der Ergebnisdatei.",
+    "histTitle": "Verteilung der Monatsanomalien",
+    "histAria": "Histogramm von {{n}} Monatsanomalien.",
+    "annualTitle": "Jahresmittel (nur vollständige Jahre)",
+    "annualAria": "Mittelwert jedes vollständigen Jahres von {{first}} bis {{last}}.",
+    "annualNote": "Sieht es nach einer Geraden, einer Stufe oder einer Kurve aus?",
+    "downloadCsv": "Diese Datenreihe herunterladen (CSV)",
+    "downloadJson": "Trendergebnis herunterladen (JSON)",
+    "methods": "Methoden",
     "method": {
-      "anomaly": "Anomaly: each monthly value minus the mean of the same calendar month over all usable years of the series.",
-      "ols": "OLS: least-squares slope of the anomalies on time. Its standard error, t-test and CI use the effective sample size n(1 − r1)/(1 + r1), with r1 the lag-1 autocorrelation of the residuals (Santer et al. 2000).",
-      "mk": "Mann-Kendall: Original assumes independent months; Hamed-Rao corrects the variance for autocorrelation (all lags; known to be lenient); Seasonal compares each calendar month only with itself, on the monthly values. Sen slope: median of pairwise slopes; its CI has no autocorrelation correction.",
-      "fdr": "FDR: Benjamini-Hochberg across all analysed series of one run, separately for each test; q is the adjusted p.",
-      "missing": "Missing values: months flagged missing, partial or low coverage are left out; nothing is gap-filled for the trend tests.",
-      "cleaning": "Flags: outlier_suspect and known_discontinuity months are only marked, not removed; documented steps are drawn as dashed lines."
+      "anomaly": "Anomalie: jeder Monatswert minus der Mittelwert desselben Kalendermonats über alle nutzbaren Jahre der Datenreihe.",
+      "ols": "OLS: Kleinste-Quadrate-Steigung der Anomalien über die Zeit. Standardfehler, t-Test und Konfidenzintervall verwenden die effektive Stichprobengröße n(1 − r1)/(1 + r1); r1 ist die Autokorrelation der Residuen bei Lag 1 (Santer et al. 2000).",
+      "mk": "Mann-Kendall: Original setzt unabhängige Monate voraus; Hamed-Rao korrigiert die Varianz für Autokorrelation (alle Lags; bekanntermaßen nachsichtig); Saisonal vergleicht jeden Kalendermonat nur mit sich selbst, anhand der Monatswerte. Sen-Steigung: Median der paarweisen Steigungen; ihr Konfidenzintervall hat keine Autokorrelationskorrektur.",
+      "fdr": "FDR: Benjamini-Hochberg über alle analysierten Datenreihen eines Laufs, getrennt für jeden Test; q ist das angepasste p.",
+      "missing": "Fehlende Werte: Monate, die als fehlend, teilweise oder mit geringer Abdeckung markiert sind, werden ausgelassen; für die Trendtests wird nichts aufgefüllt.",
+      "cleaning": "Markierungen: Monate mit outlier_suspect und known_discontinuity werden nur markiert, nicht entfernt; dokumentierte Sprünge sind als gestrichelte Linien gezeichnet."
     }
   }
 }
