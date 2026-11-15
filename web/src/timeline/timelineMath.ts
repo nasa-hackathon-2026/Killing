@@ -1,10 +1,22 @@
-import { monthName } from "../i18n";
+import { monthYearParts } from "../i18n";
 // Month arithmetic and playback steps of the timeline. Months are the
 // snapshot's "YYYY-MM-01" strings; pure functions only.
 
-// Months per second. Half of the previous 1, 4 and 12; the middle one is
-// the default (see TimelineProvider).
-export const TIMELINE_SPEEDS = [0.5, 2, 6] as const;
+// Months per second. The slider, the − / + buttons and the number box all
+// move in SPEED_STEP; 12 plays a year per second, so 2001–2026 runs in about
+// half a minute.
+export const SPEED_MIN = 0.5;
+export const SPEED_MAX = 12;
+export const SPEED_STEP = 0.5;
+export const DEFAULT_SPEED = 2;
+
+// A typed or computed speed as an allowed one: rounded to the nearest step
+// and kept inside the range; null when it is not a number.
+export function clampSpeed(value: number): number | null {
+  if (!Number.isFinite(value)) return null;
+  const stepped = Math.round(value / SPEED_STEP) * SPEED_STEP;
+  return Math.min(SPEED_MAX, Math.max(SPEED_MIN, stepped));
+}
 
 // Milliseconds the player waits before advancing one month.
 export function playIntervalMs(monthsPerSecond: number): number {
@@ -34,6 +46,19 @@ export function nextPlayIndex(index: number, count: number): number | null {
   return index + 1;
 }
 
+// Pressing play this close to the end (in months) starts from the first
+// month instead: the default month is near the end of the record, and a few
+// months of playback looks like the button did not work.
+export const PLAY_FROM_START_WITHIN = 24;
+
+// Where pressing play starts: the first month when the current month is one
+// of the last PLAY_FROM_START_WITHIN months, otherwise where it is.
+export function playStartIndex(index: number, count: number): number {
+  if (count <= 0) return -1;
+  if (index < 0 || index >= count - PLAY_FROM_START_WITHIN) return 0;
+  return index;
+}
+
 // "?month=2015-07" (or a full "2015-07-01") as the snapshot's month string;
 // null when it is not a month.
 export function parseMonthParam(text: string | null): string | null {
@@ -57,7 +82,8 @@ export function resolveMonth(
   return months.at(-1) ?? null;
 }
 
-// The year and the short month name in the active language.
-export function monthLabel(month: string): { year: string; name: string } {
-  return { year: month.slice(0, 4), name: monthName(month, "short") };
+// The month and year in the active language's order, split so the year can be
+// bold: "Jun 2025" (en), "2025 年 6 月" (zh-TW), "2025年6月" (ja).
+export function monthLabel(month: string): { text: string; year: boolean }[] {
+  return monthYearParts(month, "short");
 }

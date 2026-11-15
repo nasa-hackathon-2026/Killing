@@ -7,11 +7,15 @@ export type GlobeMode = "none" | "trend" | "gap" | "alike";
 // basic picture of the question ("where is it changing?").
 export const DEFAULT_GLOBE_STATS: GlobeMode = "trend";
 
-export const GLOBE_MODE_IDS: GlobeMode[] = ["none", "trend", "gap", "alike"];
+// The modes offered in the selector. "alike" is left out: its arcs mostly
+// join a place to other variables at the same place, or to Taiwan places a
+// few pixels away, so nothing is visible from the global view. The code
+// stays; ?globe=alike falls back to the default.
+export const GLOBE_MODE_IDS: GlobeMode[] = ["none", "trend", "gap"];
 
-// ?globe=trend|gap|alike|none. Anything else (or no parameter) is the default.
+// ?globe=trend|gap|none. Anything else (or no parameter) is the default.
 export function parseGlobeParam(raw: string | null): GlobeMode {
-  if (raw === "none" || raw === "trend" || raw === "gap" || raw === "alike") {
+  if (raw === "none" || raw === "trend" || raw === "gap") {
     return raw;
   }
   return DEFAULT_GLOBE_STATS;

@@ -78,6 +78,7 @@
     "welcome": "こんにちは、データの仲間の「雨」です。このサイトでは、1か所での最大25年分のNASA地球データを見て、それぞれの測定値が変わってきたかどうかを確かめられます。",
     "place": "いま見ているのは、{{month}}の{{place}}です。別の場所はレイヤーパネルで、別の月はタイムラインで選べます。",
     "particles": "地球のまわりの粒子は、この場所とこの月の、レイヤーごとの数値を1つずつ表しています。粒子が多い・速いほど、値は高くなります。地図ではありません。",
+    "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
     "enter": "どの測定値にも、オゾン層から土の中まで、それぞれ高さがあります。上から順に訪ねてみましょう。",
     "trendMap": "ここまでは1か所の話でした。地球のどこで測定値が変わっているかは、上の「全球トレンドマップ」を開くと見られます。",
     "research": "信頼区間や検定名などの統計量をすべて見たいときは、上で「研究者」に切り替えてください。ここからは、あなたの番です。"

@@ -1,91 +1,91 @@
 {
   "label": {
     "rising": {
-      "general": "Rising",
-      "expert": "Rising, significant"
+      "general": "En hausse",
+      "expert": "En hausse, significative"
     },
     "falling": {
-      "general": "Falling",
-      "expert": "Falling, significant"
+      "general": "En baisse",
+      "expert": "En baisse, significative"
     },
     "risingRawOnly": {
-      "general": "Rising, weak evidence",
-      "expert": "Rising, significant before FDR only"
+      "general": "En hausse, preuve faible",
+      "expert": "En hausse, significative avant correction FDR seulement"
     },
     "fallingRawOnly": {
-      "general": "Falling, weak evidence",
-      "expert": "Falling, significant before FDR only"
+      "general": "En baisse, preuve faible",
+      "expert": "En baisse, significative avant correction FDR seulement"
     },
     "notSignificant": {
-      "general": "No clear change in this record",
-      "expert": "Not significant"
+      "general": "Aucun changement net visible",
+      "expert": "Non significative"
     },
     "unreliableRising": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (rising, statistically significant)"
+      "general": "Chiffre pas fiable",
+      "expert": "Tendance pas fiable comme signal climatique : problème de données documenté (en hausse, statistiquement significative)"
     },
     "unreliableFalling": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (falling, statistically significant)"
+      "general": "Chiffre pas fiable",
+      "expert": "Tendance pas fiable comme signal climatique : problème de données documenté (en baisse, statistiquement significative)"
     },
     "unreliableRisingRawOnly": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (rising, significant before FDR only)"
+      "general": "Chiffre pas fiable",
+      "expert": "Tendance pas fiable comme signal climatique : problème de données documenté (en hausse, significative avant correction FDR seulement)"
     },
     "unreliableFallingRawOnly": {
-      "general": "Number not reliable",
-      "expert": "Trend not reliable as a climate signal: documented data issue (falling, significant before FDR only)"
+      "general": "Chiffre pas fiable",
+      "expert": "Tendance pas fiable comme signal climatique : problème de données documenté (en baisse, significative avant correction FDR seulement)"
     },
     "insufficient": {
-      "general": "Too little data for a trend",
-      "expert": "Insufficient data"
+      "general": "Trop peu de données pour une tendance",
+      "expert": "Données insuffisantes"
     },
     "unavailable": {
-      "general": "No trend result",
-      "expert": "No trend result"
+      "general": "Aucun résultat de tendance",
+      "expert": "Aucun résultat de tendance"
     }
   },
   "significance": {
     "notComputed": {
-      "general": "The test could not be run.",
-      "expert": "test could not be computed"
+      "general": "Le test n’a pas pu être effectué.",
+      "expert": "test non calculable"
     },
     "notSignificant": {
-      "general": "No clear change shows in this record. That is not the same as no change.",
-      "expert": "not significant after autocorrelation correction"
+      "general": "Sur cette période, aucun changement net n’est visible. Cela ne veut pas dire qu’il n’y a pas de changement.",
+      "expert": "non significative après correction de l’autocorrélation"
     },
     "fdr": {
-      "general": "This change holds up in the statistical tests.",
-      "expert": "significant after autocorrelation and FDR correction"
+      "general": "Ce changement résiste aux tests statistiques.",
+      "expert": "significative après correction de l’autocorrélation et du taux de fausses découvertes (FDR)"
     },
     "rawOnly": {
-      "general": "This change passes the basic test but not the stricter one, so treat it as uncertain.",
-      "expert": "significant after autocorrelation correction, not after FDR correction"
+      "general": "Ce changement passe le test de base mais pas le test plus strict : prends-le avec prudence.",
+      "expert": "significative après correction de l’autocorrélation, mais pas après correction FDR"
     },
     "unreliableFdr": {
-      "general": "This number is not reliable: the data itself has a documented problem.",
-      "expert": "statistically significant, but not reliable as a climate signal: see caution"
+      "general": "Ce chiffre n’est pas fiable : les données elles-mêmes ont un problème documenté.",
+      "expert": "statistiquement significative, mais pas fiable comme signal climatique : voir la mise en garde"
     },
     "unreliableRawOnly": {
-      "general": "This number is not reliable: the data itself has a documented problem.",
-      "expert": "significant before FDR correction only, and not reliable as a climate signal: see caution"
+      "general": "Ce chiffre n’est pas fiable : les données elles-mêmes ont un problème documenté.",
+      "expert": "significative avant correction FDR seulement, et pas fiable comme signal climatique : voir la mise en garde"
     }
   },
   "change": {
-    "general": "About {{slope}} per decade",
-    "expert": "{{slope}} per decade ({{level}}% CI {{low}} to {{high}})"
+    "general": "Environ {{slope}} par décennie",
+    "expert": "{{slope}} par décennie (IC à {{level}} % : de {{low}} à {{high}})"
   },
-  "period": "{{first}} to {{last}}",
+  "period": "{{first}} à {{last}}",
   "notAnalyzed": {
-    "general": "Too little data to work out a trend",
-    "expert": "Trend not analyzed"
+    "general": "Trop peu de données pour calculer une tendance",
+    "expert": "Tendance non analysée"
   },
   "notSignificantNote": {
-    "general": "No clear change is not the same as no change: the record may be too short or too noisy to tell.",
-    "expert": "Not significant does not mean no change; the record may be too short or too variable to tell."
+    "general": "Aucun changement net visible ne veut pas dire aucun changement : la série est peut-être trop courte ou trop irrégulière pour trancher.",
+    "expert": "Non significatif ne signifie pas absence de changement ; la série peut être trop courte ou trop variable pour trancher."
   },
   "reliable": {
-    "ok": "No documented data problem affects this trend.",
-    "bad": "Not reliable: the data itself has a documented problem (see the caution below)."
+    "ok": "Aucun problème de données documenté n’affecte cette tendance.",
+    "bad": "Pas fiable : les données elles-mêmes ont un problème documenté (voir la mise en garde ci-dessous)."
   }
 }

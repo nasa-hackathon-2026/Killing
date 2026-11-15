@@ -46,7 +46,10 @@ export function ParticleStyleToggle() {
         ))}
       </div>
       {style === "calm" ? (
-        <>
+        // Collapsed to one line by default so the layer list stays on the
+        // first screen.
+        <details className="calm-legend-details">
+          <summary>{calmText.legendSummary}</summary>
           <ul className="calm-legend" aria-label={calmText.legendAria}>
             <li>
               <svg viewBox="-9 -9 18 18" aria-hidden="true">
@@ -95,7 +98,7 @@ export function ParticleStyleToggle() {
             </li>
           </ul>
           <p className="calm-legend-note">{calmText.legendScale}</p>
-        </>
+        </details>
       ) : null}
     </div>
   );

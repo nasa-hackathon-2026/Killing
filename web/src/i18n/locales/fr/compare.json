@@ -1,88 +1,88 @@
 {
-  "title": "Model vs observation",
+  "title": "Modèle vs observation",
   "back": "← Globe",
   "intro": {
-    "general": "This page puts air temperature from computer models next to temperature that was measured, at the same place. Each line shows how far a month is from its usual value for that calendar month ({{start}} to {{end}}).",
-    "expert": "Near-surface air temperature from models and reanalyses, next to observations of the same quantity at the same place. Both series are anomalies over their common months ({{start}} to {{end}}): each value minus that series' own mean of the same calendar month, so baselines and units do not matter."
+    "general": "Cette page place la température de l’air issue de modèles informatiques à côté de la température mesurée, au même endroit. Chaque ligne montre de combien un mois s’écarte de sa valeur habituelle pour ce mois du calendrier ({{start}} à {{end}}).",
+    "expert": "Température de l’air près de la surface issue de modèles et de réanalyses, à côté d’observations de la même grandeur au même lieu. Les deux séries sont des anomalies sur leurs mois communs ({{start}} à {{end}}) : chaque valeur moins la moyenne propre à la série pour le même mois calendaire, de sorte que les niveaux de référence et les unités n’ont pas d’importance."
   },
   "verdict": {
-    "general": "A gap between a model and a measurement does not tell you which one is right. A station measures one point; a model value covers a whole grid cell.",
-    "expert": "A difference between a model and an observation does not by itself say which is right. A station is a point and a model value is a grid cell; GISTEMP is a 2° gridded analysis of station and ship observations."
+    "general": "Un écart entre un modèle et une mesure ne dit pas lequel a raison. Une station mesure un point ; une valeur de modèle couvre toute une cellule de grille.",
+    "expert": "Une différence entre un modèle et une observation ne dit pas à elle seule lequel a raison. Une station est un point et une valeur de modèle est une cellule de grille ; GISTEMP est une analyse sur grille de 2° d’observations de stations et de navires."
   },
-  "error": "Could not read the comparison results.",
+  "error": "Impossible de lire les résultats de la comparaison.",
   "group": {
-    "label": "Group",
+    "label": "Groupe",
     "option": "{{name}} ({{count}})",
-    "taiwan_station": "Taiwan stations",
-    "taiwan_gistemp": "Taiwan, GISTEMP grid cell",
-    "world_city": "World cities",
-    "global": "Global mean"
+    "taiwan_station": "Stations de Taïwan",
+    "taiwan_gistemp": "Taïwan, cellule de grille GISTEMP",
+    "world_city": "Villes du monde",
+    "global": "Moyenne mondiale"
   },
   "tableNote": {
-    "general": "Trends are in °C per decade. Select a place to draw its chart.",
-    "expert": "Trends in °C per decade over the common months. Select a location to plot the pair."
+    "general": "Les tendances sont en °C par décennie. Sélectionne un lieu pour tracer son graphique.",
+    "expert": "Tendances en °C par décennie sur les mois communs. Sélectionner un lieu pour tracer la paire."
   },
   "table": {
-    "location": "Location",
-    "model": "Model product",
-    "obs": "Observation source",
-    "months": "Months",
+    "location": "Lieu",
+    "model": "Produit de modèle",
+    "obs": "Source d’observation",
+    "months": "Mois",
     "r": "r",
-    "modelTrend": "Model trend",
-    "obsTrend": "Obs. trend",
-    "difference": "Difference",
-    "largestStep": "Largest step",
-    "knownIssues": "Known issues"
+    "modelTrend": "Tendance du modèle",
+    "obsTrend": "Tendance obs.",
+    "difference": "Différence",
+    "largestStep": "Plus grand saut",
+    "knownIssues": "Problèmes connus"
   },
   "modelPlace": {
-    "containingCell": "grid cell containing the station",
-    "nearestCell": "nearest grid cell with values",
-    "cellDistance": "{{where}}, centre {{km}} km away",
-    "pointSeries": "point series at {{place}}",
-    "pointSeriesDistance": "point series at {{place}}, {{km}} km away",
-    "sameLocation": "series at the same location"
+    "containingCell": "cellule de grille contenant la station",
+    "nearestCell": "cellule de grille la plus proche avec des valeurs",
+    "cellDistance": "{{where}}, centre à {{km}} km",
+    "pointSeries": "série ponctuelle : {{place}}",
+    "pointSeriesDistance": "série ponctuelle : {{place}}, à {{km}} km",
+    "sameLocation": "série au même lieu"
   },
   "chart": {
-    "aria": "Anomalies of {{model}} and {{obs}} at {{place}}, and their difference",
-    "empty": "No series to plot for this pair.",
-    "keyModel": "Model anomaly",
-    "keyObs": "Observation anomaly",
-    "keyDifference": "Difference (model − observation)",
-    "keyBreak": "Known step month ({{months}})",
-    "keyStep": "Largest step of the difference ({{month}})",
-    "monthly": "Monthly anomalies, °C.",
-    "annual": "Calendar-year means of the monthly anomalies, °C (this group has no monthly values in the file).",
+    "aria": "Anomalies : {{model}} et {{obs}} ({{place}}), et leur différence",
+    "empty": "Aucune série à tracer pour cette paire.",
+    "keyModel": "Anomalie du modèle",
+    "keyObs": "Anomalie de l’observation",
+    "keyDifference": "Différence (modèle − observation)",
+    "keyBreak": "Mois de saut connu ({{months}})",
+    "keyStep": "Plus grand saut de la différence ({{month}})",
+    "monthly": "Anomalies mensuelles, °C.",
+    "annual": "Moyennes par année civile des anomalies mensuelles, °C (ce groupe n’a pas de valeurs mensuelles dans le fichier).",
     "baseline": {
-      "general": "Zero is each line's own usual value for that calendar month.",
-      "expert": "Each series is relative to its own mean of the same calendar month over the common months."
+      "general": "Zéro est la valeur habituelle propre à chaque ligne pour ce mois du calendrier.",
+      "expert": "Chaque série est relative à sa propre moyenne du même mois calendaire sur les mois communs."
     }
   },
   "stats": {
-    "commonMonths": "Common months",
-    "commonMonthsValue": "{{count}} ({{first}} to {{last}})",
-    "modelTrend": "Model trend",
-    "obsTrend": "Observation trend",
-    "differenceTrend": "Trend of the difference",
-    "trendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}})",
-    "trendValuePlain": "about {{slope}} °C per decade",
-    "differenceTrendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}}; {{p}})",
+    "commonMonths": "Mois communs",
+    "commonMonthsValue": "{{count}} ({{first}} à {{last}})",
+    "modelTrend": "Tendance du modèle",
+    "obsTrend": "Tendance de l’observation",
+    "differenceTrend": "Tendance de la différence",
+    "trendValue": "{{slope}} °C par décennie (IC à 95 % : de {{low}} à {{high}})",
+    "trendValuePlain": "environ {{slope}} °C par décennie",
+    "differenceTrendValue": "{{slope}} °C par décennie (IC à 95 % : de {{low}} à {{high}} ; {{p}})",
     "pBelow": "p < {{alpha}}",
     "pAtLeast": "p ≥ {{alpha}}",
-    "difference": "Difference",
-    "differenceValue": "standard deviation {{sd}} °C, RMSE {{rmse}} °C",
-    "largestStep": "Largest step",
-    "largestStepValue": "{{step}} °C at {{month}} (mean of the 6 months from that month minus the 6 months before)",
-    "gapChanging": "The gap between the two changes by about {{slope}} °C per decade, and that change holds up in the statistical test.",
-    "gapUnclear": "This record shows no clear change in the gap between the two. That is not the same as no change.",
-    "tooFew": "Too few common months ({{count}}) for statistics."
+    "difference": "Différence",
+    "differenceValue": "écart type {{sd}} °C, RMSE {{rmse}} °C",
+    "largestStep": "Plus grand saut",
+    "largestStepValue": "{{step}} °C en {{month}} (moyenne des 6 mois à partir de ce mois moins celle des 6 mois précédents)",
+    "gapChanging": "L’écart entre les deux change d’environ {{slope}} °C par décennie, et ce changement résiste au test statistique.",
+    "gapUnclear": "Dans cette série, aucun changement net n’est visible dans l’écart entre les deux. Cela ne veut pas dire qu’il n’y a pas de changement.",
+    "tooFew": "Trop peu de mois communs ({{count}}) pour des statistiques."
   },
-  "notPaired": "Not paired: {{list}}.",
+  "notPaired": "Non appariés : {{list}}.",
   "caveat": {
-    "model": "model",
+    "model": "modèle",
     "observation": "observation",
-    "both": "model and observation",
-    "paired": "paired",
-    "one": "Caution: the {{side}} series has a known issue.",
-    "many": "Caution: the {{side}} series has {{count}} known issues."
+    "both": "modèle et observation",
+    "paired": "appariés",
+    "one": "Mise en garde : un problème connu concerne : {{side}}.",
+    "many": "Mise en garde : {{count}} problèmes connus concernent : {{side}}."
   }
 }

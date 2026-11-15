@@ -103,6 +103,9 @@
 
 /* Under small clusters the name may take two lines. */
 .calm-label-small {
+  /* The label box inside drei's <Html> has no width of its own; without
+     max-content it shrinks to one letter per line on narrow screens. */
+  width: max-content;
   max-width: 78px;
   font-size: 9.5px;
   line-height: 1.15;
@@ -115,4 +118,16 @@
   fill: #0b1220;
   stroke: rgba(255, 255, 255, 0.35);
   stroke-width: 0.8;
+}
+
+/* The Calm legend is one line until opened, so the layer list stays on the
+   first screen. */
+.calm-legend-details {
+  margin: 4px 0 0;
+}
+
+.calm-legend-details > summary {
+  font-size: 11px;
+  opacity: 0.9;
+  cursor: pointer;
 }

@@ -11,6 +11,11 @@ import {
 afterEach(() => setLocale("en"));
 
 describe("particle style", () => {
+  it("defaults to calm", () => {
+    expect(DEFAULT_PARTICLE_STYLE).toBe("calm");
+    expect(resolveParticleStyle(null, null)).toBe("calm");
+  });
+
   it("reads calm and lively only", () => {
     expect(parseParticleStyle("calm")).toBe("calm");
     expect(parseParticleStyle("lively")).toBe("lively");
@@ -23,6 +28,9 @@ describe("particle style", () => {
     expect(resolveParticleStyle(null, "calm")).toBe("calm");
     expect(resolveParticleStyle("nonsense", "calm")).toBe("calm");
     expect(resolveParticleStyle(null, null)).toBe(DEFAULT_PARTICLE_STYLE);
+    // A reader who picked Lively before keeps it.
+    expect(resolveParticleStyle(null, "lively")).toBe("lively");
+    expect(resolveParticleStyle("lively", null)).toBe("lively");
     expect(resolveParticleStyle(null, "nonsense")).toBe(DEFAULT_PARTICLE_STYLE);
   });
 });
@@ -36,9 +44,9 @@ describe("fillCalmText", () => {
       fillCalmText(calmText.noteOneLayer, {
         place: "臺中",
         layer: "降水",
-        when: "，2025年6月",
+        when: "，2025 年 6 月",
       }),
-    ).toContain("臺中 上方這群粒子代表一個數值：降水，2025年6月");
+    ).toContain("臺中 上方這群粒子代表一個數值：降水，2025 年 6 月");
     setLocale("en");
     expect(calmText.styleCalm).toBe("Calm");
   });

@@ -11,7 +11,7 @@ describe("global distribution text", () => {
   it("changes wording without changing the displayed facts", () => {
     expect(fieldText.typical("July")).toBe("Typical July");
     setLocale("zh-TW");
-    expect(fieldText.typical("7月")).toBe("典型的 7月");
+    expect(fieldText.typical("7 月")).toBe("典型的 7 月");
     expect(fieldText.method(2001, 2020)).toContain("2001–2020");
   });
 });

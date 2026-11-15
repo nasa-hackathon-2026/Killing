@@ -21,7 +21,8 @@ import {
 } from "../i18n";
 import { stratumHeight, stratumName } from "../strata/strataSpec";
 import "./guide.css";
-import { TOUR_STEPS } from "./tourScript";
+import { useParticleStyle } from "../forms/calm/particleStyle";
+import { TOUR_STEPS, tourMessageKey } from "./tourScript";
 
 export type TourFigure = {
   // Normalized value 0..1, null without data.
@@ -66,17 +67,21 @@ export function Tour({
     if (step > 0) onStep(step - 1);
   };
 
+  const particleStyle = useParticleStyle();
+  const messages = (current?.messages ?? []).map((key) =>
+    tourMessageKey(key, particleStyle),
+  );
   const said = current ? sentences(current.speaker) : null;
   const lines = current
     ? [
-        ...current.messages.map((key) => t(key, vars)),
+        ...messages.map((key) => t(key, vars)),
         ...current.lines
           .map((line) => said?.[line] ?? null)
           .filter((line): line is string => !!line),
       ]
     : [];
   const speechLocale = getMessageLocale(
-    current?.messages[0] ??
+    messages[0] ??
       (voice === "expert"
         ? "companions.line.noMonth"
         : "companions.say.noMonth"),
@@ -89,9 +94,7 @@ export function Tour({
     : null;
   const spokenText = current
     ? [
-        ...current.messages.map((key) =>
-          t(key, { ...vars, month: spokenMonth }),
-        ),
+        ...messages.map((key) => t(key, { ...vars, month: spokenMonth })),
         ...current.lines
           .map((line) => spokenSentences?.[line] ?? null)
           .filter((line): line is string => !!line),
