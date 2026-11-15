@@ -2,9 +2,16 @@
    chart's frame and position (.timeline-chart in index.css); everything
    here is inside it. Classes start with investigation-. */
 
-/* Wider on request, still left of the Layers panel and companions. */
+/* Wider on request, still left of the companions and the Layers panel
+   (574px together, as in index.css), beside the legend column when it
+   holds a map legend (left: 384px). */
 .timeline-chart.investigation-wide {
-  width: min(720px, calc(100% - 306px - 36px));
+  width: min(720px, calc(100% - 12px - 574px - 12px));
+}
+
+.app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+  .timeline-chart.investigation-wide {
+  width: min(720px, calc(100% - 384px - 574px));
 }
 
 .investigation header button {
@@ -446,16 +453,25 @@
   margin-top: 10px;
 }
 
+/* Medium widths: the widened drawer takes the room of the companions,
+   which give way until it is narrowed again. */
 @media (max-width: 1180px) {
   .timeline-chart.investigation-wide,
-  .app:has(.trendmap) .timeline-chart.investigation-wide {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart.investigation-wide {
     width: calc(100% - 306px - 36px);
+  }
+
+  .app:has(.investigation-wide)
+    .companion-dock:not(.companion-gather, .companion-gallery) {
+    display: none;
   }
 }
 
 @media (max-width: 700px) {
   .timeline-chart.investigation-wide,
-  .app:has(.trendmap) .timeline-chart.investigation-wide {
+  .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
+    .timeline-chart.investigation-wide {
     width: calc(100% - 24px);
   }
 

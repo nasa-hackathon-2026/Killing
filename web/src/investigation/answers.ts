@@ -8,7 +8,7 @@ import {
   type TrendEntry,
   type TrendsFile,
 } from "../analysis/trends";
-import { localNumber, t, tm } from "../i18n";
+import { getLocale, localNumber, t, tm } from "../i18n";
 import type { Place } from "../snapshot/places";
 import { formatP } from "../timeline/seriesMath";
 import { formatChange, formatTotal, recordYears } from "./format";
@@ -92,8 +92,10 @@ export function answerFor(
       total: formatTotal(trend),
       years: recordYears(trend),
     });
+    // Chinese and Japanese sentences follow each other without a space.
+    const gap = /^(zh|ja)/.test(getLocale()) ? "" : " ";
     return input.signal.unreliable
-      ? `${text} ${tm("investigation.answer.unreliableSuffix")}`
+      ? `${text}${gap}${tm("investigation.answer.unreliableSuffix")}`
       : text;
   }
   const outcome = significanceOutcome(trend.ols, input.signal.unreliable);
