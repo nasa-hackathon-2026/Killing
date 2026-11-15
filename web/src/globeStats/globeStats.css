@@ -259,7 +259,10 @@
   touch-action: auto;
 }
 
+/* Sits above the place's dot (not on it): the anchor is the point, the arrow
+   is lifted by its own height plus a small gap. */
 .globe-trend-marker {
+  transform: translate(-50%, calc(-100% - 7px));
   min-width: 22px;
   min-height: 22px;
   overflow: visible;
