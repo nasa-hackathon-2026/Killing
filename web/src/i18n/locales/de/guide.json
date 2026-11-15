@@ -7,7 +7,7 @@
       "expert": "Wähle eine Erdsystemvariable, verfolge bis zu 25 Jahre davon an einem Ort und prüfe, ob ihr Trend statistisch signifikant ist."
     },
     "tour": "Rundgang starten",
-    "tourHint": "Ein Datenbegleiter führt dich von oben nach unten durch die Ebenen.",
+    "tourHint": "Ein Datenbegleiter führt dich durch vier Fragen: was sich verändert, wo, wie stark und ob die Veränderung signifikant ist.",
     "examples": "Beispiel ausprobieren",
     "opens": "Öffnet: {{what}}",
     "start": "Loslegen",
@@ -75,12 +75,37 @@
     "finish": "Loslegen",
     "keys": "Eingabe oder → weiter · ← zurück · Esc überspringen",
     "noPlace": "Der Rundgang braucht genau einen Ort. Wähle einen im Bereich „Ebenen“.",
-    "welcome": "Hallo, ich bin Regen, einer der Datenbegleiter. Diese Seite zeigt bis zu 25 Jahre NASA-Erddaten an einem Ort und ob sich jede Messung verändert hat.",
-    "place": "Gerade siehst du {{place}} im {{month}}. Im Bereich „Ebenen“ kannst du einen anderen Ort wählen und auf der Zeitleiste einen anderen Monat.",
-    "particles": "Die Teilchen um den Globus zeigen für diesen Ort und Monat eine Zahl je Ebene. Mehr oder schnellere Teilchen bedeuten einen höheren Wert. Sie sind keine Karte.",
-    "particlesCalm": "Der Haufen über diesem Ort zeigt für diesen Monat eine Zahl je Ebene. Mehr Einheiten bedeuten einen höheren Wert, und der dünne Ring ist das Übliche für diesen Monat. Er ist keine Karte.",
-    "enter": "Jede Messung gehört zu einer Höhe, von der Ozonschicht bis zum Boden. Besuchen wir sie von oben nach unten.",
-    "trendMap": "Das war ein Ort. Willst du sehen, wo auf der Erde sich eine Messung verändert, öffne oben die Globale Trendkarte.",
-    "research": "Für die volle Statistik, etwa Konfidenzintervalle und Testnamen, wechsle oben zu Forschende. Jetzt bist du dran."
+    "chapters": "Kapitel",
+    "chapterJump": "Kapitel {{number}}: {{question}}",
+    "welcome": "Hallo, ich bin Regen. Ich zeige dir, wie du mit NASA-Erddaten vier Fragen beantwortest: was sich verändert, wo, wie stark und ob die Veränderung signifikant ist.",
+    "particles": "Das ist {{place}} im {{month}}. Die Teilchen zeigen eine Zahl je Ebene für diesen Ort und Monat; sie sind keine Karte.",
+    "particlesCalm": "Das ist {{place}} im {{month}}. Der Haufen über dem Ort zeigt eine Zahl je Ebene für diesen Monat; er ist keine Karte.",
+    "what": {
+      "tab": "Reiter ① zeigt meine ganze Messreihe Monat für Monat und meinen üblichen Verlauf durchs Jahr. Andere Messungen derselben Gruppe stehen auch dort."
+    },
+    "where": {
+      "tab": "Reiter ② zeigt dieselbe Messung an vielen Orten nebeneinander. Klick auf ein Kästchen, um zu diesem Ort zu wechseln.",
+      "city": "Jetzt sind wir in {{place}}, und der Globus hat sich dorthin gedreht. Die Veränderung an jedem Punkt der Erde zeigt dir oben die Globale Trendkarte."
+    },
+    "howmuch": {
+      "anomaly": {
+        "general": "Reiter ③ nimmt zuerst den üblichen Jahresverlauf heraus, sodass jeder Monat zeigt, wie weit er vom Üblichen abwich. Die Trendlinie macht daraus eine Veränderung pro Jahrzehnt.",
+        "expert": "Reiter ③ arbeitet mit Monatsanomalien (Jahresgang entfernt) und der Kleinste-Quadrate-Steigung pro Jahrzehnt. Die Tabelle nennt dazu das 95-%-Konfidenzintervall und den p-Wert."
+      },
+      "play": {
+        "general": "Der Balken auf der Linie um 0 ist der Bereich, in dem die Veränderung pro Jahrzehnt wahrscheinlich liegt (95 %); kreuzt er die 0, ist die Richtung noch offen. Drück auf Abspielen, dann wandert der Cursor im Diagramm mit der Zeitleiste mit.",
+        "expert": "Das Intervalldiagramm zeigt OLS- und Sen-Steigung mit ihren 95-%-Konfidenzintervallen auf einer Zahlengeraden um 0. Während die Zeitleiste läuft, folgt ihr der Cursor im Diagramm."
+      }
+    },
+    "significant": {
+      "tests": {
+        "general": "Reiter ④ prüft die Messreihe mit zwei verschiedenen Tests, und jedes Licht zeigt, ob dieser Test eine Veränderung findet. Stimmen beide überein, ist die Antwort klarer.",
+        "expert": "Reiter ④ zeigt den OLS-t-Test (Lag-1-Autokorrelation korrigiert) und Mann-Kendall mit p und FDR-korrigiertem q. Er sagt auch, ob beide übereinstimmen."
+      },
+      "notSignificant": "„Nicht signifikant“ heißt nicht „keine Veränderung“. Oft ist die Messreihe einfach zu kurz oder zu unruhig, um es zu sagen.",
+      "caveat": "Manche Messreihen haben ein dokumentiertes Datenproblem, etwa einen Sprung beim Wechsel des Produkts. Ihr Trend bekommt eine schraffierte Markierung und einen Hinweis: als Klimasignal nicht verlässlich."
+    },
+    "outro": "Jetzt bist du dran: Probier eins davon aus oder spring mit den Nummern oben zu einem Kapitel. Mit dem Knopf „? Anleitung“ holst du mich jederzeit zurück.",
+    "nextResearcher": "Zu Forschende wechseln für die volle Statistik"
   }
 }

@@ -7,7 +7,7 @@
       "expert": "Choisir une variable du système Terre, suivre jusqu’à 25 ans de données en un lieu, et voir si sa tendance est statistiquement significative."
     },
     "tour": "Suivre la visite",
-    "tourHint": "Un compagnon de données te guide à travers les couches, de haut en bas.",
+    "tourHint": "Un compagnon de données te guide à travers quatre questions : ce qui change, où, de combien, et si le changement est significatif.",
     "examples": "Essayer un exemple",
     "opens": "Ouvre : {{what}}",
     "start": "Commencer à explorer",
@@ -75,12 +75,37 @@
     "finish": "Commencer à explorer",
     "keys": "Entrée ou → suivant · ← retour · Échap pour passer",
     "noPlace": "La visite a besoin d’un seul lieu. Choisis-en un dans le panneau Couches.",
-    "welcome": "Salut, je suis Pluie, l’un des compagnons de données. Ce site montre jusqu’à 25 ans de données terrestres de la NASA en un lieu, et si chaque mesure a changé.",
-    "place": "En ce moment, tu regardes {{place}} en {{month}}. Tu peux choisir un autre lieu dans le panneau Couches et un autre mois sur la chronologie.",
-    "particles": "Les particules autour du globe montrent un chiffre par couche pour ce lieu et ce mois. Plus de particules, ou plus rapides, signifient une valeur plus élevée. Ce n’est pas une carte.",
-    "particlesCalm": "L’amas au-dessus de ce lieu montre un nombre par couche pour ce mois. Plus d’unités signifie une valeur plus haute, et l’anneau fin est l’habituel pour ce mois. Ce n’est pas une carte.",
-    "enter": "Chaque mesure appartient à une hauteur, de la couche d’ozone jusqu’au sol. Visitons-les de haut en bas.",
-    "trendMap": "C’était un seul lieu. Pour voir où sur Terre une mesure change, ouvre Carte des tendances en haut.",
-    "research": "Pour les statistiques complètes, comme les intervalles de confiance et les noms des tests, passe en mode Chercheur en haut. À toi de jouer maintenant."
+    "chapters": "Chapitres",
+    "chapterJump": "Chapitre {{number}} : {{question}}",
+    "welcome": "Salut, je suis Pluie. Je vais te montrer comment répondre à quatre questions avec les données terrestres de la NASA : ce qui change, où, de combien, et si le changement est significatif.",
+    "particles": "Voici {{place}} en {{month}}. Les particules montrent un nombre par couche pour ce lieu et ce mois ; ce n’est pas une carte.",
+    "particlesCalm": "Voici {{place}} en {{month}}. L’amas au-dessus du lieu montre un nombre par couche pour ce mois ; ce n’est pas une carte.",
+    "what": {
+      "tab": "L’onglet ① montre toute ma série mois par mois, et mon cycle habituel au fil de l’année. Les autres mesures du même groupe y sont aussi listées."
+    },
+    "where": {
+      "tab": "L’onglet ② montre la même mesure en de nombreux lieux, côte à côte. Clique sur une case pour aller à ce lieu.",
+      "city": "Nous sommes maintenant à {{place}}, et le globe s’est tourné vers ce lieu. Pour voir le changement en chaque point de la Terre, ouvre Carte des tendances en haut."
+    },
+    "howmuch": {
+      "anomaly": {
+        "general": "L’onglet ③ retire d’abord le cycle habituel de l’année, pour que chaque mois montre son écart à la normale. La droite de tendance en fait un changement par décennie.",
+        "expert": "L’onglet ③ utilise les anomalies mensuelles (cycle saisonnier retiré) et la pente des moindres carrés par décennie. Le tableau ajoute l’intervalle de confiance à 95 % et la valeur p."
+      },
+      "play": {
+        "general": "La barre sur la ligne centrée sur 0 est la plage où se trouve probablement le changement par décennie (95 %) ; si elle traverse 0, le sens n’est pas encore établi. Appuie sur lecture et le curseur avance sur le graphique avec la chronologie.",
+        "expert": "Le graphique d’intervalles montre les pentes OLS et de Sen avec leurs intervalles de confiance à 95 % sur une ligne centrée sur 0. Pendant la lecture, le curseur suit la chronologie sur le graphique."
+      }
+    },
+    "significant": {
+      "tests": {
+        "general": "L’onglet ④ applique deux tests différents à la série, et chaque voyant indique si ce test trouve un changement. Quand les deux concordent, la réponse est plus nette.",
+        "expert": "L’onglet ④ montre le test t OLS (corrigé de l’autocorrélation d’ordre 1) et Mann-Kendall, avec p et q corrigé par FDR. Il indique si les deux concordent."
+      },
+      "notSignificant": "« Non significatif » ne veut pas dire « aucun changement ». Souvent, la série est simplement trop courte ou trop variable pour trancher.",
+      "caveat": "Certaines séries ont un problème de données documenté, comme un saut lors d’un changement de produit. Leur tendance porte alors une marque hachurée et une note : pas fiable comme signal climatique."
+    },
+    "outro": "À toi de jouer : essaie l’une de ces pistes, ou va à n’importe quel chapitre avec les numéros en haut. Rappelle-moi quand tu veux avec le bouton « ? Guide ».",
+    "nextResearcher": "Passer en mode Chercheur pour les statistiques complètes"
   }
 }
