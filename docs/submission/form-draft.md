@@ -283,7 +283,7 @@ The challenge names six data sources: **MODIS, OMI, AIRS, GPM, MERRA-2 and GLDAS
 | FLDAS Noah `FLDAS_NOAH01_C_GL_M` 001 | Land data assimilation product, 0.1 degree | Reference product for checking GLDAS evapotranspiration and soil moisture (analysis only, not shown on the globe) | DOI not recorded in the repository (needs team check) |
 | SMAP L3 `SPL3SMP` V009 (NSIDC DAAC) | Surface soil moisture, 36 km | Evaluated for Taiwan; no pixel reached the recommended quality, so no series is used or shown | 10.5067/4XXOGX0OOW1S |
 | NASA Visible Earth, Blue Marble | Globe surface texture | Background image of the globe | <https://visibleearth.nasa.gov/images/57730/blue-marble-land-surface-ocean-color-sea-ice-and-clouds> |
-| NASA GIBS (Global Imagery Browse Services) | Blue Marble shaded relief, nine 500 m tiles | Closer view of Taiwan | <https://gibs.earthdata.nasa.gov/> (the layer identifier is not recorded in the repository; needs team check) |
+| NASA GIBS (Global Imagery Browse Services) | Blue Marble shaded relief, 500 m (nine tiles stitched for Taiwan; one level-7 tile per world city, fetched from GIBS when zoomed in) | Closer view of Taiwan and the 12 world cities | <https://gibs.earthdata.nasa.gov/> (the city tiles use the layer `BlueMarble_ShadedRelief_Bathymetry`, `web/src/geo/detailCoverage.ts`; the layer of the Taiwan image is not recorded in the repository; needs team check) |
 | Challenge resource: Acker et al. 2009, SeaWiFS chlorophyll time series (NASA NTRS) | Paper | The use of monthly anomalies with a linear trend follows it | <https://ntrs.nasa.gov/api/citations/20090042747/downloads/20090042747.pdf> |
 
 ### 7.3 NASA services and tools used to get the data

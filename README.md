@@ -108,7 +108,7 @@ All series are stored as monthly values in one common format. The lists below ar
 | IMERG, GLDAS, AIRS, MERRA-2, FLDAS, OMI global grids | NASA CMR + **Earthdata Cloud OPeNDAP** | Global monthly grid cubes; area means computed locally |
 | Station air temperature, Taichung and Taipei (NOAA GHCNh; not NASA) | AWS Open Data | Ground validation layer only; monthly means only |
 
-The globe surface is NASA Blue Marble (NASA Visible Earth), and the closer Taiwan view is Blue Marble shaded relief from NASA GIBS. The use of monthly anomalies with a linear trend follows Acker et al. 2009 (SeaWiFS chlorophyll time series), a paper on the challenge's resource list.
+The globe surface is NASA Blue Marble (NASA Visible Earth), and the closer views of Taiwan and of the twelve world cities are Blue Marble shaded relief from NASA GIBS (layer `BlueMarble_ShadedRelief_Bathymetry`, 500 m; a city's tile is fetched from GIBS only when the camera comes close to it). The use of monthly anomalies with a linear trend follows Acker et al. 2009 (SeaWiFS chlorophyll time series), a paper on the challenge's resource list.
 
 How much data there is:
 
