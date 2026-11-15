@@ -80,7 +80,8 @@
     "open": "Gather",
     "aria": "Gather: all companions",
     "foot": "In the middle, a form of the sky or air points up and a form of the surface or ground holds a palm down; higher forms stand on the upper steps. The arrangement is illustrative and shows no cause and effect.",
-    "credit": "Composition inspired by Raphael, The School of Athens (1509–1511), public domain."
+    "credit": "Composition inspired by Raphael, The School of Athens (1509–1511), public domain.",
+    "button": "All {{count}} together"
   },
   "interactions": {
     "vaporRain": "Vapor above Rain: a drop passes down.",
@@ -90,5 +91,11 @@
     "soilEvaporation": "Soil below Evaporation: beads pass up.",
     "glowBelow": "A temperature companion's light falls on the one below.",
     "glowAbove": "A temperature companion's light falls on the one above."
-  }
+  },
+  "headingCount": "Companions · {{shown}} of {{total}}",
+  "restLabel": "Not on yet: pick one to turn its layer on",
+  "turnOnAria": "{{name}}: turn on {{layer}}",
+  "turnOnNoDataAria": "{{name}}: turn on {{layer}} (no data at {{place}})",
+  "turnOnTitle": "Turn on {{layer}}",
+  "turnOnNoDataTitle": "Turn on {{layer}}: no data at {{place}}"
 }

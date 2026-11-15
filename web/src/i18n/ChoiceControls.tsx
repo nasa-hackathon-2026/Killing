@@ -10,6 +10,7 @@ import {
   type Locale,
   type Role,
 } from "./index";
+import { HudIcon } from "../hud/icons";
 import "./choices.css";
 
 export function LanguageMenu() {
@@ -17,9 +18,11 @@ export function LanguageMenu() {
   return (
     <label className="choice-language">
       <span className="choice-label">{t("common.language.label")}</span>
+      <HudIcon name="language" />
       <select
         value={locale}
         aria-label={t("common.language.label")}
+        title={t("common.language.label")}
         onChange={(event) => void chooseLocale(event.target.value as Locale)}
       >
         {LOCALES.map((item) => (

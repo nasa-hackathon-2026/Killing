@@ -6,6 +6,7 @@ import {
   type TrendSummary,
 } from "./analysis/trends";
 import { CloseUpPanel } from "./closeup/CloseUpPanel";
+import { HudIcon } from "./hud/icons";
 import { CompanionDock } from "./companions/CompanionDock";
 import { companionReading, monthlyAnomaly } from "./companions/companionData";
 import { companionSentences } from "./companions/companionLine";
@@ -474,6 +475,13 @@ function AppView({
   const closeUpName = closeUpLayer
     ? variableName(closeUpLayer.id, closeUpLayer.nameEn)
     : "";
+  // Turns one layer on (the search box and the companion panel use it).
+  const showLayer = (id: string) =>
+    setControls((current) =>
+      current.map((layer) =>
+        layer.id === id ? { ...layer, visible: true } : layer,
+      ),
+    );
   const roleControls = (
     <>
       <RoleSwitch />
@@ -557,13 +565,7 @@ function AppView({
             label: variableName(layer.id, layer.nameEn),
           }))}
           onPlace={(id) => selectPlace(id, true)}
-          onLayer={(id) =>
-            setControls((current) =>
-              current.map((layer) =>
-                layer.id === id ? { ...layer, visible: true } : layer,
-              ),
-            )
-          }
+          onLayer={showLayer}
         />
         {strata.phase === "off" ? (
           <FieldToggle
@@ -577,9 +579,11 @@ function AppView({
           className="hud-guide"
           aria-pressed={guideOpen}
           aria-label={t("hud.guideAria")}
+          title={t("hud.guideAria")}
           onClick={() => (guideOpen ? closeGuide() : setGuideOpen(true))}
         >
-          ? <span>{t("hud.guide")}</span>
+          <HudIcon name="guide" />
+          <span className="hud-text">{t("hud.guide")}</span>
         </button>
         <button
           type="button"
@@ -589,16 +593,27 @@ function AppView({
             strata.phase === "return" ||
             (strata.phase === "off" && !location)
           }
-          title={location ? undefined : t("hud.needsPlace")}
+          title={
+            location || strata.phase !== "off"
+              ? t(strata.phase === "off" ? "hud.layerView" : "hud.backToGlobe")
+              : t("hud.needsPlace")
+          }
+          aria-label={t(
+            strata.phase === "off" ? "hud.layerView" : "hud.backToGlobe",
+          )}
           aria-pressed={strata.phase !== "off"}
         >
-          {t(strata.phase === "off" ? "hud.layerView" : "hud.backToGlobe")}
+          <HudIcon name="layers" />
+          <span className="hud-text">
+            {t(strata.phase === "off" ? "hud.layerView" : "hud.backToGlobe")}
+          </span>
         </button>
-        <label>
-          <span>{t("hud.trendMap")}</span>
+        <label className="hud-select" data-on={trendMapId ? "" : undefined}>
+          <HudIcon name="trend" />
           <select
             value={trendMapId ?? ""}
             aria-label={t("hud.trendMap")}
+            title={t("hud.trendMap")}
             onChange={(event) => {
               setGuideOpen(false);
               setTrendMapId(event.target.value || null);
@@ -619,13 +634,19 @@ function AppView({
             setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE })
           }
           disabled={flying || strata.phase !== "off"}
+          title={t("hud.flyTaiwan")}
+          aria-label={t("hud.flyTaiwan")}
         >
-          {t("hud.flyTaiwan")}
+          <HudIcon name="fly" />
+          <span className="hud-text">{t("hud.flyTaiwan")}</span>
         </button>
         <div className="hud-choices">{roleControls}</div>
         {/* Secondary pages and the renderer diagnostics. */}
         <details className="hud-more" ref={moreMenuRef}>
-          <summary>{t("hud.more")}</summary>
+          <summary title={t("hud.more")} aria-label={t("hud.more")}>
+            <HudIcon name="more" />
+            <span className="hud-text">{t("hud.more")}</span>
+          </summary>
           <div className="hud-menu">
             <div className="hud-menu-choices">{roleControls}</div>
             <a href={carryChoices(`${import.meta.env.BASE_URL}compare/`)}>
@@ -745,6 +766,7 @@ function AppView({
         locationName={placeName}
         aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
+        onTurnOn={showLayer}
       />
       <div className="map-legends" hidden={globeStats.hidden}>
         <div className="globe-stats-selectors">
