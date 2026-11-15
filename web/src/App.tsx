@@ -28,6 +28,7 @@ import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations, taiwanOverview } from "./mock/snapshot";
 import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
 import { EarthCanvas } from "./scene/EarthCanvas";
+import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
@@ -91,7 +92,7 @@ const TAIWAN_FLY_DISTANCE = 1.85;
 const PLACE_FLY_DISTANCE = 2.3;
 // The whole globe in view: the distance the camera is created at
 // (EarthCanvas). A page that opens at a Taiwan place starts here.
-const START_DISTANCE = 3.2;
+const START_DISTANCE = DEFAULT_ORBIT_DISTANCE;
 // Before the catalogs are read, the five Taiwan places stand in.
 const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   ...item,

@@ -1,7 +1,20 @@
 // Month arithmetic and playback steps of the timeline. Months are the
 // snapshot's "YYYY-MM-01" strings; pure functions only.
 
-export const TIMELINE_SPEEDS = [1, 4, 12] as const;
+// Months per second. Half of the previous 1, 4 and 12; the middle one is
+// the default (see TimelineProvider).
+export const TIMELINE_SPEEDS = [0.5, 2, 6] as const;
+
+// Milliseconds the player waits before advancing one month.
+export function playIntervalMs(monthsPerSecond: number): number {
+  return 1000 / monthsPerSecond;
+}
+
+// Tooltip for a speed button, e.g. "0.5 months per second".
+export function speedLabel(monthsPerSecond: number): string {
+  const noun = monthsPerSecond === 1 ? "month" : "months";
+  return `${monthsPerSecond} ${noun} per second`;
+}
 
 // Months since year 0, so two months can be subtracted.
 export function monthNumber(month: string): number {

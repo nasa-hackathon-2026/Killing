@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { StripBar } from "./seriesMath";
 import { useTimeline } from "./TimelineContext";
-import { monthLabel, TIMELINE_SPEEDS } from "./timelineMath";
+import { monthLabel, speedLabel, TIMELINE_SPEEDS } from "./timelineMath";
 
 type TimelineBarProps = {
   // Anomaly strip above the slider: one bar per month of `stripName`.
@@ -85,7 +85,7 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
               key={value}
               type="button"
               aria-pressed={speed === value}
-              title={`${value} month${value === 1 ? "" : "s"} per second`}
+              title={speedLabel(value)}
               onClick={() => setSpeed(value)}
             >
               {value}×
