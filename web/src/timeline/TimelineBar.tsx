@@ -1,8 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../i18n";
 import type { StripBar } from "./seriesMath";
 import { useTimeline } from "./TimelineContext";
-import { monthLabel, TIMELINE_SPEEDS } from "./timelineMath";
+import {
+  clampSpeed,
+  monthLabel,
+  SPEED_MAX,
+  SPEED_MIN,
+  SPEED_STEP,
+} from "./timelineMath";
 
 type TimelineBarProps = {
   // Anomaly strip above the slider: one bar per month of `stripName`.
@@ -40,6 +46,8 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
     setSpeed,
   } = useTimeline();
   const { t, tm } = useI18n();
+  // What is typed in the speed box while it is being edited; null otherwise.
+  const [speedDraft, setSpeedDraft] = useState<string | null>(null);
 
   // Space plays or pauses, the arrow keys step one month. Keys typed into a
   // form control (or pressed on a focused button or link) are left alone.
@@ -65,6 +73,20 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
   if (!month || monthIndex < 0) return null;
   const label = monthLabel(month);
   const count = months.length;
+  const speedText = t("timeline.speedTitle", { count: speed });
+  const changeSpeed = (value: number) => {
+    const next = clampSpeed(value);
+    if (next !== null) setSpeed(next);
+    setSpeedDraft(null);
+  };
+  // Leaving the number box (or Enter) snaps what was typed to an allowed
+  // speed; an empty box or text that is not a number goes back to the
+  // current speed.
+  const commitSpeedDraft = () => {
+    if (speedDraft === null) return;
+    if (speedDraft.trim() === "") setSpeedDraft(null);
+    else changeSpeed(Number(speedDraft));
+  };
 
   return (
     <section className="timeline-bar" aria-label={t("timeline.aria")}>
@@ -79,24 +101,74 @@ export function TimelineBar({ strip, stripName, breaks }: TimelineBarProps) {
           {playing ? "❚❚" : "▶"}
         </button>
         <p className="timeline-now" aria-live="off">
-          <strong>{label.year}</strong> {label.name}
+          {label.map((part, index) =>
+            part.year ? (
+              <strong key={index}>{part.text}</strong>
+            ) : (
+              <span key={index}>{part.text}</span>
+            ),
+          )}
         </p>
         <div
           className="timeline-speed"
           role="group"
           aria-label={t("timeline.speed")}
         >
-          {TIMELINE_SPEEDS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={speed === value}
-              title={t("timeline.speedTitle", { count: value })}
-              onClick={() => setSpeed(value)}
-            >
-              {value}×
-            </button>
-          ))}
+          <button
+            type="button"
+            aria-label={t("timeline.slower")}
+            title={t("timeline.slower")}
+            disabled={speed <= SPEED_MIN}
+            onClick={() => changeSpeed(speed - SPEED_STEP)}
+          >
+            −
+          </button>
+          <input
+            type="range"
+            min={SPEED_MIN}
+            max={SPEED_MAX}
+            step={SPEED_STEP}
+            value={speed}
+            aria-label={t("timeline.speed")}
+            aria-valuetext={speedText}
+            title={speedText}
+            onChange={(event) => changeSpeed(Number(event.target.value))}
+          />
+          <button
+            type="button"
+            aria-label={t("timeline.faster")}
+            title={t("timeline.faster")}
+            disabled={speed >= SPEED_MAX}
+            onClick={() => changeSpeed(speed + SPEED_STEP)}
+          >
+            +
+          </button>
+          <label className="timeline-speed-value" title={speedText}>
+            <input
+              type="number"
+              inputMode="decimal"
+              min={SPEED_MIN}
+              max={SPEED_MAX}
+              step={SPEED_STEP}
+              value={speedDraft ?? String(speed)}
+              aria-label={t("timeline.speedInput")}
+              onChange={(event) => {
+                setSpeedDraft(event.target.value);
+                // Apply right away when the text is already an allowed speed,
+                // so typing "3" plays at 3× without leaving the box.
+                const typed = Number(event.target.value);
+                if (event.target.value !== "" && clampSpeed(typed) === typed) {
+                  setSpeed(typed);
+                }
+              }}
+              onBlur={commitSpeedDraft}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") commitSpeedDraft();
+                if (event.key === "Escape") setSpeedDraft(null);
+              }}
+            />
+            ×
+          </label>
         </div>
         <button
           type="button"

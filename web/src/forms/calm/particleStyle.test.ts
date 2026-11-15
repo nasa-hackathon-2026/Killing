@@ -36,9 +36,9 @@ describe("fillCalmText", () => {
       fillCalmText(calmText.noteOneLayer, {
         place: "臺中",
         layer: "降水",
-        when: "，2025年6月",
+        when: "，2025 年 6 月",
       }),
-    ).toContain("臺中 上方這群粒子代表一個數值：降水，2025年6月");
+    ).toContain("臺中 上方這群粒子代表一個數值：降水，2025 年 6 月");
     setLocale("en");
     expect(calmText.styleCalm).toBe("Calm");
   });
