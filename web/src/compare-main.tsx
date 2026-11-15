@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ComparePage } from "./compare/ComparePage";
 import "./index.css";
+import "./theme/controls.css";
 import "./mining/mining.css";
 import "./compare/compare.css";
 

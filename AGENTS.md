@@ -224,6 +224,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 
   平台上只站角色，名稱在滑鼠移上或鍵盤聚焦時才出現（左欄已經列了每個變數與數值）。左欄標籤的位置由 `strataLayout.ts` 的 `stackLabelTops` 決定（純函式，有測試）：對齊各層高度、不壓到圖例、彼此不重疊、不超過 `labelCeiling`（寬螢幕是左下角出處文字的上緣，其他是時間軸列的上緣）。趨勢地圖的圖例在分層視圖開著時隱藏（地球被蓋住）；收合的 Companions 只留標題與 + 鈕（一排頭像會壓到最上面的平台）。
 - **無障礙**：`index.css` 最上面的 `:focus-visible` 給所有控制項同一個焦點框，不要在個別元件把 outline 拿掉；新的互動元素用 `<button>`、`<a>`、`<details>`，不要用可點的 `<div>`。
+- **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
 ## 前端的時間軸與時間序列圖（#99）
 主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`。
