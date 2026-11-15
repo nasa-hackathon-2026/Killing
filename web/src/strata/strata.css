@@ -375,6 +375,12 @@
   background: rgba(8, 14, 28, 0.86);
 }
 
+/* The globe's place name tag belongs to the globe, which the layer view covers
+   (it would float over the timeline bar). */
+.app:has(.strata) .place-label {
+  display: none;
+}
+
 /* The trend map is drawn on the globe, which the layer view covers. */
 .app:has(.strata) .trendmap {
   display: none;
@@ -461,6 +467,14 @@
   }
 }
 
+/* The panel of an expanded layer stands in the bottom-left corner: Reset
+   view moves right of it. */
+@media (min-width: 701px) {
+  .strata:has(.strata-detail) .strata-reset {
+    left: 392px;
+  }
+}
+
 /* Medium and compact: the companions stand on the platforms, so the folded
    Companions chip would only sit over the top of the stack. */
 @media (max-width: 1180px) {
@@ -520,7 +534,8 @@
     width: 188px;
   }
 
-  .strata-reset {
+  .strata-reset,
+  .strata:has(.strata-detail) .strata-reset {
     left: 220px;
   }
 
@@ -583,16 +598,18 @@
   }
 
   .strata-reset {
-    top: 164px;
+    top: 172px;
     right: 12px;
     bottom: auto;
     left: auto;
+    max-width: 112px;
     min-height: 44px;
+    text-align: center;
   }
 
   .strata-labelbar {
     position: absolute;
-    top: 96px;
+    top: 104px;
     right: 0;
     left: 0;
     display: flex;

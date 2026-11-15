@@ -256,7 +256,7 @@ export const LABEL_COLUMN_COMPACT = 188;
 export const LEGEND_COLUMN_SHORT = 212;
 // Narrow: legend (12px + one row + details line) and the row of layer chips
 // under it (strata.css .strata-labelbar).
-export const PHONE_TOP = 156;
+export const PHONE_TOP = 164;
 // Right column: the Layers panel (306px with its padding) + margins.
 export const PANEL_COLUMN = 326;
 // The chart docked left of the Layers panel: 380px + a gap (strata.css).
