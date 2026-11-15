@@ -1,0 +1,30 @@
+{
+  "loading": "正在載入趨勢地圖…",
+  "error": "讀不到趨勢地圖。",
+  "unitLine": "每十年的變化（{{unit}}／十年）· {{product}}",
+  "rampAria": "色階：每十年 −{{edge}}（下降）到 +{{edge}}（上升）{{unit}}",
+  "falling": "下降",
+  "rising": "上升",
+  "key": {
+    "full": {
+      "general": "顏色飽滿：這個變化通過了統計檢定",
+      "expert": "全彩：FDR 校正後顯著"
+    },
+    "faded": {
+      "general": "顏色淡：看不出明確的變化，或證據偏弱",
+      "expert": "淡化：不顯著，或僅在校正前顯著"
+    },
+    "empty": "沒有顏色：沒有資料，或未分析"
+  },
+  "fadeNote": "變化接近零的地方顏色也會變淡，讓地表透出來。",
+  "opacity": "不透明度",
+  "opacityAria": "趨勢地圖不透明度",
+  "summary": "分析範圍中有 {{share}} 的面積，變化通過了檢定（{{first}} 至 {{last}}）。",
+  "periodLine": "期間 {{first}} 至 {{last}}（{{count}} 個月）。網格 {{lat}} × {{lon}}。FDR 校正後顯著：分析面積的 {{fdr}}（校正前 {{raw}}）。",
+  "method": "方法：每個格點月距平的線性趨勢；t 檢定經 lag-1 自相關修正；整張圖以 Benjamini-Hochberg FDR 校正，α = {{alpha}}。色階範圍是各格點趨勢絕對值的第 {{quantile}} 百分位數（正負對稱），超出的用端點色。",
+  "warning": {
+    "general": "顏色淡不代表沒有變。感測器或資料產品更換，也可能造成假的趨勢。",
+    "expert": "不顯著不代表沒有變化。趨勢在約 1° 的網格上計算；感測器或產品的更動可能造成人為趨勢。"
+  },
+  "evapUnit": "以 mm/day 顯示（kg m-2 s-1 × 86,400）。"
+}

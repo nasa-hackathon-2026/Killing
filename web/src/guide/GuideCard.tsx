@@ -1,19 +1,13 @@
-// The start card: what the tool is, three steps, a few examples to open, and
-// a short "How to read this". It describes the tool and how to read the
-// picture; it states no findings. Examples are data (examples.ts).
+// The guide card: what the tool is, the companion tour, a few examples to
+// open, and "How to read this". It describes the tool and how to read the
+// picture; it states no findings. Examples are data (examples.ts); every
+// text is in the `guide` namespace of the message files.
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
 import type { TrendSignal } from "../forms/encoding";
+import { carryChoices, useI18n } from "../i18n";
 import { exampleHref, GUIDE_EXAMPLES } from "./examples";
 import "./guide.css";
-
-const GUIDE_TAGLINE =
-  "Pick an Earth-system variable, watch up to 25 years of it at one place, and see whether the change is statistically significant.";
-
-const GUIDE_STEPS = [
-  "Turn on a layer in the Layers panel.",
-  "Press play or drag the timeline.",
-  "Open Chart for the trend and its significance.",
-];
+import { HOW_TO_ITEMS } from "./howTo";
 
 const UNRELIABLE_EXAMPLE: TrendSignal = {
   state: "rising",
@@ -21,90 +15,79 @@ const UNRELIABLE_EXAMPLE: TrendSignal = {
   unreliable: true,
 };
 
-export function GuideCard({ onClose }: { onClose: () => void }) {
+type GuideCardProps = {
+  onClose: () => void;
+  // Starts the companion tour; the button is hidden without it.
+  onTour?: () => void;
+  // Opens with "How to read this" unfolded (the link in the Layers panel).
+  howToOpen?: boolean;
+};
+
+export function GuideCard({ onClose, onTour, howToOpen }: GuideCardProps) {
+  const { t, tm, settings } = useI18n();
   return (
-    <section className="guide-card" aria-label="Getting started">
+    <section className="guide-card" aria-label={t("guide.card.aria")}>
       <header>
-        <h1>Earth System Trend Detective</h1>
-        <button type="button" aria-label="Close the guide" onClick={onClose}>
+        <h1>{t("common.appName")}</h1>
+        <button
+          type="button"
+          aria-label={t("guide.card.close")}
+          onClick={onClose}
+        >
           ×
         </button>
       </header>
-      <p>{GUIDE_TAGLINE}</p>
-      <ol>
-        {GUIDE_STEPS.map((step) => (
-          <li key={step}>{step}</li>
-        ))}
-      </ol>
-      <h2>Try an example</h2>
+      <p>{tm("guide.card.tagline")}</p>
+      {onTour ? (
+        <p className="guide-tour-offer">
+          <button type="button" className="guide-start" onClick={onTour}>
+            {t("guide.card.tour")}
+          </button>
+          <span>{t("guide.card.tourHint")}</span>
+        </p>
+      ) : null}
+      <h2>{t("guide.card.examples")}</h2>
       <ul className="guide-examples">
         {GUIDE_EXAMPLES.map((example) => (
           <li key={example.id}>
-            <a href={exampleHref(example, import.meta.env.BASE_URL)}>
-              {example.question}
-              <span>Opens: {example.opens}</span>
+            <a
+              href={carryChoices(
+                exampleHref(example, import.meta.env.BASE_URL),
+              )}
+            >
+              {t(`guide.examples.${example.id}.question`)}
+              <span>
+                {t("guide.card.opens", {
+                  what: t(`guide.examples.${example.id}.opens`),
+                })}
+              </span>
             </a>
           </li>
         ))}
       </ul>
-      <details>
-        <summary>How to read this</summary>
+      <details open={howToOpen || settings.readingAid}>
+        <summary>{t("common.action.howToRead")}</summary>
         <dl>
-          <dt>Particles</dt>
-          <dd>
-            The particles of a layer show one value: the selected place, in the
-            month shown. They cover the globe but are not a map of where the
-            variable is high or low. Their count, size and speed follow that
-            value, relative to the place&apos;s own record. Flow direction is
-            illustrative; there is no wind data. The coloured Global trend map
-            is a map: the trend of each grid cell.
-          </dd>
-          <dt>Trend</dt>
-          <dd>
-            The linear change of monthly anomalies (the value minus the mean of
-            the same calendar month) per decade, with a 95% confidence interval.
-          </dd>
-          <dt>▲ ▼ △ ▽ ◇</dt>
-          <dd>
-            ▲ rising and ▼ falling mark trends that are statistically
-            significant after the autocorrelation and FDR corrections. Hollow △
-            ▽ are significant only before the FDR correction. ◇ is not
-            significant.
-          </dd>
-          <dt>
-            <TrendMarkIcon signal={UNRELIABLE_EXAMPLE} /> Crossed-out triangle
-          </dt>
-          <dd>
-            The trend is statistically significant, but the series has a
-            documented data issue (a step in the product, or two products that
-            disagree on the sign), so it is not reliable as a climate signal.
-            Read its caution note.
-          </dd>
-          <dt>Not significant</dt>
-          <dd>
-            Not significant does not mean no change; the record may be too short
-            or too variable to tell.
-          </dd>
-          <dt>In situ · Satellite · Model</dt>
-          <dd>
-            In situ is measured by an instrument at the place. Satellite is
-            retrieved from what a sensor in orbit measures. Model is computed by
-            a model or reanalysis that combines observations with physics. They
-            are different kinds of evidence, so each value says which one it is.
-          </dd>
-          <dt>Caution notes</dt>
-          <dd>
-            An orange note marks a documented problem with a series, such as a
-            step when an input to the product changed. Open Details for the
-            numbers and sources.
-          </dd>
+          {HOW_TO_ITEMS.map((id) => (
+            <div key={id}>
+              <dt>
+                {id === "unreliable" ? (
+                  <>
+                    <TrendMarkIcon signal={UNRELIABLE_EXAMPLE} />{" "}
+                  </>
+                ) : null}
+                {t(`guide.howto.${id}.term`)}
+              </dt>
+              <dd>{t(`guide.howto.${id}.text`)}</dd>
+            </div>
+          ))}
         </dl>
       </details>
       <footer>
         <button type="button" className="guide-start" onClick={onClose}>
-          Start exploring
+          {t("guide.card.start")}
         </button>
-        <span>Reopen this any time with the ? Guide button.</span>
+        <span>{t("guide.card.reopen")}</span>
       </footer>
     </section>
   );

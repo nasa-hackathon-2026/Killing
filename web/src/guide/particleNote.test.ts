@@ -24,7 +24,7 @@ describe("particleNote", () => {
         trendMap: false,
       }),
     ).toBe(
-      "Particles show one value per layer: the selected layers at Tokyo, Dec 2024. They are not a map.",
+      "Particles show one value per layer at Tokyo, Dec 2024. They are not a map.",
     );
   });
 
@@ -38,7 +38,7 @@ describe("particleNote", () => {
       }),
     ).toBe(
       "Particles show one value: 2 m air temperature at Taichung, Jun 2025. They are not a map. " +
-        "The coloured map is a map: per-grid-cell trend.",
+        "The coloured overlay is a map: the trend in each grid cell.",
     );
   });
 
@@ -61,5 +61,44 @@ describe("particleNote", () => {
         trendMap: true,
       }),
     ).toBeNull();
+  });
+});
+
+describe("particleNote in the Calm style", () => {
+  it("describes the cluster and the ring", () => {
+    expect(
+      particleNote({
+        layerNames: ["Precipitation"],
+        place: "Taichung",
+        month: "2025-06-01",
+        trendMap: false,
+        style: "calm",
+      }),
+    ).toBe(
+      "The cluster above Taichung is one value: Precipitation, Jun 2025. The thin ring is what is usual for this calendar month. It is not a map.",
+    );
+    expect(
+      particleNote({
+        layerNames: ["Precipitation", "Ozone"],
+        place: "Tokyo",
+        month: null,
+        trendMap: true,
+        style: "calm",
+      }),
+    ).toBe(
+      "Each cluster above Tokyo is one layer's value. The thin ring is what is usual for this calendar month. They are not a map. The coloured overlay is a map: the trend in each grid cell.",
+    );
+  });
+
+  it("keeps the original wording for Lively", () => {
+    const input = {
+      layerNames: ["Precipitation"],
+      place: "Taichung",
+      month: "2025-06-01",
+      trendMap: false,
+    };
+    expect(particleNote({ ...input, style: "lively" })).toBe(
+      particleNote(input),
+    );
   });
 });

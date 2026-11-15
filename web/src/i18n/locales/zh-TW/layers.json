@@ -1,0 +1,22 @@
+{
+  "title": "圖層",
+  "onCount": "已開 {{count}} 層",
+  "expand": "展開圖層面板",
+  "collapse": "收合圖層面板",
+  "valuesAt": "地點",
+  "valuesAtPlace": "地點：{{place}}",
+  "place": "地點",
+  "month": "月份",
+  "note": {
+    "general": "每個圖層是這個地點的一種測量。勾選就會顯示；名稱旁的記號代表它的長期變化。",
+    "expert": "各形態的數量、大小、速度依這個地點自己的紀錄而定。K 以 °C 顯示。滑桿調整不透明度。流動方向只是示意，沒有風場資料。"
+  },
+  "trendNote": "趨勢：各段紀錄中月距平的線性變化。▲ ▼ 是顯著趨勢，◇ 是不顯著，帶斜線的三角是顯著但資料有已記錄問題的趨勢（見警語）。不顯著不代表沒有變化。",
+  "closeUp": "近看",
+  "closeUpAria": "{{name}}：近看",
+  "chart": "圖表",
+  "chartAria": "{{name}}：時間序列圖",
+  "opacityAria": "{{name}}：不透明度",
+  "compareStation": "和測站比較",
+  "compareObservations": "和觀測比較"
+}

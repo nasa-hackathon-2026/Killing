@@ -1,0 +1,36 @@
+{
+  "groups": {
+    "taiwan": "Taiwan",
+    "world_city": "World cities",
+    "global": "Global"
+  },
+  "names": {
+    "taichung": "Taichung",
+    "taipei": "Taipei",
+    "kaohsiung": "Kaohsiung",
+    "hualien": "Hualien",
+    "yushan": "Yushan",
+    "taichung_station": "Taichung station",
+    "taipei_station": "Taipei station",
+    "global": "Global mean",
+    "tokyo": "Tokyo",
+    "delhi": "Delhi",
+    "beijing": "Beijing",
+    "jakarta": "Jakarta",
+    "cairo": "Cairo",
+    "lagos": "Lagos",
+    "london": "London",
+    "moscow": "Moscow",
+    "new_york": "New York",
+    "los_angeles": "Los Angeles",
+    "sao_paulo": "São Paulo",
+    "sydney": "Sydney"
+  },
+  "note": {
+    "globalMean": {
+      "general": "This is the average over the whole globe, not the value at one place.",
+      "expert": "Mean of the whole global grid, weighted by cos(latitude), land and ocean together where the product covers both. Not a point value."
+    }
+  },
+  "placeMonth": "{{place}}, {{month}}"
+}

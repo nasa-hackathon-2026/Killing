@@ -17,6 +17,7 @@ export const VIEW_PARAMS = [
   "strata",
   "at",
   "companions",
+  "field",
 ];
 
 export function hasViewParams(search: string): boolean {

@@ -1,0 +1,85 @@
+{
+  "card": {
+    "aria": "Guide",
+    "close": "Close the guide",
+    "tagline": {
+      "general": "Pick a measurement of the Earth, watch up to 25 years of it at one place, and see whether it has changed.",
+      "expert": "Pick an Earth-system variable, follow up to 25 years of it at one place, and see whether its trend is statistically significant."
+    },
+    "tour": "Take the tour",
+    "tourHint": "A data companion walks you through the layers, top to bottom.",
+    "examples": "Try an example",
+    "opens": "Opens: {{what}}",
+    "start": "Start exploring",
+    "reopen": "Reopen this any time with the ? Guide button."
+  },
+  "examples": {
+    "rainfall-taichung": {
+      "question": "Has rainfall at Taichung changed since 2001?",
+      "opens": "Precipitation layer and its time series chart"
+    },
+    "no2-los-angeles": {
+      "question": "Has tropospheric NO₂ over Los Angeles changed since 2005?",
+      "opens": "Tropospheric NO₂ layer and its chart at a world city"
+    },
+    "layers-of-the-air": {
+      "question": "Which layer of the atmosphere or ground does each variable belong to?",
+      "opens": "Layer view with six layers on"
+    },
+    "model-vs-station": {
+      "question": "Do a model and a station agree on temperature?",
+      "opens": "Model vs observation page, MERRA-2 and the Taichung station"
+    },
+    "global-trend-map": {
+      "question": "Where on Earth has 2 m air temperature changed, and where is that change significant?",
+      "opens": "Global trend map of MERRA-2 2 m air temperature"
+    }
+  },
+  "howto": {
+    "particles": {
+      "term": "Particles",
+      "text": "The particles of a layer show one value: the selected place, in the month shown. More, larger or faster particles mean a higher value for that place. They are not a map, and their flow direction is only illustrative."
+    },
+    "trend": {
+      "term": "Trend",
+      "text": "How much the value changes per decade, after removing the normal seasonal cycle. Research mode adds the 95% confidence interval."
+    },
+    "marks": {
+      "term": "▲ ▼ △ ▽ ◇",
+      "text": "▲ rising and ▼ falling: the change holds up in the statistical tests. Hollow △ ▽: weak evidence (it passes the basic test, not the stricter one). ◇: no clear change in this record."
+    },
+    "unreliable": {
+      "term": "Crossed-out triangle",
+      "text": "The test finds a change, but the data itself has a documented problem, such as a jump when the product changed. Do not read it as a climate signal; open its caution note."
+    },
+    "notSignificant": {
+      "term": "No clear change",
+      "text": "No clear change (not significant) is not the same as no change. The record may be too short or too noisy to tell."
+    },
+    "dataKinds": {
+      "term": "In situ · Satellite · Model",
+      "text": "In situ: measured by an instrument at the place. Satellite: worked out from what a sensor in orbit sees. Model: computed by a model that combines observations with physics. They are different kinds of evidence."
+    },
+    "cautions": {
+      "term": "Caution notes",
+      "text": "An orange note marks a documented problem with a record. Open Details for the numbers and sources."
+    },
+    "roles": {
+      "term": "Everyone · Student · Researcher",
+      "text": "Everyone and Student use plain words; Student adds definitions and reading tips. Researcher shows every statistic and its term. All three show the same numbers."
+    }
+  },
+  "tour": {
+    "aria": "Guided tour",
+    "progress": "{{current}} / {{total}}",
+    "finish": "Start exploring",
+    "keys": "Enter or → next · ← back · Esc skip",
+    "noPlace": "The tour needs a single place. Pick one in the Layers panel.",
+    "welcome": "Hi, I'm Rain, one of the data companions. This site shows up to 25 years of NASA Earth data at one place, and whether each measurement has changed.",
+    "place": "Right now you are looking at {{place}} in {{month}}. You can pick another place in the Layers panel and another month on the timeline.",
+    "particles": "The particles around the globe show one number per layer for this place and month. More or faster particles mean a higher value. They are not a map.",
+    "enter": "Each measurement belongs to a height, from the ozone layer down to the soil. Let's visit them from top to bottom.",
+    "trendMap": "That was one place. To see where on Earth a measurement is changing, open Global trend map at the top.",
+    "research": "For the full statistics, such as confidence intervals and test names, switch to Researcher at the top. Now it's your turn."
+  }
+}

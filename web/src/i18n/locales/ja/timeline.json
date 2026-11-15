@@ -1,0 +1,24 @@
+{
+  "aria": "Timeline",
+  "play": "Play",
+  "pause": "Pause",
+  "playTitle": "Play or pause (Space)",
+  "speed": "Speed",
+  "speedTitle": "Months per second: {{count}}",
+  "latest": "Latest",
+  "latestTitle": "Back to the latest month most layers have",
+  "slider": "Timeline month",
+  "strip": {
+    "aria": "Monthly anomalies of {{name}}",
+    "ariaFallback": "the selected layer",
+    "above": "above",
+    "below": {
+      "general": "below the usual for the month: {{name}}",
+      "expert": "below the calendar-month mean: {{name}}"
+    },
+    "step": {
+      "general": "data product changed",
+      "expert": "documented step"
+    }
+  }
+}

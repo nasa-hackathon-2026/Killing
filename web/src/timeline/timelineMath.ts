@@ -1,3 +1,4 @@
+import { monthName } from "../i18n";
 // Month arithmetic and playback steps of the timeline. Months are the
 // snapshot's "YYYY-MM-01" strings; pure functions only.
 
@@ -49,24 +50,7 @@ export function resolveMonth(
   return months.at(-1) ?? null;
 }
 
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
+// The year and the short month name in the active language.
 export function monthLabel(month: string): { year: string; name: string } {
-  return {
-    year: month.slice(0, 4),
-    name: MONTH_NAMES[Number(month.slice(5, 7)) - 1] ?? "",
-  };
+  return { year: month.slice(0, 4), name: monthName(month, "short") };
 }

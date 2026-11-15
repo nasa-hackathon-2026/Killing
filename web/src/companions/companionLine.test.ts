@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { TrendEntry } from "../analysis/trends";
-import { TREND_CAVEATS } from "../analysis/trendCaveats";
-import { companionLine, monthLabel, spokenLine } from "./companionLine";
+import { allTrendCaveats } from "../analysis/trendCaveats";
+import {
+  companionLine,
+  companionSpeech,
+  companionSpeechParts,
+  monthLabel,
+  spokenLine,
+} from "./companionLine";
 
 const trend: TrendEntry = {
   status: "analyzed",
@@ -24,6 +30,27 @@ const trend: TrendEntry = {
 };
 
 describe("companionLine", () => {
+  it("keeps missing-month, trend uncertainty and data kind in separate display items", () => {
+    const input = {
+      companionName: "Leaf",
+      variableName: "Vegetation greenness",
+      place: "Kaohsiung",
+      month: "2026-11-01",
+      value: null,
+      unit: "1",
+      trend,
+      dataKind: "satellite_retrieval" as const,
+    };
+    const parts = companionSpeechParts(input, "expert");
+    expect(parts).toHaveLength(3);
+    expect(parts[0]).toContain("no data for this month");
+    expect(parts[1]).toContain("95% CI 0.20 to 0.64");
+    expect(parts[2]).toBe("Data kind: satellite retrieval.");
+    expect(parts.join(" ")).toBe(companionSpeech(input, "expert"));
+    const plain = companionSpeechParts(input, "general");
+    expect(plain).toHaveLength(3);
+    expect(plain.join(" ")).toBe(companionSpeech(input, "general"));
+  });
   it("states the value, the anomaly, the trend and the data kind", () => {
     expect(
       companionLine({
@@ -58,8 +85,8 @@ describe("companionLine", () => {
       value: 295.15,
       unit: "K",
       trend,
-      caveatSummary: TREND_CAVEATS.gldas_tair?.summary,
-      unreliableReason: TREND_CAVEATS.gldas_tair?.reason,
+      caveatSummary: allTrendCaveats("expert").gldas_tair?.summary,
+      unreliableReason: allTrendCaveats("expert").gldas_tair?.reason,
       dataKind: "model",
     });
     expect(line).toBe(
@@ -73,7 +100,7 @@ describe("companionLine", () => {
   });
 
   it("gives every caveat of the three GLDAS variables a reason clause", () => {
-    for (const caveat of Object.values(TREND_CAVEATS)) {
+    for (const caveat of Object.values(allTrendCaveats("expert"))) {
       expect(caveat.reason).toMatch(/\.$/);
     }
   });
@@ -113,7 +140,7 @@ describe("companionLine", () => {
   });
 
   it("appends the known-problem caution word for word", () => {
-    const caution = TREND_CAVEATS.gldas_tair?.summary ?? "";
+    const caution = allTrendCaveats("expert").gldas_tair?.summary ?? "";
     const line = companionLine({
       variableName: "Near-surface air temperature",
       place: "Taichung",
@@ -149,7 +176,7 @@ describe("companionLine", () => {
   it("never states a cause, a conclusion or a feeling", () => {
     const banned =
       /because|due to|caused|leads to|therefore|worr|alarm|healthy|sick|danger|good|bad|happy|sad/i;
-    for (const caution of [null, ...Object.values(TREND_CAVEATS)]) {
+    for (const caution of [null, ...Object.values(allTrendCaveats("expert"))]) {
       const line = companionLine({
         variableName: "Precipitation",
         place: "Taichung",

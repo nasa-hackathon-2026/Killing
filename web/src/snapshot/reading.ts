@@ -1,3 +1,5 @@
+import { localNumber, t } from "../i18n";
+
 export type SeriesPoint = {
   month: string;
   value: number | null;
@@ -38,13 +40,14 @@ export function intensityAt(points: SeriesPoint[], month: string): number {
 }
 
 export function formatMeasurement(value: number | null, unit: string): string {
-  if (value === null) return "No data";
-  if (unit === "K") return `${(value - 273.15).toFixed(1)} °C`;
+  if (value === null) return t("common.status.noData");
+  if (unit === "K") return `${localNumber((value - 273.15).toFixed(1))} °C`;
   const absolute = Math.abs(value);
-  const text =
+  const text = localNumber(
     absolute !== 0 && (absolute >= 1e5 || absolute < 0.01)
       ? value.toExponential(2)
-      : value.toFixed(absolute >= 100 ? 0 : absolute >= 10 ? 1 : 2);
+      : value.toFixed(absolute >= 100 ? 0 : absolute >= 10 ? 1 : 2),
+  );
   if (unit === "1") return text;
   return `${text} ${unit}`;
 }

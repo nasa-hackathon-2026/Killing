@@ -1,0 +1,88 @@
+{
+  "title": "Model vs observation",
+  "back": "← Globe",
+  "intro": {
+    "general": "This page puts air temperature from computer models next to temperature that was measured, at the same place. Each line shows how far a month is from its usual value for that calendar month ({{start}} to {{end}}).",
+    "expert": "Near-surface air temperature from models and reanalyses, next to observations of the same quantity at the same place. Both series are anomalies over their common months ({{start}} to {{end}}): each value minus that series' own mean of the same calendar month, so baselines and units do not matter."
+  },
+  "verdict": {
+    "general": "A gap between a model and a measurement does not tell you which one is right. A station measures one point; a model value covers a whole grid cell.",
+    "expert": "A difference between a model and an observation does not by itself say which is right. A station is a point and a model value is a grid cell; GISTEMP is a 2° gridded analysis of station and ship observations."
+  },
+  "error": "Could not read the comparison results.",
+  "group": {
+    "label": "Group",
+    "option": "{{name}} ({{count}})",
+    "taiwan_station": "Taiwan stations",
+    "taiwan_gistemp": "Taiwan, GISTEMP grid cell",
+    "world_city": "World cities",
+    "global": "Global mean"
+  },
+  "tableNote": {
+    "general": "Trends are in °C per decade. Select a place to draw its chart.",
+    "expert": "Trends in °C per decade over the common months. Select a location to plot the pair."
+  },
+  "table": {
+    "location": "Location",
+    "model": "Model product",
+    "obs": "Observation source",
+    "months": "Months",
+    "r": "r",
+    "modelTrend": "Model trend",
+    "obsTrend": "Obs. trend",
+    "difference": "Difference",
+    "largestStep": "Largest step",
+    "knownIssues": "Known issues"
+  },
+  "modelPlace": {
+    "containingCell": "grid cell containing the station",
+    "nearestCell": "nearest grid cell with values",
+    "cellDistance": "{{where}}, centre {{km}} km away",
+    "pointSeries": "point series at {{place}}",
+    "pointSeriesDistance": "point series at {{place}}, {{km}} km away",
+    "sameLocation": "series at the same location"
+  },
+  "chart": {
+    "aria": "Anomalies of {{model}} and {{obs}} at {{place}}, and their difference",
+    "empty": "No series to plot for this pair.",
+    "keyModel": "Model anomaly",
+    "keyObs": "Observation anomaly",
+    "keyDifference": "Difference (model − observation)",
+    "keyBreak": "Known step month ({{months}})",
+    "keyStep": "Largest step of the difference ({{month}})",
+    "monthly": "Monthly anomalies, °C.",
+    "annual": "Calendar-year means of the monthly anomalies, °C (this group has no monthly values in the file).",
+    "baseline": {
+      "general": "Zero is each line's own usual value for that calendar month.",
+      "expert": "Each series is relative to its own mean of the same calendar month over the common months."
+    }
+  },
+  "stats": {
+    "commonMonths": "Common months",
+    "commonMonthsValue": "{{count}} ({{first}} to {{last}})",
+    "modelTrend": "Model trend",
+    "obsTrend": "Observation trend",
+    "differenceTrend": "Trend of the difference",
+    "trendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}})",
+    "trendValuePlain": "about {{slope}} °C per decade",
+    "differenceTrendValue": "{{slope}} °C per decade (95% CI {{low}} to {{high}}; {{p}})",
+    "pBelow": "p < {{alpha}}",
+    "pAtLeast": "p ≥ {{alpha}}",
+    "difference": "Difference",
+    "differenceValue": "standard deviation {{sd}} °C, RMSE {{rmse}} °C",
+    "largestStep": "Largest step",
+    "largestStepValue": "{{step}} °C at {{month}} (mean of the 6 months from that month minus the 6 months before)",
+    "gapChanging": "The gap between the two changes by about {{slope}} °C per decade, and that change holds up in the statistical test.",
+    "gapUnclear": "This record shows no clear change in the gap between the two. That is not the same as no change.",
+    "tooFew": "Too few common months ({{count}}) for statistics."
+  },
+  "notPaired": "Not paired: {{list}}.",
+  "caveat": {
+    "model": "model",
+    "observation": "observation",
+    "both": "model and observation",
+    "paired": "paired",
+    "one": "Caution: the {{side}} series has a known issue.",
+    "many": "Caution: the {{side}} series has {{count}} known issues."
+  }
+}

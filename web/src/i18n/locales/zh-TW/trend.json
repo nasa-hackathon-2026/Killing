@@ -1,0 +1,91 @@
+{
+  "label": {
+    "rising": {
+      "general": "上升",
+      "expert": "上升，顯著"
+    },
+    "falling": {
+      "general": "下降",
+      "expert": "下降，顯著"
+    },
+    "risingRawOnly": {
+      "general": "上升，但證據偏弱",
+      "expert": "上升，僅在 FDR 校正前顯著"
+    },
+    "fallingRawOnly": {
+      "general": "下降，但證據偏弱",
+      "expert": "下降，僅在 FDR 校正前顯著"
+    },
+    "notSignificant": {
+      "general": "這段紀錄裡看不出明確的變化",
+      "expert": "不顯著"
+    },
+    "unreliableRising": {
+      "general": "數字不可靠",
+      "expert": "趨勢不能當成氣候訊號：資料有已記錄的問題（上升，統計上顯著）"
+    },
+    "unreliableFalling": {
+      "general": "數字不可靠",
+      "expert": "趨勢不能當成氣候訊號：資料有已記錄的問題（下降，統計上顯著）"
+    },
+    "unreliableRisingRawOnly": {
+      "general": "數字不可靠",
+      "expert": "趨勢不能當成氣候訊號：資料有已記錄的問題（上升，僅在 FDR 校正前顯著）"
+    },
+    "unreliableFallingRawOnly": {
+      "general": "數字不可靠",
+      "expert": "趨勢不能當成氣候訊號：資料有已記錄的問題（下降，僅在 FDR 校正前顯著）"
+    },
+    "insufficient": {
+      "general": "資料太少，算不出趨勢",
+      "expert": "資料不足"
+    },
+    "unavailable": {
+      "general": "沒有趨勢結果",
+      "expert": "沒有趨勢結果"
+    }
+  },
+  "significance": {
+    "notComputed": {
+      "general": "這項檢定算不出來。",
+      "expert": "檢定無法計算"
+    },
+    "notSignificant": {
+      "general": "這段紀錄裡看不出明確的變化，但這不等於沒有變。",
+      "expert": "自相關修正後不顯著"
+    },
+    "fdr": {
+      "general": "這個變化通過了統計檢定。",
+      "expert": "自相關修正與 FDR 校正後皆顯著"
+    },
+    "rawOnly": {
+      "general": "這個變化通過基本的檢定，但沒通過更嚴格的那一關，所以還不能確定。",
+      "expert": "自相關修正後顯著，FDR 校正後不顯著"
+    },
+    "unreliableFdr": {
+      "general": "這個數字不可靠，原因是資料本身有已記錄的問題。",
+      "expert": "統計上顯著，但不能當成氣候訊號：見警語"
+    },
+    "unreliableRawOnly": {
+      "general": "這個數字不可靠，原因是資料本身有已記錄的問題。",
+      "expert": "僅在 FDR 校正前顯著，且不能當成氣候訊號：見警語"
+    }
+  },
+  "change": {
+    "general": "每十年大約 {{slope}}",
+    "expert": "每十年 {{slope}}（{{level}}% 信賴區間 {{low}} 至 {{high}}）"
+  },
+  "period": "{{first}} 至 {{last}}",
+  "notAnalyzed": {
+    "general": "資料太少，算不出趨勢",
+    "expert": "未分析趨勢"
+  },
+  "notSignificantNote": {
+    "general": "看不出明確的變化不等於沒有變：紀錄可能太短，或起伏太大而分辨不出來。",
+    "expert": "不顯著不代表沒有變化；紀錄可能太短，或變異太大而無法判斷。"
+  },
+  "reliable": {
+    "ok": "沒有已記錄的資料問題會影響這個趨勢。",
+    "bad": "不可靠：資料本身有已記錄的問題（見下方警語）。"
+  }
+}

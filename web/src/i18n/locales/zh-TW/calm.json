@@ -1,0 +1,18 @@
+{
+  "toggleLabel": "粒子",
+  "toggleGroupAria": "粒子樣式",
+  "styleCalm": "平靜",
+  "styleLively": "活潑",
+  "styleCalmTitle": "各圖層在選定地點上方形成小群，緩慢移動",
+  "styleLivelyTitle": "粒子分布在地球周圍，持續移動",
+  "legendUnit": "小形狀＝一個單位",
+  "legendGroup": "大形狀＝合併五個單位",
+  "legendDisc": "淡色圓盤＝這個月",
+  "legendRing": "圓環＝同月份的平常值",
+  "legendNoData": "只有虛線圓環＝沒有資料",
+  "legendArrow": "箭頭＝顯著趨勢，上升或下降",
+  "legendScale": "25 個單位涵蓋該地點各圖層自己的紀錄範圍，從最低到最高月份。",
+  "legendAria": "圖例：小形狀是一個單位，大形狀合併五個單位；淡色圓盤是這個月，圓環是同月份平常值；只有虛線圓環代表沒有資料。",
+  "noteOneLayer": "{{place}} 上方這群粒子代表一個數值：{{layer}}{{when}}。細圓環是同月份的平常值。這不是全球分布圖。",
+  "noteManyLayers": "{{place}} 上方每群粒子代表一個圖層的數值{{when}}。細圓環是同月份的平常值。這不是全球分布圖。"
+}

@@ -1,0 +1,93 @@
+{
+  "heading": "資料夥伴",
+  "aria": "資料夥伴",
+  "expand": "展開夥伴面板",
+  "collapse": "收合夥伴面板",
+  "noLayer": "沒有開啟圖層",
+  "empty": "開啟一個圖層，就能見到它的夥伴",
+  "foot": "點一位夥伴，聽它報數字。",
+  "interactionNote": "夥伴之間的互動只是示意，不代表因果關係。",
+  "voiceOn": "語音開",
+  "voiceOff": "語音關",
+  "voiceTitle": "用瀏覽器的語音念出選取夥伴說的話",
+  "narrateOn": "解說開",
+  "narrateOff": "解說關",
+  "narrateTitle": "開啟時，你開新圖層、換地點或暫停時，夥伴會主動說一句",
+  "sayAria": "{{name}}：報數字",
+  "cautionAria": "{{name}}：有已知問題，顯示警語",
+  "cautionTitle": "這個趨勢有已知問題",
+  "figureTitle": "{{name}}：{{variable}}",
+  "figureTitleNoData": "{{name}}：{{variable}}，這個月沒有資料",
+  "names": {
+    "omi_o3": "臭氧",
+    "omi_no2": "二氧化氮",
+    "airs_h2ovap": "水氣",
+    "imerg_precip": "雨",
+    "omi_aerosol": "霾",
+    "merra2_t2m": "暖意",
+    "airs_tsurf": "暖意",
+    "gldas_tair": "暖意",
+    "gldas_evap": "蒸發",
+    "modis_ndvi": "葉子",
+    "modis_lst": "地熱",
+    "gldas_soilmoist": "土壤"
+  },
+  "shape": {
+    "above": "外形：高於這個月份的平常值。",
+    "near": "外形：接近這個月份的平常值。",
+    "below": "外形：低於這個月份的平常值。"
+  },
+  "line": {
+    "noMonth": "{{place}}的{{name}}：尚未選擇月份。",
+    "noData": "{{place}}的{{name}}，{{month}}：這個月沒有資料。",
+    "value": "{{place}}的{{name}}，{{month}}：{{value}}。",
+    "equal": "等於這段紀錄的 {{monthName}}平均（{{usual}}，{{first}} 至 {{last}}）。",
+    "above": "比這段紀錄的 {{monthName}}平均高 {{size}}（{{usual}}，{{first}} 至 {{last}}）。",
+    "below": "比這段紀錄的 {{monthName}}平均低 {{size}}（{{usual}}，{{first}} 至 {{last}}）。",
+    "trend": "趨勢（{{first}} 至 {{last}}）：{{change}}，{{significance}}。",
+    "notAnalyzed": "未分析趨勢：{{reason}}"
+  },
+  "say": {
+    "who": "我是{{name}}。{{definition}}",
+    "noMonth": "還沒有選月份。",
+    "noData": "{{month}}的{{place}}，我沒有資料。",
+    "value": "{{month}}的{{place}}，我量到 {{value}}。",
+    "equal": "和 {{monthName}}的平常值一樣。",
+    "above": "比 {{monthName}}的平常值高 {{size}}。",
+    "below": "比 {{monthName}}的平常值低 {{size}}。",
+    "rising": "從 {{year}} 年到現在，每十年大約上升 {{change}}，這個變化通過了統計檢定。",
+    "falling": "從 {{year}} 年到現在，每十年大約下降 {{change}}，這個變化通過了統計檢定。",
+    "risingRawOnly": "從 {{year}} 年到現在，每十年大約上升 {{change}}，但證據偏弱：只通過基本的檢定，沒通過更嚴格的那一關。",
+    "fallingRawOnly": "從 {{year}} 年到現在，每十年大約下降 {{change}}，但證據偏弱：只通過基本的檢定，沒通過更嚴格的那一關。",
+    "notSignificant": "從 {{year}} 年到現在，這段紀錄裡看不出明確的變化，但這不等於沒有變。",
+    "unreliable": "從 {{year}} 年起，紀錄算出每十年大約 {{change}}，但這個數字不可靠，原因是資料本身有已記錄的問題：{{reason}}",
+    "insufficient": "這裡的資料太少，算不出趨勢。"
+  },
+  "gallery": {
+    "aria": "資料夥伴總覽",
+    "title": "資料夥伴",
+    "postures": "姿態（同一位夥伴）：低於平常、接近平常、高於平常、沒有資料",
+    "below": "低於",
+    "near": "接近",
+    "above": "高於",
+    "value": "數值 {{value}}",
+    "noData": "沒有資料",
+    "anomaly": "距平 z = {{z}}",
+    "foot": "全部用程式繪製（SVG）。大小：數值在該序列自身範圍內的位置。姿態：當月與同月份平均相比。記號：▲ ▼ 顯著趨勢，◇ 不顯著，帶斜線的三角是顯著但不能當成氣候訊號的趨勢。"
+  },
+  "gather": {
+    "open": "合影",
+    "aria": "合影：所有夥伴",
+    "foot": "中間一位天空或空氣的夥伴指向上方，一位地表或地下的夥伴手掌朝下；位置越高的站在越上面的台階。排列只是示意，不代表因果關係。",
+    "credit": "構圖意象取自拉斐爾〈雅典學院〉（1509–1511），公有領域。"
+  },
+  "interactions": {
+    "vaporRain": "水氣在雨的上方：一滴水往下傳。",
+    "rainSoil": "雨在土壤的上方：一滴水往下傳。",
+    "rainLeaf": "雨在葉子的上方：一滴水往下傳。",
+    "evaporationVapor": "蒸發在水氣的下方：小水珠往上傳。",
+    "soilEvaporation": "土壤在蒸發的下方：小水珠往上傳。",
+    "glowBelow": "氣溫夥伴的光照在下面那一位身上。",
+    "glowAbove": "氣溫夥伴的光照在上面那一位身上。"
+  }
+}
