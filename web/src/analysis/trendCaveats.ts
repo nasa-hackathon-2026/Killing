@@ -6,6 +6,9 @@
 export type TrendCaveat = {
   // One sentence that is always shown; starts with "Caution:".
   summary: string;
+  // The same fact as a clause, said after "This trend is not reliable as a
+  // climate signal:" where a significant trend is put into a sentence.
+  reason?: string;
   // The numbers behind it; shown when the reader opens "Details".
   details: string;
   // Documents the statement rests on; shown with the details.
@@ -16,6 +19,7 @@ export const TREND_CAVEATS: Record<string, TrendCaveat> = {
   gldas_tair: {
     summary:
       "Caution: this trend contains step changes and should not be read as a climate signal.",
+    reason: "it contains step changes.",
     details:
       "GLDAS-2.1 air temperature comes from the NOAA GDAS operational analysis used to force the model. " +
       "Against MERRA-2 over the same land cells, its global land mean shifts by about +0.4 K in May 2011, " +
@@ -27,6 +31,8 @@ export const TREND_CAVEATS: Record<string, TrendCaveat> = {
   gldas_evap: {
     summary:
       "Caution: this series contains a step that an independent product does not show.",
+    reason:
+      "the series contains a step that an independent product does not show.",
     details:
       "From July 2024 to May 2025 the GLDAS-2.1 downward shortwave forcing runs 15–32 W m⁻² above that of FLDAS " +
       "(same Noah model family, MERRA-2 forcing) over the same land cells, and GLDAS global land evapotranspiration " +
@@ -39,6 +45,7 @@ export const TREND_CAVEATS: Record<string, TrendCaveat> = {
   },
   gldas_soilmoist: {
     summary: "Caution: two model products disagree on the sign of this trend.",
+    reason: "two model products disagree on its sign.",
     details:
       "Over the same land cells and months (January 2001 to July 2026), the global land trend of 0–10 cm soil moisture " +
       "is −0.43 kg m⁻² per decade in GLDAS-2.1 and +0.16 in FLDAS (same Noah model family, MERRA-2 and CHIRPS forcing), " +

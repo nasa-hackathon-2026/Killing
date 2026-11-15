@@ -5,13 +5,10 @@
 import { Canvas } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
+import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
-import {
-  trendArrowDirection,
-  trendMark,
-  type TrendSignal,
-} from "../forms/encoding";
+import type { TrendSignal } from "../forms/encoding";
 import type { LayerControl } from "../layers/LayerPanel";
 import { layerRegistry } from "../layers/registry";
 import { CompanionSlot } from "./companionSlot";
@@ -253,10 +250,7 @@ export function StrataView({
                   available[variableId] ? (intensities[variableId] ?? 0) : null
                 }
                 anomalyZ={anomalyZ?.[variableId] ?? null}
-                trend={trendArrowDirection(signal)}
-                significant={
-                  signal?.state === "rising" || signal?.state === "falling"
-                }
+                signal={signal}
                 size={40}
               />
               {/* The name shows on hover or keyboard focus only: the left
@@ -310,22 +304,12 @@ export function StrataView({
               );
               const trend = trends?.[variableId];
               const signal = signals?.[variableId];
-              const mark = signal ? trendMark(signal) : null;
               const caveat = trend ? trendCaveat(variableId) : null;
               return (
                 <li key={variableId}>
                   <p className="strata-detail-name">
                     <span>{nameOf(variableId)}</span>
-                    {mark && mark.glyph ? (
-                      <span
-                        className="trend-mark"
-                        role="img"
-                        aria-label={mark.label}
-                        title={mark.label}
-                      >
-                        {mark.glyph}
-                      </span>
-                    ) : null}
+                    {signal ? <TrendMarkIcon signal={signal} /> : null}
                     <b>{readings[variableId] ?? ""}</b>
                   </p>
                   {trend ? (

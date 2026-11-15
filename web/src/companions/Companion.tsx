@@ -97,7 +97,28 @@ function TrendGlyph({ signal }: { signal: TrendSignal }) {
     const points = up
       ? `${CENTER_X},${y - 7} ${CENTER_X + 7},${y + 5} ${CENTER_X - 7},${y + 5}`
       : `${CENTER_X},${y + 7} ${CENTER_X + 7},${y - 5} ${CENTER_X - 7},${y - 5}`;
-    shape = (
+    // Not reliable as a climate signal: an outline in the caution colour
+    // with a line through it (the layer panel's TrendMarkIcon).
+    shape = signal.unreliable ? (
+      <>
+        <polygon
+          points={points}
+          fill="none"
+          stroke={WARNING_COLOR}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+        />
+        <line
+          x1={CENTER_X - 8.5}
+          y1={y + 8}
+          x2={CENTER_X + 8.5}
+          y2={y - 8}
+          stroke={WARNING_COLOR}
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+      </>
+    ) : (
       <polygon
         points={points}
         fill={signal.fdr ? MARK_COLOR : "none"}

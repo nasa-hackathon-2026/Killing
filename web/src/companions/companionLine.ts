@@ -57,6 +57,10 @@ export type CompanionLineInput = {
   alpha?: number;
   // The always-shown caution sentence of a known problem.
   caveatSummary?: string | null;
+  // Set for a significant trend of a series with a documented issue that
+  // affects trends: the clause that follows "This trend is not reliable as a
+  // climate signal:" (TrendCaveat.reason). It replaces the caution sentence.
+  unreliableReason?: string | null;
   dataKind?: DataKind;
 };
 
@@ -102,7 +106,11 @@ export function companionLine(input: CompanionLineInput): string {
   } else if (trend?.status === "insufficient") {
     parts.push(`Trend not analyzed: ${trend.reason.text_en}`);
   }
-  if (input.caveatSummary) parts.push(input.caveatSummary);
+  if (trend?.status === "analyzed" && input.unreliableReason) {
+    parts.push(
+      `This trend is not reliable as a climate signal: ${input.unreliableReason}`,
+    );
+  } else if (input.caveatSummary) parts.push(input.caveatSummary);
   if (input.dataKind && input.dataKind !== "unknown") {
     parts.push(`Data kind: ${DATA_KIND_LABELS[input.dataKind].toLowerCase()}.`);
   }

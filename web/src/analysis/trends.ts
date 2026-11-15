@@ -164,10 +164,17 @@ export function formatChangePerDecade(
 
 // Wording follows the linear trend's t-test: raw means after the lag-1
 // autocorrelation correction, FDR means after Benjamini-Hochberg as well.
-export function significanceText(test: TestResult): string {
+// `unreliable`: the series has a documented issue that affects trends
+// (trendReliability.ts). The statistical fact stays; its reading is limited.
+export function significanceText(test: TestResult, unreliable = false): string {
   if (test.significant === null) return "test could not be computed";
   if (!test.significant) {
     return "not significant after autocorrelation correction";
+  }
+  if (unreliable) {
+    return test.significant_fdr
+      ? "statistically significant, but not reliable as a climate signal: see caution"
+      : "significant before FDR correction only, and not reliable as a climate signal: see caution";
   }
   if (test.significant_fdr) {
     return "significant after autocorrelation and FDR correction";
@@ -178,6 +185,7 @@ export function significanceText(test: TestResult): string {
 export function summarizeTrend(
   entry: TrendEntry | undefined,
   alpha = 0.05,
+  unreliable = false,
 ): TrendSummary | null {
   if (!entry) return null;
   if (entry.status === "insufficient") {
@@ -194,7 +202,7 @@ export function summarizeTrend(
       entry.unit,
       alpha,
     ),
-    significance: significanceText(entry.ols),
+    significance: significanceText(entry.ols, unreliable),
     period: `${entry.data.first_month.slice(0, 7)} to ${entry.data.last_month.slice(0, 7)}`,
   };
 }

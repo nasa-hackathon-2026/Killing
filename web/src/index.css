@@ -361,6 +361,80 @@ body,
   font-size: 12px;
 }
 
+/* One line under the timeline bar: what the particles are (guide/
+   particleNote.ts). Right of the credit, left of the Layers panel. */
+.particle-note {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 1;
+  width: min(470px, calc(100% - 24px));
+  margin: 0;
+  transform: translateX(-50%);
+  color: #dbe5f3;
+  font:
+    12px/1.35 system-ui,
+    sans-serif;
+  text-align: center;
+  pointer-events: none;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  background: rgba(8, 14, 28, 0.72);
+  border-radius: 6px;
+}
+
+@media (max-width: 1180px) {
+  .particle-note {
+    left: 430px;
+    width: calc(100% - 430px - 318px);
+    transform: none;
+    text-align: left;
+  }
+}
+
+/* No room beside the credit: a strip above the timeline bar, which gives
+   way to the chart drawer. */
+@media (max-width: 900px) {
+  .particle-note {
+    left: 12px;
+    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 6px);
+    width: calc(100% - 306px - 36px);
+    background: rgba(8, 14, 28, 0.84);
+  }
+
+  .app:has(.timeline-chart) .particle-note {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .particle-note {
+    width: calc(100% - 24px);
+  }
+}
+
+/* The name of the selected place, next to its ring on the globe. */
+.place-label {
+  margin: 0;
+  padding: 2px 7px;
+  transform: translate(16px, -50%);
+  color: #fff;
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  font:
+    600 12px/1.3 system-ui,
+    sans-serif;
+  white-space: nowrap;
+}
+
+/* A significant trend with a documented data issue: the caution colour. */
+.trend-mark-unreliable {
+  display: inline-flex;
+  align-items: center;
+  color: #ffb84d;
+}
+
 .lab-note {
   position: absolute;
   left: 12px;

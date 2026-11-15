@@ -135,6 +135,8 @@ export function companionReading(
   series: { unit: string; points: SeriesPoint[] } | undefined,
   month: string | null,
   trend: TrendEntry | undefined,
+  // The trends file's known_issues table (decides the "not reliable" mark).
+  issues?: Record<string, { kind: string }>,
 ): CompanionReading {
   const raw = series && month ? valueAt(series.points, month) : null;
   const anomaly = series && month ? monthlyAnomaly(series.points, month) : null;
@@ -147,7 +149,7 @@ export function companionReading(
         : null,
     anomaly,
     mood: moodFor(anomaly?.z),
-    signal: trendSignal(trend),
+    signal: trendSignal(trend, issues),
     trend,
     caveat: trendCaveat(variableId),
   };

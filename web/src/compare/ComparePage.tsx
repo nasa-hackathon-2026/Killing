@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DATA_KIND_LABELS,
   GROUP_LABELS,
@@ -17,6 +17,7 @@ import {
 } from "../analysis/modelVsObs";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { useAnalysisFile } from "../analysis/useAnalysisFile";
+import { prefersReducedMotion } from "../forms/reducedMotion";
 
 const WIDTH = 960;
 const HEIGHT = 320;
@@ -176,11 +177,14 @@ function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
   );
 }
 
+// The section of the selected pair; a link with ?pair= scrolls to it.
+const PAIR_SECTION_ID = "pair";
+
 function PairDetail({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
   const caveat = pairCaveat(pair, file.known_issues);
   const difference = pair.difference;
   return (
-    <section>
+    <section id={PAIR_SECTION_ID}>
       <h2>{locationName(file, pair.location_id)}</h2>
       <p>
         {variableName(file, pair.model.variable_id)}
@@ -288,12 +292,12 @@ function PairTable({
                     {locationName(file, pair.location_id)}
                   </button>
                 </td>
-                <td>
-                  {pair.model.variable_id}
+                <td title={pair.model.variable_id}>
+                  {variableName(file, pair.model.variable_id)}
                   <KindTag file={file} variable={pair.model.variable_id} />
                 </td>
-                <td>
-                  {pair.obs.variable_id}
+                <td title={pair.obs.variable_id}>
+                  {variableName(file, pair.obs.variable_id)}
                   <KindTag file={file} variable={pair.obs.variable_id} />
                 </td>
                 <td className="number">{pair.n_common_months}</td>
@@ -347,6 +351,14 @@ function Comparison({ file }: { file: ModelVsObsFile }) {
   const [selected, setSelected] = useState<string | null>(initial.pair);
   const pairs = file.pairs.filter((pair) => pair.group === group);
   const pair = pairs.find((item) => item.pair_id === selected) ?? pairs[0];
+  // A link that names a pair (the start card's example, the Layers panel)
+  // opens on that pair's chart, which sits below the table.
+  useEffect(() => {
+    if (!initial.pair) return;
+    document.getElementById(PAIR_SECTION_ID)?.scrollIntoView({
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [initial.pair]);
   return (
     <>
       <div className="controls">

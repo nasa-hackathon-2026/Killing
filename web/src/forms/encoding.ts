@@ -1,5 +1,9 @@
 // How a value and a trend become what a form draws. Pure functions; the
 // per-variable numbers they read live in formMapping.ts.
+import {
+  trendUnreliable,
+  UNRELIABLE_TREND_LABEL,
+} from "../analysis/trendReliability";
 import type { TrendEntry } from "../analysis/trends";
 import { clampUnit, MAX_FORM_PARTICLES, particleCount } from "./particleField";
 
@@ -66,12 +70,20 @@ export type TrendSignal = {
   state: TrendState;
   // True when the trend is still significant after the FDR correction.
   fdr: boolean;
+  // A significant trend of a series with a documented issue that affects
+  // trends (analysis/trendReliability.ts). Only set on rising and falling.
+  unreliable?: boolean;
 };
 
 // Reads the same test the layer panel words its sentence from: the linear
 // trend's t-test after the lag-1 autocorrelation correction. No judgment is
 // added here; direction is the sign of the slope and nothing more.
-export function trendSignal(entry: TrendEntry | undefined): TrendSignal {
+// `issues` is the file's known_issues table; without it no series is marked
+// unreliable.
+export function trendSignal(
+  entry: TrendEntry | undefined,
+  issues?: Record<string, { kind: string }>,
+): TrendSignal {
   if (!entry) return { state: "unavailable", fdr: false };
   if (entry.status === "insufficient") {
     return { state: "insufficient", fdr: false };
@@ -83,15 +95,27 @@ export function trendSignal(entry: TrendEntry | undefined): TrendSignal {
   if (!entry.ols.significant || slope === 0) {
     return { state: "not-significant", fdr: false };
   }
-  return {
+  const signal: TrendSignal = {
     state: slope > 0 ? "rising" : "falling",
     fdr: entry.ols.significant_fdr === true,
   };
+  return trendUnreliable(entry, issues)
+    ? { ...signal, unreliable: true }
+    : signal;
 }
 
 export type TrendMark = { glyph: string; label: string };
 
+// The unreliable mark is drawn as a shape (analysis/TrendMarkIcon.tsx); its
+// glyph here is only the text fallback.
 export function trendMark(signal: TrendSignal): TrendMark {
+  if (signal.unreliable) {
+    const direction = signal.state === "rising" ? "rising" : "falling";
+    return {
+      glyph: "⚠",
+      label: `${UNRELIABLE_TREND_LABEL} (${direction}, ${signal.fdr ? "statistically significant" : "significant before FDR only"})`,
+    };
+  }
   switch (signal.state) {
     case "rising":
       return signal.fdr
@@ -112,6 +136,7 @@ export function trendMark(signal: TrendSignal): TrendMark {
 
 // +1 points away from the Earth, -1 towards it, 0 draws no arrows.
 export function trendArrowDirection(signal: TrendSignal | undefined): number {
+  if (signal?.unreliable) return 0;
   if (signal?.state === "rising") return 1;
   if (signal?.state === "falling") return -1;
   return 0;

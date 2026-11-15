@@ -22,6 +22,7 @@ import {
   startingLayers,
 } from "./guide/firstVisit";
 import { GuideCard } from "./guide/GuideCard";
+import { particleNote } from "./guide/particleNote";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations, taiwanOverview } from "./mock/snapshot";
@@ -30,6 +31,7 @@ import { EarthCanvas } from "./scene/EarthCanvas";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
+import { startLongitudeShift } from "./scene/startView";
 import {
   bestDefaultMonth,
   formatMeasurement,
@@ -87,12 +89,44 @@ const initialLocation = resolvePlaceId(askedPlace, []);
 // wider view a place picked from the menu is shown at.
 const TAIWAN_FLY_DISTANCE = 1.85;
 const PLACE_FLY_DISTANCE = 2.3;
+// The whole globe in view: the distance the camera is created at
+// (EarthCanvas). A page that opens at a Taiwan place starts here.
+const START_DISTANCE = 3.2;
 // Before the catalogs are read, the five Taiwan places stand in.
 const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   ...item,
   group: "taiwan",
   aggregation: "point",
 }));
+
+// One target object per place, so the camera jumps there once.
+function useStartFlight(
+  lat: number | undefined,
+  lon: number | undefined,
+  distance: number,
+): FlyTarget | null {
+  return useMemo(
+    () =>
+      lat !== undefined && lon !== undefined
+        ? {
+            lat,
+            // East of the place on medium windows, so the place shows left
+            // of the Companions panel (scene/startView.ts).
+            lon:
+              lon +
+              startLongitudeShift(
+                window.innerWidth,
+                window.innerHeight,
+                distance,
+                lat,
+              ),
+            distance,
+            instant: true,
+          }
+        : null,
+    [lat, lon, distance],
+  );
+}
 
 // Loads the snapshot and owns the place; the month, playback and the charted
 // variable live in the timeline context (web/src/timeline/TimelineContext.tsx)
@@ -185,22 +219,18 @@ function AppView({
       });
     }
   };
-  // A link that opens at a place outside Taiwan starts with the camera
-  // over that place (the layer view flies there by itself).
-  const startPlace = data?.places.find((item) => item.id === askedPlace);
-  const startFlight = useMemo<FlyTarget | null>(
-    () =>
-      hasCoordinates(startPlace) &&
-      startPlace.group !== "taiwan" &&
-      !requestedStrata()
-        ? {
-            lat: startPlace.lat,
-            lon: startPlace.lon,
-            distance: PLACE_FLY_DISTANCE,
-            instant: true,
-          }
-        : null,
-    [startPlace],
+  // The page opens with the camera over the selected place (the default,
+  // or the one ?at= names), so the globe shows what the panels talk about.
+  // The global mean has no point and keeps the default view; the layer view
+  // flies there by itself.
+  const startLat = location?.lat;
+  const startLon = location?.lon;
+  const startDistance =
+    place?.group === "taiwan" ? START_DISTANCE : PLACE_FLY_DISTANCE;
+  const startFlight = useStartFlight(
+    requestedStrata() ? undefined : startLat,
+    startLon,
+    startDistance,
   );
   const flyTarget = askedFlight ?? (startDone ? null : startFlight);
   const flying = flyTarget !== null;
@@ -246,11 +276,12 @@ function AppView({
     for (const layer of layerRegistry) {
       const entry =
         trendsFile.data.series[trendKey(layer.id, locationId, aggregation)];
+      const signal = trendSignal(entry, trendsFile.data.known_issues);
       trends[layer.id] = summarizeTrend(
         entry,
         trendsFile.data.parameters.alpha,
+        signal.unreliable,
       );
-      const signal = trendSignal(entry);
       signals[layer.id] = signal;
       trendDirections[layer.id] = trendArrowDirection(signal);
     }
@@ -265,6 +296,18 @@ function AppView({
           `${import.meta.env.BASE_URL}compare/`,
         )
       : undefined;
+
+  // What the particles are, so they are not read as a global map.
+  const particleLine = particleNote({
+    layerNames: layerRegistry
+      .filter((layer) =>
+        controls.some((item) => item.id === layer.id && item.visible),
+      )
+      .map((layer) => layer.nameEn),
+    place: placeName,
+    month: activeMonth,
+    trendMap: trendMap.status === "ready",
+  });
 
   return (
     <div className="app">
@@ -480,6 +523,11 @@ function AppView({
           }
           onClose={() => setCloseUpId(null)}
         />
+      ) : null}
+      {particleLine && strata.phase === "off" ? (
+        <p className="particle-note" role="note">
+          {particleLine}
+        </p>
       ) : null}
       <p className="credit">
         Surface: Blue Marble,{" "}

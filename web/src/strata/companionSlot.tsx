@@ -3,6 +3,7 @@
 // stays in strataSpec.ts (companionSpec.ts reads its `layer` and height
 // order from there, so there is one table).
 import { Companion } from "../companions/Companion";
+import type { TrendSignal } from "../forms/encoding";
 
 export type CompanionSlotProps = {
   variableId: string;
@@ -10,9 +11,8 @@ export type CompanionSlotProps = {
   value: number | null;
   // Standardized anomaly of the month against the same calendar month.
   anomalyZ?: number | null;
-  // +1 rising, -1 falling, 0 otherwise (trendArrowDirection).
-  trend: number;
-  significant: boolean;
+  // The same trend signal as the layer panel, so the mark is the same.
+  signal?: TrendSignal;
   // Pixels.
   size: number;
 };
@@ -21,8 +21,7 @@ export function CompanionSlot({
   variableId,
   value,
   anomalyZ,
-  trend,
-  significant,
+  signal,
   size,
 }: CompanionSlotProps) {
   return (
@@ -30,8 +29,7 @@ export function CompanionSlot({
       variableId={variableId}
       value={value}
       anomalyZ={anomalyZ ?? null}
-      trend={trend}
-      significant={significant}
+      signal={signal}
       size={size}
       showLabel={false}
     />

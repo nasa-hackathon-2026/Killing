@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { trendUnreliable } from "../analysis/trendReliability";
 import { trendKey, type TrendsFile } from "../analysis/trends";
 import {
   useAnalysisFile,
@@ -100,6 +101,7 @@ export function TimelineDock({
           anomalies={anomalies?.[key] ?? null}
           trend={trend}
           alpha={trendsData?.parameters.alpha ?? 0.05}
+          unreliable={trendUnreliable(trend, trendsData?.known_issues)}
           breaks={stepsOf(key)}
           similarHref={similarLink(
             import.meta.env.BASE_URL,

@@ -3,7 +3,8 @@ import type { CompareLink } from "../analysis/modelVsObs";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
-import { trendMark, type TrendSignal } from "../forms/encoding";
+import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
+import type { TrendSignal } from "../forms/encoding";
 import { groupedPlaces, type Place } from "../snapshot/places";
 import type { LayerDefinition } from "./registry";
 
@@ -153,7 +154,9 @@ export function LayerPanel({
           significant does not mean no change; the record may be too short or
           too variable to tell. ▲ ▼ and the arrows above a layer (away from the
           Earth = rising, towards it = falling) mark significant trends only; ◇
-          is not significant.
+          is not significant. A crossed-out triangle marks a significant trend
+          that is not reliable as a climate signal (documented data issue; see
+          its caution).
         </p>
       ) : null}
       <ul>
@@ -162,7 +165,6 @@ export function LayerPanel({
           if (!control) return null;
           const trend = trends?.[layer.id];
           const signal = signals?.[layer.id];
-          const mark = signal ? trendMark(signal) : null;
           const caveat = trend ? trendCaveat(layer.id) : null;
           return (
             <li key={layer.id}>
@@ -173,16 +175,7 @@ export function LayerPanel({
                   onChange={() => onToggle(layer.id)}
                 />
                 <span>{layer.nameEn}</span>
-                {mark && mark.glyph ? (
-                  <span
-                    className="trend-mark"
-                    role="img"
-                    aria-label={mark.label}
-                    title={mark.label}
-                  >
-                    {mark.glyph}
-                  </span>
-                ) : null}
+                {signal ? <TrendMarkIcon signal={signal} /> : null}
                 <span className="reading">{readings[layer.id]}</span>
               </label>
               {trend ? (

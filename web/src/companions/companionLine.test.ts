@@ -50,6 +50,34 @@ describe("companionLine", () => {
     );
   });
 
+  it("says the number first, then that an unreliable trend is not a climate signal", () => {
+    const line = companionLine({
+      variableName: "Near-surface air temperature",
+      place: "Tokyo",
+      month: "2024-06-01",
+      value: 295.15,
+      unit: "K",
+      trend,
+      caveatSummary: TREND_CAVEATS.gldas_tair?.summary,
+      unreliableReason: TREND_CAVEATS.gldas_tair?.reason,
+      dataKind: "model",
+    });
+    expect(line).toBe(
+      "Near-surface air temperature at Tokyo, June 2024: 22.0 °C. " +
+        "Trend 2001-01 to 2026-06: +0.42 °C per decade (95% CI 0.20 to 0.64), " +
+        "significant after autocorrelation and FDR correction. " +
+        "This trend is not reliable as a climate signal: it contains step changes. " +
+        "Data kind: model.",
+    );
+    expect(line).not.toContain("Caution:");
+  });
+
+  it("gives every caveat of the three GLDAS variables a reason clause", () => {
+    for (const caveat of Object.values(TREND_CAVEATS)) {
+      expect(caveat.reason).toMatch(/\.$/);
+    }
+  });
+
   it("says below for a negative difference and keeps the unit", () => {
     const line = companionLine({
       variableName: "Precipitation",

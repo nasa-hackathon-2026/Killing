@@ -1,6 +1,8 @@
 // The start card: what the tool is, three steps, a few examples to open, and
 // a short "How to read this". It describes the tool and how to read the
 // picture; it states no findings. Examples are data (examples.ts).
+import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
+import type { TrendSignal } from "../forms/encoding";
 import { exampleHref, GUIDE_EXAMPLES } from "./examples";
 import "./guide.css";
 
@@ -12,6 +14,12 @@ const GUIDE_STEPS = [
   "Press play or drag the timeline.",
   "Open Chart for the trend and its significance.",
 ];
+
+const UNRELIABLE_EXAMPLE: TrendSignal = {
+  state: "rising",
+  fdr: true,
+  unreliable: true,
+};
 
 export function GuideCard({ onClose }: { onClose: () => void }) {
   return (
@@ -44,21 +52,33 @@ export function GuideCard({ onClose }: { onClose: () => void }) {
         <dl>
           <dt>Particles</dt>
           <dd>
-            Each layer is drawn as particles. Their count, size and speed follow
-            the value at the selected place in the month shown, relative to that
-            place&apos;s own record. Flow direction is illustrative; there is no
-            wind data.
+            The particles of a layer show one value: the selected place, in the
+            month shown. They cover the globe but are not a map of where the
+            variable is high or low. Their count, size and speed follow that
+            value, relative to the place&apos;s own record. Flow direction is
+            illustrative; there is no wind data. The coloured Global trend map
+            is a map: the trend of each grid cell.
           </dd>
           <dt>Trend</dt>
           <dd>
             The linear change of monthly anomalies (the value minus the mean of
             the same calendar month) per decade, with a 95% confidence interval.
           </dd>
-          <dt>▲ ▼ ◇</dt>
+          <dt>▲ ▼ △ ▽ ◇</dt>
           <dd>
             ▲ rising and ▼ falling mark trends that are statistically
-            significant after the autocorrelation and FDR corrections. ◇ is not
+            significant after the autocorrelation and FDR corrections. Hollow △
+            ▽ are significant only before the FDR correction. ◇ is not
             significant.
+          </dd>
+          <dt>
+            <TrendMarkIcon signal={UNRELIABLE_EXAMPLE} /> Crossed-out triangle
+          </dt>
+          <dd>
+            The trend is statistically significant, but the series has a
+            documented data issue (a step in the product, or two products that
+            disagree on the sign), so it is not reliable as a climate signal.
+            Read its caution note.
           </dd>
           <dt>Not significant</dt>
           <dd>

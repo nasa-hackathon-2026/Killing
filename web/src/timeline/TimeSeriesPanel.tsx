@@ -52,6 +52,9 @@ type TimeSeriesPanelProps = {
   alpha: number;
   // Documented step months of this series ("YYYY-MM-01").
   breaks: string[];
+  // The series has a documented issue that affects trends
+  // (analysis/trendReliability.ts); limits the wording of the t-test line.
+  unreliable?: boolean;
   // Link to this place and variable in the "Similar series" section of the
   // mining page.
   similarHref?: string;
@@ -80,6 +83,7 @@ export function TimeSeriesPanel({
   trend,
   alpha,
   breaks,
+  unreliable = false,
   similarHref,
   onClose,
 }: TimeSeriesPanelProps) {
@@ -371,7 +375,8 @@ export function TimeSeriesPanel({
               </dd>
               <dt>t-test of the slope</dt>
               <dd>
-                {verdict(analyzed.ols, alpha)}; {significanceText(analyzed.ols)}
+                {verdict(analyzed.ols, alpha)};{" "}
+                {significanceText(analyzed.ols, unreliable)}
                 {analyzed.ols.n_effective !== undefined
                   ? `. Effective sample size ${Math.round(analyzed.ols.n_effective)} (lag-1 autocorrelation ${analyzed.ols.lag1_autocorrelation?.toFixed(2) ?? "n/a"})`
                   : ""}

@@ -166,7 +166,13 @@ export function CompanionDock({
   for (const spec of COMPANIONS) {
     const found = series.find((item) => item.variableId === spec.id);
     const trend = trends?.series[trendKey(spec.id, locationId, aggregation)];
-    const reading = companionReading(spec.id, found, month, trend);
+    const reading = companionReading(
+      spec.id,
+      found,
+      month,
+      trend,
+      trends?.known_issues,
+    );
     readings[spec.id] = reading;
     lines[spec.id] = companionLine({
       variableName: spec.variableName,
@@ -178,6 +184,9 @@ export function CompanionDock({
       trend,
       alpha: trends?.parameters.alpha,
       caveatSummary: reading.caveat?.summary,
+      unreliableReason: reading.signal.unreliable
+        ? (reading.caveat?.reason ?? "it has a documented data issue.")
+        : null,
       dataKind: spec.dataKind,
     });
   }
@@ -203,6 +212,18 @@ export function CompanionDock({
     wasPlaying.current = playing;
   }, [playing, voiceOn, selectedLine]);
   useEffect(() => stopSpeaking, []);
+  // Esc closes the Gather composition, the same as its Close button.
+  useEffect(() => {
+    if (!gathered) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setGathered(false);
+      setSelectedId(null);
+      stopSpeaking();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [gathered]);
 
   function select(id: string, withCaveat = false) {
     const closing = selectedId === id && caveatOpen === withCaveat;
@@ -356,7 +377,9 @@ export function CompanionDock({
         <p className="companion-foot">
           Drawn by code (SVG). Size: value within the series&apos; own range.
           Posture: month against the mean of the same calendar month. Mark: ▲ ▼
-          significant trend, ◇ not significant. {INTERACTION_NOTE}
+          significant trend, ◇ not significant, a crossed-out triangle for a
+          significant trend that is not reliable as a climate signal.{" "}
+          {INTERACTION_NOTE}
         </p>
       </section>
     );

@@ -96,6 +96,44 @@ describe("trendSignal", () => {
     expect(trendSignal(analyzed(0.4, null, null)).state).toBe("unavailable");
   });
 
+  it("marks a significant trend with a trend-affecting issue as unreliable", () => {
+    const issues = {
+      step: { kind: "discontinuity" },
+      gap: { kind: "missing_composites" },
+    };
+    const withIssues = (entry: AnalyzedTrend, ids: string[]): TrendEntry => ({
+      ...entry,
+      known_issues: ids,
+    });
+    expect(
+      trendSignal(withIssues(analyzed(2.08, true, true), ["step"]), issues),
+    ).toEqual({ state: "rising", fdr: true, unreliable: true });
+    expect(
+      trendSignal(withIssues(analyzed(-0.4, true, false), ["step"]), issues),
+    ).toEqual({ state: "falling", fdr: false, unreliable: true });
+    // A gap in the record does not change the mark.
+    expect(
+      trendSignal(withIssues(analyzed(0.4, true, true), ["gap"]), issues),
+    ).toEqual({ state: "rising", fdr: true });
+    // Not significant stays not significant.
+    expect(
+      trendSignal(withIssues(analyzed(0.4, false, false), ["step"]), issues),
+    ).toEqual({ state: "not-significant", fdr: false });
+  });
+
+  it("gives the unreliable signal its own mark and no arrow", () => {
+    const rising = { state: "rising", fdr: true, unreliable: true } as const;
+    const mark = trendMark(rising);
+    expect(["▲", "▼", "△", "▽"]).not.toContain(mark.glyph);
+    expect(mark.label).toBe(
+      "Trend not reliable as a climate signal: documented data issue (rising, statistically significant)",
+    );
+    expect(
+      trendMark({ state: "falling", fdr: false, unreliable: true }).label,
+    ).toContain("falling, significant before FDR only");
+    expect(trendArrowDirection(rising)).toBe(0);
+  });
+
   it("turns a signal into a mark and an arrow direction", () => {
     expect(trendMark({ state: "rising", fdr: true }).glyph).toBe("▲");
     expect(trendMark({ state: "falling", fdr: false }).glyph).toBe("▽");

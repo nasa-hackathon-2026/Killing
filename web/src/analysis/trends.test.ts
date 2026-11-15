@@ -116,6 +116,22 @@ describe("significanceText", () => {
       "test could not be computed",
     );
   });
+
+  it("keeps the statistical fact and limits its reading for an unreliable trend", () => {
+    expect(significanceText(test(true, true), true)).toBe(
+      "statistically significant, but not reliable as a climate signal: see caution",
+    );
+    expect(significanceText(test(true, false), true)).toBe(
+      "significant before FDR correction only, and not reliable as a climate signal: see caution",
+    );
+    // Not significant is worded the same either way.
+    expect(significanceText(test(false, false), true)).toBe(
+      significanceText(test(false, false)),
+    );
+    expect(
+      summarizeTrend(analyzed("K", test(true, true)), 0.05, true)?.significance,
+    ).toContain("not reliable as a climate signal");
+  });
 });
 
 describe("summarizeTrend", () => {
