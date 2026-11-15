@@ -30,7 +30,7 @@
 >
 > - 形式：一個靜態網站（不需登入、沒有伺服器），用 three.js 地球呈現 NASA 地球觀測變數的月資料；每個變數一層粒子。
 > - 題目的四個要素都有對應的功能：變數選擇、區域資料、10 年以上的月時間序列、變化率加顯著性檢定（對應表在下面第 5 節的「How the tool covers the four required elements」）。
-> - 範圍：12 個變數、台灣 5 個點位，另有 7 個變數的全球逐格趨勢地圖。
+> - 範圍：12 個變數；地點是台灣 5 個點位、12 個世界城市與全球平均（台灣以外有其中 10 個變數）；另有 7 個變數的全球逐格趨勢地圖。
 > - 對象（README）：學生與一般大眾。
 > - 限制要在摘要裡誠實帶到嗎，由隊伍決定；README 開頭已有一段 "What it does not do yet"。
 
@@ -66,7 +66,7 @@ What a visitor can do on the site (source: `README.md` "What you can do on the s
 | Feature | What it does |
 |---|---|
 | Choose variables | A Layers panel with 12 switchable layers, one per variable: precipitation, near-surface air temperature, surface soil moisture, evapotranspiration, AIRS surface air temperature, total water vapor, MERRA-2 2 m air temperature, tropospheric NO2, total ozone, UV aerosol index, vegetation greenness (NDVI) and land surface temperature. |
-| Choose a place and a month | Five places in Taiwan (Taichung, Taipei, Kaohsiung, Hualien, Yushan) and a month slider. A month with no data draws no particles and says "No data". |
+| Choose a place and a month | A place menu with five places in Taiwan (Taichung, Taipei, Kaohsiung, Hualien, Yushan), twelve world cities (Tokyo, Delhi, Beijing, Jakarta, Cairo, Lagos, London, Moscow, New York, Los Angeles, São Paulo, Sydney) and the global mean, and a month slider. The world cities and the global mean have ten of the twelve variables (the two MODIS layers are Taiwan only). A month with no data draws no particles and says "No data"; a variable with no series at the place says "No data at this place". |
 | Particle layers | Each layer has its own particle shape and motion. Count, size and speed of the particles follow the value for the selected place and month, scaled between that series' own minimum and maximum. The direction of motion is illustrative: the project has no wind data. |
 | Timeline | A bar that plays through every month of the record (play and pause, 1, 4 or 12 months per second, "Latest"). A strip above the slider shows each month's anomaly of one variable and marks documented step months. |
 | Time series chart and trend statistics | The "Chart" button of a layer opens the whole monthly series at the selected place, as monthly values, anomalies or a 12-month running mean, with the linear trend line, the 95% confidence interval of its slope, the documented step months and the numbers behind it (change per decade, p value after autocorrelation correction, FDR-adjusted p value, Mann-Kendall result, Sen slope, period, number of valid months). Gaps are left as gaps. |
@@ -77,7 +77,7 @@ What a visitor can do on the site (source: `README.md` "What you can do on the s
 | Close-up views | Each layer has a schematic view of the substance or process behind the variable. Molecular geometry is taken from the NIST CCCBDB and the sources are listed in the panel. |
 | Model vs observation page | Near-surface air temperature from models and reanalyses next to observations of the same quantity at the same place: correlation of anomalies, difference, each side's trend, difference of trends (97 pairs; `docs/data/model-vs-obs.md`, `data/analysis/model_vs_obs.json`). |
 | Data mining page | Five exploratory analyses, each with its method, sample size and a comparison against simple guesses: association rules (FP-growth); a variable network of correlations between detrended monthly anomalies; lists of the most and least similar series for a chosen place and variable; the size of the difference between model and station temperature by product, season, period and station, with a decision tree compared against three baselines; and a decision tree for vegetation greenness. Also the sensitivity of the rules and that tree to gap filling and to known step months. |
-| First-use guide | A start card with three steps, four example questions that open ready-made views, and a "How to read this" note. Example titles are questions; the page shows the numbers and leaves the answer to the reader. |
+| First-use guide | A start card with three steps, five example questions that open ready-made views, and a "How to read this" note. Example titles are questions; the page shows the numbers and leaves the answer to the reader. |
 
 #### How the tool covers the four required elements
 
@@ -86,7 +86,7 @@ The challenge text (`challenge-resources.md`, in the team's `resources` reposito
 | # | Required element | Where it is in the tool | Status to state honestly |
 |---|---|---|---|
 | 1 | Identify variables that may show a trend | The Layers panel (12 variables, each with its product name, unit and trend marks); the Close-up view of each variable; the "How to read this" note; the global trend maps, which show where trends exist and where they are significant. | The tool does not suggest variables from a question. Plain-language definitions of each variable exist only as the Close-up text and the start-card note (needs team check whether this is enough for "simple definitions"). |
-| 2 | Obtain data for a specific region | Five places in Taiwan on the globe; area means over five Taiwan boxes exist in the data; the Model vs observation page covers 6 Taiwan stations and 12 world cities; the global trend maps cover the whole globe at about 1 degree. | On the globe, only five Taiwan points are connected to the layers. The Taiwan and regional area means, and the world-wide series, are in the data layer but are not shown on the globe (`README.md` "Limitations"). |
+| 2 | Obtain data for a specific region | The place menu of the globe: five places in Taiwan, twelve world cities and the global mean; area means over five Taiwan boxes exist in the data; the Model vs observation page covers 6 Taiwan stations and 12 world cities; the global trend maps cover the whole globe at about 1 degree. | The layers read point series (one grid cell of each product) at seventeen places, and the global mean. The world cities and the global mean have ten of the twelve variables. The Taiwan area means, the continental area means and the extended variables are in the data layer but are not shown on the globe (`README.md` "Limitations"). |
 | 3 | Produce and visualize a long enough time series | Monthly series that start between 2000 and 2004 and run to 2025 or 2026 (period of each product in `docs/data/nasa-data.md`), the timeline, and the time series chart. | Each of the 12 layers has about 21 to 26 years of monthly data in the snapshot; the shortest is tropospheric NO2 (2004-10 to 2026-03). Precipitation ends in 2025-09. |
 | 4 | Basic statistics: rate of change and significance | Per layer: change per decade, 95% confidence interval, t-test corrected for autocorrelation, three Mann-Kendall variants, Sen slope, Benjamini-Hochberg FDR (section 5.2). | Trends are linear only. Step changes from sensor or product changes are not detected or corrected. "Not significant" does not mean "no change". |
 
@@ -153,7 +153,7 @@ Read from `pyproject.toml`, `web/package.json` and `db/` (version constraints as
 | Web front end | TypeScript, React 19, three.js, @react-three/fiber, @react-three/drei; built with Vite; tested with Vitest; checked with ESLint, Prettier and the TypeScript compiler. Node.js 22 or later. | `web/package.json` |
 | Database (team use) | PostgreSQL 17 in a Docker container (`timescale/timescaledb-ha:pg17` image) with PostGIS, TimescaleDB and other extensions; SQLite export. | `db/compose.yaml`, `docs/data/postgres.md`, `docs/data/sqlite.md` |
 | Publishing | GitHub Pages through a GitHub Actions workflow; static files only. | `.github/workflows/pages.yml` |
-| Tests | 324 Python tests and 102 web tests passed on 2026-11-15 (numbers from `README.md`, "How to reproduce"; re-run before quoting). | `tests/`, `web/src/` |
+| Tests | 513 Python tests (27 more are skipped without the local PostgreSQL database) and 316 web tests passed on 2026-11-15 (the same numbers as `README.md`, "How to reproduce"; re-run before quoting). | `tests/`, `web/src/` |
 
 ### 5.5 Benefits, goals and who it is for
 
@@ -179,7 +179,7 @@ Read from `pyproject.toml`, `web/package.json` and `db/` (version constraints as
 
 [TEAM: The goals of the project, and what you would like to do next (future vision), in your own words.]
 
-> 提示：官方的 30 秒影片腳本最後 10 秒是「未來願景」，這裡可以重用同一段話。repo 的 README「Limitations」列了目前沒做到的事（例如全球資料只接了 7 個趨勢地圖、點位只有台灣 5 個、沒有風向資料），可以當成「下一步」的素材，但要不要做、先做哪個，是隊伍的決定。
+> 提示：官方的 30 秒影片腳本最後 10 秒是「未來願景」，這裡可以重用同一段話。repo 的 README「Limitations」列了目前沒做到的事（例如全球格點只接了 7 個趨勢地圖、台灣以外只有 12 個城市與全球平均的 10 個變數、沒有風向資料），可以當成「下一步」的素材，但要不要做、先做哪個，是隊伍的決定。
 
 ---
 
@@ -187,7 +187,7 @@ Read from `pyproject.toml`, `web/package.json` and `db/` (version constraints as
 
 Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section is assembled from the repository's own record: commit trailers, pull request descriptions, issue comments and `README.md` ("Use of AI (SI) — disclosure (draft)"). Every statement below has a source; open questions are listed at the end.
 
-**Which tools were used.** Claude Code (Anthropic) and Cursor. Commit trailers name "Claude Fable 5.2" (88 trailer lines across the repository history on 2026-11-15), "Claude Sonnet 5.5" (2) and "Cursor" (7). Count source: `git log` of the `main` branch.
+**Which tools were used.** Claude Code (Anthropic) and Cursor. Commit trailers name "Claude Fable 5.2" (94 trailer lines in the history of `main` at commit `15fb4de` on 2026-11-15; the number grows with every commit), "Claude Sonnet 5.5" (2) and "Cursor" (7). Count source: `git log` of the `main` branch.
 
 **What was written with AI tools**
 
@@ -243,16 +243,16 @@ The challenge names six data sources: **MODIS, OMI, AIRS, GPM, MERRA-2 and GLDAS
 
 | Named by the challenge | Variable (layer) | Product and version | Period in the snapshot | DOI | Used for |
 |---|---|---|---|---|---|
-| GPM | Precipitation | GPM IMERG Final Monthly, `GPM_3IMERGM` version 07 | 2001-01 to 2025-09 | 10.5067/GPM/IMERG/3B-MONTH/07 | Point series at 5 places, area means, global trend map |
+| GPM | Precipitation | GPM IMERG Final Monthly, `GPM_3IMERGM` version 07 | 2001-01 to 2025-09 | 10.5067/GPM/IMERG/3B-MONTH/07 | Point series at 5 places in Taiwan and 12 world cities, area means, global mean, global trend map |
 | GLDAS | Near-surface air temperature | GLDAS Noah Land Surface Model L4 monthly 0.25 degree, `GLDAS_NOAH025_M` 2.1 (`Tair_f_inst`) | 2001-01 to 2026-07 | 10.5067/SXAVCZFAQLNO | Same; carries a step-change caution |
 | GLDAS | Surface soil moisture 0-10 cm | `GLDAS_NOAH025_M` 2.1 (`SoilMoi0_10cm_inst`) | 2001-01 to 2026-07 | 10.5067/SXAVCZFAQLNO | Same; carries a caution that two model products disagree |
 | GLDAS | Evapotranspiration | `GLDAS_NOAH025_M` 2.1 (`Evap_tavg`) | 2001-01 to 2026-07 | 10.5067/SXAVCZFAQLNO | Same; carries a step-change caution |
 | AIRS | Surface air temperature | AIRS3STM version 7.0 (`SurfAirTemp_A`, ascending) | 2002-09 to 2026-10 | 10.5067/UBENJB9D3T2H | Same |
 | AIRS | Total column water vapor | AIRS3STM 7.0 (`TotH2OVap_A`) | 2002-09 to 2026-10 | 10.5067/UBENJB9D3T2H | Same |
 | MERRA-2 | 2 m air temperature | MERRA-2 `M2IMNXASM` 5.12.4 (`T2M`) | 2001-01 to 2026-09 | 10.5067/5ESKGQTZG7FO | Same; Model vs observation page |
-| OMI | Tropospheric NO2 column | OMNO2d version 003 | 2004-10 to 2026-03 | 10.5067/Aura/OMI/DATA3007 | Point series and area means (three places have too few months to test) |
-| OMI | Total column ozone | OMTO3d version 003 | 2004-10 to 2026-11 | 10.5067/Aura/OMI/DATA3001 | Point series and area means |
-| OMI | UV aerosol index | OMAERUVd version 003 | 2004-10 to 2026-11 | 10.5067/Aura/OMI/DATA3003 | Point series and area means |
+| OMI | Tropospheric NO2 column | OMNO2d version 003 | 2004-10 to 2026-03 | 10.5067/Aura/OMI/DATA3007 | Point series (Taiwan places and world cities), area means and global mean (three places have too few months to test) |
+| OMI | Total column ozone | OMTO3d version 003 | 2004-10 to 2026-11 | 10.5067/Aura/OMI/DATA3001 | Point series (Taiwan places and world cities), area means and global mean |
+| OMI | UV aerosol index | OMAERUVd version 003 | 2004-10 to 2026-11 | 10.5067/Aura/OMI/DATA3003 | Point series (Taiwan places and world cities), area means and global mean |
 | MODIS | Vegetation greenness (NDVI) | MODIS Terra `MOD13A3` 061 (via AppEEARS, area statistics) and `MOD13Q1` 061 (via Microsoft Planetary Computer, 250 m, 16-day) | 2001-01 to 2026-10 and 2001-01 to 2026-09 | 10.5067/MODIS/MOD13A3.061 and 10.5067/MODIS/MOD13Q1.061 | Point series, area statistics |
 | MODIS | Daytime land surface temperature | MODIS Terra `MOD11A2` 061 (via AppEEARS and via Planetary Computer) | 2001-01 to 2026-11 and 2001-01 to 2026-10 | 10.5067/MODIS/MOD11A2.061 | Point series, area statistics |
 

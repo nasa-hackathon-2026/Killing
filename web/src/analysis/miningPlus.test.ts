@@ -14,6 +14,7 @@ import {
   runningMean,
   segmentLabel,
   significantEdges,
+  sectionFromHash,
   similarKey,
   similarLink,
   similarSelection,
@@ -186,6 +187,18 @@ describe("similar series", () => {
       locationId: "taipei",
       variableId: "rain",
     });
+  });
+
+  it("names the section a link's fragment asks for", () => {
+    const ids = ["rules", "similar", "gap-filling"];
+    expect(sectionFromHash("#similar", ids)).toBe("similar");
+    expect(sectionFromHash("#gap-filling", ids)).toBe("gap-filling");
+    expect(sectionFromHash("", ids)).toBeNull();
+    expect(sectionFromHash("#", ids)).toBeNull();
+    expect(sectionFromHash("#nowhere", ids)).toBeNull();
+    // the fragment of the link the main page builds is one of the sections
+    const link = similarLink("/base/", "tokyo", "imerg_precip");
+    expect(sectionFromHash(link.slice(link.indexOf("#")), ids)).toBe("similar");
   });
 
   it("builds the link the main page uses", () => {

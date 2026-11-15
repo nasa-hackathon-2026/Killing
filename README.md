@@ -4,7 +4,7 @@ A web globe that shows NASA Earth-observation time series for Taiwan, twelve wor
 
 **Live site: <https://nasa-hackathon-2026.github.io/earth-system-trend-detective/>** (static, no login, no server)
 
-![The globe with six layers switched on and the layer panel showing each variable's change per decade, confidence interval and significance](docs/images/globe-six-layers.jpg)
+![The globe with six layers switched on: the time series chart of 2 m air temperature at Taichung with its trend line and test results on the left, the timeline at the bottom, the data companions and the layer panel with each variable's change per decade, confidence interval and significance on the right](docs/images/globe-six-layers.jpg)
 
 > TODO(team): add team name, a one-paragraph project statement in your own words, and the link to the demo (slides or 30-second video).
 
@@ -16,7 +16,7 @@ What it does not do yet, in short: outside Taiwan the site shows twelve world ci
 
 | Where | What it shows |
 |---|---|
-| Start card | The first visit opens with two layers already on (precipitation and MERRA-2 2 m air temperature at Taichung) and a card that says what the tool does, gives three steps (turn on a layer, play or drag the timeline, open Chart) and offers four examples to open. "How to read this" in the card explains the particles, the ▲ ▼ ◇ marks, what "not significant" means, the difference between in situ, satellite and model data, and the orange caution notes. The card closes for good once dismissed (remembered in the browser); the "? Guide" button at the top brings it back. A link that sets the view (`?layers=`, `?chart=`, ...) opens exactly that view, without the card. |
+| Start card | The first visit opens with two layers already on (precipitation and MERRA-2 2 m air temperature at Taichung) and a card that says what the tool does, gives three steps (turn on a layer, play or drag the timeline, open Chart) and offers five examples to open. "How to read this" in the card explains the particles, the ▲ ▼ ◇ marks, what "not significant" means, the difference between in situ, satellite and model data, and the orange caution notes. The card closes for good once dismissed (remembered in the browser); the "? Guide" button at the top brings it back. A link that sets the view (`?layers=`, `?chart=`, ...) opens exactly that view, without the card. |
 | [Globe](https://nasa-hackathon-2026.github.io/earth-system-trend-detective/) | A three.js Earth (NASA Blue Marble surface) with 12 layers you can switch on and off, one per variable: precipitation, near-surface air temperature, surface soil moisture, evapotranspiration, AIRS surface air temperature, total water vapor, MERRA-2 2 m air temperature, tropospheric NO2, total ozone, UV aerosol index, vegetation greenness (NDVI) and land surface temperature. |
 | Particle forms | Each layer has its own particle shape and motion (water drops, jittering "thermal" spheres, water and ozone molecules, aerosol grains, leaves, ...). The count, size and speed of the particles follow the value for the selected place and month, scaled between that series' own minimum and maximum. |
 | Place and month | The place menu at the top of the Layers panel ("Values at", or `?at=<place id>`) chooses the place: five points in Taiwan (Taichung, Taipei, Kaohsiung, Hualien, Yushan), twelve world cities (Tokyo, Delhi, Beijing, Jakarta, Cairo, Lagos, London, Moscow, New York, Los Angeles, São Paulo, Sydney) or the global mean. Picking a place turns the globe to it; the markers on the globe choose a place too. The month, every layer's value and trend, the chart, the companions and the layer view follow the place. A month slider chooses the month. A month with no data draws no particles and says "No data"; a variable with no series at the place says "No data at this place". |
@@ -33,9 +33,9 @@ What it does not do yet, in short: outside Taiwan the site shows twelve world ci
 
 | Close-up of tropospheric NO2 | Data mining page |
 |---|---|
-| ![Close-up panel for NO2 with reaction equations and a table of bond lengths](docs/images/closeup-no2.jpg) | ![Variable network on the data mining page: variables arranged by layer of the Earth system, joined by lines for correlated monthly anomalies](docs/images/mining-network.jpg) |
+| ![Close-up panel for NO2 with the molecules and the reaction equations; the table of bond lengths is further down in the panel](docs/images/closeup-no2.jpg) | ![Variable network on the data mining page: variables arranged by layer of the Earth system, joined by lines for correlated monthly anomalies](docs/images/mining-network.jpg) |
 
-Screenshots were taken from a local build on 2026-11-14 in a headless browser, so the FPS number in them is not what a normal browser shows.
+Screenshots were taken from a local build on 2026-11-15 in a headless browser, which draws fewer frames per second than a normal browser.
 
 ## How to use
 
@@ -46,7 +46,7 @@ Screenshots were taken from a local build on 2026-11-14 in a headless browser, s
 5. "Layer view" shows which layer of the atmosphere or ground each variable belongs to; "Global trend map" lays one variable's per-cell trend over the globe; "More" leads to the model vs observation, data mining and form lab pages (and holds the renderer and FPS readout).
 6. On the data mining page, the row of links at the top jumps to each analysis; every section starts with the question it asks and its limits, and "Method details" opens the full method and parameters. "Similar series" at the bottom of a chart on the globe page opens that place and variable there.
 
-The examples on the start card are ordinary links. Their titles are questions; the page shows the numbers and how they were computed, and leaves the answer to the reader.
+The five examples on the start card are ordinary links, and so is the "Similar series" link at the bottom of a chart (the Tokyo row below is one of those; it is not on the card). Their titles are questions; the page shows the numbers and how they were computed, and leaves the answer to the reader.
 
 | Example | Link |
 |---|---|
@@ -103,7 +103,7 @@ How much data there is:
 | **World subset** (`data/snapshot/world/`) | The ten core Giovanni variables at 12 world cities (point series) and as a global mean (computed from the global grids): 130 series, copied unchanged from the extended series and the grid area means by `uv run python -m trend_detective.world_export`. Their trends are in `data/analysis/world/`. | Yes | Yes, through the place menu |
 | **Extended series** (`data/extended/`) | 121 more Giovanni variables at the Taiwan points and 12 world cities, plus the core variables at the world cities: 2,177 point series | No (large) | No |
 | **Global grids** (`data/raw/grid/`) | 345 monthly cubes at native resolution (about 90 GB); 4,499 area-mean series for the globe, world regions and Taiwan boxes computed from them | No | No |
-| **Grid files for the web** (`data/grid/`) | Seven variables reduced to about 1°: annual mean, monthly climatology, and an exploratory slope without any significance test | Yes | Not yet |
+| **Grid files for the web** (`data/grid/`) | Seven variables reduced to about 1°: annual mean, monthly climatology, and the per-cell trend maps (slope per decade and its significance after FDR correction) | Yes | The trend maps only (Global trend map) |
 
 The core data is also available as a SQLite file (about 44 MB) on the [releases page](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/releases/tag/data-2026-11-15); see [docs/data/sqlite.md](docs/data/sqlite.md) for the tables and example queries. Where raw downloads are kept and how each source is fetched is in [docs/data/raw-data.md](docs/data/raw-data.md). Both pages are in Traditional Chinese.
 
@@ -212,7 +212,7 @@ You need [uv](https://docs.astral.sh/uv/) (Python 3.11 or later) and Node.js 22 
 | Step | Command | Notes |
 |---|---|---|
 | Install the data layer | `uv sync --locked` | |
-| Run its tests | `uv run pytest` | 504 passed, 26 skipped on a clone without the local PostgreSQL database (529 passed, 1 skipped with it) |
+| Run its tests | `uv run pytest` | 513 passed, 27 skipped without the local PostgreSQL database (the skipped tests need it; the run with the database was not repeated for this count) |
 | Recompute trend statistics | `uv run python -m trend_detective.trends` | About 3 s. Reads `data/snapshot/`, writes `data/analysis/trends.json`, `anomalies.json`, `trends.run.json`. Only the run timestamp changes if the data is unchanged. |
 | Recompute data mining | `uv run python -m trend_detective.mining` | About 3 s. Run after the trend step. |
 | Recompute the model-versus-station tree | `uv run python -m trend_detective.gap_tree` | About 3 s. Reads `data/analysis/model_vs_obs.json` and `anomalies.json`; no database needed. |
@@ -221,8 +221,8 @@ You need [uv](https://docs.astral.sh/uv/) (Python 3.11 or later) and Node.js 22 
 | Regenerate the data lists | `uv run python -m trend_detective.data_lists` | Rewrites `docs/data/nasa-data.md` and `references.md` from the catalog. |
 | Build the SQLite file | `uv run python -m trend_detective.sqlite_export` | Writes `data/sqlite/trend_detective.sqlite` (not in git). On a fresh clone the unified table is complete (133 series, 39,264 rows) and the per-source raw tables are empty, because raw downloads are not in git. |
 | Install the web app | `npm ci --prefix web` | |
-| Run its tests | `npm test --prefix web` | 315 passed |
-| Start the site locally | `npm run dev --prefix web` | Open `http://localhost:5173/earth-system-trend-detective/` (also `lab/` and `mining/` under it). |
+| Run its tests | `npm test --prefix web` | 316 passed |
+| Start the site locally | `npm run dev --prefix web` | Open `http://localhost:5173/earth-system-trend-detective/` (also `compare/`, `mining/` and `lab/` under it). |
 | Build the site | `npm run build --prefix web` | Output in `web/dist/`, including a copy of `data/snapshot/` and `data/analysis/`. GitHub Pages runs this on every push to `main`. |
 
 Fetching the data again talks to NASA services. These commands were **not** re-run for this README; they are documented in `AGENTS.md` (in Traditional Chinese) with timings and pitfalls.
@@ -248,7 +248,7 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 | `data/raw/`, `data/extended/`, `data/sqlite/` | Raw downloads, extended series, SQLite export. Not in git. |
 | `src/trend_detective/` | Python data layer: one module per source, plus `snapshot`, `trends`, `mining`, `gap_tree`, `variable_graph`, `similar_series`, `grid*`, `sqlite_export`. |
 | `tests/` | pytest tests for the data layer, with small fixtures; they do not use the network. |
-| `web/` | Vite + React + three.js site: the globe (`web/src/`), the form lab (`web/lab/`), the mining page (`web/mining/`), and a minimal line-chart check page (`web/tracer/`). |
+| `web/` | Vite + React + three.js site: the globe (`web/src/`), the model vs observation page (`web/compare/`), the mining page (`web/mining/`), the form lab (`web/lab/`), and a minimal line-chart check page (`web/tracer/`). |
 | `docs/data/` | Generated data lists, raw-data notes, SQLite and PostgreSQL guides, the model-versus-observation and data-mining method notes. |
 | `docs/adr/` | Architecture decision records for the cleaning database (in Traditional Chinese); the table-and-column reference is `docs/data/database-schema.md`. |
 | `docs/images/` | Screenshots used in this README. |
@@ -265,6 +265,7 @@ What was done with AI tools:
 - **Data layer** (`src/`, `tests/`, the fetch scripts, the common format, trend statistics, data mining, SQLite export), the data documentation and this README: written by **Claude Code (Anthropic)** under a team member's direction. Those commits carry a `Co-Authored-By: Claude` trailer and the pull requests say "Generated with Claude Code".
 - **Web front end, main structure** (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44): developed by a team member using **Cursor**. Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
 - **Web front end, later parts** (trend summary in the layer panel, the mining page, the ten additional particle forms, the close-up views and their text; pull requests #57, #58, #62, #65): implemented by Claude Code. The mapping from each variable to a particle shape and the wording and reaction equations in the close-ups were first drafted by the tool as defaults for the team to change ([#60](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/60)).
+- **Web front end, parts added on 2026-11-15** (the global trend map, the timeline and time series chart, the layer view, the start card and its examples, the world cities and the global mean in the place menu, and the model vs observation page; issues [#72](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/72), [#97](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/97), [#99](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/99), [#101](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/101), [#105](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/105), [#107](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/107)): implemented by Claude Code; those commits carry the same `Co-authored-by: Claude` trailer.
 - **Data companions** (the characters in the companion panel): the idea of one pet-like character per form of matter, shown together in a composition after *The School of Athens*, is the team's; the code that draws the characters and fills in their sentences was written by an AI tool (Claude Code) following the team's design. The characters are drawn by that code as SVG shapes; no AI-generated image, no external image, font or audio file is used, and the voice is the browser's built-in speech synthesis. The sentences are templates filled with numbers from the data; they state no cause and no conclusion.
 - **Data-mining parameters**: the default thresholds were chosen by the tool following rules a team member authorised, and are recorded in the result files ([#59](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/59)).
 - **Data-mining additions** (the model-versus-station tree and its table of group means, the variable network, the similar-series lists, and the reworked mining page; [#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)): the direction — to use the decision tree on the difference between models and observations, and to put the database's similar-series and variable-graph results on the site — is the team's; the code, the fixed parameters and the page text were written by Claude Code following that direction. The page gives numbers and methods and states no cause and no conclusion.
@@ -279,6 +280,7 @@ What is not AI-generated:
 
 - **All data values** come from the NASA products, NASA POWER and NOAA GHCNh listed above, through the scripts in this repository. No value is generated or filled in by an AI model. The statistics are computed by ordinary code (NumPy, SciPy, pymannkendall, mlxtend, scikit-learn).
 - The screenshots are captures of the running site. The globe textures are NASA imagery. No NASA logo or insignia is used.
+- The repository and the site contain no AI-generated image, video or audio file: the tracked media are the three screenshots, the two NASA textures and the page icon (`web/public/favicon.svg`, a circle and a line written as SVG code in a commit co-authored by Claude Code).
 
 > TODO(team): confirm that the idea for the project came from the team's own brainstorm ([#3](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/3)) and say so here in your own words. The rules state that SI must not be used to come up with the idea.
 
@@ -310,7 +312,7 @@ What is not AI-generated:
 
 ## 繁體中文摘要
 
-這是 NASA Space Apps Challenge 2026 台中場「Be An Earth System Trend Detective!」的作品。網站用 three.js 地球呈現 12 個 NASA 地球觀測變數在台灣 5 個點位的月資料：每個變數一層粒子，數量、大小、速度跟著數值變；圖層面板列出每個變數每十年的變化量、95% 信賴區間與顯著性（月距平的線性趨勢，t 檢定經自相關修正並做 FDR 校正）。另有探索性的資料探勘頁面與展示實驗場。第一次打開時會預先開啟降水與 MERRA-2 氣溫兩個圖層，並顯示一張開始卡片（三個步驟、四個可直接開啟的範例、怎麼讀圖的說明），用法見上方 [How to use](#how-to-use)。
+這是 NASA Space Apps Challenge 2026 台中場「Be An Earth System Trend Detective!」的作品。網站用 three.js 地球呈現 12 個 NASA 地球觀測變數的月資料，地點可選台灣 5 個點位、12 個世界城市或全球平均（台灣以外有其中 10 個變數）：每個變數一層粒子，數量、大小、速度跟著數值變；圖層面板列出每個變數每十年的變化量、95% 信賴區間與顯著性（月距平的線性趨勢，t 檢定經自相關修正並做 FDR 校正）。時間軸可以逐月播放，時間序列圖畫出整段紀錄、趨勢線與檢定結果；分層視圖把各變數放回大氣、地表與土壤的層次；全球趨勢地圖把 7 個變數逐格的趨勢與顯著性疊在地球上。另有模式與觀測的比較頁、探索性的資料探勘頁面與展示實驗場。台灣區域平均與測站序列在資料與分析結果裡，沒有畫在地球上。第一次打開時會預先開啟降水與 MERRA-2 氣溫兩個圖層，並顯示一張開始卡片（三個步驟、五個可直接開啟的範例、怎麼讀圖的說明），用法見上方 [How to use](#how-to-use)。
 
 目前的限制：台灣以外是 12 個世界城市與全球平均，只有 12 個圖層變數中的 10 個（兩個 MODIS 圖層只有台灣）；流動方向是示意（沒有風向資料）；全球格點只有 7 個變數的趨勢地圖接到畫面（地球上方的 Global trend map 選單）；探勘是探索性的，不代表因果——關聯規則、變數關聯圖與相似序列都只是共同變動，兩棵決策樹（預測植被指數、預測模式與測站氣溫差距的大小）在走動驗證的 3 折中都沒有任何一折高於全部基準。
 

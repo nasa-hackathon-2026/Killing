@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   foldVerdict,
   formatExcluded,
@@ -28,6 +28,7 @@ import {
   loadGapTree,
   loadSimilarSeries,
   loadVariableGraph,
+  sectionFromHash,
   ruleChip,
   type GapTreeFile,
   type SimilarSeriesFile,
@@ -706,6 +707,10 @@ const SECTIONS = [
   { id: "gap-filling", label: "Sensitivity checks" },
 ];
 
+// Every id a link's fragment may name: the sections of the list above and
+// the second sensitivity check.
+const SECTION_IDS = [...SECTIONS.map((section) => section.id), "segmentation"];
+
 function Loaded<T>({
   state,
   what,
@@ -797,6 +802,18 @@ export function MiningPage() {
   const graph = useAnalysisFile(loadVariableGraph);
   const similar = useAnalysisFile(loadSimilarSeries);
   const gap = useAnalysisFile(loadGapTree);
+
+  // A link such as mining/?place=tokyo&variable=imerg_precip#similar: the
+  // sections exist only after the result files are read, so the browser has
+  // nothing to scroll to when the page opens. Scroll once they are all in.
+  const settled = [state, graph, similar, gap].every(
+    (item) => item.status !== "loading",
+  );
+  useEffect(() => {
+    if (!settled) return;
+    const id = sectionFromHash(window.location.hash, SECTION_IDS);
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, [settled]);
 
   return (
     <main className="mining">

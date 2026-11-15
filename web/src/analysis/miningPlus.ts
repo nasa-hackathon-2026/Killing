@@ -348,6 +348,18 @@ export function similarSelection(
   };
 }
 
+// "#similar" → "similar" when the page has that section, otherwise null.
+// The sections are drawn after their result files are read, so the browser
+// cannot scroll to a link's fragment by itself when the page opens; the
+// page does it once the sections exist.
+export function sectionFromHash(
+  hash: string,
+  sectionIds: readonly string[],
+): string | null {
+  const id = hash.startsWith("#") ? hash.slice(1) : hash;
+  return sectionIds.includes(id) ? id : null;
+}
+
 export function similarLink(
   base: string,
   locationId: string,

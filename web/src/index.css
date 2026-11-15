@@ -1113,6 +1113,12 @@ body,
     z-index: 1;
   }
 
+  /* The unfolded Layers sheet starts right under the HUD row, so the More
+     menu, which drops down from that row, has to open above the sheet. */
+  .hud {
+    z-index: 5;
+  }
+
   .timeline-now {
     font-size: 18px;
   }
