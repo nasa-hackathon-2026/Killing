@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   loadTrends,
   summarizeTrend,
@@ -33,7 +33,8 @@ import { usualIntensity } from "./forms/calm/calmMath";
 import { useParticleStyle } from "./forms/calm/particleStyle";
 import { particleNote } from "./guide/particleNote";
 import { Tour } from "./guide/Tour";
-import { TOUR_STEPS, tourLayers } from "./guide/tourScript";
+import { requestedTourStep } from "./guide/tourScript";
+import { useGuidedTour } from "./guide/useGuidedTour";
 import { carryChoices, monthYear, t, useI18n, type Locale } from "./i18n";
 import { LanguageMenu, RoleSwitch } from "./i18n/ChoiceControls";
 import { variableDefinition, variableName } from "./i18n/names";
@@ -261,17 +262,17 @@ function AppView({
     showGuideAtStart(search, guideDismissed()),
   );
   const [guideOpen, setGuideOpen] = useState(
-    () => firstVisit && !settings.autoTour,
+    () =>
+      firstVisit && !settings.autoTour && requestedTourStep(search) === null,
   );
   const [howToOpen, setHowToOpen] = useState(false);
-  // Guided tour (web/src/guide/tourScript.ts): the step shown, or null. The
-  // layers the visitor had on are put back when it ends.
-  const [tourStep, setTourStep] = useState<number | null>(() =>
-    firstVisit && settings.autoTour ? 0 : null,
-  );
-  const [layersBeforeTour, setLayersBeforeTour] = useState<string[] | null>(
-    null,
-  );
+  // Guided tour (web/src/guide/useGuidedTour.ts): ?tour=<chapter> opens it
+  // at a chapter; otherwise a first visit with `autoTour` opens it at 0.
+  const [initialTour] = useState(() => {
+    const asked = requestedTourStep(search);
+    if (asked !== null) return asked;
+    return firstVisit && settings.autoTour ? 0 : null;
+  });
   const closeGuide = () => {
     rememberGuideDismissed();
     setGuideOpen(false);
@@ -281,51 +282,6 @@ function AppView({
     setGuideOpen(false);
     strata.enter();
   };
-  const goToStep = (index: number) => {
-    const visible = controls.filter((item) => item.visible).map((i) => i.id);
-    if (layersBeforeTour === null) setLayersBeforeTour(visible);
-    const needed = tourLayers(index);
-    setControls((current) =>
-      current.map((layer) =>
-        needed.includes(layer.id) && !layer.visible
-          ? { ...layer, visible: true }
-          : layer,
-      ),
-    );
-    setTourStep(index);
-  };
-  const startTour = () => {
-    setGuideOpen(false);
-    setHowToOpen(false);
-    setCloseUpId(null);
-    timeline.setPlaying(false);
-    timeline.setSelectedVariableId(null);
-    goToStep(0);
-  };
-  const endTour = () => {
-    rememberGuideDismissed();
-    setTourStep(null);
-    if (layersBeforeTour) {
-      setControls((current) =>
-        current.map((layer) => ({
-          ...layer,
-          visible: layersBeforeTour.includes(layer.id),
-        })),
-      );
-    }
-    setLayersBeforeTour(null);
-    // The examples and "How to read this" are offered next.
-    setGuideOpen(true);
-  };
-  const tour = tourStep === null ? null : (TOUR_STEPS[tourStep] ?? null);
-  // The tour's step decides whether the layer view is open; the state
-  // machine of the layer view does the moving.
-  const tourView = tour?.view ?? null;
-  const { phase: strataPhase, enter: strataEnter, exit: strataExit } = strata;
-  useEffect(() => {
-    if (tourView === "strata" && strataPhase === "off") strataEnter();
-    else if (tourView === "globe" && strataPhase === "on") strataExit();
-  }, [tourView, strataPhase, strataEnter, strataExit]);
   const data = snapshot.status === "ready" ? snapshot.data : null;
   const places = data?.places ?? fallbackPlaces;
   const place = places.find((item) => item.id === locationId);
@@ -374,6 +330,32 @@ function AppView({
         distance: PLACE_FLY_DISTANCE,
       });
     }
+  };
+  const guidedTour = useGuidedTour({
+    initialStep: initialTour,
+    visibleLayers: controls.filter((item) => item.visible).map((i) => i.id),
+    setVisibleLayers: (ids) =>
+      setControls((current) =>
+        current.map((layer) => ({ ...layer, visible: ids.includes(layer.id) })),
+      ),
+    place: locationId,
+    selectPlace: (id) => selectPlace(id, true),
+    ready: !!data,
+    strataOn: strata.phase === "on",
+    exitStrata: strata.exit,
+  });
+  const tourStep = guidedTour.step;
+  const startTour = () => {
+    setGuideOpen(false);
+    setHowToOpen(false);
+    setCloseUpId(null);
+    guidedTour.go(0);
+  };
+  const endTour = () => {
+    rememberGuideDismissed();
+    guidedTour.end();
+    // The examples and "How to read this" are offered next.
+    setGuideOpen(true);
   };
   // The page opens with the camera over the selected place (the default,
   // or the one ?at= names), so the globe shows what the panels talk about.
@@ -624,7 +606,6 @@ function AppView({
           onClosed={strata.onClosed}
           onExit={strata.exit}
           place={{ ...location, nameEn: placeName }}
-          focus={tour ? tour.stratum : undefined}
           month={activeMonth}
           controls={controls}
           readings={readings}
@@ -789,7 +770,7 @@ function AppView({
               signal: reading.signal,
             };
           }}
-          onStep={goToStep}
+          onStep={guidedTour.go}
           onEnd={endTour}
         />
       ) : null}
@@ -849,6 +830,7 @@ function AppView({
         trends={trendsFile}
         places={places}
         onSelectLocation={(id) => selectPlace(id, true)}
+        tourTab={guidedTour.tab}
       />
       <CompanionDock
         compact={strata.shown}

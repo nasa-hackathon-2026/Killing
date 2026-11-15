@@ -190,7 +190,7 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section says the 
 
 **In short.** AI tools wrote the code and the documentation of this project and helped define and tune parameters; the direction and the decisions are the team's.
 
-**Which tools were used.** Claude Code (Anthropic), Cursor and Codex (OpenAI). The team owner confirmed Claude Code and Cursor as the tools used before the multilingual work on 2026-11-15; Codex continued issue #131 afterward. Commit trailers in the earlier `main` history name "Claude Fable 5.2", "Claude Sonnet 5.5" and "Cursor". If the demo uses a further tool, the team adds it.
+**Which tools were used.** Claude Code (Anthropic), Cursor and Codex (OpenAI). The team owner confirmed Claude Code and Cursor as the tools used before the multilingual work on 2026-11-15; Codex continued issue #131 afterward. These three are the tools named in the commit trailers and pull-request descriptions of the repository; commit trailers in the `main` history name "Claude Fable 5.2", "Claude Opus 5.5", "Claude Sonnet 5.5", "Cursor" and "Codex". If the demo uses a further tool, the team adds it.
 
 **What the tools were used for**
 
@@ -199,8 +199,8 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section says the 
   - **Documentation**: the data documentation in `docs/` and the `README.md`.
   - **Web front end, later parts** (trend summary in the layer panel, the data-mining page, the additional particle forms, the close-up views and their text, the timeline and time series chart, the layer view, the global trend map, the first-use guide, the data companions; for example pull requests #57, #58, #62, #65 and the work of issues #99, #100, #101 and #105).
   - **Data companions**: the code that draws the characters and fills in their sentences, following the team's design. The characters are drawn by that code as SVG shapes. The sentences are templates filled with numbers from the data and state no cause and no conclusion.
-- **Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
-- **Codex** continued issue #131: the multilingual message files, reader-role controls, companion tour, interface copy and translation guidance. English and Traditional Chinese copy has not been independently reviewed by a native-speaking science editor.
+- **Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor". Later pull requests by a team member also carry that trailer or description (#153, #154, #160, #174, #181).
+- **Codex** continued issue #131: the multilingual message files, reader-role controls, companion tour, interface copy and translation guidance. Its `Co-Authored-By: Codex` trailer is on the commits that integrated the five front-end issues #131–#135 (#147), the speech-voice selection by interface language (#152), the world-city camera glide (#154) and the merge of the Layers-panel accordion (#159). English and Traditional Chinese copy has not been independently reviewed by a native-speaking science editor.
 - **Interface copy and translations**: the English and Traditional Chinese interface copy, and the Japanese, German and French translations of it (including the investigation panel), were written by AI tools (Claude Code and Codex) following the team's direction. **The Japanese, German and French translations have not been proofread by native speakers.**
 
 **What the team decided.** The direction, the ideas and the trade-offs. The decisions recorded in the data-layer spec (issue #4) and in the decision records in `docs/adr/` were made by the team (confirmed by the team owner on 2026-11-15); the team's discussion of the project's direction is in issue #3.
@@ -239,7 +239,7 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section says the 
 **Questions for the team** (the numbering is kept from the earlier draft; 2 and 5 are answered, the others are still open)
 
 1. [TEAM: Confirm that the idea of the project came from the team's own brainstorm (issue #3), and say so in your own words.] The `README.md` has the same unresolved `TODO(team)`.
-2. The team owner confirmed Claude Code and Cursor as the tools used before issue #131; Codex was used for the later multilingual work. The demo does not exist yet; see question 4.
+2. The team owner confirmed Claude Code and Cursor as the tools used before issue #131; Codex appears in the repository record after that (multilingual work and the front-end integration). The demo does not exist yet; see question 4.
 3. [TEAM: Were issue texts and specifications drafted with an AI tool?]
 4. [TEAM: Is any image, icon, audio or video in the submission (including the slides or video) AI-generated, or is a further AI tool used for the demo? Those need a visible watermark, and the tool has to be added above.]
 5. Answered: the decisions recorded in the data-layer spec (issue #4) and in the ADRs were made by the team (confirmed by the team owner on 2026-11-15).
