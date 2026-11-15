@@ -1,30 +1,30 @@
 {
-  "loading": "Loading the trend map…",
-  "error": "Could not read the trend map.",
-  "unitLine": "Change per decade ({{unit}} per decade) · {{product}}",
-  "rampAria": "Colour scale from −{{edge}} (falling) to +{{edge}} (rising) {{unit}} per decade",
-  "falling": "falling",
-  "rising": "rising",
+  "loading": "トレンドマップを読み込み中…",
+  "error": "トレンドマップを読み込めませんでした。",
+  "unitLine": "10年あたりの変化（{{unit}}／10年）· {{product}}",
+  "rampAria": "色の尺度：−{{edge}}（下降）から+{{edge}}（上昇）まで、{{unit}}／10年",
+  "falling": "下降",
+  "rising": "上昇",
   "key": {
     "full": {
-      "general": "Strong colour: the change holds up in the statistical tests",
-      "expert": "Full colour: significant after FDR correction"
+      "general": "濃い色：その変化は統計的な検定でも裏づけられています",
+      "expert": "濃い色：FDR補正後も有意"
     },
     "faded": {
-      "general": "Faded: no clear change, or only weak evidence",
-      "expert": "Faded: not significant, or significant only before correction"
+      "general": "薄い色：はっきりした変化は読み取れない、または根拠が弱い",
+      "expert": "薄い色：有意でない、または補正前のみ有意"
     },
-    "empty": "No colour: no data, or not analysed"
+    "empty": "色なし：データなし、または未解析"
   },
-  "fadeNote": "Colours also fade where the change is close to zero, so the surface shows through.",
-  "opacity": "Opacity",
-  "opacityAria": "Trend map opacity",
-  "summary": "{{share}} of the analysed area shows a change that holds up in the tests ({{first}} to {{last}}).",
-  "periodLine": "Period {{first}} to {{last}} ({{count}} months). Grid {{lat}} × {{lon}}. Significant after FDR correction: {{fdr}} of the analysed area ({{raw}} before correction).",
-  "method": "Method: linear trend of monthly anomalies in each grid cell; t-test adjusted for lag-1 autocorrelation; Benjamini-Hochberg FDR across the map at α = {{alpha}}. The colour range is ± the {{quantile}}th percentile of the absolute cell trends; values beyond it take the end colours.",
+  "fadeNote": "変化がゼロに近いところでも色が薄くなり、下の地表が透けて見えます。",
+  "opacity": "不透明度",
+  "opacityAria": "トレンドマップの不透明度",
+  "summary": "解析した範囲の{{share}}で、検定でも裏づけられる変化が見られます（{{first}}〜{{last}}）。",
+  "periodLine": "期間 {{first}}〜{{last}}（{{count}}か月）。格子 {{lat}} × {{lon}}。FDR補正後も有意：解析した範囲の{{fdr}}（補正前は{{raw}}）。",
+  "method": "方法：各格子セルの月別偏差の線形トレンド。ラグ1自己相関で調整したt検定。マップ全体に対する Benjamini-Hochberg 法のFDR（α = {{alpha}}）。色の範囲は、セルごとのトレンドの絶対値の第{{quantile}}パーセンタイルを±とし、それを超える値は端の色で表します。",
   "warning": {
-    "general": "Faded does not mean no change. A change of sensor or data product can also create a false trend.",
-    "expert": "Not significant does not mean no change. Trends are computed on a ~1° grid; sensor or product changes can cause artificial trends."
+    "general": "薄い色は、変化がないという意味ではありません。センサーやデータ製品が変わったことで、見かけのトレンドが生じることもあります。",
+    "expert": "有意でないことは、変化がないことを意味しません。トレンドは約1°格子で計算しており、センサーや製品の変更が見かけのトレンドを生じることがあります。"
   },
-  "evapUnit": "Shown as mm/day (kg m-2 s-1 × 86,400)."
+  "evapUnit": "mm/day で表示（kg m-2 s-1 × 86,400）。"
 }
