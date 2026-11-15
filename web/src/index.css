@@ -410,7 +410,9 @@ body,
   margin: 0;
   padding: 12px;
   color: #e8eef7;
-  background: rgba(8, 14, 28, 0.78);
+  /* Mostly opaque with a blur, so the text stays readable over the globe. */
+  background: rgba(8, 14, 28, 0.9);
+  backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
   font:

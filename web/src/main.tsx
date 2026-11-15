@@ -6,6 +6,10 @@ import "./index.css";
 import "./theme/controls.css";
 import "./theme/tailwind.css";
 
+// The globe is a separate chunk (App.tsx); start fetching it now, in parallel
+// with the page's own code, instead of when the first render asks for it.
+void import("./scene/EarthCanvas");
+
 const root = document.getElementById("root");
 if (!root) {
   throw new Error("Missing #root");
