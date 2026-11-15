@@ -521,7 +521,10 @@
   z-index: auto;
   width: auto;
   max-width: none;
-  max-height: none;
+  /* At most this much of the sidebar; it scrolls inside (the sidebar's flex
+     column cannot give a percentage here). Written here and not as a
+     Tailwind class: this rule is outside any layer and would win over it. */
+  max-height: 38dvh;
   padding: 0;
   background: none;
   border: 0;
