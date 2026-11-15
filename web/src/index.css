@@ -398,33 +398,6 @@ body,
   }
 }
 
-.layers {
-  position: absolute;
-  top: 64px;
-  right: 12px;
-  z-index: 1;
-  box-sizing: border-box;
-  width: min(306px, calc(100% - 24px));
-  max-height: calc(100% - 76px);
-  overflow: auto;
-  margin: 0;
-  padding: 12px;
-  color: #e8eef7;
-  /* Mostly opaque with a blur, so the text stays readable over the globe. */
-  background: rgba(8, 14, 28, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
-  font:
-    13px/1.35 system-ui,
-    sans-serif;
-}
-
-.layers.layers-collapsed {
-  width: auto;
-  padding: 8px 12px;
-}
-
 .trend {
   margin: 0;
   color: #d5e4f5;
@@ -609,6 +582,14 @@ body,
    screen; the lab note is taller) + an 8px gap. */
 .closeup:has(~ .credit) {
   max-height: calc(100% - 64px - 72px);
+}
+
+/* Medium widths: stops left of the right sidebar (306px + margins). On a
+   phone the sidebar slides away when a close-up opens, so it is full width. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .app:has(.right-sidebar[data-open="true"]) .closeup {
+    width: min(640px, calc(100% - 342px));
+  }
 }
 
 .closeup:has(~ .lab-note) {
@@ -882,8 +863,7 @@ body,
   align-items: center;
 }
 
-.timeline-bar button,
-.timeline-chart button {
+.timeline-bar button {
   padding: 4px 10px;
   color: inherit;
   background: rgba(8, 14, 28, 0.72);
@@ -893,13 +873,33 @@ body,
   font: inherit;
 }
 
+/* The buttons inside the chart panel keep this look unless a Tailwind class
+   says otherwise: in a cascade layer, so a utility on a button wins (rules
+   outside any layer would win over every utility). */
+@layer components {
+  .timeline-chart button {
+    padding: 4px 10px;
+    color: inherit;
+    background: rgba(8, 14, 28, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .timeline-chart button[aria-pressed="true"] {
+    color: #0b1220;
+    background: #cfe3ff;
+    border-color: #cfe3ff;
+  }
+}
+
 .timeline-bar button:disabled {
   cursor: default;
   opacity: 0.5;
 }
 
 .timeline-bar button[aria-pressed="true"],
-.timeline-chart button[aria-pressed="true"],
 .timeline-layer-actions button[aria-pressed="true"] {
   color: #0b1220;
   background: #cfe3ff;
@@ -1087,29 +1087,12 @@ body,
 /* Beside the left legend column (.map-legends, 360px wide at 12px) when it
    holds a map legend; narrower when the window has no room for the legends,
    the chart, the companions and the Layers panel side by side (384px +
-   574px companions and Layers). Without a map legend the column shows
+   330px sidebar). Without a map legend the column shows
    nothing while the chart is open (App.tsx), so the chart keeps the left. */
 .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
   .timeline-chart {
   left: 384px;
-  width: min(440px, calc(100% - 384px - 574px));
-}
-
-.timeline-chart header {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.timeline-chart h2 {
-  flex: 1;
-  margin: 0;
-  font-size: 15px;
-}
-
-.timeline-chart h2 span {
-  color: #b7c6da;
-  font-weight: 400;
+  width: min(440px, calc(100% - 384px - 330px));
 }
 
 .timeline-modes {
@@ -1247,27 +1230,20 @@ body,
     width: calc(100% - 306px - 36px);
   }
 
-  /* The drawer stops left of the companion panel (236px at its widest). */
+  /* The drawer stops left of the right sidebar. */
   .timeline-chart,
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
     top: auto;
     left: 12px;
     bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
-    width: calc(100% - 306px - 36px - 248px);
+    width: calc(100% - 306px - 36px);
   }
 
   /* Legend and chart share the left side: the legend keeps a short,
      scrollable window above the drawer. */
   .app:has(.timeline-chart) .trendmap {
     max-height: 150px;
-  }
-
-  /* A close-up is as wide as the room left of the Layers panel; the
-     companions give way to it until it is closed. */
-  .app:has(.closeup)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
   }
 
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
@@ -1279,18 +1255,18 @@ body,
   }
 }
 
-/* Too narrow for the drawer and the companion panel side by side: the
-   drawer takes the width and the companions give way until it is closed. */
+/* Too narrow for the drawer and the sidebar side by side: the drawer takes
+   the room left of the sidebar. The bar drops its speed slider (the − and +
+   buttons and the number stay) so its row fits in that room. */
 @media (max-width: 900px) {
+  .timeline-speed input[type="range"] {
+    display: none;
+  }
+
   .timeline-chart,
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
     width: calc(100% - 306px - 36px);
-  }
-
-  .app:has(.timeline-chart)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
   }
 }
 
@@ -1343,17 +1319,6 @@ body,
     );
   }
 
-  /* Folded: a chip in the top-right corner, beside the companions' chip.
-     Unfolded: a sheet over the page, down to the timeline bar. */
-  .layers {
-    top: 60px;
-    z-index: 4;
-  }
-
-  .layers.layers-collapsed {
-    z-index: 1;
-  }
-
   /* The unfolded Layers sheet starts right under the HUD row, so the More
      menu, which drops down from that row, has to open above the sheet. */
   .hud {
@@ -1366,12 +1331,6 @@ body,
 
   .timeline-strip-key {
     display: none;
-  }
-
-  .app:has(.timeline-bar) .layers {
-    max-height: calc(
-      100% - 60px - var(--timeline-bottom) - var(--timeline-height) - 8px
-    );
   }
 }
 
@@ -1469,4 +1428,15 @@ body,
 .timeline-details {
   margin: 6px 0 0;
   font-size: 12px;
+}
+
+/* The Layers panel is a section of the right sidebar (sidebar/RightSidebar):
+   the sidebar has the frame, the position and the scrolling. */
+.layers {
+  box-sizing: border-box;
+  margin: 0;
+  color: #e8eef7;
+  font:
+    13px/1.35 system-ui,
+    sans-serif;
 }

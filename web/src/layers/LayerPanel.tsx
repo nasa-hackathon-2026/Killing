@@ -13,6 +13,8 @@ import {
 } from "../snapshot/places";
 import { stratumName } from "../strata/strataSpec";
 import { toggleExpanded } from "./layerAccordion";
+import type { LeftView } from "../leftPanel/leftView";
+import { isNarrowScreen, setSidebarOpen } from "../sidebar/sidebarStore";
 import { groupLayers } from "./layerGroups";
 import { LayerRow } from "./LayerRow";
 import type { LayerDefinition } from "./registry";
@@ -41,23 +43,13 @@ type LayerPanelProps = {
   compareLinks?: Record<string, CompareLink>;
   onToggle: (id: string) => void;
   onOpacity: (id: string, opacity: number) => void;
-  // Opens the close-up view of a layer; the button is hidden without it.
-  onCloseUp?: (id: string) => void;
-  // Opens (or closes, with null) the time series chart of a layer; the
-  // button is hidden without it. `chartId` is the layer charted now.
-  chartId?: string | null;
-  onChart?: (id: string | null) => void;
+  // What the left side shows, and the handler for changing it (the close-up
+  // and the chart of a layer are one slot: leftPanel/leftView.ts).
+  view: LeftView;
+  onView: (view: LeftView) => void;
   // Opens "How to read this" (the guide card); the link is hidden without it.
   onHowTo?: () => void;
 };
-
-// At or below this width the panel starts folded (the globe would be hidden
-// behind it) and folds again when it opens a chart or a close-up.
-const NARROW_WIDTH = 700;
-
-function isNarrow(): boolean {
-  return typeof window !== "undefined" && window.innerWidth <= NARROW_WIDTH;
-}
 
 // The month is chosen on the timeline at the bottom (the panel used to have a
 // second slider for it; two controls for one value were confusing).
@@ -75,13 +67,12 @@ export function LayerPanel({
   compareLinks,
   onToggle,
   onOpacity,
-  onCloseUp,
-  chartId,
-  onChart,
+  view,
+  onView,
   onHowTo,
 }: LayerPanelProps) {
   const { t } = useI18n();
-  const [collapsed, setCollapsed] = useState(isNarrow);
+  const [collapsed, setCollapsed] = useState(false);
   // The layers whose details are open (layerAccordion.ts); none at first.
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -220,12 +211,13 @@ export function LayerPanel({
                       }
                       onToggle={onToggle}
                       onOpacity={onOpacity}
-                      onCloseUp={onCloseUp}
-                      chartId={chartId}
-                      onChart={onChart}
+                      view={view}
+                      onView={onView}
                       compareLink={compareLinks?.[layer.id]}
+                      // On a phone the sidebar covers the page, so it slides
+                      // away when a chart or a close-up opens.
                       onBeforeOpen={() => {
-                        if (isNarrow()) setCollapsed(true);
+                        if (isNarrowScreen()) setSidebarOpen(false);
                       }}
                     />
                   );

@@ -10,8 +10,9 @@ import { carryChoices, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
 import { cn } from "../lib/cn";
 import { UnitText } from "../snapshot/UnitText";
-import { Button } from "../ui/button";
+import { chooseView, choiceOf, type LeftView } from "../leftPanel/leftView";
 import { buttonClass } from "../ui/buttonClass";
+import { Segmented } from "../ui/segmented";
 import { Slider } from "../ui/slider";
 import { Switch } from "../ui/switch";
 import { Tip } from "../ui/tooltip";
@@ -29,9 +30,10 @@ export type LayerRowProps = {
   onExpand: (id: string) => void;
   onToggle: (id: string) => void;
   onOpacity: (id: string, opacity: number) => void;
-  onCloseUp?: (id: string) => void;
-  chartId?: string | null;
-  onChart?: (id: string | null) => void;
+  // The left side (leftPanel/leftView.ts): this layer's close-up and chart
+  // are two choices of one radio group, and "Off" when neither is open.
+  view: LeftView;
+  onView: (view: LeftView) => void;
   compareLink?: CompareLink;
   // Called before a chart or a close-up opens (the narrow panel folds away).
   onBeforeOpen?: () => void;
@@ -53,9 +55,8 @@ export function LayerRow({
   onExpand,
   onToggle,
   onOpacity,
-  onCloseUp,
-  chartId,
-  onChart,
+  view,
+  onView,
   compareLink,
   onBeforeOpen,
 }: LayerRowProps) {
@@ -80,7 +81,7 @@ export function LayerRow({
           <Collapsible.Trigger
             aria-describedby={caveat ? hintId : undefined}
             className={cn(
-              "group grid min-w-0 flex-1 cursor-pointer grid-cols-[1fr_auto_auto] items-start gap-x-2 rounded border-0 bg-transparent p-0 text-left text-ink",
+              "group grid min-w-0 flex-1 cursor-pointer grid-cols-[1fr_auto_auto] items-start gap-x-3 rounded border-0 bg-transparent p-0 text-left text-ink",
               "hover:text-white",
             )}
           >
@@ -98,7 +99,7 @@ export function LayerRow({
                 </Tip>
               ) : null}
             </span>
-            <span className="pt-px text-right text-xs leading-snug text-soft tabular-nums">
+            <span className="max-w-[6rem] pt-px text-right text-xs leading-snug break-words text-soft tabular-nums">
               <UnitText text={reading ?? ""} />
             </span>
             <svg
@@ -126,31 +127,29 @@ export function LayerRow({
         </div>
         <Collapsible.Content className="space-y-2.5 pb-3 pl-[42px] text-xs">
           <TrendBlock variableId={layer.id} trend={trend} signal={signal} />
-          <div className="flex flex-wrap gap-1.5">
-            {onCloseUp ? (
-              <Button
-                aria-label={t("layers.closeUpAria", { name })}
-                onClick={() => {
-                  onBeforeOpen?.();
-                  onCloseUp(layer.id);
-                }}
-              >
-                {t("layers.closeUp")}
-              </Button>
-            ) : null}
-            {onChart ? (
-              <Button
-                variant={chartId === layer.id ? "pressed" : "outline"}
-                aria-label={t("layers.chartAria", { name })}
-                aria-pressed={chartId === layer.id}
-                onClick={() => {
-                  onBeforeOpen?.();
-                  onChart(chartId === layer.id ? null : layer.id);
-                }}
-              >
-                {t("layers.chart")}
-              </Button>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <span className="text-muted">{t("layers.view")}</span>
+            <Segmented
+              aria-label={t("layers.viewAria", { name })}
+              value={choiceOf(view, layer.id)}
+              onValueChange={(choice) => {
+                if (choice !== "off") onBeforeOpen?.();
+                onView(chooseView(view, layer.id, choice));
+              }}
+              options={[
+                { value: "off", label: t("layers.viewOff") },
+                {
+                  value: "closeup",
+                  label: t("layers.closeUp"),
+                  ariaLabel: t("layers.closeUpAria", { name }),
+                },
+                {
+                  value: "chart",
+                  label: t("layers.chart"),
+                  ariaLabel: t("layers.chartAria", { name }),
+                },
+              ]}
+            />
             {compareLink ? (
               <a
                 className={buttonClass({})}

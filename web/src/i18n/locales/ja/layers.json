@@ -18,5 +18,10 @@
   "cautionHint": "既知のデータ上の問題があります。このレイヤーを開いて注意書きを読んでください。",
   "showAria": "{{name}}を表示",
   "display": "表示設定",
-  "opacity": "不透明度"
+  "opacity": "不透明度",
+  "sidebarOpen": "レイヤーとデータの仲間を開く",
+  "sidebarClose": "レイヤーとデータの仲間を閉じる",
+  "view": "左側に表示",
+  "viewAria": "{{name}}：左側に表示するもの",
+  "viewOff": "オフ"
 }

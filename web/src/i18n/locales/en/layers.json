@@ -18,5 +18,10 @@
   "cautionHint": "Known data issue: open this layer to read the caution.",
   "showAria": "Show {{name}}",
   "display": "Display",
-  "opacity": "Opacity"
+  "opacity": "Opacity",
+  "sidebarOpen": "Open layers and companions",
+  "sidebarClose": "Close layers and companions",
+  "view": "Show on the left",
+  "viewAria": "{{name}}: what to show on the left",
+  "viewOff": "Off"
 }

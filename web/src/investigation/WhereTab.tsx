@@ -17,6 +17,7 @@ import { trendLine, type AnomalySeries } from "../timeline/seriesMath";
 import { monthNumber } from "../timeline/timelineMath";
 import { TREND_MAP_VARIABLES } from "../trendmap/trendMapConfig";
 import { Sparkline } from "./charts";
+import { Segmented } from "../ui/segmented";
 import { sharedLimit } from "./stats";
 
 function monthsOf(series: AnomalySeries): string[] {
@@ -82,22 +83,15 @@ export function WhereTab({
         <h4 className="investigation-subtitle">
           {t("investigation.where.title")}
         </h4>
-        <div
-          className="timeline-modes"
-          role="group"
+        <Segmented
           aria-label={t("investigation.where.scaleAria")}
-        >
-          <button
-            type="button"
-            aria-pressed={!own}
-            onClick={() => setOwn(false)}
-          >
-            {t("investigation.where.sameScale")}
-          </button>
-          <button type="button" aria-pressed={own} onClick={() => setOwn(true)}>
-            {t("investigation.where.ownScale")}
-          </button>
-        </div>
+          value={own ? "own" : "same"}
+          onValueChange={(value) => setOwn(value === "own")}
+          options={[
+            { value: "same", label: t("investigation.where.sameScale") },
+            { value: "own", label: t("investigation.where.ownScale") },
+          ]}
+        />
       </div>
       {groupedPlaces(places).map((group) => (
         <div key={group.id}>

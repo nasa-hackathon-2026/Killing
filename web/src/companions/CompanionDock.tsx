@@ -4,10 +4,21 @@
 // turns the voice on, using the language of the displayed companion text.
 // "Gather" shows all twelve in one
 // composition, and ?companions=gallery lays them out for a screenshot.
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+} from "react";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import type { TrendsFile } from "../analysis/trends";
+import { createPortal } from "react-dom";
 import { getMessageLocale, rememberFlag, storedFlag, useI18n } from "../i18n";
+import { setSidebarOpen } from "../sidebar/sidebarStore";
+import { Button } from "../ui/button";
+import { CompanionBubble, BUBBLE_SECONDS } from "./CompanionBubble";
+import { useDismissTimer } from "./useDismissTimer";
 import { formatMeasurement } from "../snapshot/reading";
 import { UnitText } from "../snapshot/UnitText";
 import type { LoadedSeries } from "../snapshot/loadSnapshot";
@@ -69,15 +80,9 @@ function requestedMode(): string | null {
   return new URLSearchParams(window.location.search).get("companions");
 }
 
-// Up to this many companions stand in one column (and can interact); more
-// are laid out in two columns so the panel stays above the timeline bar.
-export const ONE_COLUMN_MAX = 4;
-
-function figureSize(count: number): number {
-  if (count <= 3) return 80;
-  if (count <= ONE_COLUMN_MAX) return 60;
-  return 52;
-}
+// Size of a companion in the list of the sidebar: a row with the figure on
+// the left, so twelve of them still fit when the layers are all on.
+const FIGURE_SIZE = 48;
 
 function Figure({
   spec,
@@ -114,6 +119,12 @@ function Figure({
       gestureSide={gestureSide}
     />
   );
+}
+
+// The page element never changes after it is mounted, so there is nothing to
+// subscribe to; React reads the snapshot again after mounting.
+function subscribeNever(): () => void {
+  return () => {};
 }
 
 function Backdrop() {
@@ -161,6 +172,11 @@ export function CompanionDock({
   );
   const narrate = narrateChoice ?? settings.narration;
   const [compactOpen, setCompactOpen] = useState(false);
+  const appRoot = useSyncExternalStore(
+    subscribeNever,
+    () => document.querySelector<HTMLElement>(".app"),
+    () => null,
+  );
   // Folded to a chip unless the reader opens it: the panel repeated the layer
   // list in a second column and took the globe's room (#201). It still opens
   // by itself when the narration speaks, and ?companions=gather|gallery.
@@ -203,9 +219,8 @@ export function CompanionDock({
         spec.id === selectedId &&
         (gathered || gallery || visibleIds.includes(spec.id)),
     ) ?? null;
-  const oneColumn = shown.length <= ONE_COLUMN_MAX;
-  const interactions = oneColumn ? interactionsFor(shown) : [];
-  const size = figureSize(shown.length);
+  const interactions = interactionsFor(shown);
+  const size = FIGURE_SIZE;
 
   // Narration: a companion speaks up when a layer is turned on, the place
   // changes or the timeline pauses (narration.ts decides; this only applies
@@ -237,6 +252,8 @@ export function CompanionDock({
     if (expand) {
       setCollapsed(false);
       setCompactOpen(true);
+      // A companion speaks up: show it, but do not make it the reader's choice.
+      setSidebarOpen(true, false);
     }
     if (speaker && speaker !== selectedId) {
       setSelectedId(speaker);
@@ -338,45 +355,78 @@ export function CompanionDock({
     }
   }, [voiceOn, voiceAvailable]);
 
-  const bubble = selected ? (
-    <div className="companion-bubble" role="status">
-      <p className="companion-bubble-title">
-        {companionTitle(selected)}
-        <button
-          type="button"
-          aria-label={t("common.action.close")}
-          onClick={() => {
-            spokenFor.current = null;
-            setSelectedId(null);
-            stopSpeaking();
-          }}
-        >
-          ×
-        </button>
-      </p>
-      <ul className="companion-bubble-facts">
-        {(displayParts[selected.id] ?? []).map((part) => (
-          <li key={part}>
-            <UnitText text={part} />
-          </li>
-        ))}
-      </ul>
-      <p className="companion-bubble-pose">
-        {t(`companions.shape.${readings[selected.id]?.mood ?? "near"}`)}
-      </p>
-      {caveatOpen && readings[selected.id]?.caveat ? (
-        <TrendCaveatNote
-          caveat={
-            readings[selected.id]?.caveat ?? {
-              summary: "",
-              details: "",
-              sources: "",
-            }
-          }
-        />
-      ) : null}
-    </div>
-  ) : null;
+  // The bubble disappears by itself after BUBBLE_SECONDS, unless the reader
+  // has the pointer on it or focus in it. The voice, if it is on, goes on
+  // reading to the end of the sentence.
+  const bubbleKey = `${selectedId ?? ""}|${caveatOpen}`;
+  const [heldFor, setHeldFor] = useState<string | null>(null);
+  const held = heldFor === bubbleKey;
+  const dismissBubble = () => {
+    spokenFor.current = null;
+    setSelectedId(null);
+    setCaveatOpen(false);
+  };
+  useDismissTimer(
+    selected !== null,
+    BUBBLE_SECONDS * 1000,
+    held,
+    dismissBubble,
+    bubbleKey,
+  );
+
+  const bubble =
+    selected && appRoot ? (
+      <CompanionBubble
+        key={bubbleKey}
+        companionId={selected.id}
+        target={appRoot}
+        held={held}
+        onHold={(next) => setHeldFor(next ? bubbleKey : null)}
+        label={companionTitle(selected)}
+      >
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <p className="m-0 text-[13px] font-bold">
+            {companionTitle(selected)}
+          </p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-mr-1 size-6 text-muted hover:text-ink"
+            aria-label={t("common.action.close")}
+            onClick={() => {
+              spokenFor.current = null;
+              setSelectedId(null);
+              stopSpeaking();
+            }}
+          >
+            ×
+          </Button>
+        </div>
+        <ul className="m-0 grid list-disc gap-2 pl-4 text-[13px] leading-snug [overflow-wrap:anywhere]">
+          {(displayParts[selected.id] ?? []).map((part) => (
+            <li key={part}>
+              <UnitText text={part} />
+            </li>
+          ))}
+        </ul>
+        <p className="mt-2 mb-0 text-[11px] text-muted">
+          {t(`companions.shape.${readings[selected.id]?.mood ?? "near"}`)}
+        </p>
+        {caveatOpen && readings[selected.id]?.caveat ? (
+          <div className="mt-2">
+            <TrendCaveatNote
+              caveat={
+                readings[selected.id]?.caveat ?? {
+                  summary: "",
+                  details: "",
+                  sources: "",
+                }
+              }
+            />
+          </div>
+        ) : null}
+      </CompanionBubble>
+    ) : null;
 
   const controls = (
     <>
@@ -436,8 +486,14 @@ export function CompanionDock({
     </>
   );
 
+  // The gather and gallery pages cover the whole view, so they are drawn in
+  // the page itself, not inside the sidebar (which slides with a transform and
+  // would carry them along). Until the page is known they stay in place.
+  const overlay = (node: ReactElement) =>
+    appRoot ? createPortal(node, appRoot) : node;
+
   if (gallery) {
-    return (
+    return overlay(
       <section
         className="companion-dock companion-gallery"
         aria-label={t("companions.gallery.aria")}
@@ -510,7 +566,7 @@ export function CompanionDock({
         <p className="companion-foot">
           {t("companions.gallery.foot")} {t("companions.interactionNote")}
         </p>
-      </section>
+      </section>,
     );
   }
 
@@ -519,7 +575,7 @@ export function CompanionDock({
   return (
     <>
       <aside
-        className={`companion-dock${collapsed ? " companion-dock-collapsed" : oneColumn ? "" : " companion-dock-wide"}`}
+        className={`companion-dock companion-dock-embedded${collapsed ? " companion-dock-collapsed" : ""}`}
         aria-label={t("companions.aria")}
       >
         <header className="companion-head">
@@ -585,9 +641,7 @@ export function CompanionDock({
                 <p>{t("companions.empty")}</p>
               </div>
             ) : (
-              <ol
-                className={`companion-list${oneColumn ? "" : " companion-list-two"}`}
-              >
+              <ol className="companion-list">
                 {shown.map((spec) => {
                   const reading = readings[spec.id];
                   if (!reading) return null;
@@ -611,6 +665,7 @@ export function CompanionDock({
                       <button
                         type="button"
                         className="companion-figure"
+                        data-companion-figure={spec.id}
                         aria-pressed={selectedId === spec.id}
                         aria-label={t("companions.sayAria", {
                           name: companionTitle(spec),
@@ -712,75 +767,79 @@ export function CompanionDock({
             </p>
           </>
         )}
-        {!gathered ? bubble : null}
       </aside>
-      {gathered ? (
-        <section
-          className="companion-dock companion-gather"
-          aria-label={t("companions.gather.aria")}
-        >
-          <header className="companion-head">
-            <p className="companion-heading">
-              {t("companions.gather.open")} · {locationName}
-              {month ? ` · ${month.slice(0, 7)}` : ""}
-            </p>
-            <div className="companion-tools">
-              {controls}
-              <button
-                type="button"
-                onClick={() => {
-                  setGathered(false);
-                  setSelectedId(null);
-                  stopSpeaking();
-                }}
-              >
-                {t("common.action.close")}
-              </button>
-            </div>
-          </header>
-          <div className="companion-gather-stage">
-            <Backdrop />
-            {gatherPlaces.map((place) => {
-              const spec = COMPANIONS.find((item) => item.id === place.id);
-              const reading = readings[place.id];
-              if (!spec || !reading) return null;
-              return (
-                <button
-                  key={place.id}
-                  type="button"
-                  className={`companion-gather-figure${selectedId === place.id ? " companion-selected" : ""}`}
-                  aria-label={t("companions.sayAria", {
-                    name: companionTitle(spec),
-                  })}
-                  aria-pressed={selectedId === place.id}
-                  style={{
-                    left: `${place.x * 100}%`,
-                    top: `${place.y * 100}%`,
-                    width: `${place.scale * 11}%`,
-                    transform: `translate(-50%, ${(-GROUND_Y / VIEW_HEIGHT_BARE) * 100}%)`,
-                    zIndex: Math.round(place.y * 100),
-                  }}
-                  onClick={() => select(place.id)}
-                >
-                  <Figure
-                    spec={spec}
-                    reading={reading}
-                    size={96}
-                    showLabel={false}
-                    gesture={place.gesture ?? undefined}
-                    gestureSide={place.gestureSide}
-                  />
-                  <span className="companion-name">{companionTitle(spec)}</span>
-                </button>
-              );
-            })}
-          </div>
-          {bubble}
-          <p className="companion-foot">
-            {t("companions.gather.foot")} {t("companions.gather.credit")}
-          </p>
-        </section>
-      ) : null}
+      {gathered
+        ? overlay(
+            <section
+              className="companion-dock companion-gather"
+              aria-label={t("companions.gather.aria")}
+            >
+              <header className="companion-head">
+                <p className="companion-heading">
+                  {t("companions.gather.open")} · {locationName}
+                  {month ? ` · ${month.slice(0, 7)}` : ""}
+                </p>
+                <div className="companion-tools">
+                  {controls}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGathered(false);
+                      setSelectedId(null);
+                      stopSpeaking();
+                    }}
+                  >
+                    {t("common.action.close")}
+                  </button>
+                </div>
+              </header>
+              <div className="companion-gather-stage">
+                <Backdrop />
+                {gatherPlaces.map((place) => {
+                  const spec = COMPANIONS.find((item) => item.id === place.id);
+                  const reading = readings[place.id];
+                  if (!spec || !reading) return null;
+                  return (
+                    <button
+                      key={place.id}
+                      type="button"
+                      className={`companion-gather-figure${selectedId === place.id ? " companion-selected" : ""}`}
+                      data-companion-figure={place.id}
+                      aria-label={t("companions.sayAria", {
+                        name: companionTitle(spec),
+                      })}
+                      aria-pressed={selectedId === place.id}
+                      style={{
+                        left: `${place.x * 100}%`,
+                        top: `${place.y * 100}%`,
+                        width: `${place.scale * 11}%`,
+                        transform: `translate(-50%, ${(-GROUND_Y / VIEW_HEIGHT_BARE) * 100}%)`,
+                        zIndex: Math.round(place.y * 100),
+                      }}
+                      onClick={() => select(place.id)}
+                    >
+                      <Figure
+                        spec={spec}
+                        reading={reading}
+                        size={96}
+                        showLabel={false}
+                        gesture={place.gesture ?? undefined}
+                        gestureSide={place.gestureSide}
+                      />
+                      <span className="companion-name">
+                        {companionTitle(spec)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="companion-foot">
+                {t("companions.gather.foot")} {t("companions.gather.credit")}
+              </p>
+            </section>,
+          )
+        : null}
+      {bubble}
     </>
   );
 }
