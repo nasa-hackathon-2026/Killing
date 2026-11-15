@@ -46,6 +46,16 @@ export function trendCaveat(
   };
 }
 
+// The caveat shown next to a series' trend: only where there is a trend to
+// qualify. The Layers panel's caution mark and TrendBlock both use this, so
+// the mark is there exactly when the details hold a caution.
+export function shownTrendCaveat(
+  id: string,
+  trend: unknown,
+  voice: Voice = getVoice(),
+): TrendCaveat | null {
+  return trend ? trendCaveat(id, voice) : null;
+}
 // Every caveat, keyed by variable id.
 export function allTrendCaveats(
   voice: Voice = getVoice(),

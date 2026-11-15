@@ -1,18 +1,17 @@
 import { useState } from "react";
 import type { CompareLink } from "../analysis/modelVsObs";
-import { TrendBlock } from "../analysis/TrendBlock";
 import type { TrendSummary } from "../analysis/trends";
-import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
 import { ParticleStyleToggle } from "../forms/calm/ParticleStyleToggle";
 import type { TrendSignal } from "../forms/encoding";
-import { carryChoices, useI18n } from "../i18n";
-import { variableName } from "../i18n/names";
+import { useI18n } from "../i18n";
 import {
   displayPlaceName,
   groupedPlaces,
   placeGroupLabel,
   type Place,
 } from "../snapshot/places";
+import { nextExpanded } from "./layerAccordion";
+import { LayerRow } from "./LayerRow";
 import type { LayerDefinition } from "./registry";
 
 export type LayerControl = {
@@ -82,9 +81,11 @@ export function LayerPanel({
   onChart,
   onHowTo,
 }: LayerPanelProps) {
-  const { t, tm, settings } = useI18n();
+  const { t } = useI18n();
   const monthIndex = month ? months.indexOf(month) : -1;
   const [collapsed, setCollapsed] = useState(isNarrow);
+  // The one layer whose details are open (layerAccordion.ts); none at first.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const onCount = controls.filter((control) => control.visible).length;
   const head = (
     <p className="layers-title">
@@ -157,93 +158,37 @@ export function LayerPanel({
           <span>{month?.slice(0, 7)}</span>
         </label>
       ) : null}
-      <p className="layers-note">
-        {tm("layers.note")}
-        {onHowTo ? (
-          <>
-            {" "}
-            <button type="button" className="layers-howto" onClick={onHowTo}>
-              {t("common.action.howToRead")}
-            </button>
-          </>
-        ) : null}
-      </p>
-      {trends && settings.readingAid ? (
-        <p className="layers-note">{t("layers.trendNote")}</p>
+      {onHowTo ? (
+        <p className="layers-note">
+          <button type="button" className="layers-howto" onClick={onHowTo}>
+            {t("common.action.howToRead")}
+          </button>
+        </p>
       ) : null}
       <ul>
         {layers.map((layer) => {
           const control = controls.find((item) => item.id === layer.id);
           if (!control) return null;
-          const trend = trends?.[layer.id];
-          const signal = signals?.[layer.id];
-          const name = variableName(layer.id, layer.nameEn);
           return (
-            <li key={layer.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={control.visible}
-                  onChange={() => onToggle(layer.id)}
-                />
-                <span>{name}</span>
-                {signal ? <TrendMarkIcon signal={signal} /> : null}
-                <span className="reading">{readings[layer.id]}</span>
-              </label>
-              <TrendBlock variableId={layer.id} trend={trend} signal={signal} />
-              <div className="timeline-layer-actions">
-                {onCloseUp ? (
-                  <button
-                    type="button"
-                    className="closeup-open"
-                    aria-label={t("layers.closeUpAria", { name })}
-                    onClick={() => {
-                      if (isNarrow()) setCollapsed(true);
-                      onCloseUp(layer.id);
-                    }}
-                  >
-                    {t("layers.closeUp")}
-                  </button>
-                ) : null}
-                {onChart ? (
-                  <button
-                    type="button"
-                    className="closeup-open"
-                    aria-label={t("layers.chartAria", { name })}
-                    aria-pressed={chartId === layer.id}
-                    onClick={() => {
-                      if (isNarrow()) setCollapsed(true);
-                      onChart(chartId === layer.id ? null : layer.id);
-                    }}
-                  >
-                    {t("layers.chart")}
-                  </button>
-                ) : null}
-                {compareLinks?.[layer.id] ? (
-                  <a
-                    className="closeup-open layers-compare"
-                    href={carryChoices(compareLinks[layer.id]?.href ?? "")}
-                  >
-                    {t(
-                      compareLinks[layer.id]?.label === "Compare with station"
-                        ? "layers.compareStation"
-                        : "layers.compareObservations",
-                    )}
-                  </a>
-                ) : null}
-              </div>
-              <input
-                type="range"
-                min={0.15}
-                max={1}
-                step={0.05}
-                value={control.opacity}
-                aria-label={t("layers.opacityAria", { name })}
-                onChange={(event) =>
-                  onOpacity(layer.id, Number(event.target.value))
-                }
-              />
-            </li>
+            <LayerRow
+              key={layer.id}
+              layer={layer}
+              control={control}
+              reading={readings[layer.id]}
+              trend={trends?.[layer.id]}
+              signal={signals?.[layer.id]}
+              expanded={expandedId === layer.id}
+              onExpand={(id) => setExpandedId(nextExpanded(expandedId, id))}
+              onToggle={onToggle}
+              onOpacity={onOpacity}
+              onCloseUp={onCloseUp}
+              chartId={chartId}
+              onChart={onChart}
+              compareLink={compareLinks?.[layer.id]}
+              onBeforeOpen={() => {
+                if (isNarrow()) setCollapsed(true);
+              }}
+            />
           );
         })}
       </ul>

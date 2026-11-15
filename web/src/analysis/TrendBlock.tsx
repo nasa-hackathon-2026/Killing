@@ -7,7 +7,7 @@ import { trendLabel, type TrendSignal } from "../forms/encoding";
 import { useI18n } from "../i18n";
 import { variableDefinition } from "../i18n/names";
 import { TrendCaveatNote } from "./TrendCaveatNote";
-import { trendCaveat } from "./trendCaveats";
+import { shownTrendCaveat } from "./trendCaveats";
 import type { TrendSummary } from "./trends";
 
 type TrendBlockProps = {
@@ -18,7 +18,7 @@ type TrendBlockProps = {
 
 export function TrendBlock({ variableId, trend, signal }: TrendBlockProps) {
   const { t, settings, voice } = useI18n();
-  const caveat = trend ? trendCaveat(variableId, voice) : null;
+  const caveat = shownTrendCaveat(variableId, trend, voice);
   const definition = settings.definitions
     ? variableDefinition(variableId, voice)
     : null;
