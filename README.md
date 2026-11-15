@@ -207,6 +207,7 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 | `web/` | Vite + React + three.js site: the globe (`web/src/`), the form lab (`web/lab/`), the mining page (`web/mining/`), and a minimal line-chart check page (`web/tracer/`). |
 | `docs/data/` | Generated data lists, raw-data notes, SQLite guide. |
 | `docs/images/` | Screenshots used in this README. |
+| [`docs/submission/`](docs/submission/) | Draft of the Space Apps submission form (English), a structure suggestion for the demo, and a pre-submission checklist (Traditional Chinese). For the team to rewrite and verify. |
 | `docs/agents/`, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.codex/` | Instructions and configuration for the coding agents used in development; see [docs/agents/README.md](docs/agents/README.md). |
 | `.github/` | Issue and pull-request templates, and the GitHub Pages workflow. |
 
