@@ -14,6 +14,8 @@ import {
   calendarAnomalies,
   stripBars,
 } from "./seriesMath";
+import { carryChoices, useI18n } from "../i18n";
+import { variableName } from "../i18n/names";
 import { similarLink } from "../analysis/miningPlus";
 import { TimelineBar } from "./TimelineBar";
 import { useTimeline } from "./TimelineContext";
@@ -47,6 +49,7 @@ export function TimelineDock({
 }: TimelineDockProps) {
   const { months, locationId, selectedVariableId, setSelectedVariableId } =
     useTimeline();
+  useI18n();
   const anomaliesFile = useAnalysisFile(loadAnomalies);
   const anomalies =
     anomaliesFile.status === "ready" ? anomaliesFile.data.series : null;
@@ -93,7 +96,7 @@ export function TimelineDock({
         <TimeSeriesPanel
           key={selected.id}
           variableId={selected.id}
-          variableName={selected.nameEn}
+          variableName={variableName(selected.id, selected.nameEn)}
           locationName={locationName}
           series={
             series.find((item) => item.variableId === selected.id) ?? null
@@ -103,17 +106,19 @@ export function TimelineDock({
           alpha={trendsData?.parameters.alpha ?? 0.05}
           unreliable={trendUnreliable(trend, trendsData?.known_issues)}
           breaks={stepsOf(key)}
-          similarHref={similarLink(
-            import.meta.env.BASE_URL,
-            locationId,
-            selected.id,
+          similarHref={carryChoices(
+            similarLink(import.meta.env.BASE_URL, locationId, selected.id),
           )}
           onClose={() => setSelectedVariableId(null)}
         />
       ) : null}
       <TimelineBar
         strip={bars}
-        stripName={stripVariable?.nameEn ?? null}
+        stripName={
+          stripVariable
+            ? variableName(stripVariable.id, stripVariable.nameEn)
+            : null
+        }
         breaks={stepsOf(stripKey)
           .map((month) => months.indexOf(month))
           .filter((index) => index >= 0)}

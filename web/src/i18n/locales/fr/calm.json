@@ -1,0 +1,18 @@
+{
+  "toggleLabel": "Particles",
+  "toggleGroupAria": "Particle style",
+  "styleCalm": "Calm",
+  "styleLively": "Lively",
+  "styleCalmTitle": "One small cluster per layer above the selected place; slow motion",
+  "styleLivelyTitle": "Particles all around the globe, in motion",
+  "legendUnit": "small = one unit",
+  "legendGroup": "big = five units combined",
+  "legendDisc": "tinted disc = this month",
+  "legendRing": "ring = usual for this month",
+  "legendNoData": "dashed ring only = no data",
+  "legendArrow": "arrow = significant trend, up or down",
+  "legendScale": "25 units span each layer's own record at this place (lowest to highest month).",
+  "legendAria": "Legend: a small shape is one unit; a big one is five units combined; the tinted disc is this month; the ring is what is usual for this calendar month; a dashed ring alone means no data.",
+  "noteOneLayer": "The cluster above {{place}} is one value: {{layer}}{{when}}. The thin ring is what is usual for this calendar month. It is not a map.",
+  "noteManyLayers": "Each cluster above {{place}} is one layer's value{{when}}. The thin ring is what is usual for this calendar month. They are not a map."
+}

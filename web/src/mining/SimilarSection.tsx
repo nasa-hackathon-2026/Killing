@@ -10,6 +10,8 @@ import {
   type SimilarEntry,
   type SimilarSeriesFile,
 } from "../analysis/miningPlus";
+import { useI18n } from "../i18n";
+import { placeName, variableName } from "../i18n/names";
 import { MethodDetails } from "./parts";
 
 const SPARK_WIDTH = 220;
@@ -80,18 +82,19 @@ function EntryTable({
   entries: SimilarEntry[];
   caption: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="scroll">
       <table className="similar-table">
         <caption>{caption}</caption>
         <thead>
           <tr>
-            <th>Series</th>
-            <th>Both lines (selected in white)</th>
-            <th className="number">Similarity</th>
-            <th className="number">After removing trends</th>
-            <th>Below the limit</th>
-            <th>Notes</th>
+            <th>{t("mining.similar.column.series")}</th>
+            <th>{t("mining.similar.column.lines")}</th>
+            <th className="number">{t("mining.similar.column.similarity")}</th>
+            <th className="number">{t("mining.similar.column.detrended")}</th>
+            <th>{t("mining.similar.column.below")}</th>
+            <th>{t("mining.similar.column.notes")}</th>
           </tr>
         </thead>
         <tbody>
@@ -138,6 +141,7 @@ function EntryTable({
 }
 
 export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
+  const { t } = useI18n();
   const [selection, setSelection] = useState(() =>
     similarSelection(file, window.location.search),
   );
@@ -163,26 +167,26 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
 
   return (
     <section id="similar" aria-labelledby="similar-title">
-      <h2 id="similar-title">Similar series</h2>
+      <h2 id="similar-title">{t("mining.sections.similar")}</h2>
       <p className="asks">
-        <strong>What this asks:</strong> for one variable at one place, which
-        other variables — here or elsewhere — went above and below normal in the
-        same months?
+        <strong>{t("mining.label.asks")}</strong> {t("mining.similar.asks")}
       </p>
       <p className="note">
-        <strong>Method and limits:</strong> similarity is the correlation of the
-        monthly anomalies of two series over {file.window.n_months} months (
-        {file.window.first_month.slice(0, 7)} to{" "}
-        {file.window.last_month.slice(0, 7)}), from +1 (always together) to −1
-        (always opposite). {file.note} Among {summary.n_series} series there are{" "}
-        {summary.n_candidate_pairs} possible pairs, so some similarity turns up
-        by chance; {summary.n_candidate_pairs_significant} pairs are below the
-        limit, {summary.n_candidate_pairs_significant_detrended} after the
-        trends are removed.
+        <strong>{t("mining.label.method")}</strong>{" "}
+        {t("mining.similar.method", {
+          months: file.window.n_months,
+          first: file.window.first_month.slice(0, 7),
+          last: file.window.last_month.slice(0, 7),
+          note: file.note,
+          series: summary.n_series,
+          pairs: summary.n_candidate_pairs,
+          significant: summary.n_candidate_pairs_significant,
+          detrended: summary.n_candidate_pairs_significant_detrended,
+        })}
       </p>
       <div className="controls">
         <label>
-          Place{" "}
+          {t("mining.control.place")}{" "}
           <select
             value={selection.locationId}
             onChange={(event) =>
@@ -195,7 +199,7 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
                   .filter(([, item]) => item.group === group)
                   .map(([id, item]) => (
                     <option key={id} value={id}>
-                      {item.name_en}
+                      {placeName(id, item.name_en)}
                     </option>
                   ))}
               </optgroup>
@@ -203,7 +207,7 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
           </select>
         </label>
         <label>
-          Variable{" "}
+          {t("mining.control.variable")}{" "}
           <select
             value={selection.variableId}
             onChange={(event) =>
@@ -212,7 +216,7 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
           >
             {variablesAt(file, selection.locationId).map((id) => (
               <option key={id} value={id}>
-                {file.variable_names[id] ?? id}
+                {variableName(id, file.variable_names[id] ?? id)}
               </option>
             ))}
           </select>
@@ -261,7 +265,7 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
               <dd>{text}</dd>
             </div>
           ))}
-          <dt>listed pairs</dt>
+          <dt>{t("mining.extra.listed_pairs")}</dt>
           <dd>
             {summary.n_listed} listed over all series;{" "}
             {summary.n_listed_significant} below the limit,{" "}
@@ -269,7 +273,7 @@ export function SimilarSection({ file }: { file: SimilarSeriesFile }) {
             {summary.n_listed_trend_sensitive} marked as changing when trends
             are removed.
           </dd>
-          <dt>check</dt>
+          <dt>{t("mining.extra.check")}</dt>
           <dd>
             The similarities computed in the database (pgvector) and in Python{" "}
             {file.check.pgvector_matches_numpy ? "agree" : "do not agree"} to

@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  DATA_KIND_LABELS,
-  GROUP_LABELS,
   breakMonths,
   chartSeries,
   formatMonth,
@@ -18,6 +16,17 @@ import {
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { useAnalysisFile } from "../analysis/useAnalysisFile";
 import { prefersReducedMotion } from "../forms/reducedMotion";
+import { carryChoices, localNumber, t, tOptional, useI18n } from "../i18n";
+import { LanguageMenu, ModeSwitch } from "../i18n/ChoiceControls";
+import {
+  placeName as localPlace,
+  variableName as localVariable,
+} from "../i18n/names";
+
+// Numbers of this page in the active language's decimal convention.
+function signed(value: number | null | undefined, digits = 2): string {
+  return localNumber(formatSigned(value, digits));
+}
 
 const WIDTH = 960;
 const HEIGHT = 320;
@@ -31,39 +40,51 @@ function KindTag({
   variable: string;
 }) {
   const kind = file.variables[variable]?.data_kind ?? "unknown";
-  return <span className={`tag kind-${kind}`}>{DATA_KIND_LABELS[kind]}</span>;
+  return (
+    <span className={`tag kind-${kind}`}>
+      {t(`common.dataKind.${kind}.label`)}
+    </span>
+  );
 }
 
 function variableName(file: ModelVsObsFile, variable: string): string {
-  return file.variables[variable]?.name_en ?? variable;
+  return localVariable(variable, file.variables[variable]?.name_en ?? variable);
 }
 
 function locationName(file: ModelVsObsFile, location: string): string {
-  return file.locations[location]?.name_en ?? location;
+  return localPlace(location, file.locations[location]?.name_en ?? location);
 }
 
-function modelPlace(pair: Pair): string {
+function modelPlace(file: ModelVsObsFile, pair: Pair): string {
   const { detail } = pair.model;
   if (pair.model.source === "grid_cube_cell") {
     const where = detail.containing_cell
-      ? "grid cell containing the station"
-      : "nearest grid cell with values";
+      ? t("compare.modelPlace.containingCell")
+      : t("compare.modelPlace.nearestCell");
     return detail.distance_km === undefined
       ? where
-      : `${where}, centre ${detail.distance_km.toFixed(0)} km away`;
+      : t("compare.modelPlace.cellDistance", {
+          where,
+          km: detail.distance_km.toFixed(0),
+        });
   }
   if (pair.model.location_id !== pair.location_id) {
+    const place = locationName(file, pair.model.location_id);
     return detail.distance_km === undefined
-      ? `point series at ${pair.model.location_id}`
-      : `point series at ${pair.model.location_id}, ${detail.distance_km.toFixed(0)} km away`;
+      ? t("compare.modelPlace.pointSeries", { place })
+      : t("compare.modelPlace.pointSeriesDistance", {
+          place,
+          km: detail.distance_km.toFixed(0),
+        });
   }
-  return "series at the same location";
+  return t("compare.modelPlace.sameLocation");
 }
 
 function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
+  const { t, tm } = useI18n();
   const series = chartSeries(pair);
   if (!series || !series.time.length) {
-    return <p className="note">No series to plot for this pair.</p>;
+    return <p className="note">{t("compare.chart.empty")}</p>;
   }
   const first = Math.floor(series.time[0] ?? 0);
   const last = Math.ceil(series.time.at(-1) ?? first + 1);
@@ -86,7 +107,11 @@ function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
-        aria-label={`Anomalies of ${variableName(file, pair.model.variable_id)} and ${variableName(file, pair.obs.variable_id)} at ${locationName(file, pair.location_id)}, and their difference`}
+        aria-label={t("compare.chart.aria", {
+          model: variableName(file, pair.model.variable_id),
+          obs: variableName(file, pair.obs.variable_id),
+          place: locationName(file, pair.location_id),
+        })}
       >
         {ticks.map((tick) => (
           <g key={tick}>
@@ -103,7 +128,7 @@ function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
               y={y(tick) + 4}
               textAnchor="end"
             >
-              {formatSigned(tick, Number.isInteger(tick * 10) ? 1 : 2)}
+              {signed(tick, Number.isInteger(tick * 10) ? 1 : 2)}
             </text>
           </g>
         ))}
@@ -151,27 +176,29 @@ function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
         />
       </svg>
       <figcaption>
-        <span className="key key-model" /> Model anomaly{" "}
-        <span className="key key-obs" /> Observation anomaly{" "}
-        <span className="key key-difference" /> Difference (model − observation){" "}
+        <span className="key key-model" /> {t("compare.chart.keyModel")}{" "}
+        <span className="key key-obs" /> {t("compare.chart.keyObs")}{" "}
+        <span className="key key-difference" />{" "}
+        {t("compare.chart.keyDifference")}{" "}
         {breaks.length ? (
           <>
-            <span className="key key-break" /> Known step month (
-            {breaks.map(formatMonth).join(", ")}){" "}
+            <span className="key key-break" />{" "}
+            {t("compare.chart.keyBreak", {
+              months: breaks.map(formatMonth).join(", "),
+            })}{" "}
           </>
         ) : null}
         {step ? (
           <>
-            <span className="key key-step" /> Largest step of the difference (
-            {formatMonth(step)})
+            <span className="key key-step" />{" "}
+            {t("compare.chart.keyStep", { month: formatMonth(step) })}
           </>
         ) : null}
         <br />
         {series.resolution === "month"
-          ? "Monthly anomalies, °C."
-          : "Calendar-year means of the monthly anomalies, °C (this group has no monthly values in the file)."}{" "}
-        Each series is shown relative to its own mean of the same calendar month
-        over the months both have.
+          ? t("compare.chart.monthly")
+          : t("compare.chart.annual")}{" "}
+        {tm("compare.chart.baseline")}
       </figcaption>
     </figure>
   );
@@ -181,66 +208,110 @@ function PairChart({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
 const PAIR_SECTION_ID = "pair";
 
 function PairDetail({ file, pair }: { file: ModelVsObsFile; pair: Pair }) {
+  const { t, mode } = useI18n();
   const caveat = pairCaveat(pair, file.known_issues);
   const difference = pair.difference;
+  const trendValue = (trend: {
+    slope_per_decade: number;
+    ci_per_decade: [number, number];
+  }) =>
+    t("compare.stats.trendValue", {
+      slope: signed(trend.slope_per_decade),
+      low: signed(trend.ci_per_decade[0]),
+      high: signed(trend.ci_per_decade[1]),
+    });
+  const full =
+    difference && pair.model_trend && pair.obs_trend ? (
+      <dl>
+        <dt>{t("compare.stats.commonMonths")}</dt>
+        <dd>
+          {t("compare.stats.commonMonthsValue", {
+            count: pair.n_common_months,
+            first: formatMonth(pair.first_common_month),
+            last: formatMonth(pair.last_common_month),
+          })}
+        </dd>
+        <dt>{t("compare.stats.modelTrend")}</dt>
+        <dd>{trendValue(pair.model_trend)}</dd>
+        <dt>{t("compare.stats.obsTrend")}</dt>
+        <dd>{trendValue(pair.obs_trend)}</dd>
+        <dt>{t("compare.stats.differenceTrend")}</dt>
+        <dd>
+          {t("compare.stats.differenceTrendValue", {
+            slope: signed(difference.trend.slope_per_decade),
+            low: signed(difference.trend.ci_per_decade[0]),
+            high: signed(difference.trend.ci_per_decade[1]),
+            p: t(
+              difference.trend.significant
+                ? "compare.stats.pBelow"
+                : "compare.stats.pAtLeast",
+              { alpha: localNumber(String(file.parameters.alpha)) },
+            ),
+          })}
+        </dd>
+        <dt>{t("compare.stats.difference")}</dt>
+        <dd>
+          {t("compare.stats.differenceValue", {
+            sd: localNumber(difference.sd.toFixed(2)),
+            rmse: localNumber(difference.rmse.toFixed(2)),
+          })}
+        </dd>
+        <dt>{t("compare.stats.largestStep")}</dt>
+        <dd>
+          {t("compare.stats.largestStepValue", {
+            step: signed(difference.largest_step),
+            month: formatMonth(difference.largest_step_month),
+          })}
+        </dd>
+      </dl>
+    ) : null;
   return (
     <section id={PAIR_SECTION_ID}>
       <h2>{locationName(file, pair.location_id)}</h2>
       <p>
         {variableName(file, pair.model.variable_id)}
         <KindTag file={file} variable={pair.model.variable_id} /> (
-        {modelPlace(pair)})
+        {modelPlace(file, pair)})
         <br />
         {variableName(file, pair.obs.variable_id)}
         <KindTag file={file} variable={pair.obs.variable_id} />
       </p>
       {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
       <PairChart file={file} pair={pair} />
-      {difference && pair.model_trend && pair.obs_trend ? (
-        <dl>
-          <dt>Common months</dt>
-          <dd>
-            {pair.n_common_months} ({formatMonth(pair.first_common_month)} to{" "}
-            {formatMonth(pair.last_common_month)})
-          </dd>
-          <dt>Model trend</dt>
-          <dd>
-            {formatSigned(pair.model_trend.slope_per_decade)} °C per decade (95%
-            CI {formatSigned(pair.model_trend.ci_per_decade[0])} to{" "}
-            {formatSigned(pair.model_trend.ci_per_decade[1])})
-          </dd>
-          <dt>Observation trend</dt>
-          <dd>
-            {formatSigned(pair.obs_trend.slope_per_decade)} °C per decade (95%
-            CI {formatSigned(pair.obs_trend.ci_per_decade[0])} to{" "}
-            {formatSigned(pair.obs_trend.ci_per_decade[1])})
-          </dd>
-          <dt>Trend of the difference</dt>
-          <dd>
-            {formatSigned(difference.trend.slope_per_decade)} °C per decade (95%
-            CI {formatSigned(difference.trend.ci_per_decade[0])} to{" "}
-            {formatSigned(difference.trend.ci_per_decade[1])};{" "}
-            {difference.trend.significant
-              ? `p < ${file.parameters.alpha}`
-              : `p ≥ ${file.parameters.alpha}`}
-            )
-          </dd>
-          <dt>Difference</dt>
-          <dd>
-            standard deviation {difference.sd.toFixed(2)} °C, RMSE{" "}
-            {difference.rmse.toFixed(2)} °C
-          </dd>
-          <dt>Largest step</dt>
-          <dd>
-            {formatSigned(difference.largest_step)} °C at{" "}
-            {formatMonth(difference.largest_step_month)} (mean of the 6 months
-            from that month minus the 6 months before)
-          </dd>
-        </dl>
-      ) : (
+      {!full || !difference || !pair.model_trend || !pair.obs_trend ? (
         <p className="note">
-          Too few common months ({pair.n_common_months}) for statistics.
+          {t("compare.stats.tooFew", { count: pair.n_common_months })}
         </p>
+      ) : mode === "research" ? (
+        full
+      ) : (
+        <>
+          <dl>
+            <dt>{t("compare.stats.modelTrend")}</dt>
+            <dd>
+              {t("compare.stats.trendValuePlain", {
+                slope: signed(pair.model_trend.slope_per_decade),
+              })}
+            </dd>
+            <dt>{t("compare.stats.obsTrend")}</dt>
+            <dd>
+              {t("compare.stats.trendValuePlain", {
+                slope: signed(pair.obs_trend.slope_per_decade),
+              })}
+            </dd>
+          </dl>
+          <p>
+            {difference.trend.significant
+              ? t("compare.stats.gapChanging", {
+                  slope: signed(difference.trend.slope_per_decade),
+                })
+              : t("compare.stats.gapUnclear")}
+          </p>
+          <details className="method">
+            <summary>{t("common.action.details")}</summary>
+            {full}
+          </details>
+        </>
       )}
     </section>
   );
@@ -257,21 +328,31 @@ function PairTable({
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
+  const { t, mode } = useI18n();
+  const research = mode === "research";
   return (
     <div className="scroll">
       <table>
         <thead>
           <tr>
-            <th>Location</th>
-            <th>Model product</th>
-            <th>Observation source</th>
-            <th className="number">Months</th>
-            <th className="number">r</th>
-            <th className="number">Model trend</th>
-            <th className="number">Obs. trend</th>
-            <th className="number">Difference</th>
-            <th>Largest step</th>
-            <th>Known issues</th>
+            <th>{t("compare.table.location")}</th>
+            <th>{t("compare.table.model")}</th>
+            <th>{t("compare.table.obs")}</th>
+            {research ? (
+              <>
+                <th className="number">{t("compare.table.months")}</th>
+                <th className="number">{t("compare.table.r")}</th>
+              </>
+            ) : null}
+            <th className="number">{t("compare.table.modelTrend")}</th>
+            <th className="number">{t("compare.table.obsTrend")}</th>
+            {research ? (
+              <>
+                <th className="number">{t("compare.table.difference")}</th>
+                <th>{t("compare.table.largestStep")}</th>
+              </>
+            ) : null}
+            <th>{t("compare.table.knownIssues")}</th>
           </tr>
         </thead>
         <tbody>
@@ -300,25 +381,32 @@ function PairTable({
                   {variableName(file, pair.obs.variable_id)}
                   <KindTag file={file} variable={pair.obs.variable_id} />
                 </td>
-                <td className="number">{pair.n_common_months}</td>
+                {research ? (
+                  <>
+                    <td className="number">{pair.n_common_months}</td>
+                    <td className="number">
+                      {pair.correlation === null ||
+                      pair.correlation === undefined
+                        ? "—"
+                        : localNumber(pair.correlation.toFixed(2))}
+                    </td>
+                  </>
+                ) : null}
                 <td className="number">
-                  {pair.correlation === null || pair.correlation === undefined
-                    ? "—"
-                    : pair.correlation.toFixed(2)}
+                  {signed(pair.model_trend?.slope_per_decade)}
                 </td>
                 <td className="number">
-                  {formatSigned(pair.model_trend?.slope_per_decade)}
+                  {signed(pair.obs_trend?.slope_per_decade)}
                 </td>
-                <td className="number">
-                  {formatSigned(pair.obs_trend?.slope_per_decade)}
-                </td>
-                <td className="number">
-                  {formatSigned(pair.slope_difference)}
-                </td>
-                <td>
-                  {formatMonth(pair.difference?.largest_step_month)} (
-                  {formatSigned(pair.difference?.largest_step)})
-                </td>
+                {research ? (
+                  <>
+                    <td className="number">{signed(pair.slope_difference)}</td>
+                    <td>
+                      {formatMonth(pair.difference?.largest_step_month)} (
+                      {signed(pair.difference?.largest_step)})
+                    </td>
+                  </>
+                ) : null}
                 <td>{caveat ? <TrendCaveatNote caveat={caveat} /> : null}</td>
               </tr>
             );
@@ -345,6 +433,7 @@ function initialSelection(file: ModelVsObsFile): {
 }
 
 function Comparison({ file }: { file: ModelVsObsFile }) {
+  const { t, tm } = useI18n();
   const groups = groupsOf(file);
   const [initial] = useState(() => initialSelection(file));
   const [group, setGroup] = useState(initial.group);
@@ -363,7 +452,7 @@ function Comparison({ file }: { file: ModelVsObsFile }) {
     <>
       <div className="controls">
         <label>
-          Group{" "}
+          {t("compare.group.label")}{" "}
           <select
             value={group}
             onChange={(event) => {
@@ -373,16 +462,15 @@ function Comparison({ file }: { file: ModelVsObsFile }) {
           >
             {groups.map((id) => (
               <option key={id} value={id}>
-                {GROUP_LABELS[id] ?? id} (
-                {file.summary.n_pairs_by_group[id] ?? 0})
+                {t("compare.group.option", {
+                  name: tOptional(`compare.group.${id}`) ?? id,
+                  count: file.summary.n_pairs_by_group[id] ?? 0,
+                })}
               </option>
             ))}
           </select>
         </label>
-        <span className="note">
-          Trends in °C per decade over the common months. Select a location to
-          plot the pair.
-        </span>
+        <span className="note">{tm("compare.tableNote")}</span>
       </div>
       <PairTable
         file={file}
@@ -393,11 +481,11 @@ function Comparison({ file }: { file: ModelVsObsFile }) {
       {pair ? <PairDetail file={file} pair={pair} /> : null}
       {file.skipped.length ? (
         <p className="note">
-          Not paired:{" "}
-          {file.skipped
-            .map((item) => `${item.pair_id} (${item.reason})`)
-            .join("; ")}
-          .
+          {t("compare.notPaired", {
+            list: file.skipped
+              .map((item) => `${item.pair_id} (${item.reason})`)
+              .join("; "),
+          })}
         </p>
       ) : null}
     </>
@@ -405,33 +493,28 @@ function Comparison({ file }: { file: ModelVsObsFile }) {
 }
 
 export function ComparePage() {
+  const { t, tm } = useI18n();
   const state = useAnalysisFile(loadModelVsObs);
+  const window =
+    state.status === "ready"
+      ? {
+          start: formatMonth(state.data.parameters.window_start),
+          end: formatMonth(state.data.parameters.window_end),
+        }
+      : { start: "2001-01", end: "2025-12" };
 
   return (
     <main className="mining compare">
-      <p>
-        <a href={import.meta.env.BASE_URL}>← Globe</a>
+      <p className="page-bar">
+        <a href={carryChoices(import.meta.env.BASE_URL)}>{t("compare.back")}</a>
+        <LanguageMenu />
+        <ModeSwitch />
       </p>
-      <h1>Model vs observation</h1>
-      <p>
-        Near-surface air temperature from models and reanalyses next to
-        observations of the same quantity at the same place. Both series are
-        turned into anomalies over the months they share (
-        {state.status === "ready"
-          ? `${formatMonth(state.data.parameters.window_start)} to ${formatMonth(state.data.parameters.window_end)}`
-          : "2001-01 to 2025-12"}
-        ): each minus its own mean of the same calendar month, so different
-        baselines and units can be compared.
-      </p>
-      <p className="verdict">
-        A difference between a model and an observation does not by itself say
-        which one is right. A station is a point and a model value is a grid
-        cell; GISTEMP is a 2° gridded analysis of station and ship observations.
-      </p>
-      {state.status === "loading" ? <p>Loading…</p> : null}
-      {state.status === "error" ? (
-        <p>Could not read the comparison results.</p>
-      ) : null}
+      <h1>{t("compare.title")}</h1>
+      <p>{tm("compare.intro", window)}</p>
+      <p className="verdict">{tm("compare.verdict")}</p>
+      {state.status === "loading" ? <p>{t("common.status.loading")}</p> : null}
+      {state.status === "error" ? <p>{t("compare.error")}</p> : null}
       {state.status === "ready" ? <Comparison file={state.data} /> : null}
     </main>
   );

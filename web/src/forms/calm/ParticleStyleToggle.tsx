@@ -1,4 +1,5 @@
 import "./calm.css";
+import { useI18n } from "../../i18n";
 import { calmText } from "./calmText";
 import {
   setParticleStyle,
@@ -6,14 +7,16 @@ import {
   type ParticleStyle,
 } from "./particleStyle";
 
-const STYLES: { id: ParticleStyle; label: string; title: string }[] = [
-  { id: "calm", label: calmText.styleCalm, title: calmText.styleCalmTitle },
-  {
-    id: "lively",
-    label: calmText.styleLively,
-    title: calmText.styleLivelyTitle,
-  },
-];
+function styles(): { id: ParticleStyle; label: string; title: string }[] {
+  return [
+    { id: "calm", label: calmText.styleCalm, title: calmText.styleCalmTitle },
+    {
+      id: "lively",
+      label: calmText.styleLively,
+      title: calmText.styleLivelyTitle,
+    },
+  ];
+}
 
 // Five overlapping dots: the picture of "five units combined".
 const CLUMP = [0, 1, 2, 3, 4].map((k) => {
@@ -24,12 +27,13 @@ const CLUMP = [0, 1, 2, 3, 4].map((k) => {
 // The "Particles: Calm / Lively" switch at the top of the Layers panel, and
 // under it a one-line legend of the Calm style.
 export function ParticleStyleToggle() {
+  useI18n();
   const style = useParticleStyle();
   return (
     <div className="calm-toggle">
       <div role="group" aria-label={calmText.toggleGroupAria}>
         <span>{calmText.toggleLabel}</span>
-        {STYLES.map((item) => (
+        {styles().map((item) => (
           <button
             key={item.id}
             type="button"

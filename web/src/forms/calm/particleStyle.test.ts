@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { registerMessages, setLocale } from "../../i18n";
+import translatedCalm from "../../i18n/locales/zh-TW/calm.json";
 import { calmText, fillCalmText } from "./calmText";
 import {
   DEFAULT_PARTICLE_STYLE,
   parseParticleStyle,
   resolveParticleStyle,
 } from "./particleStyle";
+
+afterEach(() => setLocale("en"));
 
 describe("particle style", () => {
   it("reads calm and lively only", () => {
@@ -24,6 +28,20 @@ describe("particle style", () => {
 });
 
 describe("fillCalmText", () => {
+  it("updates the style labels and notes after a language change", () => {
+    registerMessages("zh-TW", { calm: translatedCalm });
+    setLocale("zh-TW");
+    expect(calmText.styleCalm).toBe("平靜");
+    expect(
+      fillCalmText(calmText.noteOneLayer, {
+        place: "臺中",
+        layer: "降水",
+        when: "，2025年6月",
+      }),
+    ).toContain("臺中 上方這群粒子代表一個數值：降水，2025年6月");
+    setLocale("en");
+    expect(calmText.styleCalm).toBe("Calm");
+  });
   it("fills the named slots", () => {
     expect(
       fillCalmText(calmText.noteOneLayer, {

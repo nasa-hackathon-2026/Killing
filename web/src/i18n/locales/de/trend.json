@@ -1,0 +1,91 @@
+{
+  "label": {
+    "rising": {
+      "general": "Rising",
+      "expert": "Rising, significant"
+    },
+    "falling": {
+      "general": "Falling",
+      "expert": "Falling, significant"
+    },
+    "risingRawOnly": {
+      "general": "Rising, weak evidence",
+      "expert": "Rising, significant before FDR only"
+    },
+    "fallingRawOnly": {
+      "general": "Falling, weak evidence",
+      "expert": "Falling, significant before FDR only"
+    },
+    "notSignificant": {
+      "general": "No clear change in this record",
+      "expert": "Not significant"
+    },
+    "unreliableRising": {
+      "general": "Number not reliable",
+      "expert": "Trend not reliable as a climate signal: documented data issue (rising, statistically significant)"
+    },
+    "unreliableFalling": {
+      "general": "Number not reliable",
+      "expert": "Trend not reliable as a climate signal: documented data issue (falling, statistically significant)"
+    },
+    "unreliableRisingRawOnly": {
+      "general": "Number not reliable",
+      "expert": "Trend not reliable as a climate signal: documented data issue (rising, significant before FDR only)"
+    },
+    "unreliableFallingRawOnly": {
+      "general": "Number not reliable",
+      "expert": "Trend not reliable as a climate signal: documented data issue (falling, significant before FDR only)"
+    },
+    "insufficient": {
+      "general": "Too little data for a trend",
+      "expert": "Insufficient data"
+    },
+    "unavailable": {
+      "general": "No trend result",
+      "expert": "No trend result"
+    }
+  },
+  "significance": {
+    "notComputed": {
+      "general": "The test could not be run.",
+      "expert": "test could not be computed"
+    },
+    "notSignificant": {
+      "general": "No clear change shows in this record. That is not the same as no change.",
+      "expert": "not significant after autocorrelation correction"
+    },
+    "fdr": {
+      "general": "This change holds up in the statistical tests.",
+      "expert": "significant after autocorrelation and FDR correction"
+    },
+    "rawOnly": {
+      "general": "This change passes the basic test but not the stricter one, so treat it as uncertain.",
+      "expert": "significant after autocorrelation correction, not after FDR correction"
+    },
+    "unreliableFdr": {
+      "general": "This number is not reliable: the data itself has a documented problem.",
+      "expert": "statistically significant, but not reliable as a climate signal: see caution"
+    },
+    "unreliableRawOnly": {
+      "general": "This number is not reliable: the data itself has a documented problem.",
+      "expert": "significant before FDR correction only, and not reliable as a climate signal: see caution"
+    }
+  },
+  "change": {
+    "general": "About {{slope}} per decade",
+    "expert": "{{slope}} per decade ({{level}}% CI {{low}} to {{high}})"
+  },
+  "period": "{{first}} to {{last}}",
+  "notAnalyzed": {
+    "general": "Too little data to work out a trend",
+    "expert": "Trend not analyzed"
+  },
+  "notSignificantNote": {
+    "general": "No clear change is not the same as no change: the record may be too short or too noisy to tell.",
+    "expert": "Not significant does not mean no change; the record may be too short or too variable to tell."
+  },
+  "reliable": {
+    "ok": "No documented data problem affects this trend.",
+    "bad": "Not reliable: the data itself has a documented problem (see the caution below)."
+  }
+}

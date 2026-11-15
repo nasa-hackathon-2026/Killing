@@ -1,32 +1,59 @@
-// Every reader-facing string of the Calm particle style, in one place.
-// {place}, {layer} and {when} are filled in by fillCalmText.
+import { interpolate, t } from "../../i18n";
+
 export const calmText = {
-  toggleLabel: "Particles",
-  toggleGroupAria: "Particle style",
-  styleCalm: "Calm",
-  styleLively: "Lively",
-  styleCalmTitle:
-    "One small cluster per layer above the selected place; slow motion",
-  styleLivelyTitle: "Particles all around the globe, in motion",
-  legendUnit: "small = one unit",
-  legendGroup: "big = five units combined",
-  legendDisc: "tinted disc = this month",
-  legendRing: "ring = usual for this month",
-  legendNoData: "dashed ring only = no data",
-  legendArrow: "arrow = significant trend, up or down",
-  legendScale:
-    "25 units span each layer's own record at this place (lowest to highest month).",
-  legendAria:
-    "Legend: a small shape is one unit; a big one is five units combined; the tinted disc is this month; the ring is what is usual for this calendar month; a dashed ring alone means no data.",
-  noteOneLayer:
-    "The cluster above {place} is one value: {layer}{when}. The thin ring is what is usual for this calendar month. It is not a map.",
-  noteManyLayers:
-    "Each cluster above {place} is one layer's value{when}. The thin ring is what is usual for this calendar month. They are not a map.",
+  get toggleLabel() {
+    return t("calm.toggleLabel");
+  },
+  get toggleGroupAria() {
+    return t("calm.toggleGroupAria");
+  },
+  get styleCalm() {
+    return t("calm.styleCalm");
+  },
+  get styleLively() {
+    return t("calm.styleLively");
+  },
+  get styleCalmTitle() {
+    return t("calm.styleCalmTitle");
+  },
+  get styleLivelyTitle() {
+    return t("calm.styleLivelyTitle");
+  },
+  get legendUnit() {
+    return t("calm.legendUnit");
+  },
+  get legendGroup() {
+    return t("calm.legendGroup");
+  },
+  get legendDisc() {
+    return t("calm.legendDisc");
+  },
+  get legendRing() {
+    return t("calm.legendRing");
+  },
+  get legendNoData() {
+    return t("calm.legendNoData");
+  },
+  get legendArrow() {
+    return t("calm.legendArrow");
+  },
+  get legendScale() {
+    return t("calm.legendScale");
+  },
+  get legendAria() {
+    return t("calm.legendAria");
+  },
+  get noteOneLayer() {
+    return t("calm.noteOneLayer");
+  },
+  get noteManyLayers() {
+    return t("calm.noteManyLayers");
+  },
 };
 
 export function fillCalmText(
   template: string,
   values: Record<string, string>,
 ): string {
-  return template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
+  return interpolate(template, values);
 }

@@ -2,9 +2,10 @@ import { useMemo, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
-import { DATA_KIND_LABELS } from "../analysis/modelVsObs";
 import { companionFor } from "../companions/companionSpec";
 import { formColor } from "../forms/formColor";
+import { localNumber, monthName, useI18n } from "../i18n";
+import { variableName } from "../i18n/names";
 import { layerRegistry } from "../layers/registry";
 import { useTimeline } from "../timeline/TimelineContext";
 import { fieldVariable } from "./fieldConfig";
@@ -16,7 +17,7 @@ import {
   formatFieldValue,
 } from "./fieldMapping";
 import { resolveField, setFieldMode, useFieldMode } from "./fieldStore";
-import { MONTH_NAMES, fieldText } from "./fieldText";
+import { fieldText } from "./fieldText";
 import { useField, type FieldData } from "./loadField";
 import "./field.css";
 
@@ -35,6 +36,7 @@ function layerName(id: string): string {
 // the timeline (rendered into the page's .app so it can use the timeline's
 // CSS variables).
 export function FieldToggle({ openIds, trendMapOn = false }: FieldToggleProps) {
+  useI18n();
   const mode = useFieldMode();
   const timeline = useTimeline();
   const id = resolveField(mode, timeline.selectedVariableId, openIds);
@@ -60,7 +62,7 @@ export function FieldToggle({ openIds, trendMapOn = false }: FieldToggleProps) {
         {layerRegistry.map((layer) =>
           fieldVariable(layer.id) ? (
             <option key={layer.id} value={layer.id}>
-              {layer.nameEn}
+              {variableName(layer.id, layer.nameEn)}
             </option>
           ) : (
             <option
@@ -69,7 +71,7 @@ export function FieldToggle({ openIds, trendMapOn = false }: FieldToggleProps) {
               disabled
               title={fieldText.unavailableReason}
             >
-              {fieldText.unavailable(layer.nameEn)}
+              {fieldText.unavailable(variableName(layer.id, layer.nameEn))}
             </option>
           ),
         )}
@@ -142,6 +144,7 @@ function FieldLegend({
   month: number | null;
   trendMapOn: boolean;
 }) {
+  const { t } = useI18n();
   const { variable, meta, spec, range } = field;
   const layer = layerRegistry.find((item) => item.id === variable.id);
   const color = layer ? formColor(layer) : "#ffffff";
@@ -151,13 +154,16 @@ function FieldLegend({
     unit: spec.climatology.unit,
   };
   const shown = (value: number) =>
-    formatFieldValue(value * display.factor + display.offset);
-  const monthName = month === null ? null : MONTH_NAMES[month];
+    localNumber(formatFieldValue(value * display.factor + display.offset));
+  const shownMonth =
+    month === null
+      ? null
+      : monthName(`2000-${String(month + 1).padStart(2, "0")}`);
   const period = spec.climatology.period;
   const kind = companionFor(variable.id)?.dataKind;
   const caveat = trendCaveat(variable.id);
-  const typical = monthName
-    ? `${fieldText.typical(monthName)}${period ? ` (${fieldText.period(period[0], period[1])})` : ""}`
+  const typical = shownMonth
+    ? `${fieldText.typical(shownMonth)}${period ? ` (${fieldText.period(period[0], period[1])})` : ""}`
     : null;
 
   return (
@@ -165,7 +171,7 @@ function FieldLegend({
       <summary>
         <span className="field-legend-typical">{typical}</span>
         <span className="field-legend-name">
-          {meta.name_en ?? layerName(variable.id)}
+          {variableName(variable.id, meta.name_en ?? layerName(variable.id))}
         </span>
       </summary>
       <p className="field-legend-caption">
@@ -192,7 +198,7 @@ function FieldLegend({
       <p className="field-legend-note">{fieldText.noWind}</p>
       {kind ? (
         <p className="field-legend-note">
-          {fieldText.dataKind(DATA_KIND_LABELS[kind])}
+          {fieldText.dataKind(t(`common.dataKind.${kind}.label`))}
         </p>
       ) : null}
       {trendMapOn ? (

@@ -62,6 +62,8 @@ Everything can be reached with the keyboard (Tab, Enter or Space; Space and the 
 
 ## Limitations
 
+- **Language support is in progress.** English and Traditional Chinese cover the main interface. The data-mining page still shows some English technical prose supplied by analysis files and marks itself as partly translated. Japanese, German and French are selectable but currently show English text pending translation and native-speaker review. Everyone, Student and Researcher change the wording and amount of detail, not the data or statistical result.
+
 - **Seventeen points and one global mean on screen.** The site reads the point series of five places in Taiwan and twelve world cities, and the global mean. A city value is one grid cell of the product (0.1° to 1° wide, depending on the product), not a city boundary. Regional means for Taiwan and station series are in the data and in `data/analysis/trends.json`, but are not shown on the globe.
 - **World places have ten of the twelve layer variables.** Vegetation greenness and land surface temperature (MODIS) were fetched for Taiwan only, so they say "No data at this place" elsewhere. At Moscow the NO2 and aerosol series have too many low-coverage months for a trend (the page says so). The global mean is the cos(latitude)-weighted mean of the whole grid, with no land mask, so it is not comparable with a point value; it has no marker and no layer view. The GLDAS cautions below apply to the world places as well.
 - **Two FDR families.** The significance marks of the Taiwan series are corrected across the Taiwan series; those of the world cities and the global mean are corrected across the 130 series of the world subset (`data/analysis/world/trends.json`). The two corrections are separate.
@@ -259,7 +261,7 @@ Fetching the data again talks to NASA services. These commands were **not** re-r
 
 ## Use of AI (SI) — disclosure
 
-Space Apps 2026 calls AI tools "Super Intelligence (SI)". In short: AI tools wrote the code and the documentation of this project and helped define and tune parameters; the direction and the decisions are the team's. Two AI tools were used, **Claude Code (Anthropic)** and **Cursor**; the team owner (GitHub account [Grasonyang](https://github.com/Grasonyang)) confirmed on 2026-11-15 that there were no others. The details below come from the repository's own record (commit trailers, pull-request descriptions, issue comments) and from the "決定的分工" paragraph at the end of each record in [docs/adr/](docs/adr/) (in Traditional Chinese), which the team owner checked item by item on 2026-11-15.
+Space Apps 2026 calls AI tools "Super Intelligence (SI)". In short: AI tools wrote the code, interface copy and documentation of this project and helped define and tune parameters; the direction and the decisions are the team's. **Claude Code (Anthropic)**, **Cursor** and **Codex (OpenAI)** were used in the repository. The team owner (GitHub account [Grasonyang](https://github.com/Grasonyang)) confirmed on 2026-11-15 that Claude Code and Cursor were the tools used before this multilingual work. The details below come from the repository's own record (commit trailers, pull-request descriptions, issue comments) and from the "決定的分工" paragraph at the end of each record in [docs/adr/](docs/adr/) (in Traditional Chinese), which the team owner checked item by item on 2026-11-15.
 
 ### Which tools were used, and for what
 
@@ -272,6 +274,8 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". In short: AI tools wro
 - **Data-mining additions** (the model-versus-station tree and its table of group means, the variable network, the similar-series lists, and the reworked mining page; [#111](https://github.com/nasa-hackathon-2026/earth-system-trend-detective/issues/111)): the code and the page text were written by Claude Code following the team's direction. The page gives numbers and methods and states no cause and no conclusion.
 
 **Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
+
+**Codex** continued issue #131: multilingual message infrastructure, reader-role controls, companion tour and this disclosure. The English and Traditional Chinese interface copy was AI drafted and has not been independently reviewed by a native-speaking science editor. Japanese, German and French currently display English fallback text, not reviewed translations.
 
 ### What the team decided
 

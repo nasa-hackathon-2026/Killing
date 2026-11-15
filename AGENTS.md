@@ -48,6 +48,8 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - 測試（全部）：`npm test --prefix web`
 - 測試（單檔）：`npm test --prefix web -- src/path/to/file.test.ts`
 
+修改網站文案、讀者身分或翻譯時，先讀 `docs/i18n/translation-guide.md`；訊息檔與鍵檢查在 `web/src/i18n/`。
+
 ## 如何重新產生資料
 靜態快照在 `data/snapshot/`（`catalog.json` 加 `series/*.json`，統一格式見 #4），會進 git；公開 demo 只讀這些檔。
 

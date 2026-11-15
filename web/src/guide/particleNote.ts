@@ -3,24 +3,10 @@
 // without it they read as a global map. Pure; the wording follows the Layers
 // panel ("Values at <place>").
 import { calmText, fillCalmText } from "../forms/calm/calmText";
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { monthYear, t } from "../i18n";
 
 export type ParticleNoteInput = {
-  // English names of the layers that are switched on.
+  // Names of the layers that are switched on, in the active language.
   layerNames: string[];
   place: string;
   // "YYYY-MM" or "YYYY-MM-DD"; null when no month is selected.
@@ -32,38 +18,26 @@ export type ParticleNoteInput = {
   style?: "calm" | "lively";
 };
 
-// Null when no layer is on: there are no particles to explain.
 export function particleNote(input: ParticleNoteInput): string | null {
   if (input.layerNames.length === 0) return null;
-  const trendMapNote = input.trendMap
-    ? " The coloured map is a map: per-grid-cell trend."
-    : "";
-  if (input.style === "calm") {
-    const month = input.month
-      ? MONTHS[Number(input.month.slice(5, 7)) - 1]
-      : undefined;
-    return (
-      fillCalmText(
-        input.layerNames.length === 1
-          ? calmText.noteOneLayer
-          : calmText.noteManyLayers,
-        {
-          place: input.place,
-          layer: input.layerNames[0] ?? "",
-          when:
-            input.month && month ? `, ${month} ${input.month.slice(0, 4)}` : "",
-        },
-      ) + trendMapNote
-    );
-  }
+  const month = input.month ? monthYear(input.month, "short") : null;
+  const where = month
+    ? t("places.placeMonth", { place: input.place, month })
+    : input.place;
   const what =
-    input.layerNames.length === 1
-      ? `Particles show one value: ${input.layerNames[0]}`
-      : "Particles show one value per layer: the selected layers";
-  const name = input.month
-    ? MONTHS[Number(input.month.slice(5, 7)) - 1]
-    : undefined;
-  const when =
-    input.month && name ? `, ${name} ${input.month.slice(0, 4)}` : "";
-  return `${what} at ${input.place}${when}. They are not a map.` + trendMapNote;
+    input.style === "calm"
+      ? fillCalmText(
+          input.layerNames.length === 1
+            ? calmText.noteOneLayer
+            : calmText.noteManyLayers,
+          {
+            place: input.place,
+            layer: input.layerNames[0] ?? "",
+            when: month ? `, ${month}` : "",
+          },
+        )
+      : input.layerNames.length === 1
+        ? t("hud.particles.one", { layer: input.layerNames[0] ?? "", where })
+        : t("hud.particles.many", { where });
+  return input.trendMap ? `${what} ${t("hud.particles.trendMap")}` : what;
 }
