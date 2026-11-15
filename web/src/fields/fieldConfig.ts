@@ -79,7 +79,7 @@ export const MAX_ATTEMPTS_PER_POINT = 12;
 // overlay (1.006), well below the place's particles (1.045 and up).
 export const FIELD_RADIUS = 1.009;
 // Diameter of one dot's glow, in Earth radii, and its random spread.
-export const DOT_SIZE = 0.014;
+export const DOT_SIZE = 0.012;
 export const DOT_SIZE_SPREAD = 0.35;
 
 // Twinkle: brightness wobble (share of brightness) and its speed range in
@@ -101,8 +101,8 @@ export const LOCAL_FAR_STRENGTH = 0.3;
 // brightness is scaled by this; 1 = as bright as the dots were on their own.
 // A dot on a cell that is not significant or barely changes is dimmed to no
 // less than DOT_TREND_DIM_FLOOR of that, so every dot stays easy to see.
-export const WITH_TREND_MAP_STRENGTH = 1;
-export const DOT_TREND_DIM_FLOOR = 0.6;
+export const WITH_TREND_MAP_STRENGTH = 0.7;
+export const DOT_TREND_DIM_FLOOR = 0.5;
 
 // How fast the shown calendar month follows the timeline, in months per
 // second at playing speed 1 (scaled by the playing speed).
