@@ -143,10 +143,6 @@ export function FormLab() {
         {t("lab.title")} <span>{t("lab.intro")}</span>
       </h1>
       <div className="hud">
-        <p className="badge">
-          {t("lab.renderer", { name: rendererLabel(kind) })}
-        </p>
-        <FpsReadout />
         <a href={carryChoices(import.meta.env.BASE_URL)}>{t("lab.back")}</a>
         <LanguageMenu />
         <ModeSwitch />
@@ -209,6 +205,11 @@ export function FormLab() {
             ? t("lab.control.hideCloseUp")
             : t("lab.control.closeUp")}
         </button>
+        {/* Diagnostics come last, out of the first glance. */}
+        <p className="badge">
+          {t("lab.renderer", { name: rendererLabel(kind) })}
+        </p>
+        <FpsReadout />
       </div>
       {closeUpOpen ? (
         <CloseUpPanel

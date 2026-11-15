@@ -80,7 +80,8 @@
     "open": "Versammeln",
     "aria": "Versammlung: alle Begleiter",
     "foot": "In der Mitte zeigt eine Gestalt des Himmels oder der Luft nach oben, und eine Gestalt der Oberfläche oder des Bodens hält die Handfläche nach unten; höher gelegene Gestalten stehen auf den oberen Stufen. Die Anordnung ist nur anschaulich und zeigt nicht Ursache und Wirkung.",
-    "credit": "Komposition angelehnt an Raffael, Die Schule von Athen (1509–1511), gemeinfrei."
+    "credit": "Komposition angelehnt an Raffael, Die Schule von Athen (1509–1511), gemeinfrei.",
+    "button": "Alle {{count}} zusammen"
   },
   "interactions": {
     "vaporRain": "Wasserdampf über Regen: Ein Tropfen wandert nach unten.",
@@ -90,5 +91,11 @@
     "soilEvaporation": "Boden unter Verdunstung: Perlen wandern nach oben.",
     "glowBelow": "Das Licht eines Temperaturbegleiters fällt auf den darunter.",
     "glowAbove": "Das Licht eines Temperaturbegleiters fällt auf den darüber."
-  }
+  },
+  "headingCount": "Begleiter · {{shown}} von {{total}}",
+  "restLabel": "Noch aus: Wähle einen, um seine Ebene einzuschalten",
+  "turnOnAria": "{{name}}: {{layer}} einschalten",
+  "turnOnNoDataAria": "{{name}}: {{layer}} einschalten (keine Daten für {{place}})",
+  "turnOnTitle": "{{layer}} einschalten",
+  "turnOnNoDataTitle": "{{layer}} einschalten: keine Daten für {{place}}"
 }

@@ -9,6 +9,7 @@ import { variableName } from "../i18n/names";
 import { layerRegistry } from "../layers/registry";
 import { UnitText } from "../snapshot/UnitText";
 import { useTimeline } from "../timeline/TimelineContext";
+import { HudIcon } from "../hud/icons";
 import { fieldVariable } from "./fieldConfig";
 import { seededRandom } from "./fieldGrid";
 import {
@@ -52,7 +53,8 @@ export function FieldToggle({
 
   return (
     <label
-      className="field-toggle"
+      className="field-toggle hud-select"
+      data-on={mode === null ? undefined : ""}
       ref={(element) =>
         setAnchor(
           element
@@ -61,10 +63,11 @@ export function FieldToggle({
         )
       }
     >
-      <span>{fieldText.controlLabel}</span>
+      <HudIcon name="distribution" />
       <select
         value={mode ?? ""}
         aria-label={fieldText.controlLabel}
+        title={fieldText.controlLabel}
         onChange={(event) => setFieldMode(event.target.value || null)}
       >
         <option value="">{fieldText.off}</option>

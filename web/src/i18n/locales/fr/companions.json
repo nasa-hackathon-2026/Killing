@@ -80,7 +80,8 @@
     "open": "Rassembler",
     "aria": "Rassembler : tous les compagnons",
     "foot": "Au milieu, une forme du ciel ou de l’air pointe vers le haut et une forme de la surface ou du sol tient la paume vers le bas ; les formes plus hautes se tiennent sur les marches supérieures. La disposition est illustrative et ne montre aucune relation de cause à effet.",
-    "credit": "Composition inspirée de Raphaël, L’École d’Athènes (1509–1511), domaine public."
+    "credit": "Composition inspirée de Raphaël, L’École d’Athènes (1509–1511), domaine public.",
+    "button": "Les {{count}} ensemble"
   },
   "interactions": {
     "vaporRain": "Vapeur au-dessus de Pluie : une goutte descend.",
@@ -90,5 +91,11 @@
     "soilEvaporation": "Sol sous Évaporation : des perles montent.",
     "glowBelow": "La lumière d’un compagnon de température tombe sur celui du dessous.",
     "glowAbove": "La lumière d’un compagnon de température tombe sur celui du dessus."
-  }
+  },
+  "headingCount": "Compagnons · {{shown}} sur {{total}}",
+  "restLabel": "Pas encore actifs : choisis-en un pour activer sa couche",
+  "turnOnAria": "{{name}} : activer {{layer}}",
+  "turnOnNoDataAria": "{{name}} : activer {{layer}} (pas de données pour {{place}})",
+  "turnOnTitle": "Activer {{layer}}",
+  "turnOnNoDataTitle": "Activer {{layer}} : pas de données pour {{place}}"
 }

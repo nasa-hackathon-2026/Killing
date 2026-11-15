@@ -66,6 +66,7 @@ Checked in `web/src/urlParams.ts`, `web/src/analysis/miningPlus.ts` (`similarSel
 | `trendmap=` | main | Global trend map of one variable | `imerg_precip`, `gldas_tair`, `gldas_evap`, `gldas_soilmoist`, `airs_tsurf`, `airs_h2ovap`, `merra2_t2m` |
 | `strata=1` | main | Open the layer view (with `at=` for the place) | `1` |
 | `closeup=` | main | Open the close-up view of one variable | a variable id |
+| `tour=` | main | Open the guided tour at a chapter (no start card) | `1` what, `2` where, `3` how much, `4` significant (or those words); `0` the start |
 | `companions=` | main | The companion panel | `gallery` (all 12 on one page), `gather` (the composition), `collapsed` |
 | `pair=` | `compare/` | One pair of model and observation, `<model>__<observation>__<place>` | for example `merra2_t2m__station_temp__taichung_station`, `gldas_tair__station_temp__taichung_station`, `merra2_t2m__gistemp_anom__global`; the full list is in `data/analysis/model_vs_obs.json` |
 | `group=` | `compare/` | A group of pairs | `taiwan_station`, `taiwan_gistemp`, `world_city`, `global` |

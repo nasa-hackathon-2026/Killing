@@ -39,6 +39,8 @@ type TimelineDockProps = {
   // place menu's own action (the camera flies there).
   places?: Place[];
   onSelectLocation?: (id: string) => void;
+  // The guided tour's tab: set again whenever `key` changes (each step).
+  tourTab?: { tab: TabId; key: number } | null;
 };
 
 // Everything the timeline adds to the main view: the bar at the bottom and,
@@ -54,6 +56,7 @@ export function TimelineDock({
   trends,
   places = [],
   onSelectLocation,
+  tourTab = null,
 }: TimelineDockProps) {
   const { months, locationId, selectedVariableId, setSelectedVariableId } =
     useTimeline();
@@ -63,6 +66,12 @@ export function TimelineDock({
   const [tab, setTab] = useState<TabId>(() => parseTab(requestedTab()));
   const [wide, setWide] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [tourTabSeen, setTourTabSeen] = useState<number | null>(null);
+  if (tourTab && tourTab.key !== tourTabSeen) {
+    setTourTabSeen(tourTab.key);
+    setTab(tourTab.tab);
+    setCollapsed(false);
+  }
   const anomaliesFile = useAnalysisFile(loadAnomalies);
   const anomalies =
     anomaliesFile.status === "ready" ? anomaliesFile.data.series : null;

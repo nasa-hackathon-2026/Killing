@@ -5,8 +5,10 @@ import {
   bandAltitude,
   byAltitude,
   COMPANIONS,
+  companionCount,
   companionFor,
   companionTitle,
+  othersByAltitude,
   STRATUM_LAYER,
   stratumRank,
 } from "./companionSpec";
@@ -70,5 +72,37 @@ describe("companion table", () => {
     expect(byAltitude(["nope", "omi_no2"]).map((item) => item.id)).toEqual([
       "omi_no2",
     ]);
+  });
+});
+
+describe("companions that are off", () => {
+  const open = ["imerg_precip", "merra2_t2m"];
+
+  it("lists exactly the ones whose layer is off, so all twelve show up", () => {
+    const rest = othersByAltitude(open).map((spec) => spec.id);
+    expect(rest).toHaveLength(COMPANIONS.length - open.length);
+    expect(rest.some((id) => open.includes(id))).toBe(false);
+    expect([...rest, ...open].sort()).toEqual(
+      COMPANIONS.map((spec) => spec.id).sort(),
+    );
+  });
+
+  it("orders them from the highest down, like the open ones", () => {
+    const rest = othersByAltitude(open);
+    const heights = rest.map((spec) => spec.altitudeOrder);
+    expect(heights).toEqual([...heights].sort((a, b) => b - a));
+  });
+
+  it("is empty when every layer is on and full when none is", () => {
+    const all = COMPANIONS.map((spec) => spec.id);
+    expect(othersByAltitude(all)).toEqual([]);
+    expect(othersByAltitude([])).toHaveLength(COMPANIONS.length);
+  });
+
+  it("ignores ids that are not a companion", () => {
+    expect(companionCount(["imerg_precip", "nonsense"])).toEqual({
+      shown: 1,
+      total: COMPANIONS.length,
+    });
   });
 });
