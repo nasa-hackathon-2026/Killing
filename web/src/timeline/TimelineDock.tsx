@@ -25,6 +25,9 @@ type TimelineDockProps = {
   // Ids of the layers that are switched on.
   visibleIds: string[];
   locationName: string;
+  // Aggregation of the place's series in the trend keys ("point" except
+  // for the global mean).
+  aggregation?: string;
   trends: AnalysisState<TrendsFile>;
 };
 
@@ -37,6 +40,7 @@ export function TimelineDock({
   variables,
   visibleIds,
   locationName,
+  aggregation = "point",
   trends,
 }: TimelineDockProps) {
   const { months, locationId, selectedVariableId, setSelectedVariableId } =
@@ -57,7 +61,7 @@ export function TimelineDock({
     null;
   const stripId = stripVariable?.id ?? null;
 
-  const stripKey = stripId ? trendKey(stripId, locationId, "point") : "";
+  const stripKey = stripId ? trendKey(stripId, locationId, aggregation) : "";
   const stripPoints = series.find(
     (item) => item.variableId === stripId,
   )?.points;
@@ -78,7 +82,7 @@ export function TimelineDock({
     );
   };
 
-  const key = selected ? trendKey(selected.id, locationId, "point") : "";
+  const key = selected ? trendKey(selected.id, locationId, aggregation) : "";
   const trend = selected ? trendsData?.series[key] : undefined;
 
   return (

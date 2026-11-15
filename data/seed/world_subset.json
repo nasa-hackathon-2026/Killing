@@ -1,0 +1,107 @@
+{
+  "note_en": "Which core layer variables are exported from data/extended into the published world subset (data/snapshot/world), and how each one is matched to the core snapshot. A row was added only after checking, series by series, that the extended series has the same Giovanni data id, unit and product version as the core Taiwan series of the same variable; world_export re-checks this on every run and stops on a mismatch. Rows with extended_id null have no series outside Taiwan and are listed so the website can say so.",
+  "location_groups": [
+    {
+      "group": "world_city",
+      "aggregation": "point",
+      "note_en": "Giovanni /timeseries at the city's coordinates: one grid cell, the same request as the core Taiwan point series."
+    },
+    {
+      "group": "global",
+      "aggregation": "area_mean_grid",
+      "note_en": "cos(latitude)-weighted mean of the whole global grid, computed locally from the grid cubes (#64); no land mask. Not the same aggregation as a point series."
+    }
+  ],
+  "variables": [
+    {
+      "core_id": "imerg_precip",
+      "extended_id": "imerg_precip",
+      "giovanni_data": "GPM_3IMERGM_07_precipitation",
+      "product": "GPM_3IMERGM.07",
+      "product_version": "07",
+      "unit": "mm/hr"
+    },
+    {
+      "core_id": "gldas_tair",
+      "extended_id": "gldas_tair",
+      "giovanni_data": "GLDAS_NOAH025_M_2_1_Tair_f_inst",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "product_version": "2.1",
+      "unit": "K"
+    },
+    {
+      "core_id": "gldas_soilmoist",
+      "extended_id": "gldas_soilmoist",
+      "giovanni_data": "GLDAS_NOAH025_M_2_1_SoilMoi0_10cm_inst",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "product_version": "2.1",
+      "unit": "kg m-2"
+    },
+    {
+      "core_id": "gldas_evap",
+      "extended_id": "gldas_evap",
+      "giovanni_data": "GLDAS_NOAH025_M_2_1_Evap_tavg",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "product_version": "2.1",
+      "unit": "kg m-2 s-1"
+    },
+    {
+      "core_id": "airs_tsurf",
+      "extended_id": "airs_tsurf",
+      "giovanni_data": "AIRS3STM_7_0_SurfAirTemp_A",
+      "product": "AIRS3STM.7.0",
+      "product_version": "7.0",
+      "unit": "K"
+    },
+    {
+      "core_id": "airs_h2ovap",
+      "extended_id": "airs_h2ovap",
+      "giovanni_data": "AIRS3STM_7_0_TotH2OVap_A",
+      "product": "AIRS3STM.7.0",
+      "product_version": "7.0",
+      "unit": "kg/m2"
+    },
+    {
+      "core_id": "merra2_t2m",
+      "extended_id": "merra2_t2m",
+      "giovanni_data": "M2IMNXASM_5_12_4_T2M",
+      "product": "M2IMNXASM.5.12.4",
+      "product_version": "5.12.4",
+      "unit": "K"
+    },
+    {
+      "core_id": "omi_no2",
+      "extended_id": "omi_no2",
+      "giovanni_data": "OMNO2d_003_ColumnAmountNO2TropCloudScreened",
+      "product": "OMNO2d.003",
+      "product_version": "003",
+      "unit": "molecules/cm^2"
+    },
+    {
+      "core_id": "omi_o3",
+      "extended_id": "omi_o3",
+      "giovanni_data": "OMTO3d_003_ColumnAmountO3",
+      "product": "OMTO3d.003",
+      "product_version": "003",
+      "unit": "DU"
+    },
+    {
+      "core_id": "omi_aerosol",
+      "extended_id": "omi_aerosol",
+      "giovanni_data": "OMAERUVd_003_UVAerosolIndex",
+      "product": "OMAERUVd.003",
+      "product_version": "003",
+      "unit": "1"
+    },
+    {
+      "core_id": "modis_ndvi",
+      "extended_id": null,
+      "reason_en": "The core series come from AppEEARS (MOD13A3, Taiwan regions) and Planetary Computer (MOD13Q1, Taiwan points); nothing was fetched for places outside Taiwan."
+    },
+    {
+      "core_id": "modis_lst",
+      "extended_id": null,
+      "reason_en": "The core series come from AppEEARS and Planetary Computer (MOD11A2) for Taiwan regions and points only; nothing was fetched for places outside Taiwan."
+    }
+  ]
+}

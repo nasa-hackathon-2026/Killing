@@ -34,3 +34,13 @@ AppEEARS 的三個指令都要在存有 `data/raw/` 的那個目錄執行（或�
 需要本機 `.env` 裡的 `APPEEARS_TOKEN`：用 Earthdata Login 帳密呼叫 AppEEARS 的 `POST /login` 取得，約 48 小時到期。AppEEARS 不接受 EDL 的 `EARTHDATA_TOKEN`（2026-11-14 實測回 403）。
 
 LST（8 日合成）從 2001 年起一次送會超過 AppEEARS 的檔案數上限（2026-11-14 實測超出 18.1%），所以切成 2001–2013、2014–今兩個 task，轉序列檔時把兩份統計 CSV 接起來。AppEEARS 會多給「與請求日期重疊、但起始日在範圍外」的合成期（2026-11-15 實測：第一段多出 2000-12-26 那一期，第二段多出第一段已有的 2013-12-27，兩邊數值相同），所以只收起始日落在各 task 請求日期內的合成期，邊界那一期才不會算兩次。
+
+## 世界子集（進 git 的匯出，不是原始資料）
+
+`data/snapshot/world/` 是從 `data/extended/` 原樣複製出來給公開網站用的一小份（10 個核心變數 × 12 個世界城市的點位序列，加全球平均的格點區域平均，共 130 條、約 4.5 MB），不是另一次下載：
+
+```bash
+uv run python -m trend_detective.world_export   # 不連網；在 worktree 加 --extended-dir <主 checkout>/data/extended
+```
+
+對應表在 `data/seed/world_subset.json`，匯出前逐條核對單位、Giovanni 資料 id（或格點產品）與版本和核心快照同一變數相同。MODIS 的兩個變數只抓了台灣，世界地點沒有。趨勢與距平寫到 `data/analysis/world/`，自成一個 FDR 家族。細節見 `AGENTS.md` 的「世界子集與地點選單」。

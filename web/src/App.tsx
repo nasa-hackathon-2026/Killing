@@ -24,8 +24,10 @@ import {
 import { GuideCard } from "./guide/GuideCard";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
 import { initialLayerVisibility, layerRegistry } from "./layers/registry";
-import { mockLocations } from "./mock/snapshot";
+import { mockLocations, taiwanOverview } from "./mock/snapshot";
+import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
 import { EarthCanvas } from "./scene/EarthCanvas";
+import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import {
@@ -35,6 +37,13 @@ import {
   sortedMonths,
   valueAt,
 } from "./snapshot/reading";
+import {
+  hasCoordinates,
+  NO_DATA_AT_PLACE,
+  placeNote,
+  resolvePlaceId,
+  type Place,
+} from "./snapshot/places";
 import {
   usePlaceSnapshot,
   type SnapshotState,
@@ -70,17 +79,30 @@ const initialControls: LayerControl[] = layerRegistry.map((layer) => ({
   opacity: 0.75,
 }));
 const initialTrendMap = trendMapVariable(requestedTrendMap())?.id ?? null;
+// ?at=<place id>. The id is checked against the catalogs once they are
+// read (resolvePlaceId); until then it is kept as asked.
 const askedPlace = requestedPlace();
-const initialLocation =
-  mockLocations.find((item) => item.id === askedPlace)?.id ?? "taichung";
+const initialLocation = resolvePlaceId(askedPlace, []);
+// Camera distances from the Earth's center: the Taiwan overview, and the
+// wider view a place picked from the menu is shown at.
+const TAIWAN_FLY_DISTANCE = 1.85;
+const PLACE_FLY_DISTANCE = 2.3;
+// Before the catalogs are read, the five Taiwan places stand in.
+const fallbackPlaces: Place[] = mockLocations.map((item) => ({
+  ...item,
+  group: "taiwan",
+  aggregation: "point",
+}));
 
 // Loads the snapshot and owns the place; the month, playback and the charted
 // variable live in the timeline context (web/src/timeline/TimelineContext.tsx)
 // so every panel reads the same month.
 export function App() {
-  const [locationId, setLocationId] = useState(initialLocation);
-  const snapshot = usePlaceSnapshot();
+  const [chosenId, setLocationId] = useState(initialLocation);
+  const snapshot = usePlaceSnapshot(chosenId);
   const data = snapshot.status === "ready" ? snapshot.data : null;
+  // The catalogs decide which ids exist; an unknown ?at= falls back.
+  const locationId = resolvePlaceId(chosenId, data?.places ?? []);
   const { months, defaultMonth } = useMemo(() => {
     const groups = (data?.series ?? [])
       .filter((item) => item.locationId === locationId)
@@ -116,7 +138,8 @@ function AppView({
 }) {
   const timeline = useTimeline();
   const [forceWebGL, setForceWebGL] = useState(false);
-  const [flying, setFlying] = useState(false);
+  const [askedFlight, setFlyTarget] = useState<FlyTarget | null>(null);
+  const [startDone, setStartDone] = useState(false);
   const [kind, setKind] = useState<RendererKind>("webgl");
   // Layer view (web/src/strata): one block of state, one block of JSX below.
   const strata = useStrataMode(requestedStrata());
@@ -142,9 +165,45 @@ function AppView({
     strata.enter();
   };
   const data = snapshot.status === "ready" ? snapshot.data : null;
-  const location =
-    data?.places.find((item) => item.id === locationId) ??
-    mockLocations.find((item) => item.id === locationId);
+  const places = data?.places ?? fallbackPlaces;
+  const place = places.find((item) => item.id === locationId);
+  // The place as a point on the globe; undefined for the global mean, which
+  // has no marker, no camera flight and no layer view.
+  const location = hasCoordinates(place) ? place : undefined;
+  const placeName = place?.nameEn ?? locationId;
+  const aggregation = place?.aggregation ?? "point";
+  // Series of a world place are read when it is picked.
+  const placeLoading = !!data && !data.loaded.includes(locationId);
+  const selectPlace = (id: string, fly: boolean) => {
+    setLocationId(id);
+    const next = places.find((item) => item.id === id);
+    if (fly && hasCoordinates(next) && strata.phase === "off") {
+      setFlyTarget({
+        lat: next.lat,
+        lon: next.lon,
+        distance: PLACE_FLY_DISTANCE,
+      });
+    }
+  };
+  // A link that opens at a place outside Taiwan starts with the camera
+  // over that place (the layer view flies there by itself).
+  const startPlace = data?.places.find((item) => item.id === askedPlace);
+  const startFlight = useMemo<FlyTarget | null>(
+    () =>
+      hasCoordinates(startPlace) &&
+      startPlace.group !== "taiwan" &&
+      !requestedStrata()
+        ? {
+            lat: startPlace.lat,
+            lon: startPlace.lon,
+            distance: PLACE_FLY_DISTANCE,
+            instant: true,
+          }
+        : null,
+    [startPlace],
+  );
+  const flyTarget = askedFlight ?? (startDone ? null : startFlight);
+  const flying = flyTarget !== null;
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
   const months = timeline.months;
@@ -155,14 +214,14 @@ function AppView({
   const kelvins: Record<string, number | null> = {};
   for (const layer of layerRegistry) {
     const series = here.find((item) => item.variableId === layer.id);
-    if (snapshot.status === "loading") {
+    if (snapshot.status === "loading" || placeLoading) {
       readings[layer.id] = "Loading…";
       intensities[layer.id] = 0;
     } else if (!series || !activeMonth) {
       readings[layer.id] =
         snapshot.status === "error"
           ? "Could not read the snapshot"
-          : "Not in this snapshot";
+          : NO_DATA_AT_PLACE;
       intensities[layer.id] = 0;
     } else {
       readings[layer.id] = formatMeasurement(
@@ -186,7 +245,7 @@ function AppView({
     signals = {};
     for (const layer of layerRegistry) {
       const entry =
-        trendsFile.data.series[trendKey(layer.id, locationId, "point")];
+        trendsFile.data.series[trendKey(layer.id, locationId, aggregation)];
       trends[layer.id] = summarizeTrend(
         entry,
         trendsFile.data.parameters.alpha,
@@ -197,22 +256,35 @@ function AppView({
     }
   }
 
+  const pairsFile = useAnalysisFile(loadModelVsObs);
+  const compareLinks =
+    pairsFile.status === "ready"
+      ? compareLinksFor(
+          pairsFile.data.pairs,
+          locationId,
+          `${import.meta.env.BASE_URL}compare/`,
+        )
+      : undefined;
+
   return (
     <div className="app">
       <EarthCanvas
         forceWebGL={forceWebGL}
-        flying={flying}
+        flyTarget={flyTarget}
         layers={controls}
         intensities={intensities}
         available={available}
         trendDirections={trendDirections}
         trendMap={trendMap.status === "ready" ? trendMap.map : null}
         trendMapOpacity={trendMapOpacity}
-        places={data?.places ?? []}
+        places={places.filter(hasCoordinates)}
         locationId={locationId}
         onKind={setKind}
-        onFlyDone={() => setFlying(false)}
-        onSelectLocation={setLocationId}
+        onFlyDone={() => {
+          setStartDone(true);
+          setFlyTarget(null);
+        }}
+        onSelectLocation={(id) => selectPlace(id, false)}
         paused={strata.shown}
         controlsLocked={strata.phase !== "off"}
       >
@@ -266,7 +338,12 @@ function AppView({
         <button
           type="button"
           onClick={strata.phase === "off" ? enterStrata : strata.exit}
-          disabled={strata.phase === "closing" || strata.phase === "return"}
+          disabled={
+            strata.phase === "closing" ||
+            strata.phase === "return" ||
+            (strata.phase === "off" && !location)
+          }
+          title={location ? undefined : "The layer view needs a single place"}
           aria-pressed={strata.phase !== "off"}
         >
           {strata.phase === "off" ? "Layer view" : "Back to the globe"}
@@ -292,7 +369,9 @@ function AppView({
         <button
           type="button"
           className="hud-fly"
-          onClick={() => setFlying(true)}
+          onClick={() =>
+            setFlyTarget({ ...taiwanOverview, distance: TAIWAN_FLY_DISTANCE })
+          }
           disabled={flying || strata.phase !== "off"}
         >
           Fly to Taiwan
@@ -326,7 +405,14 @@ function AppView({
         readings={readings}
         trends={trends}
         signals={signals}
-        locationName={location?.nameEn ?? locationId}
+        locationName={placeName}
+        // The layer view needs a point, so the global mean is not offered
+        // while it is open.
+        places={strata.phase === "off" ? places : places.filter(hasCoordinates)}
+        locationId={locationId}
+        onLocation={(id) => selectPlace(id, true)}
+        placeNote={placeNote(place)}
+        compareLinks={compareLinks}
         months={months}
         month={activeMonth}
         onMonth={timeline.setMonth}
@@ -360,7 +446,8 @@ function AppView({
         visibleIds={controls
           .filter((layer) => layer.visible)
           .map((layer) => layer.id)}
-        locationName={location?.nameEn ?? locationId}
+        locationName={placeName}
+        aggregation={aggregation}
         trends={trendsFile}
       />
       <CompanionDock
@@ -370,7 +457,8 @@ function AppView({
           .map((layer) => layer.id)}
         series={here}
         locationId={locationId}
-        locationName={location?.nameEn ?? locationId}
+        locationName={placeName}
+        aggregation={aggregation}
         trends={trendsFile.status === "ready" ? trendsFile.data : null}
       />
       <TrendMapLegend
@@ -381,7 +469,7 @@ function AppView({
       {closeUpLayer ? (
         <CloseUpPanel
           variableId={closeUpLayer.id}
-          variableName={`${closeUpLayer.nameEn} at ${location?.nameEn ?? locationId}, ${activeMonth?.slice(0, 7) ?? ""}`}
+          variableName={`${closeUpLayer.nameEn} at ${placeName}, ${activeMonth?.slice(0, 7) ?? ""}`}
           value={intensities[closeUpLayer.id] ?? 0}
           reading={readings[closeUpLayer.id] ?? ""}
           kelvin={kelvins[closeUpLayer.id] ?? null}

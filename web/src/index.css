@@ -462,6 +462,30 @@ body,
   font-size: 12px;
 }
 
+.layers-compare {
+  text-decoration: none;
+}
+
+/* Place menu at the top of the Layers panel. */
+.layers-place {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 8px;
+  color: #b7c6da;
+}
+
+.layers-place select {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  color: #e8eef7;
+  background: rgba(8, 14, 28, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  font: inherit;
+}
+
 .closeup-canvas {
   position: relative;
   flex: none;
@@ -807,7 +831,12 @@ body,
 
 .timeline-layer-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+.timeline-layer-actions .closeup-open {
+  white-space: nowrap;
 }
 
 .timeline-chart {

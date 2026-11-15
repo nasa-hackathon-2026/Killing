@@ -1,8 +1,10 @@
 import { useState } from "react";
+import type { CompareLink } from "../analysis/modelVsObs";
 import { TrendCaveatNote } from "../analysis/TrendCaveatNote";
 import { trendCaveat } from "../analysis/trendCaveats";
 import type { TrendSummary } from "../analysis/trends";
 import { trendMark, type TrendSignal } from "../forms/encoding";
+import { groupedPlaces, type Place } from "../snapshot/places";
 import type { LayerDefinition } from "./registry";
 
 export type LayerControl = {
@@ -18,6 +20,15 @@ type LayerPanelProps = {
   trends?: Record<string, TrendSummary | null>;
   signals?: Record<string, TrendSignal>;
   locationName: string;
+  // The place menu: every place of the catalogs, the one shown now, and the
+  // handler for picking another. Without `places` the name is plain text.
+  places?: Place[];
+  locationId?: string;
+  onLocation?: (id: string) => void;
+  // A sentence about how this place's numbers are made (places.ts).
+  placeNote?: string | null;
+  // Per layer: a link to the model vs observation page for this place.
+  compareLinks?: Record<string, CompareLink>;
   months: string[];
   month: string | null;
   onMonth: (month: string) => void;
@@ -46,6 +57,11 @@ export function LayerPanel({
   trends,
   signals,
   locationName,
+  places,
+  locationId,
+  onLocation,
+  placeNote,
+  compareLinks,
   months,
   month,
   onMonth,
@@ -85,7 +101,29 @@ export function LayerPanel({
   return (
     <aside className="layers" aria-label="Layers">
       {head}
-      <p className="layers-note">Values at {locationName}</p>
+      {places && places.length > 0 && onLocation ? (
+        <label className="layers-place">
+          <span>Values at</span>
+          <select
+            value={locationId}
+            aria-label="Place"
+            onChange={(event) => onLocation(event.target.value)}
+          >
+            {groupedPlaces(places).map((group) => (
+              <optgroup key={group.id} label={group.label}>
+                {group.places.map((place) => (
+                  <option key={place.id} value={place.id}>
+                    {place.nameEn}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <p className="layers-note">Values at {locationName}</p>
+      )}
+      {placeNote ? <p className="layers-note">{placeNote}</p> : null}
       {monthIndex >= 0 ? (
         <label className="month">
           Month
@@ -184,6 +222,14 @@ export function LayerPanel({
                   >
                     Chart
                   </button>
+                ) : null}
+                {compareLinks?.[layer.id] ? (
+                  <a
+                    className="closeup-open layers-compare"
+                    href={compareLinks[layer.id]?.href}
+                  >
+                    {compareLinks[layer.id]?.label}
+                  </a>
                 ) : null}
               </div>
               <input

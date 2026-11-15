@@ -173,7 +173,8 @@ export function TimeSeriesPanel({
       </header>
       {collapsed ? null : !series ? (
         <p className="timeline-chart-note">
-          This variable has no series at {locationName} in the snapshot.
+          No data at this place: this variable has no series at {locationName}{" "}
+          in the snapshot.
         </p>
       ) : (
         <>
@@ -411,8 +412,10 @@ export function TimeSeriesPanel({
             <p className="timeline-chart-note">
               Method: least-squares slope of monthly anomalies; the t-test and
               CI use an effective sample size from the lag-1 autocorrelation of
-              the residuals; FDR is Benjamini-Hochberg across all analysed
-              series. The Sen slope CI has no autocorrelation correction.
+              the residuals; FDR is Benjamini-Hochberg across the analysed
+              series of one family (Taiwan&apos;s series are one family, the
+              world cities and the global mean another). The Sen slope CI has no
+              autocorrelation correction.
             </p>
           ) : null}
           {caveat ? <TrendCaveatNote caveat={caveat} /> : null}

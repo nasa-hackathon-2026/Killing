@@ -1,0 +1,84 @@
+{
+  "command": "uv run python -m trend_detective.world_export",
+  "generated_at": "2026-11-15T00:20:24Z",
+  "input": {
+    "snapshot": "data/snapshot/world",
+    "snapshot_generated_at": "2026-11-15T00:20:04Z"
+  },
+  "parameters": {
+    "min_coverage": 0.25,
+    "min_valid_months": 120,
+    "max_missing_fraction": 0.2,
+    "alpha": 0.05,
+    "hamed_rao_lags": null
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "pymannkendall": "1.4.3"
+  },
+  "outputs": [
+    "trends.json",
+    "anomalies.json"
+  ],
+  "summary": {
+    "n_series": 130,
+    "n_analyzed": 128,
+    "n_insufficient": 2,
+    "insufficient_by_reason": {
+      "too_many_missing": 2
+    },
+    "significant_by_test": {
+      "ols": {
+        "n_tested": 128,
+        "significant": 77,
+        "significant_fdr": 68
+      },
+      "mk_original": {
+        "n_tested": 128,
+        "significant": 91,
+        "significant_fdr": 90
+      },
+      "mk_hamed_rao": {
+        "n_tested": 128,
+        "significant": 78,
+        "significant_fdr": 74
+      },
+      "mk_seasonal": {
+        "n_tested": 128,
+        "significant": 88,
+        "significant_fdr": 88
+      }
+    },
+    "n_ols_uncorrected_significant": 93
+  },
+  "cleaning": {
+    "seed": "data/seed/cleaning.json",
+    "rules": {
+      "min_coverage": 0.25,
+      "outlier_z": 5.0,
+      "max_linear_gap_months": 2,
+      "max_fill_fraction": 0.2
+    },
+    "unusable_flags": [
+      "missing",
+      "partial_month",
+      "low_coverage"
+    ],
+    "marked_only_flags": [
+      "outlier_suspect",
+      "known_discontinuity"
+    ],
+    "months_by_flag": {
+      "missing": 99,
+      "partial_month": 25,
+      "low_coverage": 237,
+      "outlier_suspect": 349,
+      "known_discontinuity": 195,
+      "ok": 36820
+    },
+    "n_series_auxiliary": 0,
+    "n_series_with_known_issues": 39,
+    "note": "Months flagged missing, partial_month or low_coverage are not used; nothing is gap-filled for the trend tests. outlier_suspect and known_discontinuity months are used and only marked. A month can carry more than one flag. Flags and known issues do not change any value or test."
+  }
+}

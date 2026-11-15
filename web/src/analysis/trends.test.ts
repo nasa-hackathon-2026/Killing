@@ -147,20 +147,42 @@ describe("summarizeTrend", () => {
 });
 
 describe("loadTrends", () => {
-  it("reads trends.json from the analysis folder", async () => {
-    const file: TrendsFile = {
-      input: { snapshot_generated_at: "2026-11-14T13:02:25Z" },
-      parameters: { alpha: 0.05, min_coverage: 0.25 },
-      series: {},
-    };
+  const core: TrendsFile = {
+    input: { snapshot_generated_at: "2026-11-14T13:02:25Z" },
+    parameters: { alpha: 0.05, min_coverage: 0.25 },
+    series: { omi_no2__taichung__point: analyzed("K", test(true, true)) },
+  };
+  const world: TrendsFile = {
+    ...core,
+    series: { omi_no2__tokyo__point: analyzed("K", test(true, false)) },
+  };
+
+  it("reads the core trends and adds the world subset's series", async () => {
     const urls: string[] = [];
     const loaded = await loadTrends(<T>(url: string) => {
       urls.push(url);
-      return Promise.resolve(file as T);
+      return Promise.resolve((url.includes("world/") ? world : core) as T);
     });
 
-    expect(loaded).toBe(file);
-    expect(urls).toHaveLength(1);
+    expect(urls).toHaveLength(2);
     expect(urls[0]).toMatch(/data\/analysis\/trends\.json$/);
+    expect(urls[1]).toMatch(/data\/analysis\/world\/trends\.json$/);
+    expect(Object.keys(loaded.series).sort()).toEqual([
+      "omi_no2__taichung__point",
+      "omi_no2__tokyo__point",
+    ]);
+    expect(loaded.series.omi_no2__tokyo__point).toBe(
+      world.series.omi_no2__tokyo__point,
+    );
+    expect(loaded.parameters).toBe(core.parameters);
+  });
+
+  it("returns the core trends alone when there is no world subset", async () => {
+    const loaded = await loadTrends(<T>(url: string) =>
+      url.includes("world/")
+        ? Promise.reject(new Error("404"))
+        : Promise.resolve(core as T),
+    );
+    expect(loaded).toBe(core);
   });
 });

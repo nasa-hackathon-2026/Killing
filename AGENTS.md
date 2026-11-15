@@ -169,6 +169,23 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
   - `mk_hamed_rao` 偏寬鬆（見上一節）；看顯著性以 `ols` 為準。
   - GLDAS 只有陸地（60°S 以北）有值；IMERG 有 2,623 格因數值不變而不分析，都在 72°S 以南，逐年平均有值的都是 0（實測；為什麼是 0 沒有求證）。
 
+## 世界子集與地點選單（#107）
+公開網站在台灣 5 個點位之外，還能選 12 個世界城市與全球平均。資料是從 `data/extended/` 匯出的一小份，進 git。
+
+- **重產**：`uv run python -m trend_detective.world_export`（約 3 秒，不連網）。來源只有磁碟上的 `data/extended/series/`，那份不進 git，所以要在有它的 checkout 跑，或在 worktree 用 `--extended-dir <主 checkout>/data/extended`。寫出 `data/snapshot/world/`（`catalog.json` 加 `series/*.json`，格式與核心快照相同；130 條、約 4.5 MB）與 `data/analysis/world/`（`trends.json`、`anomalies.json`、`trends.run.json`）。內容沒變就不動任何檔，重跑的 `git diff` 是空的。`--table` 印出每條序列的起訖月與有值月數；`--no-trends` 只匯出序列。
+- **匯出什麼由資料檔決定**：`data/seed/world_subset.json`。`variables` 一列一個圖層變數：`core_id`、`extended_id`（擴充資料裡的 id；目前 10 個都與核心相同，因為擴充的階段 b 用的就是核心 seed）、`giovanni_data`、`product`、`product_version`、`unit`；`extended_id` 是 null 的（`modis_ndvi`、`modis_lst`）表示台灣以外沒有序列，附 `reason_en`。`location_groups` 決定哪些地點群組、讀哪種聚合方式（`world_city` 讀 `point`，`global` 讀格點算的 `area_mean_grid`）。
+- **同源核對是程式做的，不是靠 id 相同**：每次匯出先檢查核心快照同一變數的點位序列符合對應表（單位、Giovanni 資料 id、版本），再逐條檢查擴充序列（點位比 `request.data`，格點區域平均比 `request.product`）；任何一條對不上就報錯、不寫任何檔。新增變數要先加一列對應並通過這個檢查。
+- **為什麼放在 `data/snapshot/world/` 而不是併入核心目錄檔**：`snapshot.py` 的目錄檔由 `data/snapshot/series/*.json` 組成（不遞迴），放子目錄就不會被當成核心來源重抓或寫進核心 catalog；`data/analysis/trends.json`、探勘、SQLite／PostgreSQL 匯出都只讀核心 catalog，數字不會因此變動；`web/snapshot-static.ts` 本來就整個複製 `data/snapshot/` 與 `data/analysis/`，不用改建置。
+- **序列內容原樣複製**：`points`（值、`n_samples`、`coverage`）與 `retrieved_at` 不動、不四捨五入；`request` 多 `exported_from: "extended"` 與 `extended_variable_id`。有測試逐值比對（`pytest -m extended_data`，用 `EXTENDED_DIR=<主 checkout>/data/extended` 指定；沒有那份資料時跳過）。
+- **FDR 家族**：世界子集的趨勢用同一套 `trends.py`、同一份 `data/seed/cleaning.json` 與預設參數算，**自成一個 BH-FDR 家族**（這 130 條，各檢定分開），寫在 `trends.json` 的 `fdr_family`。它和核心的 133 條分開校正，也和 `data/extended/analysis/trends.json` 不同（那邊是同一種聚合方式的幾千條一起校正），所以同一條序列的 `p_fdr` 三處不同、`p` 與斜率相同（例：`merra2_t2m__london__point` 的 p 都是 0.00025，`p_fdr` 子集 0.00089、擴充 0.00121）。`known_issues` 與 `auxiliary` 照樣帶上，GLDAS 的警語在世界地點同樣顯示。2026-11-15 實跑：128 條有分析、2 條資料不足（莫斯科的 `omi_no2`、`omi_aerosol`，低覆蓋月份 25%），ols p < 0.05 有 77 條、FDR 校正後 68 條。
+- **前端的地點清單不寫在程式裡**：`web/src/snapshot/loadSnapshot.ts` 讀兩份目錄檔，台灣 5 點來自核心（`placeIds`），世界地點來自 `data/snapshot/world/catalog.json` 的 `locations`（`group` 是 `world_city` 或 `global`、且有序列的才列）。世界子集不存在時網站只顯示台灣。群組的順序與標題、`?at=` 的解析、無資料的文字在 `web/src/snapshot/places.ts`（`PLACE_GROUPS`、`resolvePlaceId`、`NO_DATA_AT_PLACE`、`placeNote`）。選單本身在 `web/src/layers/LayerPanel.tsx` 最上面（「Values at」）。
+- **世界地點的序列是選到才讀**（`loadPlaceSeries`、`usePlaceSnapshot(locationId)`；一個地點 10 個檔）；趨勢與距平在啟動時各多讀一個檔，`loadTrends`／`loadAnomalies` 把世界子集的 `series` 併進核心的（鍵含地點 id，不會撞）。
+- **聚合方式跟著地點**：`Place.aggregation`（全球平均是 `area_mean_grid`），`App.tsx` 傳給 `TimelineDock`、`CompanionDock` 組趨勢的鍵；新增讀趨勢的元件時不要寫死 `"point"`。
+- **鏡頭**：`web/src/scene/FlyCamera.tsx` 收一個 `FlyTarget`（緯度、經度、距離），沿大圓弧轉過去（重用 `strataCamera.ts` 的 `approachPosition`，不會穿過地球）；「減少動態效果」或 `instant` 時直接到位。從選單選地點會飛，點地球上的標記不飛；網址帶世界城市的 `?at=` 時開場直接對準。全球平均沒有座標：沒有標記、不飛、不能進分層視圖（Layer view 鈕停用，分層視圖開著時選單不列 Global）。
+- **Compare 連結**：`analysis/modelVsObs.ts` 的 `compareLinksFor` 依 `model_vs_obs.json` 找出該地點（或台灣的 `<地點>_station`）有配對的模式變數，圖層面板在該變數旁顯示 "Compare with station"（觀測是 GISTEMP 格點時寫 "Compare with observations"）。
+- **不畫國界、不標示國家歸屬**；城市清單照 `data/seed/locations.world.json`，顯示名稱用它的 `name_en`。
+- 已知限制：世界地點沒有 MODIS 兩個圖層（顯示 "No data at this place"）；城市的值是該產品一個格點的值，不是都市範圍；全球平均含海面、沒有陸地遮罩，起始月有的比點位早（格點立方體從產品第一個月開始）；手機寬度時地點選單在收合的 Layers 面板裡。
+
 ## 前端形態與近看檢視（#60）
 地球上每個圖層「遠看」是一種形態（粒子），從圖層面板的 Close-up 按鈕「近看」是分子結構與過程示意。展示實驗場 `web/lab/`（`/lab/`）可以逐一檢視，網址參數 `?variable=<變數 id>&value=0.6&trend=1&closeup=1` 可指定起始畫面；主畫面支援 `?layers=<id,id>&closeup=<變數 id>`。
 
@@ -185,7 +202,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 ## 前端的首次使用引導與面板停靠（#105）
 主畫面的開始卡片、範例與 HUD。程式在 `web/src/guide/`（CSS 類別一律 `guide-` 開頭），`App.tsx` 只掛一個 `<GuideCard />` 與一段 HUD。
 
-- **範例是資料**：`web/src/guide/examples.ts` 的 `GUIDE_EXAMPLES`，一筆一個範例（`question`、`opens`，加上 `view`：圖層、地點、圖表變數、是否進分層視圖、趨勢地圖；或 `page`＋`params`：子頁）。按鈕就是連結，網址由 `exampleHref` 用既有的網址參數組出來，所以每個範例都能用網址直接開。**標題一律是問句、不預告答案**（有測試檢查結尾是問號、引用的圖層與地點存在）。新增範例只加一筆。
+- **範例是資料**：`web/src/guide/examples.ts` 的 `GUIDE_EXAMPLES`，一筆一個範例（`question`、`opens`，加上 `view`：圖層、地點、圖表變數、是否進分層視圖、趨勢地圖；或 `page`＋`params`：子頁）。按鈕就是連結，網址由 `exampleHref` 用既有的網址參數組出來，所以每個範例都能用網址直接開。**標題一律是問句、不預告答案**（有測試檢查結尾是問號、引用的圖層與地點存在；地點可以是世界子集裡的，測試另外檢查至少有一個世界城市的範例、且它的圖表變數在那裡有序列）。新增範例只加一筆。
 - **首次造訪的判斷是純函式**（`firstVisit.ts`，有測試）：`hasViewParams` 看網址有沒有 `VIEW_PARAMS` 裡的參數；都沒有時 `startingLayers` 回傳 `DEFAULT_LAYERS`（降水與 MERRA-2 氣溫；不放有已知跳變的 `gldas_tair`）並顯示卡片，網址帶了任何一個就照網址、不顯示卡片。關閉卡片記在 `localStorage` 的 `estd.guide.dismissed`（讀寫都包 try/catch）；HUD 的「? Guide」可以重新打開。新增網址參數時要加進 `VIEW_PARAMS`。
 - **卡片文字**在 `GuideCard.tsx`：一句話說明與三個步驟只描述工具做什麼，「How to read this」只講怎麼讀圖（粒子、▲▼◇、Not significant、資料性質、警語），措辭沿用圖層面板；**不寫科學結論**。開圖表、近看、趨勢地圖或進分層視圖時卡片會自動收起（它們用同一個左側位置），不算關閉。
 - **HUD 只有一列、不換行**（`index.css` 的 `.hud`）：? Guide、Layer view、Global trend map、Fly to Taiwan、More。次要連結（Model vs observation、Data mining、Form lab）與除錯資訊（Renderer、FPS、Force WebGL）在 More 的 `<details>` 裡。所有面板從 `top: 64px` 開始，所以 HUD 不能長到第二列；要加按鈕就放進 More，或在窄螢幕的 media query 裡把別的收掉。
@@ -212,7 +229,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **12-month running mean** 是置中的 12 個月平均（前 6、後 5），視窗內 12 個月都有值才畫，缺月不會被連過去。
 - **距平條**（時間軸滑桿上方）：跟著時間序列圖的變數，沒開圖時用第一個開著的圖層；高度除以絕對距平的第 98 百分位數（`STRIP_QUANTILE`）。已知跳變月份來自該序列在 `trends.json` 的 `known_issues` → 最上層 `known_issues[*].break_months`（源頭是 `data/seed/cleaning.json`），圖上與距平條上都畫虛線。`web/src/analysis/trendCaveats.ts` 有警語的變數照樣顯示 `TrendCaveatNote`。
 - **版面**：CSS 類別一律 `timeline-` 前綴，集中在 `index.css` 最後一段；時間軸列的位置與高度是 `.app` 上的 `--timeline-bottom`、`--timeline-height`，其他面板要避開它就用這兩個變數。寬螢幕時圖在左側面板；1180px 以下時間軸列與圖改靠左、讓出右側圖層面板；700px 以下滿寬。和其他面板怎麼並排、分層視圖開著時圖停在哪裡，見上面「首次使用引導與面板停靠」。
-- 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有 5 個台灣點位的 `point` 序列；觸控裝置上沒有 hover，點一下就是跳到該月。
+- 已知限制：一次只畫一個變數（沒有第二變數疊圖）；只有地點選單裡的地點（台灣 5 點、世界城市、全球平均，見「世界子集與地點選單」）；觸控裝置上沒有 hover，點一下就是跳到該月。
 ## 資料夥伴（#100）
 主畫面 Layers 面板左邊的「Companions」面板：每個開啟的圖層一隻原創角色，外形由該地點、該月份的資料決定，點一下用一句話說出數字。程式都在 `web/src/companions/`，CSS 在同目錄的 `companions.css`（類別一律 `companion-` 開頭），`App.tsx` 只掛一個 `<CompanionDock />`。網址參數 `?companions=gallery`（12 隻總覽）、`gather`（直接開 Gather）、`collapsed`（收合）。
 

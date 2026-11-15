@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   breakMonths,
+  compareLinksFor,
   chartSeries,
   formatMonth,
   formatSigned,
@@ -161,5 +162,68 @@ describe("groupsOf", () => {
       pairs: [pair(), pair({ group: "global" }), pair()],
     } as unknown as ModelVsObsFile;
     expect(groupsOf(file)).toEqual(["taiwan_station", "global"]);
+  });
+});
+
+describe("compareLinksFor", () => {
+  const pair = (
+    pair_id: string,
+    location_id: string,
+    model: string,
+    obs: string,
+    status = "analyzed",
+  ) =>
+    ({
+      pair_id,
+      group: "world_city",
+      location_id,
+      status,
+      model: { variable_id: model },
+      obs: { variable_id: obs },
+    }) as unknown as Parameters<typeof compareLinksFor>[0][number];
+  const pairs = [
+    pair(
+      "merra2_t2m__gistemp_anom__tokyo",
+      "tokyo",
+      "merra2_t2m",
+      "gistemp_anom",
+    ),
+    pair("merra2_t2m__ghcnm_tavg__tokyo", "tokyo", "merra2_t2m", "ghcnm_tavg"),
+    pair(
+      "gldas_tair__gistemp_anom__lagos",
+      "lagos",
+      "gldas_tair",
+      "gistemp_anom",
+    ),
+    pair(
+      "x__station_temp__taipei_station",
+      "taipei_station",
+      "merra2_t2m",
+      "station_temp",
+    ),
+    pair("skipped", "cairo", "merra2_t2m", "ghcnm_tavg", "insufficient"),
+  ];
+
+  it("links each model variable to its pair at the place, station first", () => {
+    expect(compareLinksFor(pairs, "tokyo", "/compare/")).toEqual({
+      merra2_t2m: {
+        href: "/compare/?group=world_city&pair=merra2_t2m__ghcnm_tavg__tokyo",
+        label: "Compare with station",
+      },
+    });
+  });
+
+  it("names a gridded observation as observations, not a station", () => {
+    expect(compareLinksFor(pairs, "lagos", "/compare/").gldas_tair?.label).toBe(
+      "Compare with observations",
+    );
+  });
+
+  it("finds the station pair of a Taiwan place and skips unanalyzed pairs", () => {
+    expect(Object.keys(compareLinksFor(pairs, "taipei", "/c/"))).toEqual([
+      "merra2_t2m",
+    ]);
+    expect(compareLinksFor(pairs, "cairo", "/c/")).toEqual({});
+    expect(compareLinksFor(pairs, "global", "/c/")).toEqual({});
   });
 });

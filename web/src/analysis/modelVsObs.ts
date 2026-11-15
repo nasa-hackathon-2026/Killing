@@ -259,3 +259,45 @@ export function linePath(
   });
   return path;
 }
+
+export type CompareLink = { href: string; label: string };
+
+// Observation variables that are station records, in order of preference;
+// any other observation (a gridded analysis) is linked as "observations".
+const STATION_OBS = ["station_temp", "ghcnm_tavg", "ghcnm_tavg_unadj"];
+
+// For the main view: per model variable, the link to the compare page's
+// pair at this place (`<place>` or its station `<place>_station`). A station
+// pair is preferred; only analyzed pairs are linked.
+export function compareLinksFor(
+  pairs: Pair[],
+  locationId: string,
+  comparePage: string,
+): Record<string, CompareLink> {
+  const here = pairs.filter(
+    (pair) =>
+      pair.status === "analyzed" &&
+      (pair.location_id === locationId ||
+        pair.location_id === `${locationId}_station`),
+  );
+  const rank = (pair: Pair) => {
+    const index = STATION_OBS.indexOf(pair.obs.variable_id);
+    return index < 0 ? STATION_OBS.length : index;
+  };
+  const links: Record<string, CompareLink> = {};
+  for (const pair of [...here].sort((a, b) => rank(a) - rank(b))) {
+    if (links[pair.model.variable_id]) continue;
+    const params = new URLSearchParams({
+      group: pair.group,
+      pair: pair.pair_id,
+    });
+    links[pair.model.variable_id] = {
+      href: `${comparePage}?${params.toString()}`,
+      label:
+        rank(pair) < STATION_OBS.length
+          ? "Compare with station"
+          : "Compare with observations",
+    };
+  }
+  return links;
+}

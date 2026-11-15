@@ -42,6 +42,16 @@ export const GUIDE_EXAMPLES: GuideExample[] = [
     },
   },
   {
+    id: "no2-los-angeles",
+    question: "Has tropospheric NO₂ over Los Angeles changed since 2005?",
+    opens: "Tropospheric NO₂ layer and its time series chart at a world city",
+    view: {
+      layers: ["omi_no2"],
+      place: "los_angeles",
+      chart: "omi_no2",
+    },
+  },
+  {
     id: "layers-of-the-air",
     question:
       "Which layer of the atmosphere or ground does each variable belong to?",

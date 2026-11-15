@@ -1,0 +1,1529 @@
+{
+  "variables": [
+    {
+      "id": "imerg_precip",
+      "name_zh": "降水",
+      "name_en": "Precipitation (GPM IMERG Final)",
+      "definition_zh": "從天空落到地面的雨和雪；這裡是整個月平均下來每小時下了幾毫米。",
+      "category": "水（液態）",
+      "source": "giovanni",
+      "source_variable_id": "GPM_3IMERGM_07_precipitation",
+      "product_version": "07",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "note_zh": "IMERG Final 只到 2025-09；之後的 Late 版算法不同，不可接續（#4 R5）。",
+      "doi": "10.5067/GPM/IMERG/3B-MONTH/07",
+      "harmony_collection": "C2723754851-GES_DISC",
+      "product": "GPM_3IMERGM.07",
+      "source_long_name": "Merged satellite-gauge precipitation estimate - Final Run (recommended for general use)",
+      "unit": "mm/hr",
+      "valid_from": "1998-01-01",
+      "valid_to": "2025-09-01"
+    },
+    {
+      "id": "gldas_tair",
+      "name_zh": "近地面氣溫",
+      "name_en": "Near-surface air temperature (GLDAS Noah)",
+      "definition_zh": "靠近地面的空氣有多熱，由陸地模式結合觀測算出；單位是絕對溫度 K（減 273.15 就是攝氏）。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_Tair_f_inst",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Near surface air temperature",
+      "unit": "K",
+      "valid_from": "2000-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "gldas_soilmoist",
+      "name_zh": "表層土壤水",
+      "name_en": "Soil moisture 0–10 cm (GLDAS Noah)",
+      "definition_zh": "地表往下 10 公分的土壤裡含有多少水，每平方公尺幾公斤。",
+      "category": "水（地下）",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_SoilMoi0_10cm_inst",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Soil moisture content (0 - 10 cm underground)",
+      "unit": "kg m-2",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "gldas_evap",
+      "name_zh": "蒸散",
+      "name_en": "Evapotranspiration (GLDAS Noah)",
+      "definition_zh": "水從土壤、水面蒸發，加上植物葉片散出水氣，合起來回到空氣中的速度。",
+      "category": "水（上升）",
+      "source": "giovanni",
+      "source_variable_id": "GLDAS_NOAH025_M_2_1_Evap_tavg",
+      "product_version": "2.1",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "harmony_collection": "C1342986036-GES_DISC",
+      "doi": "10.5067/SXAVCZFAQLNO",
+      "product": "GLDAS_NOAH025_M.2.1",
+      "source_long_name": "Evapotranspiration",
+      "unit": "kg m-2 s-1",
+      "valid_from": "2000-01-01",
+      "valid_to": "2026-07-01"
+    },
+    {
+      "id": "airs_tsurf",
+      "name_zh": "地表氣溫（AIRS）",
+      "name_en": "Surface air temperature (AIRS)",
+      "definition_zh": "衛星上的紅外線儀器量到的近地面空氣溫度，單位是絕對溫度 K；這裡是白天約下午一點半衛星經過時的值。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "AIRS3STM_7_0_SurfAirTemp_A",
+      "product_version": "7.0",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "note_zh": "升軌（_A，當地約 13:30 過境），會比全日平均的氣溫（GLDAS、MERRA-2）偏高，不能直接比絕對值。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "harmony_collection": "C1701805662-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "doi": "10.5067/UBENJB9D3T2H",
+      "product": "AIRS3STM.7.0",
+      "source_long_name": "Air temperature at surface (Daytime/Ascending, AIRS-only)",
+      "unit": "K",
+      "valid_from": "2002-09-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "airs_h2ovap",
+      "name_zh": "大氣總水氣",
+      "name_en": "Total column water vapor (AIRS)",
+      "definition_zh": "從地面到大氣層頂一整柱空氣裡的水氣，如果全部凝結成水，每平方公尺有幾公斤。",
+      "category": "水（氣態）",
+      "source": "giovanni",
+      "source_variable_id": "AIRS3STM_7_0_TotH2OVap_A",
+      "product_version": "7.0",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "note_zh": "升軌（_A，當地約 13:30 過境）的觀測。 區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "harmony_collection": "C1701805662-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "doi": "10.5067/UBENJB9D3T2H",
+      "product": "AIRS3STM.7.0",
+      "source_long_name": "Total Column Water Vapor (Daytime/Ascending, AIRS-only)",
+      "unit": "kg/m2",
+      "valid_from": "2002-09-01",
+      "valid_to": "2026-10-01"
+    },
+    {
+      "id": "merra2_t2m",
+      "name_zh": "2 m 氣溫（MERRA-2）",
+      "name_en": "2 m air temperature (MERRA-2)",
+      "definition_zh": "離地 2 公尺高的空氣溫度，由 NASA 的再分析把全球觀測和大氣模式合起來算出，單位是 K。",
+      "category": "能量",
+      "source": "giovanni",
+      "source_variable_id": "M2IMNXASM_5_12_4_T2M",
+      "product_version": "5.12.4",
+      "native_temporal_res": "month",
+      "is_nasa": true,
+      "harmony_collection": "C1276812823-GES_DISC",
+      "doi": "10.5067/5ESKGQTZG7FO",
+      "product": "M2IMNXASM.5.12.4",
+      "source_long_name": "2-meter air temperature",
+      "unit": "K",
+      "valid_from": "2001-01-01",
+      "valid_to": "2026-09-01"
+    },
+    {
+      "id": "omi_no2",
+      "name_zh": "對流層 NO₂",
+      "name_en": "Tropospheric NO2 column (OMI)",
+      "definition_zh": "靠近地面這層大氣裡的二氧化氮有多少，主要來自車輛和工廠燃燒；數字是每平方公分上方的分子數。",
+      "category": "氣體分子",
+      "source": "giovanni",
+      "source_variable_id": "OMNO2d_003_ColumnAmountNO2TropCloudScreened",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "note_zh": "Giovanni 只有 v003，資料到 2026-03；v004 是不同版本，不可接續（#4 R5）。",
+      "harmony_collection": "C1266136111-GES_DISC",
+      "doi": "10.5067/Aura/OMI/DATA3007",
+      "product": "OMNO2d.003",
+      "source_long_name": "NO2 Tropospheric Column (30% Cloud Screened)",
+      "unit": "molecules/cm^2",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-03-01"
+    },
+    {
+      "id": "omi_o3",
+      "name_zh": "臭氧總量",
+      "name_en": "Total column ozone (OMI)",
+      "definition_zh": "從地面到大氣層頂一整柱空氣裡的臭氧總量，單位是多布森單位（DU）；臭氧層幫我們擋掉紫外線。",
+      "category": "氣體分子",
+      "source": "giovanni",
+      "source_variable_id": "OMTO3d_003_ColumnAmountO3",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "harmony_collection": "C1266136070-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "doi": "10.5067/Aura/OMI/DATA3001",
+      "product": "OMTO3d.003",
+      "source_long_name": "Ozone Total Column (TOMS-like)",
+      "unit": "DU",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-11-01"
+    },
+    {
+      "id": "omi_aerosol",
+      "name_zh": "UV 氣膠指數",
+      "name_en": "UV aerosol index (OMI)",
+      "definition_zh": "空氣中會吸收紫外線的懸浮微粒（沙塵、煙）有多少的指標；數字越大通常代表這類微粒越多或飄得越高，沒有單位。",
+      "category": "懸浮微粒",
+      "source": "giovanni",
+      "source_variable_id": "OMAERUVd_003_UVAerosolIndex",
+      "product_version": "003",
+      "native_temporal_res": "day",
+      "is_nasa": true,
+      "harmony_collection": "C1266136096-GES_DISC",
+      "harmony_skip_regions": [
+        "north"
+      ],
+      "note_zh": "區域平均沒有 north：這個產品是 1° 網格，north 的範圍（緯度 24.6–25.4）裡沒有格點中心。",
+      "doi": "10.5067/Aura/OMI/DATA3003",
+      "product": "OMAERUVd.003",
+      "source_long_name": "UV Aerosol Index",
+      "unit": "1",
+      "valid_from": "2004-10-01",
+      "valid_to": "2026-11-01"
+    }
+  ],
+  "locations": [
+    {
+      "id": "global",
+      "kind": "region",
+      "group": "global",
+      "name_zh": "全球",
+      "name_en": "Global",
+      "bbox": [
+        -180,
+        -90,
+        180,
+        90
+      ],
+      "note_zh": "全球平均：整個經緯度範圍，含海洋與極區。"
+    },
+    {
+      "id": "tokyo",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "東京",
+      "name_en": "Tokyo",
+      "lat": 35.68,
+      "lon": 139.69
+    },
+    {
+      "id": "delhi",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "德里",
+      "name_en": "Delhi",
+      "lat": 28.61,
+      "lon": 77.21
+    },
+    {
+      "id": "beijing",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "北京",
+      "name_en": "Beijing",
+      "lat": 39.9,
+      "lon": 116.41
+    },
+    {
+      "id": "jakarta",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "雅加達",
+      "name_en": "Jakarta",
+      "lat": -6.21,
+      "lon": 106.85
+    },
+    {
+      "id": "cairo",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "開羅",
+      "name_en": "Cairo",
+      "lat": 30.04,
+      "lon": 31.24
+    },
+    {
+      "id": "lagos",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "拉哥斯",
+      "name_en": "Lagos",
+      "lat": 6.52,
+      "lon": 3.38
+    },
+    {
+      "id": "london",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "倫敦",
+      "name_en": "London",
+      "lat": 51.51,
+      "lon": -0.13
+    },
+    {
+      "id": "moscow",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "莫斯科",
+      "name_en": "Moscow",
+      "lat": 55.76,
+      "lon": 37.62
+    },
+    {
+      "id": "new_york",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "紐約",
+      "name_en": "New York",
+      "lat": 40.71,
+      "lon": -74.01
+    },
+    {
+      "id": "los_angeles",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "洛杉磯",
+      "name_en": "Los Angeles",
+      "lat": 34.05,
+      "lon": -118.24
+    },
+    {
+      "id": "sao_paulo",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "聖保羅",
+      "name_en": "São Paulo",
+      "lat": -23.55,
+      "lon": -46.63
+    },
+    {
+      "id": "sydney",
+      "kind": "point",
+      "group": "world_city",
+      "name_zh": "雪梨",
+      "name_en": "Sydney",
+      "lat": -33.87,
+      "lon": 151.21
+    }
+  ],
+  "series": [
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__beijing__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__cairo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__delhi__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/airs_h2ovap__global__area_mean_grid.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__jakarta__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__lagos__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__london__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__los_angeles__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__moscow__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__new_york__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__sao_paulo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__sydney__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_h2ovap",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/airs_h2ovap__tokyo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__beijing__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__cairo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__delhi__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/airs_tsurf__global__area_mean_grid.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__jakarta__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__lagos__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__london__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__los_angeles__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__moscow__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__new_york__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__sao_paulo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__sydney__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "airs_tsurf",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/airs_tsurf__tokyo__point.json",
+      "n_points": 290,
+      "first_month": "2002-09-01",
+      "last_month": "2026-10-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/gldas_evap__beijing__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/gldas_evap__cairo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/gldas_evap__delhi__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/gldas_evap__global__area_mean_grid.json",
+      "n_points": 319,
+      "first_month": "2000-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/gldas_evap__jakarta__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/gldas_evap__lagos__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/gldas_evap__london__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/gldas_evap__los_angeles__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/gldas_evap__moscow__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/gldas_evap__new_york__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/gldas_evap__sao_paulo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/gldas_evap__sydney__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_evap",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/gldas_evap__tokyo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__beijing__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__cairo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__delhi__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/gldas_soilmoist__global__area_mean_grid.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__jakarta__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__lagos__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__london__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__los_angeles__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__moscow__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__new_york__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__sao_paulo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__sydney__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_soilmoist",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/gldas_soilmoist__tokyo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/gldas_tair__beijing__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/gldas_tair__cairo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/gldas_tair__delhi__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/gldas_tair__global__area_mean_grid.json",
+      "n_points": 319,
+      "first_month": "2000-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/gldas_tair__jakarta__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/gldas_tair__lagos__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/gldas_tair__london__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/gldas_tair__los_angeles__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/gldas_tair__moscow__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/gldas_tair__new_york__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/gldas_tair__sao_paulo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/gldas_tair__sydney__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "gldas_tair",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/gldas_tair__tokyo__point.json",
+      "n_points": 307,
+      "first_month": "2001-01-01",
+      "last_month": "2026-07-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/imerg_precip__beijing__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/imerg_precip__cairo__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/imerg_precip__delhi__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/imerg_precip__global__area_mean_grid.json",
+      "n_points": 333,
+      "first_month": "1998-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/imerg_precip__jakarta__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/imerg_precip__lagos__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/imerg_precip__london__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/imerg_precip__los_angeles__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/imerg_precip__moscow__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/imerg_precip__new_york__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/imerg_precip__sao_paulo__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/imerg_precip__sydney__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "imerg_precip",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/imerg_precip__tokyo__point.json",
+      "n_points": 297,
+      "first_month": "2001-01-01",
+      "last_month": "2025-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__beijing__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__cairo__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__delhi__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/merra2_t2m__global__area_mean_grid.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__jakarta__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__lagos__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__london__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__los_angeles__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__moscow__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__new_york__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__sao_paulo__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__sydney__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "merra2_t2m",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/merra2_t2m__tokyo__point.json",
+      "n_points": 309,
+      "first_month": "2001-01-01",
+      "last_month": "2026-09-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__beijing__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__cairo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__delhi__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/omi_aerosol__global__area_mean_grid.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__jakarta__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__lagos__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__london__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__los_angeles__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__moscow__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__new_york__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__sao_paulo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__sydney__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_aerosol",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/omi_aerosol__tokyo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/omi_no2__beijing__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/omi_no2__cairo__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/omi_no2__delhi__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/omi_no2__global__area_mean_grid.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/omi_no2__jakarta__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/omi_no2__lagos__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/omi_no2__london__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/omi_no2__los_angeles__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/omi_no2__moscow__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/omi_no2__new_york__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/omi_no2__sao_paulo__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/omi_no2__sydney__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_no2",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/omi_no2__tokyo__point.json",
+      "n_points": 258,
+      "first_month": "2004-10-01",
+      "last_month": "2026-03-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "beijing",
+      "aggregation": "point",
+      "file": "series/omi_o3__beijing__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "cairo",
+      "aggregation": "point",
+      "file": "series/omi_o3__cairo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "delhi",
+      "aggregation": "point",
+      "file": "series/omi_o3__delhi__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "global",
+      "aggregation": "area_mean_grid",
+      "file": "series/omi_o3__global__area_mean_grid.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "jakarta",
+      "aggregation": "point",
+      "file": "series/omi_o3__jakarta__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "lagos",
+      "aggregation": "point",
+      "file": "series/omi_o3__lagos__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "london",
+      "aggregation": "point",
+      "file": "series/omi_o3__london__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "los_angeles",
+      "aggregation": "point",
+      "file": "series/omi_o3__los_angeles__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "moscow",
+      "aggregation": "point",
+      "file": "series/omi_o3__moscow__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "new_york",
+      "aggregation": "point",
+      "file": "series/omi_o3__new_york__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "sao_paulo",
+      "aggregation": "point",
+      "file": "series/omi_o3__sao_paulo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "sydney",
+      "aggregation": "point",
+      "file": "series/omi_o3__sydney__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    },
+    {
+      "variable_id": "omi_o3",
+      "location_id": "tokyo",
+      "aggregation": "point",
+      "file": "series/omi_o3__tokyo__point.json",
+      "n_points": 266,
+      "first_month": "2004-10-01",
+      "last_month": "2026-11-01"
+    }
+  ],
+  "snapshot": {
+    "generated_at": "2026-11-15T00:20:04Z",
+    "latest_month": {
+      "imerg_precip": "2025-09-01",
+      "gldas_tair": "2026-07-01",
+      "gldas_soilmoist": "2026-07-01",
+      "gldas_evap": "2026-07-01",
+      "airs_tsurf": "2026-10-01",
+      "airs_h2ovap": "2026-10-01",
+      "merra2_t2m": "2026-09-01",
+      "omi_no2": "2026-03-01",
+      "omi_o3": "2026-11-01",
+      "omi_aerosol": "2026-11-01"
+    },
+    "exported_from": "extended",
+    "mapping": "data/seed/world_subset.json",
+    "not_available": [
+      "modis_ndvi",
+      "modis_lst"
+    ]
+  }
+}

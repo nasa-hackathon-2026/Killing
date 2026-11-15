@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { layerRegistry } from "../layers/registry";
 import { mockLocations } from "../mock/snapshot";
+import { worldPlaces, type Catalog } from "../snapshot/loadSnapshot";
+import worldCatalog from "../../../data/snapshot/world/catalog.json";
 import { TREND_MAP_VARIABLES } from "../trendmap/trendMapConfig";
 import { exampleHref, GUIDE_EXAMPLES, viewQuery } from "./examples";
 import {
@@ -15,11 +17,17 @@ import {
 
 const BASE = "/earth-system-trend-detective/";
 const layerIds = layerRegistry.map((layer) => layer.id);
+// Places an example may open: Taiwan's five and the published world subset.
+const world = worldCatalog as unknown as Catalog;
+const placeIds = [
+  ...mockLocations.map((item) => item.id),
+  ...worldPlaces(world).map((item) => item.id),
+];
 
 describe("guide examples", () => {
-  it("has three or four examples with distinct ids", () => {
+  it("has three to five examples with distinct ids", () => {
     expect(GUIDE_EXAMPLES.length).toBeGreaterThanOrEqual(3);
-    expect(GUIDE_EXAMPLES.length).toBeLessThanOrEqual(4);
+    expect(GUIDE_EXAMPLES.length).toBeLessThanOrEqual(5);
     expect(new Set(GUIDE_EXAMPLES.map((item) => item.id)).size).toBe(
       GUIDE_EXAMPLES.length,
     );
@@ -37,12 +45,28 @@ describe("guide examples", () => {
       const { layers = [], place, chart, trendmap } = example.view;
       for (const id of layers) expect(layerIds).toContain(id);
       if (chart) expect(layerIds).toContain(chart);
-      if (place) {
-        expect(mockLocations.map((item) => item.id)).toContain(place);
-      }
+      if (place) expect(placeIds).toContain(place);
       if (trendmap) {
         expect(TREND_MAP_VARIABLES.map((item) => item.id)).toContain(trendmap);
       }
+    }
+  });
+
+  it("has one example at a world city, with a series for its chart", () => {
+    const worldIds = worldPlaces(world).map((item) => item.id);
+    const examples = GUIDE_EXAMPLES.filter(
+      (example) =>
+        "view" in example && worldIds.includes(example.view.place ?? ""),
+    );
+    expect(examples.length).toBeGreaterThanOrEqual(1);
+    for (const example of examples) {
+      if (!("view" in example)) continue;
+      const { place, chart } = example.view;
+      expect(
+        world.series.some(
+          (entry) => entry.location_id === place && entry.variable_id === chart,
+        ),
+      ).toBe(true);
     }
   });
 

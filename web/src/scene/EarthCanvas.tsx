@@ -9,7 +9,7 @@ import { TrendMapOverlay } from "../trendmap/TrendMapOverlay";
 import { createSceneRenderer } from "./createSceneRenderer";
 import { Earth } from "./Earth";
 import { TaiwanDetail } from "./TaiwanDetail";
-import { FlyCamera } from "./FlyCamera";
+import { FlyCamera, type FlyTarget } from "./FlyCamera";
 import { Markers } from "./Markers";
 import { type RendererKind } from "./rendererLabel";
 
@@ -21,7 +21,8 @@ export type SceneLayer = {
 
 type EarthCanvasProps = {
   forceWebGL: boolean;
-  flying: boolean;
+  // Camera flight in progress (web/src/scene/FlyCamera.tsx); null = none.
+  flyTarget: FlyTarget | null;
   layers: SceneLayer[];
   intensities: Record<string, number>;
   // Layers whose current month has a value; the others draw no particles.
@@ -44,7 +45,7 @@ type EarthCanvasProps = {
 };
 
 function Scene({
-  flying,
+  flyTarget,
   layers,
   intensities,
   available,
@@ -60,7 +61,8 @@ function Scene({
 }: {
   controlsLocked?: boolean;
   children?: ReactNode;
-  flying: boolean;
+  // Camera flight in progress (web/src/scene/FlyCamera.tsx); null = none.
+  flyTarget: FlyTarget | null;
   layers: SceneLayer[];
   intensities: Record<string, number>;
   // Layers whose current month has a value; the others draw no particles.
@@ -106,7 +108,7 @@ function Scene({
         />
       ))}
       <FlyCamera
-        flying={flying}
+        target={flyTarget}
         onDone={() => {
           setControlEpoch((epoch) => epoch + 1);
           onFlyDone();
@@ -116,7 +118,7 @@ function Scene({
       <OrbitControls
         key={controlsLocked ? "locked" : controlEpoch}
         enablePan={false}
-        enabled={!flying && !controlsLocked}
+        enabled={!flyTarget && !controlsLocked}
         minDistance={1.18}
         maxDistance={6}
       />
@@ -155,7 +157,7 @@ function LayerView({
 
 export function EarthCanvas({
   forceWebGL,
-  flying,
+  flyTarget,
   layers,
   intensities,
   available,
@@ -180,7 +182,7 @@ export function EarthCanvas({
       gl={createSceneRenderer(forceWebGL, onKind)}
     >
       <Scene
-        flying={flying}
+        flyTarget={flyTarget}
         layers={layers}
         intensities={intensities}
         available={available}

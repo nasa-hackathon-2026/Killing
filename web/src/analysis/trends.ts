@@ -76,10 +76,39 @@ export function trendKey(
   return `${variableId}__${locationId}__${aggregation}`;
 }
 
+// The world subset's own results (data/analysis/world, written by
+// `uv run python -m trend_detective.world_export`). Same format; its p_fdr
+// values are adjusted within that file only (its own FDR family).
+export const WORLD_ANALYSIS = "world/";
+
+// Series of the second file are added to the first. The keys cannot clash
+// (they carry the place id); where they would, the first file wins.
+export function mergeSeriesFiles<T extends { series: Record<string, unknown> }>(
+  core: T,
+  world: { series: T["series"] } | null,
+): T {
+  if (!world) return core;
+  return { ...core, series: { ...world.series, ...core.series } };
+}
+
+// Core trends plus, when it is published, the world subset's. Parameters and
+// known issues are read from the core file (both runs use the same seed).
 export async function loadTrends(
   fetchJson: <T>(url: string) => Promise<T> = defaultFetch,
 ): Promise<TrendsFile> {
-  return fetchJson<TrendsFile>(analysisUrl("trends.json"));
+  const [core, world] = await Promise.all([
+    fetchJson<TrendsFile>(analysisUrl("trends.json")),
+    fetchJson<TrendsFile>(analysisUrl(`${WORLD_ANALYSIS}trends.json`)).catch(
+      () => null,
+    ),
+  ]);
+  const merged = mergeSeriesFiles(core, world);
+  return world?.known_issues
+    ? {
+        ...merged,
+        known_issues: { ...world.known_issues, ...core.known_issues },
+      }
+    : merged;
 }
 
 // A difference of 1 K equals a difference of 1 °C, so a change per decade in

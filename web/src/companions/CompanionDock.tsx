@@ -35,6 +35,9 @@ export type CompanionDockProps = {
   series: LoadedSeries[];
   locationId: string;
   locationName: string;
+  // Aggregation of the place's series in the trend keys ("point" except
+  // for the global mean).
+  aggregation?: string;
   // data/analysis/trends.json once loaded, else null.
   trends: TrendsFile | null;
   // True while the layer view is open: the same companions already stand on
@@ -138,6 +141,7 @@ export function CompanionDock({
   series,
   locationId,
   locationName,
+  aggregation = "point",
   trends,
   compact = false,
 }: CompanionDockProps) {
@@ -161,7 +165,7 @@ export function CompanionDock({
   const lines: Record<string, string> = {};
   for (const spec of COMPANIONS) {
     const found = series.find((item) => item.variableId === spec.id);
-    const trend = trends?.series[trendKey(spec.id, locationId, "point")];
+    const trend = trends?.series[trendKey(spec.id, locationId, aggregation)];
     const reading = companionReading(spec.id, found, month, trend);
     readings[spec.id] = reading;
     lines[spec.id] = companionLine({

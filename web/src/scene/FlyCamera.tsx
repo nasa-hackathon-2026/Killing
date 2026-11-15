@@ -1,36 +1,59 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import { Vector3 } from "three";
+import { useRef } from "react";
+import { prefersReducedMotion } from "../forms/reducedMotion";
 import { latLonToVector3 } from "../geo/latLon";
-import { taiwanOverview } from "../mock/snapshot";
+import { approachPosition, type Vec3 } from "../strata/strataCamera";
+
+// Where the globe camera should go: above a point, at a distance from the
+// Earth's center. `instant` jumps there without a flight.
+export type FlyTarget = {
+  lat: number;
+  lon: number;
+  distance: number;
+  instant?: boolean;
+};
 
 type FlyCameraProps = {
-  flying: boolean;
+  target: FlyTarget | null;
   onDone: () => void;
 };
 
-export function FlyCamera({ flying, onDone }: FlyCameraProps) {
+// Seconds one flight takes, whatever the angle.
+export const FLY_SECONDS = 1.6;
+
+// Turns the camera around the Earth along the great arc to the target (so
+// the path never cuts through the globe). With "reduce motion" it jumps.
+export function FlyCamera({ target, onDone }: FlyCameraProps) {
   const camera = useThree((state) => state.camera);
-  const destination = useMemo(() => {
-    const point = latLonToVector3(taiwanOverview.lat, taiwanOverview.lon, 1.85);
-    return new Vector3(point.x, point.y, point.z);
-  }, []);
-  const finished = useRef(false);
+  const flight = useRef<{ target: FlyTarget; from: Vec3; t: number } | null>(
+    null,
+  );
 
   useFrame((_, delta) => {
-    if (!flying) {
-      finished.current = false;
+    if (!target) {
+      flight.current = null;
       return;
     }
-    if (finished.current) return;
-    camera.position.lerp(destination, 1 - Math.exp(-2.8 * delta));
-    camera.lookAt(0, 0, 0);
-    if (camera.position.distanceTo(destination) < 0.03) {
-      camera.position.copy(destination);
-      camera.lookAt(0, 0, 0);
-      finished.current = true;
-      onDone();
+    if (flight.current?.target !== target) {
+      flight.current = {
+        target,
+        from: [camera.position.x, camera.position.y, camera.position.z],
+        t: 0,
+      };
     }
+    const current = flight.current;
+    if (current.t >= 1) return;
+    const jump = target.instant || prefersReducedMotion();
+    current.t = jump ? 1 : Math.min(1, current.t + delta / FLY_SECONDS);
+    const end = latLonToVector3(target.lat, target.lon, target.distance);
+    const [x, y, z] = approachPosition(
+      current.from,
+      [end.x, end.y, end.z],
+      current.t,
+    );
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+    if (current.t >= 1) onDone();
   });
 
   return null;

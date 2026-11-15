@@ -28,7 +28,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["pg: 需要本機的 PostgreSQL 容器（db/compose.yaml）；連不上時自動跳過"]
+markers = [
+    "pg: 需要本機的 PostgreSQL 容器（db/compose.yaml）；連不上時自動跳過",
+    "extended_data: 需要 data/extended（不進 git；可用環境變數 EXTENDED_DIR 指到主 checkout 的那份）；沒有時自動跳過",
+]
 
 [tool.pyright]
 include = ["src", "tests"]
