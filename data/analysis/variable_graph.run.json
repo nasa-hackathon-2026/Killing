@@ -1,0 +1,113 @@
+{
+  "command": "uv run python -m trend_detective.variable_graph",
+  "generated_at": "2026-11-15T00:45:15Z",
+  "exploratory": true,
+  "input": {
+    "anomalies": "data/analysis/anomalies.json",
+    "world_anomalies": "data/analysis/world/anomalies.json",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z"
+  },
+  "parameters": {
+    "tables": [
+      [
+        "point",
+        "point"
+      ],
+      [
+        "region",
+        "area_mean"
+      ]
+    ],
+    "exclude_locations": [
+      "taiwan"
+    ],
+    "lags": [
+      0,
+      1
+    ],
+    "alpha": 0.05,
+    "min_common_months": 120,
+    "same_quantity_groups": [
+      [
+        "modis_ndvi",
+        "modis_ndvi_pc"
+      ],
+      [
+        "modis_lst",
+        "modis_lst_pc"
+      ],
+      [
+        "gldas_tair",
+        "merra2_t2m",
+        "airs_tsurf",
+        "power_t2m"
+      ]
+    ],
+    "world_groups": [
+      "world_city"
+    ]
+  },
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1"
+  },
+  "outputs": [
+    "variable_graph.json"
+  ],
+  "summary": {
+    "tables": {
+      "point": {
+        "locations": [
+          "hualien",
+          "kaohsiung",
+          "taichung",
+          "taipei",
+          "yushan"
+        ],
+        "n_tests": 216,
+        "n_significant": 31,
+        "n_significant_by_lag": {
+          "0": 20,
+          "1": 11
+        },
+        "n_components": 3,
+        "n_nodes": 13
+      },
+      "region": {
+        "locations": [
+          "central",
+          "east",
+          "north",
+          "south"
+        ],
+        "n_tests": 258,
+        "n_significant": 68,
+        "n_significant_by_lag": {
+          "0": 39,
+          "1": 29
+        },
+        "n_components": 1,
+        "n_nodes": 14
+      }
+    },
+    "world_cities": {
+      "n_tests": 1461,
+      "n_significant": 333,
+      "n_pairs": 126
+    },
+    "pgrouting": {
+      "point": {
+        "n_nodes": 13,
+        "n_components": 3,
+        "n_nodes_component_differs_from_union_find": 0,
+        "n_nodes_degree_differs": 0
+      },
+      "region": {
+        "n_nodes": 14,
+        "n_components": 1,
+        "n_nodes_component_differs_from_union_find": 0,
+        "n_nodes_degree_differs": 0
+      }
+    }
+  }
+}

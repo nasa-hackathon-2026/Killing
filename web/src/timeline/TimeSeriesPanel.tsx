@@ -52,6 +52,9 @@ type TimeSeriesPanelProps = {
   alpha: number;
   // Documented step months of this series ("YYYY-MM-01").
   breaks: string[];
+  // Link to this place and variable in the "Similar series" section of the
+  // mining page.
+  similarHref?: string;
   onClose: () => void;
 };
 
@@ -77,6 +80,7 @@ export function TimeSeriesPanel({
   trend,
   alpha,
   breaks,
+  similarHref,
   onClose,
 }: TimeSeriesPanelProps) {
   const { months, monthIndex, setMonthIndex, setPlaying } = useTimeline();
@@ -419,6 +423,12 @@ export function TimeSeriesPanel({
             </p>
           ) : null}
           {caveat ? <TrendCaveatNote caveat={caveat} /> : null}
+          {similarHref && series ? (
+            <p className="timeline-chart-note">
+              <a href={similarHref}>Similar series</a> (exploratory): which
+              other variables went above and below normal in the same months.
+            </p>
+          ) : null}
         </>
       )}
     </section>

@@ -526,6 +526,8 @@ SELECT seq, variable_id, edge_max_lift, total_cost FROM analysis.variable_path('
 
 讀的時候要注意：邊是「兩個變數的高／低狀態在同一個地點同一個月（或前一個月）常一起出現」，是共變，**不是因果**，也不代表物理上有關；交易彼此不獨立，q 值偏樂觀（見 `AGENTS.md`「如何重產分析結果」）。路徑上只有相鄰的兩個變數有顯著關聯，頭尾兩個變數之間沒有檢定過。`same_quantity = true` 的邊（4 條：`airs_tsurf`–`gldas_tair`、`airs_tsurf`–`merra2_t2m`、`gldas_tair`–`merra2_t2m`、`modis_ndvi`–`modis_ndvi_pc`）連的是同一個物理量的不同產品。節點的 `known_issues` 不分聚合方式，只要這個變數有任何一筆已知問題就列出：`gldas_tair`（三個階梯）、`gldas_evap`（2024-07 至 2025-06 的階梯）、`gldas_soilmoist`（與 FLDAS 趨勢正負相反）、`modis_lst`（點位序列缺合成期）。
 
+另一張圖（#111）：`analysis.correlation_nodes`／`analysis.correlation_edges` 是用去趨勢月距平的相關係數建的（同月與落後一個月，自相關修正加 BH-FDR），`analysis.correlation_components(表)` 用 `pgr_connectedComponents` 算分量與度數；由 `uv run python -m trend_detective.variable_graph` 寫入並核對，做法與結果見 [mining.md](./mining.md)。同一支 migration（`023_mining_plus.sql`）還有 `analysis.gap_tree_folds`、`analysis.gap_stats`（`gap_tree --write-db`）。上面由關聯規則建的圖不受影響。
+
 核對（`pg check` 的 `pgrouting`）：`pgr_connectedComponents` 的分量與 Python 的 union-find（`pg_extensions.components`）對同一批邊算的結果，每個節點都相同。
 
 Cloud SQL：清單有 `pgrouting`（文件寫 3.6.2；本機是 4.0.2，用到的 `pgr_connectedComponents`、`pgr_dijkstra` 兩版都有，沒有在 3.6.2 上實測）。

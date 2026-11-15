@@ -1,0 +1,380 @@
+{
+  "command": "uv run python -m trend_detective.gap_tree",
+  "generated_at": "2026-11-15T00:47:07Z",
+  "exploratory": true,
+  "input": {
+    "model_vs_obs": "data/analysis/model_vs_obs.json",
+    "anomalies": "data/analysis/anomalies.json",
+    "snapshot_generated_at": "2026-11-14T13:02:25Z"
+  },
+  "parameters": {
+    "group": "taiwan_station",
+    "model_variables": [
+      "gldas_tair",
+      "merra2_t2m"
+    ],
+    "dropped_same_quantity_models": [
+      "power_t2m"
+    ],
+    "low_quantile": 0.33333333,
+    "high_quantile": 0.66666667,
+    "tree_max_depth": 3,
+    "tree_min_samples_leaf": 20,
+    "tree_n_folds": 3,
+    "tree_min_train_months": 120,
+    "tree_random_state": 0,
+    "max_single_feature_accuracy": 0.95,
+    "bootstrap_resamples": 2000,
+    "bootstrap_seed": 0,
+    "alpha": 0.05,
+    "excluded_category_keyword": "temperature"
+  },
+  "variants_run": [
+    "with_segment",
+    "without_segment",
+    "with_target_lag"
+  ],
+  "packages": {
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1"
+  },
+  "outputs": [
+    "gap_tree.json"
+  ],
+  "summary": {
+    "with_segment": {
+      "walk_forward": {
+        "n_folds": 3,
+        "n_folds_above_all": 0,
+        "n_folds_above_train_majority": 1,
+        "n_folds_above_persistence": 0,
+        "n_folds_above_calendar_month": 1,
+        "mean_test_accuracy": 0.34630097,
+        "mean_macro_f1": 0.28910051,
+        "mean_train_majority_accuracy": 0.40228729,
+        "mean_persistence_accuracy": 0.48193621,
+        "mean_calendar_month_accuracy": 0.358926,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 1249,
+            "n_test": 419,
+            "test_accuracy": 0.29594272,
+            "train_majority_accuracy": 0.2124105,
+            "persistence_accuracy": 0.47016706,
+            "calendar_month_accuracy": 0.40572792
+          },
+          {
+            "fold": 2,
+            "n_train": 1668,
+            "n_test": 445,
+            "test_accuracy": 0.37752809,
+            "train_majority_accuracy": 0.45617978,
+            "persistence_accuracy": 0.49662921,
+            "calendar_month_accuracy": 0.30561798
+          },
+          {
+            "fold": 3,
+            "n_train": 2113,
+            "n_test": 405,
+            "test_accuracy": 0.3654321,
+            "train_majority_accuracy": 0.5382716,
+            "persistence_accuracy": 0.47901235,
+            "calendar_month_accuracy": 0.3654321
+          }
+        ]
+      },
+      "leave_one_location_out": {
+        "n_folds": 6,
+        "n_folds_above_all": 1,
+        "n_folds_above_train_majority": 5,
+        "n_folds_above_persistence": 1,
+        "n_folds_above_calendar_month": 5,
+        "mean_test_accuracy": 0.39077334,
+        "mean_macro_f1": 0.35173068,
+        "mean_train_majority_accuracy": 0.32364698,
+        "mean_persistence_accuracy": 0.42741398,
+        "mean_calendar_month_accuracy": 0.33066702,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.43801653,
+            "train_majority_accuracy": 0.37396694,
+            "persistence_accuracy": 0.41322314,
+            "calendar_month_accuracy": 0.32024793
+          },
+          {
+            "fold": 2,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.34917355,
+            "train_majority_accuracy": 0.26652893,
+            "persistence_accuracy": 0.44421488,
+            "calendar_month_accuracy": 0.33057851
+          },
+          {
+            "fold": 3,
+            "n_train": 2276,
+            "n_test": 242,
+            "test_accuracy": 0.36363636,
+            "train_majority_accuracy": 0.11570248,
+            "persistence_accuracy": 0.41735537,
+            "calendar_month_accuracy": 0.2768595
+          },
+          {
+            "fold": 4,
+            "n_train": 2026,
+            "n_test": 492,
+            "test_accuracy": 0.47154472,
+            "train_majority_accuracy": 0.46341463,
+            "persistence_accuracy": 0.48170732,
+            "calendar_month_accuracy": 0.3495935
+          },
+          {
+            "fold": 5,
+            "n_train": 2042,
+            "n_test": 476,
+            "test_accuracy": 0.46638655,
+            "train_majority_accuracy": 0.49579832,
+            "persistence_accuracy": 0.47268908,
+            "calendar_month_accuracy": 0.35084034
+          },
+          {
+            "fold": 6,
+            "n_train": 2178,
+            "n_test": 340,
+            "test_accuracy": 0.25588235,
+            "train_majority_accuracy": 0.22647059,
+            "persistence_accuracy": 0.33529412,
+            "calendar_month_accuracy": 0.35588235
+          }
+        ]
+      }
+    },
+    "without_segment": {
+      "walk_forward": {
+        "n_folds": 3,
+        "n_folds_above_all": 0,
+        "n_folds_above_train_majority": 1,
+        "n_folds_above_persistence": 0,
+        "n_folds_above_calendar_month": 1,
+        "mean_test_accuracy": 0.35027869,
+        "mean_macro_f1": 0.29313614,
+        "mean_train_majority_accuracy": 0.40228729,
+        "mean_persistence_accuracy": 0.48193621,
+        "mean_calendar_month_accuracy": 0.358926,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 1249,
+            "n_test": 419,
+            "test_accuracy": 0.30787589,
+            "train_majority_accuracy": 0.2124105,
+            "persistence_accuracy": 0.47016706,
+            "calendar_month_accuracy": 0.40572792
+          },
+          {
+            "fold": 2,
+            "n_train": 1668,
+            "n_test": 445,
+            "test_accuracy": 0.37752809,
+            "train_majority_accuracy": 0.45617978,
+            "persistence_accuracy": 0.49662921,
+            "calendar_month_accuracy": 0.30561798
+          },
+          {
+            "fold": 3,
+            "n_train": 2113,
+            "n_test": 405,
+            "test_accuracy": 0.3654321,
+            "train_majority_accuracy": 0.5382716,
+            "persistence_accuracy": 0.47901235,
+            "calendar_month_accuracy": 0.3654321
+          }
+        ]
+      },
+      "leave_one_location_out": {
+        "n_folds": 6,
+        "n_folds_above_all": 1,
+        "n_folds_above_train_majority": 5,
+        "n_folds_above_persistence": 1,
+        "n_folds_above_calendar_month": 5,
+        "mean_test_accuracy": 0.39077334,
+        "mean_macro_f1": 0.35173068,
+        "mean_train_majority_accuracy": 0.32364698,
+        "mean_persistence_accuracy": 0.42741398,
+        "mean_calendar_month_accuracy": 0.33066702,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.43801653,
+            "train_majority_accuracy": 0.37396694,
+            "persistence_accuracy": 0.41322314,
+            "calendar_month_accuracy": 0.32024793
+          },
+          {
+            "fold": 2,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.34917355,
+            "train_majority_accuracy": 0.26652893,
+            "persistence_accuracy": 0.44421488,
+            "calendar_month_accuracy": 0.33057851
+          },
+          {
+            "fold": 3,
+            "n_train": 2276,
+            "n_test": 242,
+            "test_accuracy": 0.36363636,
+            "train_majority_accuracy": 0.11570248,
+            "persistence_accuracy": 0.41735537,
+            "calendar_month_accuracy": 0.2768595
+          },
+          {
+            "fold": 4,
+            "n_train": 2026,
+            "n_test": 492,
+            "test_accuracy": 0.47154472,
+            "train_majority_accuracy": 0.46341463,
+            "persistence_accuracy": 0.48170732,
+            "calendar_month_accuracy": 0.3495935
+          },
+          {
+            "fold": 5,
+            "n_train": 2042,
+            "n_test": 476,
+            "test_accuracy": 0.46638655,
+            "train_majority_accuracy": 0.49579832,
+            "persistence_accuracy": 0.47268908,
+            "calendar_month_accuracy": 0.35084034
+          },
+          {
+            "fold": 6,
+            "n_train": 2178,
+            "n_test": 340,
+            "test_accuracy": 0.25588235,
+            "train_majority_accuracy": 0.22647059,
+            "persistence_accuracy": 0.33529412,
+            "calendar_month_accuracy": 0.35588235
+          }
+        ]
+      }
+    },
+    "with_target_lag": {
+      "walk_forward": {
+        "n_folds": 3,
+        "n_folds_above_all": 0,
+        "n_folds_above_train_majority": 1,
+        "n_folds_above_persistence": 0,
+        "n_folds_above_calendar_month": 1,
+        "mean_test_accuracy": 0.35604805,
+        "mean_macro_f1": 0.31249121,
+        "mean_train_majority_accuracy": 0.40228729,
+        "mean_persistence_accuracy": 0.48193621,
+        "mean_calendar_month_accuracy": 0.358926,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 1249,
+            "n_test": 419,
+            "test_accuracy": 0.29594272,
+            "train_majority_accuracy": 0.2124105,
+            "persistence_accuracy": 0.47016706,
+            "calendar_month_accuracy": 0.40572792
+          },
+          {
+            "fold": 2,
+            "n_train": 1668,
+            "n_test": 445,
+            "test_accuracy": 0.43146067,
+            "train_majority_accuracy": 0.45617978,
+            "persistence_accuracy": 0.49662921,
+            "calendar_month_accuracy": 0.30561798
+          },
+          {
+            "fold": 3,
+            "n_train": 2113,
+            "n_test": 405,
+            "test_accuracy": 0.34074074,
+            "train_majority_accuracy": 0.5382716,
+            "persistence_accuracy": 0.47901235,
+            "calendar_month_accuracy": 0.3654321
+          }
+        ]
+      },
+      "leave_one_location_out": {
+        "n_folds": 6,
+        "n_folds_above_all": 1,
+        "n_folds_above_train_majority": 4,
+        "n_folds_above_persistence": 2,
+        "n_folds_above_calendar_month": 5,
+        "mean_test_accuracy": 0.40585046,
+        "mean_macro_f1": 0.35927782,
+        "mean_train_majority_accuracy": 0.32364698,
+        "mean_persistence_accuracy": 0.42741398,
+        "mean_calendar_month_accuracy": 0.33066702,
+        "folds": [
+          {
+            "fold": 1,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.3822314,
+            "train_majority_accuracy": 0.37396694,
+            "persistence_accuracy": 0.41322314,
+            "calendar_month_accuracy": 0.32024793
+          },
+          {
+            "fold": 2,
+            "n_train": 2034,
+            "n_test": 484,
+            "test_accuracy": 0.38842975,
+            "train_majority_accuracy": 0.26652893,
+            "persistence_accuracy": 0.44421488,
+            "calendar_month_accuracy": 0.33057851
+          },
+          {
+            "fold": 3,
+            "n_train": 2276,
+            "n_test": 242,
+            "test_accuracy": 0.45454545,
+            "train_majority_accuracy": 0.11570248,
+            "persistence_accuracy": 0.41735537,
+            "calendar_month_accuracy": 0.2768595
+          },
+          {
+            "fold": 4,
+            "n_train": 2026,
+            "n_test": 492,
+            "test_accuracy": 0.44308943,
+            "train_majority_accuracy": 0.46341463,
+            "persistence_accuracy": 0.48170732,
+            "calendar_month_accuracy": 0.3495935
+          },
+          {
+            "fold": 5,
+            "n_train": 2042,
+            "n_test": 476,
+            "test_accuracy": 0.48739496,
+            "train_majority_accuracy": 0.49579832,
+            "persistence_accuracy": 0.47268908,
+            "calendar_month_accuracy": 0.35084034
+          },
+          {
+            "fold": 6,
+            "n_train": 2178,
+            "n_test": 340,
+            "test_accuracy": 0.27941176,
+            "train_majority_accuracy": 0.22647059,
+            "persistence_accuracy": 0.33529412,
+            "calendar_month_accuracy": 0.35588235
+          }
+        ]
+      }
+    }
+  }
+}

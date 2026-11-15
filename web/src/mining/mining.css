@@ -136,3 +136,382 @@ body:has(.mining) {
 .mining .verdict.warn {
   border-left-color: #f0b35a;
 }
+
+/* #111: sections, method details, rule labels, network, sparklines, bars. */
+.mining {
+  max-width: 1120px;
+}
+
+.mining section {
+  margin-top: 40px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  scroll-margin-top: 12px;
+}
+
+.mining h4 {
+  margin: 16px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mining .lead {
+  max-width: 76ch;
+  font-size: 15px;
+}
+
+.mining .asks {
+  max-width: 80ch;
+  font-size: 15px;
+}
+
+.mining .note {
+  max-width: 100ch;
+}
+
+.mining .toc ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mining .toc a {
+  display: inline-block;
+  padding: 6px 10px;
+  text-decoration: none;
+  background: rgba(8, 14, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+}
+
+.mining .scope-title {
+  font-size: 14px;
+}
+
+.mining .scope dd {
+  margin-bottom: 4px;
+}
+
+.mining details.method {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  background: rgba(8, 14, 28, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+}
+
+.mining details.method summary {
+  cursor: pointer;
+  color: #b7c6da;
+}
+
+.mining details.method[open] summary {
+  margin-bottom: 8px;
+}
+
+.mining .scroll.tall {
+  max-height: 460px;
+  overflow-y: auto;
+}
+
+.mining .scroll.tall thead th {
+  position: sticky;
+  top: 0;
+  background: #0b1220;
+}
+
+.mining caption {
+  padding: 8px 0 4px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.mining .mean-row td {
+  font-weight: 600;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.mining .pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.mining td .pill {
+  white-space: normal;
+}
+
+.mining .pill-yes {
+  border-color: #6fb3ff;
+}
+
+.mining .pill-no {
+  border-color: #f0b35a;
+  border-style: dashed;
+}
+
+/* Rule labels */
+.mining .rule-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+}
+
+.mining .rule-part {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.mining .rule-word {
+  color: #b7c6da;
+}
+
+.mining .chip {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-left-width: 4px;
+  border-radius: 6px;
+}
+
+.mining .chip-high {
+  border-left-color: #ff9d5c;
+}
+
+.mining .chip-low {
+  border-left-color: #6fb3ff;
+}
+
+.mining .chip-normal {
+  border-left-color: #9aa7b8;
+}
+
+/* Variable network */
+.mining svg.network {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+}
+
+.mining .network-row {
+  opacity: 0.1;
+}
+
+.mining .network-row-label {
+  fill: #b7c6da;
+  font-size: 12px;
+}
+
+.mining .network-edge {
+  fill: none;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.mining .edge-positive {
+  stroke: #ff9d5c;
+}
+
+.mining .edge-negative {
+  stroke: #6fb3ff;
+}
+
+.mining .edge-lagged {
+  stroke-dasharray: 6 5;
+}
+
+.mining .edge-dim {
+  opacity: 0.12;
+}
+
+.mining .network-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+}
+
+.mining .network-node {
+  cursor: pointer;
+}
+
+.mining .network-node circle {
+  fill: #e8eef7;
+  stroke: #0b1220;
+  stroke-width: 2;
+}
+
+.mining .network-node.node-active circle,
+.mining .network-node:focus-visible circle {
+  fill: #ffd166;
+}
+
+.mining .network-node:focus-visible {
+  outline: none;
+}
+
+.mining .network-node:focus-visible circle {
+  stroke: #ffd166;
+  stroke-width: 4;
+}
+
+.mining .network-node text {
+  fill: #e8eef7;
+  font-size: 11px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #0b1220;
+  stroke-width: 3;
+}
+
+.mining .network-node text.node-product {
+  fill: #b7c6da;
+  font-size: 10px;
+}
+
+.mining .key {
+  display: inline-block;
+  width: 22px;
+  height: 0;
+  margin: 0 4px 3px 8px;
+  border-top: 3px solid #e8eef7;
+  vertical-align: middle;
+}
+
+.mining .key-positive {
+  border-top-color: #ff9d5c;
+}
+
+.mining .key-negative {
+  border-top-color: #6fb3ff;
+}
+
+.mining .key-lagged {
+  border-top-style: dashed;
+}
+
+.mining .network-info {
+  min-height: 44px;
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: #142033;
+  border-left: 3px solid #6fb3ff;
+}
+
+.mining .network-info p {
+  margin: 0;
+}
+
+/* Similar series */
+.mining svg.spark {
+  display: block;
+}
+
+.mining .spark path {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mining .spark-query {
+  stroke: #e8eef7;
+}
+
+.mining .spark-other {
+  stroke: #ff9d5c;
+}
+
+.mining .spark-zero {
+  stroke: rgba(255, 255, 255, 0.25);
+}
+
+.mining .similar-table td {
+  vertical-align: middle;
+}
+
+/* Gap bars */
+.mining .gap-bars .bar-cell {
+  width: 34%;
+  min-width: 180px;
+}
+
+.mining .bar-track {
+  position: relative;
+  height: 16px;
+}
+
+.mining .bar {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.mining .bar-gldas_tair {
+  background: #ff9d5c;
+}
+
+.mining .bar-merra2_t2m {
+  background: #6fb3ff;
+}
+
+.mining .bar-interval {
+  position: absolute;
+  top: 3px;
+  box-sizing: border-box;
+  height: 10px;
+  background: linear-gradient(#e8eef7, #e8eef7) center / 100% 2px no-repeat;
+  border-right: 2px solid #e8eef7;
+  border-left: 2px solid #e8eef7;
+}
+
+@media (max-width: 640px) {
+  .mining {
+    padding: 12px;
+  }
+
+  .mining dl {
+    grid-template-columns: 1fr;
+  }
+
+  .mining dt {
+    margin-top: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mining * {
+    scroll-behavior: auto;
+    transition: none;
+    animation: none;
+  }
+}
+
+.mining select {
+  max-width: 100%;
+}
+
+.mining .controls label {
+  max-width: 100%;
+}
+
+.mining .controls select {
+  max-width: min(100%, 420px);
+}
+
+@media (max-width: 760px) {
+  .mining .scroll:has(svg.network)::before {
+    display: block;
+    color: #b7c6da;
+    font-size: 12px;
+    content: "Scroll sideways to see the whole network.";
+  }
+}
