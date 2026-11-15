@@ -35,4 +35,4 @@ date: 2026-11-15
 - `pg load` 會重新編 `series_id`；跨次比對要用 (`variable_id`, `location_id`, `aggregation`)。
 - 資料庫目前只在 gx10 本機，尚未同步到雲端。
 
-決定的分工：方向與取捨由隊伍決定，實作由 AI 工具（Claude Code）完成。 選 PostgreSQL＋PostGIS＋TimescaleDB 是隊伍在 #83 提出的需求；SQLite 放 Release 是使用者 2026-11-14 的決定（`AGENTS.md`「SQLite 匯出」）。「趨勢與探勘不從資料庫讀」的理由記在 `docs/data/postgres.md`；是誰提出的未記錄。
+決定的分工：決定由 Grason（隊伍）做，實作由 AI 工具（Claude Code）完成。 用 PostgreSQL 加擴充套件當統一的整理介面，是 Grason 在 2026-11-14 至 11-15 提出並決定的（#83）；SQLite 放 GitHub Release 是 Grason 2026-11-14 的決定（`AGENTS.md`「SQLite 匯出」）；公開網站只讀靜態檔是隊伍在 #4 的決定。「趨勢與探勘從序列檔讀、不直接讀資料庫」是 AI 工具在實作時提出的做法（理由見 `docs/data/postgres.md`：沒有資料庫的隊友也能重現網站的結果檔），Grason 於 2026-11-15 檢視後決定採用。

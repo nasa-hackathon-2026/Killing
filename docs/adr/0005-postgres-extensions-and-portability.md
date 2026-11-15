@@ -36,4 +36,4 @@ date: 2026-11-15
 - dump 只能還原到同樣有這些擴充的 PostgreSQL；最可攜的路徑是帶著檔案重跑 `load`（見 `docs/data/database-backup.md`）。
 - `geo.locations`、`geo.grid_cells` 的 H3 generated column 讓 `pg_restore` 需要一個額外步驟（同一份文件）。
 
-決定的分工：方向與取捨由隊伍決定，實作由 AI 工具（Claude Code）完成。 加入哪些擴充是隊伍在 #91 列出的；「有實際用途才加」是該票的驗收條件。Cloud SQL 的支援情形是協調者（AI）2026-11-15 查官方清單的結果。為什麼要盡量多用擴充，理由未記錄。
+決定的分工：決定由 Grason（隊伍）做，實作由 AI 工具（Claude Code）完成。 盡量用上 PostgreSQL 各種擴充套件來整理來源與形狀不同的資料，是 Grason 的決定（2026-11-15，#91；他的理由是想用到 PostgreSQL 擴充套件的能力，而且資料庫本來就要清洗一次）。候選擴充的清單與各自的用途由 AI 工具整理後提出；「有實際用途才加」是該票的驗收條件。Cloud SQL 的支援情形是 AI 工具 2026-11-15 查官方清單的結果。
