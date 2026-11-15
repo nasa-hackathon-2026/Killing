@@ -30,3 +30,7 @@ data/observed/
 
 # PostgreSQL 的資料 dump（由 trend_detective.pg export 產生，量大，不進 git）
 data/pg-dump/
+
+# 給機器學習實驗用的匯出檔與模型（#112）：由資料庫匯出或訓練產生，不進 git
+data/ml-export/
+data/nn-models/

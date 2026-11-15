@@ -1,0 +1,1041 @@
+{
+  "_readme": "人工維護。鍵：schema.table、schema.table.column、schema.function()；schema.table.* 是該表所有欄位的預設說明。值：一句說明，或 {desc, source, trust, values}。trust：raw／derived／imputed／analysis。改完重跑 uv run python -m trend_detective.pg_schema_doc。",
+  "meta.sources": {
+    "desc": "資料來源（取得管道）的清單，一列一個來源；meta.series.source_api 的外鍵指到這裡。",
+    "source": "pg load（pg.py 的 SOURCE_DESCRIPTIONS；觀測來源的說明在 observed.py）",
+    "trust": "raw"
+  },
+  "meta.sources.id": {
+    "desc": "來源名稱。",
+    "values": {
+      "giovanni": "NASA Giovanni /timeseries 的單點月序列",
+      "harmony": "NASA Harmony 的 bbox 區域平均",
+      "nasa_power": "NASA POWER 月資料點位 API",
+      "noaa_ghcnh": "NOAA GHCNh 逐時測站檔，算成月平均",
+      "appeears": "NASA AppEEARS 每個 MODIS 合成期的區域統計",
+      "planetary_computer": "Microsoft Planetary Computer 上的 MODIS COG，本機算統計",
+      "grid": "由全球格點立方體在本機算的面積加權區域平均",
+      "noaa_ghcnm": "NOAA GHCN-Monthly v4 測站月均溫",
+      "gistemp": "NASA GISTEMP v4 格點溫度距平與官方全球、半球平均",
+      "smap": "NASA SMAP L3 土壤水（只登記來源，沒有序列）"
+    }
+  },
+  "meta.sources.raw_table": "這個來源原始粒度資料所在的表（raw.<來源>）。觀測來源（noaa_ghcnm、gistemp、smap）是 NULL：沒有 raw 表，原始檔在 data/raw/<來源>/。",
+  "meta.sources.description_en": "來源的一句英文說明。",
+  "meta.variables": {
+    "desc": "變數（一個產品的一個物理量或輔助量）的清單與中繼資料，一列一個變數。",
+    "source": "pg load。核心來自 data/snapshot/catalog.json（源頭是 data/seed/variables.json），擴充來自 data/extended/catalog.json（源頭是 variables.extended.json 與 grid_variables.json），觀測來源來自 data/seed/sources/*.json；同一個 id 以核心為準",
+    "trust": "raw"
+  },
+  "meta.variables.id": "變數 id，例如 merra2_t2m、gldas_tair、airs3stm_7_0_cloudfrc_a。",
+  "meta.variables.name_zh": "中文名稱。擴充變數多數還沒翻譯（needs_translation = true 時這裡暫放英文名）。",
+  "meta.variables.name_en": "英文名稱（多數取自產品的 metadata）。",
+  "meta.variables.definition_zh": "中文定義。擴充變數多數是空的。",
+  "meta.variables.category": "seed 裡人工寫的中文分類；擴充變數多數是「待分類」。要用分類請改用 category_path。",
+  "meta.variables.unit": "變數的單位字串（seed 或產品 metadata 的寫法，未統一；例如 K、kg m-2 s-1、mm/hr）。每條序列實際的單位在 meta.series.unit。",
+  "meta.variables.source": "seed 宣告的主要取得管道（giovanni、grid、appeears…）。同一個變數的不同序列可能來自不同管道，以 meta.series.source_api 為準。",
+  "meta.variables.source_variable_id": "來源那邊的變數識別字（例如 Giovanni 的資料 id）。",
+  "meta.variables.product": "產品名稱（例如 MERRA-2 M2TMNXSLV、GLDAS_NOAH025_M）。",
+  "meta.variables.product_version": "產品版本。",
+  "meta.variables.native_temporal_res": {
+    "desc": "產品原生的時間解析度；資料庫裡的序列一律已彙整成月。",
+    "values": {
+      "month": "月",
+      "day": "日",
+      "8day": "8 日合成",
+      "16day": "16 日合成",
+      "hour": "逐時（測站）"
+    }
+  },
+  "meta.variables.is_nasa": "是否為 NASA 的資料產品（送件清單用）。",
+  "meta.variables.doi": "產品的 DOI。",
+  "meta.variables.citation": "產品的引用文字。",
+  "meta.variables.note_zh": "隊伍寫的中文備註。",
+  "meta.variables.tier": {
+    "desc": "這個變數最先出現在哪一層（核心已有的變數在擴充與觀測裡不會覆蓋）。序列的層看 meta.series.tier。",
+    "values": {
+      "core": "核心快照（data/snapshot/，進 git，網站讀的那 133 條；台灣的點位、區域與 2 個測站）",
+      "extended": "擴充資料（data/extended/，不進 git；Giovanni 全部月資料變數 × 全球、世界區域、世界城市、台灣，以及格點算出的區域平均）",
+      "observed": "觀測來源（data/observed/，不進 git；GISTEMP、GHCNm、台灣另外 4 個 GHCNh 測站）"
+    }
+  },
+  "meta.variables.needs_translation": "true：中文名稱、定義、分類還沒由隊伍寫（程式產生的擴充變數）。",
+  "meta.variables.is_auxiliary": "true：輔助變數——觀測筆數（_ct、airs_totalcounts_*）、標準差（_sdev）、變異數（merra2_var_*）、OMI 觀測幾何（天頂角）、IMERG 品質欄位。由 meta.known_issues 裡 kind = 'auxiliary' 的規則（variable_pattern）在載入時算出。它們的趨勢反映取樣或演算法的變化，不是物理量；建模與評估時應排除或另外處理。",
+  "meta.variables.attributes": "seed 裡其餘各來源不同的欄位，原樣放 JSONB。出現過的鍵：aggregation／aggregations、appeears_qa、baseline、cmr_collection、data_start、harmony_collection、harmony_skip_regions、lat_resolution、lon_resolution、pc_collection、pc_item_prefix、point_source、source_long_name、valid_from、valid_to、valid_range（觀測層的 5 個變數另有 data_kind、data_kind_note，是來源宣告檔帶進來的；請以同名的正規欄位為準）。",
+  "meta.variables.data_kind": {
+    "desc": "資料的性質，依產品判定（規則在 data/seed/data_kinds.json，依變數 id 與產品名稱比對，先符合的為準）。只代表資料怎麼來的，不代表品質高低。",
+    "values": {
+      "in_situ": "現場儀器實測（GHCNh 測站、GHCNm、GISTEMP）",
+      "satellite_retrieval": "衛星反演，含與雨量站合併的產品（MODIS、AIRS、OMI、IMERG、SMAP）",
+      "model": "模式或再分析推算（GLDAS、FLDAS、MERRA-2、NASA POWER）",
+      "unknown": "規則判斷不了（目前沒有）"
+    }
+  },
+  "meta.variables.data_kind_note": "判定的依據（符合的那條規則的說明）。例如 gldas_tair 註明它是模式的強迫輸入（NOAA GDAS 分析），不是陸面模式算出來的量。",
+  "meta.variables.category_path": "變數在分類樹的位置（ltree，例如 atmosphere.temperature.near_surface、land.water、auxiliary.count）。由 data/seed/variable_taxonomy.json 的規則算出（taxonomy.py）。最上層有 atmosphere、land、auxiliary。",
+  "meta.variables.category_basis": "category_path 怎麼來的：manual（核心變數與觀測來源的變數，人工指定）、rule:<第幾條規則>、unclassified。",
+  "meta.locations": {
+    "desc": "地點的清單，一列一個地點：點位（城市、測站）或區域（經緯度方框）。",
+    "source": "pg load。核心來自 data/seed/locations.json，世界地點來自 locations.world.json，觀測來源的新地點來自 data/seed/sources/*.json",
+    "trust": "raw"
+  },
+  "meta.locations.id": "地點 id，例如 taipei、taiwan、global、europe、london、stn_twi0000rckh。",
+  "meta.locations.kind": {
+    "desc": "地點的形狀。",
+    "values": {
+      "point": "一個座標（城市點位或測站）",
+      "region": "經緯度方框（bbox）；沒有陸地遮罩"
+    }
+  },
+  "meta.locations.location_group": {
+    "desc": "地點群組。",
+    "values": {
+      "taiwan": "台灣的點位、區域與測站",
+      "global": "全球（觀測來源另有南北半球）",
+      "world_region": "各洲、北極圈以北、熱帶的簡化方框",
+      "world_city": "12 個世界城市",
+      "NULL": "核心的 2 個測站地點（taipei_station、taichung_station）沒有填群組"
+    }
+  },
+  "meta.locations.name_zh": "中文名稱。",
+  "meta.locations.name_en": "英文名稱。",
+  "meta.locations.lat": "點位的緯度（度，北正）；區域是 NULL。這是「請求的」座標，資料實際所在的格點中心在 meta.series.grid_lat／grid_lon。",
+  "meta.locations.lon": "點位的經度（度，東正）；區域是 NULL。",
+  "meta.locations.bbox_w": "區域方框的西緣經度；點位是 NULL。",
+  "meta.locations.bbox_s": "區域方框的南緣緯度。",
+  "meta.locations.bbox_e": "區域方框的東緣經度。",
+  "meta.locations.bbox_n": "區域方框的北緣緯度。",
+  "meta.locations.tier": {
+    "desc": "這個地點最先出現在哪一層。",
+    "values": {
+      "core": "核心快照（data/snapshot/，進 git，網站讀的那 133 條；台灣的點位、區域與 2 個測站）",
+      "extended": "擴充資料（data/extended/，不進 git；Giovanni 全部月資料變數 × 全球、世界區域、世界城市、台灣，以及格點算出的區域平均）",
+      "observed": "觀測來源（data/observed/，不進 git；GISTEMP、GHCNm、台灣另外 4 個 GHCNh 測站）"
+    }
+  },
+  "meta.locations.attributes": "seed 裡其餘的欄位（JSONB）。出現過的鍵：inland_direction（靠海格點被遮罩時往哪個方向內移一格）、island、note_zh、region、elevation_m、ghcnh_id（測站代碼）。",
+  "meta.series": {
+    "desc": "序列的清單，一列一條月序列＝一個變數 × 一個地點 × 一種聚合方式。其他表都用 series_id 指到這裡。",
+    "source": "pg load（每條序列檔一列；序列檔在 data/snapshot/series/、data/extended/series/、data/observed/<來源>/series/）",
+    "trust": "raw"
+  },
+  "meta.series.series_id": "序列的整數鍵，對到 meta.series.series_id。每次 pg load 依 (tier, 變數__地點__聚合方式) 排序重新編號；新增序列後同一條序列的編號可能改變，跨次比對請用 (variable_id, location_id, aggregation)。",
+  "meta.series.variable_id": "變數，對到 meta.variables.id。",
+  "meta.series.location_id": "地點，對到 meta.locations.id。",
+  "meta.series.aggregation": {
+    "desc": "值是怎麼從空間上得到的。(variable_id, location_id, aggregation) 唯一。",
+    "values": {
+      "point": "單一格點（Giovanni、POWER 的點位；MODIS 點位是以該點為中心的小視窗平均；GISTEMP 是點所在的 2° 格；GHCNm 是配到該城市的測站）",
+      "station": "GHCNh 測站的月平均",
+      "area_mean": "區域平均：Harmony 的 bbox 平均、AppEEARS／Planetary Computer 的區域統計，或 GISTEMP 官方的全球與半球平均",
+      "area_mean_grid": "由全球格點立方體在本機算的區域平均（cos 緯度加權，bbox 內有值的格子）"
+    }
+  },
+  "meta.series.tier": {
+    "desc": "資料層。",
+    "values": {
+      "core": "核心快照（data/snapshot/，進 git，網站讀的那 133 條；台灣的點位、區域與 2 個測站）",
+      "extended": "擴充資料（data/extended/，不進 git；Giovanni 全部月資料變數 × 全球、世界區域、世界城市、台灣，以及格點算出的區域平均）",
+      "observed": "觀測來源（data/observed/，不進 git；GISTEMP、GHCNm、台灣另外 4 個 GHCNh 測站）"
+    }
+  },
+  "meta.series.source_api": "這條序列的取得管道，對到 meta.sources.id。",
+  "meta.series.unit": "這條序列的值的單位（序列檔的 unit）。",
+  "meta.series.product_version": "產品版本（序列檔的 product_version）。",
+  "meta.series.retrieved_at": "序列內容上次變動的取得時間。清洗用它判定 partial_month：這個時間所在的月份及之後的月份視為還沒過完。",
+  "meta.series.grid_lat": "資料實際所在的格點中心緯度（序列檔的 grid.lat）；可能與請求的座標不同。沒有的來源是 NULL。",
+  "meta.series.grid_lon": "資料實際所在的格點中心經度。",
+  "meta.series.n_points": "序列檔裡的列數（含值是 null 的月份）；等於 obs.observations 裡這條序列的列數。",
+  "meta.series.first_month": "序列檔第一個月（月初日期）。",
+  "meta.series.last_month": "序列檔最後一個月。",
+  "meta.series.request": "取得這條序列時的查詢參數，原樣放 JSONB，各來源形狀不同。giovanni：data、start、end_policy、location、requested_location；harmony：collection、variable、bbox、average、format、start、end_policy；nasa_power：parameters、community、latitude、longitude、sources、api_version…；noaa_ghcnh：station、station_name、element、file_urls、local_day_utc_offset_hours、min_days_per_month、observations_per_year…；appeears：product、layer、bbox、tasks；planetary_computer：collection、asset、bbox 或 location、window_pixels、tiles、n_composites…；grid：cube_id、product、variable、bbox、weights、cell_selection、n_cells、grid、cube_first_month、cube_last_month…；gistemp：product、file、cell_center、cell_size_deg、baseline、smoothing_radius_km、land_only…；noaa_ghcnm：station_id、station_name、distance_km、match_rule、accepted_qc_flags、qc_flag_counts…。",
+  "meta.known_issues": {
+    "desc": "已查證的資料問題，一列一筆。規則是資料：內容來自 data/seed/cleaning.json 的 known_issues，數字與出處在 source_doc 指的文件。清洗只「標記」，不修正資料。",
+    "source": "pg load（讀 data/seed/cleaning.json）",
+    "trust": "raw"
+  },
+  "meta.known_issues.id": "問題的 id，例如 gldas_tair_step_2011_05。clean.series_summary.known_issues、analysis.trends.known_issues 存的就是這個 id。",
+  "meta.known_issues.kind": {
+    "desc": "問題的種類。",
+    "values": {
+      "discontinuity": "階梯式不連續（gldas_tair 三個月份、gldas_evap 2024-07 至 2025-06）",
+      "product_disagreement": "兩個產品的趨勢不一致（gldas_soilmoist 與 FLDAS 正負相反），分不出哪個接近真實",
+      "missing_composites": "來源缺合成期（Planetary Computer 的 MODIS LST）",
+      "auxiliary": "輔助變數的規則（用 variable_pattern 比對）；meta.variables.is_auxiliary 由它算出",
+      "sampling_change": "觀測頻率或時刻組成改變（高雄國際機場測站）",
+      "no_data": "這個來源在這裡沒有可用資料（GISTEMP 僅陸地版、GHCNm 台灣、SMAP 台灣）"
+    }
+  },
+  "meta.known_issues.variable_id": "適用的變數（完全相符）。與 variable_pattern 二擇一。",
+  "meta.known_issues.variable_pattern": "適用的變數（POSIX 正規表示式，比對變數 id）。",
+  "meta.known_issues.aggregation": "只適用這一種聚合方式；NULL 是全部。",
+  "meta.known_issues.period_start": "問題期間的起始月；NULL 表示整條序列。",
+  "meta.known_issues.period_end": "問題期間的結束月（含）。",
+  "meta.known_issues.flag_months": "true：期間內的可用月份在 clean.observations 標 known_discontinuity。false：只是整條序列的註記。",
+  "meta.known_issues.summary_en": "英文摘要，含查證到的數字。",
+  "meta.known_issues.source_doc": "數字與做法的出處文件（repo 內的路徑）。",
+  "meta.known_issues.issue_ref": "相關的 GitHub issue。",
+  "meta.known_issues.break_months": "已查證的跳變月份（新的一段從這個月開始）。只有兩筆 discontinuity 有；探勘的分段距平敏感度比較用它切段，清洗與趨勢統計不用。這些月份是用全球陸地平均查證的，對個別格點不一定適用。",
+  "meta.known_issues.location_pattern": "只適用地點 id 符合這個正規表示式的序列；NULL 是全部地點。",
+  "meta.cleaning_rules": {
+    "desc": "清洗的門檻，一列一個參數。內容來自 data/seed/cleaning.json 的 rules。",
+    "source": "pg load",
+    "trust": "raw"
+  },
+  "meta.cleaning_rules.name": {
+    "desc": "參數名稱。",
+    "values": {
+      "min_coverage": "0.25：coverage 低於它的月份標 low_coverage、不用",
+      "outlier_z": "5：穩健 z 分數絕對值超過它標 outlier_suspect（只標記）",
+      "max_linear_gap_months": "2：連續缺不超過這麼多個月用線性內插補距平，更長補 0",
+      "max_fill_fraction": "0.2：補值比例超過它的序列 mining_eligible = false"
+    }
+  },
+  "meta.cleaning_rules.value": "門檻的數值。",
+  "meta.cleaning_rules.note_en": "英文說明（seed 的 rule_notes）。",
+  "meta.series_known_issues": {
+    "desc": "每條序列適用哪些已知問題：meta.series 與 meta.known_issues 依變數（id 或正規表示式）、聚合方式、地點比對後的結果，一列是一條序列 × 一筆問題。包含 kind = 'auxiliary' 的規則。",
+    "source": "view（022_observed.sql）",
+    "trust": "derived"
+  },
+  "meta.series_known_issues.series_id": "序列。",
+  "meta.series_known_issues.variable_id": "序列的變數。",
+  "meta.series_known_issues.location_id": "序列的地點。",
+  "meta.series_known_issues.aggregation": "序列的聚合方式。",
+  "meta.series_known_issues.issue_id": "meta.known_issues.id。",
+  "meta.series_known_issues.kind": "問題的種類（見 meta.known_issues.kind）。",
+  "meta.series_known_issues.period_start": "問題期間起始月。",
+  "meta.series_known_issues.period_end": "問題期間結束月。",
+  "meta.series_known_issues.flag_months": "期間內的月份是否有旗標。",
+  "meta.series_known_issues.summary_en": "英文摘要。",
+  "meta.series_known_issues.source_doc": "出處文件。",
+  "meta.category_tree": {
+    "desc": "變數分類樹的每個節點（含中間節點）與它底下的變數數、序列數。",
+    "source": "view（010_ltree.sql）",
+    "trust": "derived"
+  },
+  "meta.category_tree.path": "節點的 ltree 路徑。",
+  "meta.category_tree.depth": "層數（最上層是 1）。",
+  "meta.category_tree.n_variables": "這個節點底下（含子節點）的變數數。",
+  "meta.category_tree.n_series": "這個節點底下的序列數。",
+  "meta.display_units": {
+    "desc": "有顯示用單位換算的變數（K → degC、kg m-2 s-1 → mm/day、mm/hr → mm/day、Pa → hPa）。只是顯示，資料庫裡的值沒有換。",
+    "source": "view（021_unit.sql）",
+    "trust": "derived"
+  },
+  "meta.display_units.variable_id": "變數。",
+  "meta.display_units.unit": "原本的單位。",
+  "meta.display_units.display_unit": "顯示用的單位；用 meta.convert_unit() 換算。",
+  "meta.search_documents": {
+    "desc": "BM25 全文搜尋用的文件：每個變數、每個產品、每筆已知問題各一列，給 meta.search_text() 查。",
+    "source": "pg load 之後呼叫 meta.refresh_search_documents()（由 meta.variables 與 meta.known_issues 重建）",
+    "trust": "derived"
+  },
+  "meta.search_documents.doc_id": "流水號（每次重建重新編）。",
+  "meta.search_documents.kind": {
+    "desc": "文件種類。",
+    "values": {
+      "variable": "一個變數",
+      "product": "一個產品",
+      "known_issue": "一筆已知問題"
+    }
+  },
+  "meta.search_documents.ref_id": "對應的變數 id、產品名稱或已知問題 id。",
+  "meta.search_documents.title": "顯示用的標題。",
+  "meta.search_documents.body": "被索引的英文文字（名稱、單位、產品、分類、data_kind、引用、問題摘要等串起來）。",
+  "raw.giovanni": {
+    "desc": "來源 giovanni 原始粒度的資料：Giovanni /timeseries 回應的每一列（單點月值；OMI 等日資料產品是日值）。對應 SQLite 匯出的 src_giovanni。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.giovanni.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.giovanni.location_id": "地點 id（沒有外鍵）。",
+  "raw.giovanni.obs_key": "這個來源自己的時間鍵（文字）：時間戳（ISO 日期）。",
+  "raw.giovanni.value": "該列的主要數值：該時間的值。",
+  "raw.giovanni.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：unit、grid_lat、grid_lon（資料實際所在的格點中心）。值是 NULL 的鍵不寫入。",
+  "raw.harmony": {
+    "desc": "來源 harmony 原始粒度的資料：Harmony 區域平均 job 的結果 CSV 每一列。對應 SQLite 匯出的 src_harmony。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.harmony.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.harmony.location_id": "地點 id（沒有外鍵）。",
+  "raw.harmony.obs_key": "這個來源自己的時間鍵（文字）：時間戳。",
+  "raw.harmony.value": "該列的主要數值：bbox 的區域平均。",
+  "raw.harmony.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：bbox_w、bbox_s、bbox_e、bbox_n、source_column（結果 CSV 的欄名）。值是 NULL 的鍵不寫入。",
+  "raw.nasa_power": {
+    "desc": "來源 nasa_power 原始粒度的資料：NASA POWER 回應的每一個期別。對應 SQLite 匯出的 src_nasa_power。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.nasa_power.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.nasa_power.location_id": "地點 id（沒有外鍵）。",
+  "raw.nasa_power.obs_key": "這個來源自己的時間鍵（文字）：期別 YYYYMM（月份 13 是年平均，payload.is_annual_mean = 1）。",
+  "raw.nasa_power.value": "該列的主要數值：月值（或年平均）。",
+  "raw.nasa_power.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：unit、is_annual_mean（0／1）。值是 NULL 的鍵不寫入。",
+  "raw.noaa_ghcnh": {
+    "desc": "來源 noaa_ghcnh 原始粒度的資料：GHCNh 測站的當地日日平均（只收核心與擴充的測站；觀測層的 4 個新測站沒有載入這裡）。對應 SQLite 匯出的 src_noaa_ghcnh。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.noaa_ghcnh.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.noaa_ghcnh.location_id": "地點 id（沒有外鍵）。",
+  "raw.noaa_ghcnh.obs_key": "這個來源自己的時間鍵（文字）：當地日（YYYY-MM-DD）。",
+  "raw.noaa_ghcnh.value": "該列的主要數值：日平均氣溫（°C）。",
+  "raw.noaa_ghcnh.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：n_obs（當天的觀測筆數）、station_id。值是 NULL 的鍵不寫入。",
+  "raw.appeears": {
+    "desc": "來源 appeears 原始粒度的資料：AppEEARS 每個 MODIS 合成期 × 區域的統計。對應 SQLite 匯出的 src_appeears。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.appeears.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.appeears.location_id": "地點 id（沒有外鍵）。",
+  "raw.appeears.obs_key": "這個來源自己的時間鍵（文字）：合成期起始日。",
+  "raw.appeears.value": "該列的主要數值：區域平均（已套用 scale factor）。",
+  "raw.appeears.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：dataset（圖層名）、pixel_count、minimum、maximum、median、standard_deviation。值是 NULL 的鍵不寫入。",
+  "raw.planetary_computer": {
+    "desc": "來源 planetary_computer 原始粒度的資料：Planetary Computer 的 MODIS COG 在本機算的每個合成期 × 地點的統計。對應 SQLite 匯出的 src_planetary_computer。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.planetary_computer.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.planetary_computer.location_id": "地點 id（沒有外鍵）。",
+  "raw.planetary_computer.obs_key": "這個來源自己的時間鍵（文字）：合成期起始日。",
+  "raw.planetary_computer.value": "該列的主要數值：區域（或點位視窗）平均。",
+  "raw.planetary_computer.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：asset、pixel_count、pixels_in_bbox、minimum、maximum、standard_deviation、tiles、item_ids。值是 NULL 的鍵不寫入。",
+  "raw.grid": {
+    "desc": "來源 grid 原始粒度的資料：格點區域平均的月值（由序列檔自己填入；立方體本身不進資料庫）。對應 SQLite 匯出的 src_grid。月序列（obs.observations）是由這個粒度彙整來的；這張表給查證用，建模一般用不到。",
+    "source": "pg load（重用 sqlite_export.py 的解析，讀 data/raw/ 與序列檔）",
+    "trust": "raw"
+  },
+  "raw.grid.variable_id": "變數 id（沒有外鍵；與 meta.variables.id 相同的寫法）。",
+  "raw.grid.location_id": "地點 id（沒有外鍵）。",
+  "raw.grid.obs_key": "這個來源自己的時間鍵（文字）：月份（月初日期）。",
+  "raw.grid.value": "該列的主要數值：區域平均。",
+  "raw.grid.payload": "這個來源才有的欄位（JSONB，GIN 索引，可用 @> 查）：cube_id（格點 seed 的 id）、n_cells（bbox 內的格子數）、coverage（有值格子的權重和 ÷ 全部格子的權重和）。值是 NULL 的鍵不寫入。",
+  "raw.file_planetary_computer_modis_lst": {
+    "desc": "file_fdw 的 foreign table：直接讀容器裡 /data/raw/planetary_computer/modis_lst/stats.csv（主機的 data/raw/planetary_computer，唯讀掛載）。查詢時才讀檔；沒有掛那個目錄的機器查它會報找不到檔案。只用來和 raw.planetary_computer 核對。",
+    "source": "不寫入（外部檔案；由 planetary_computer fetch 產生）",
+    "trust": "raw"
+  },
+  "raw.file_planetary_computer_modis_lst.date": "合成期起始日。",
+  "raw.file_planetary_computer_modis_lst.location_id": "地點 id。",
+  "raw.file_planetary_computer_modis_lst.asset": "COG 的資產名（圖層）。",
+  "raw.file_planetary_computer_modis_lst.count": "有值的像元數。",
+  "raw.file_planetary_computer_modis_lst.mean": "平均（已套用 scale factor）。",
+  "raw.file_planetary_computer_modis_lst.standard_deviation": "標準差。",
+  "raw.file_planetary_computer_modis_lst.minimum": "最小值。",
+  "raw.file_planetary_computer_modis_lst.maximum": "最大值。",
+  "raw.file_planetary_computer_modis_lst.pixels_in_bbox": "bbox（或視窗）內的像元總數。",
+  "raw.file_planetary_computer_modis_lst.tiles": "用到的 MODIS tile。",
+  "raw.file_planetary_computer_modis_lst.item_ids": "用到的 STAC item id。",
+  "raw.file_planetary_computer_modis_lst_pc": {
+    "desc": "file_fdw 的 foreign table：直接讀容器裡 /data/raw/planetary_computer/modis_lst_pc/stats.csv（主機的 data/raw/planetary_computer，唯讀掛載）。查詢時才讀檔；沒有掛那個目錄的機器查它會報找不到檔案。只用來和 raw.planetary_computer 核對。",
+    "source": "不寫入（外部檔案；由 planetary_computer fetch 產生）",
+    "trust": "raw"
+  },
+  "raw.file_planetary_computer_modis_lst_pc.date": "合成期起始日。",
+  "raw.file_planetary_computer_modis_lst_pc.location_id": "地點 id。",
+  "raw.file_planetary_computer_modis_lst_pc.asset": "COG 的資產名（圖層）。",
+  "raw.file_planetary_computer_modis_lst_pc.count": "有值的像元數。",
+  "raw.file_planetary_computer_modis_lst_pc.mean": "平均（已套用 scale factor）。",
+  "raw.file_planetary_computer_modis_lst_pc.standard_deviation": "標準差。",
+  "raw.file_planetary_computer_modis_lst_pc.minimum": "最小值。",
+  "raw.file_planetary_computer_modis_lst_pc.maximum": "最大值。",
+  "raw.file_planetary_computer_modis_lst_pc.pixels_in_bbox": "bbox（或視窗）內的像元總數。",
+  "raw.file_planetary_computer_modis_lst_pc.tiles": "用到的 MODIS tile。",
+  "raw.file_planetary_computer_modis_lst_pc.item_ids": "用到的 STAC item id。",
+  "raw.file_planetary_computer_modis_ndvi": {
+    "desc": "file_fdw 的 foreign table：直接讀容器裡 /data/raw/planetary_computer/modis_ndvi/stats.csv（主機的 data/raw/planetary_computer，唯讀掛載）。查詢時才讀檔；沒有掛那個目錄的機器查它會報找不到檔案。只用來和 raw.planetary_computer 核對。",
+    "source": "不寫入（外部檔案；由 planetary_computer fetch 產生）",
+    "trust": "raw"
+  },
+  "raw.file_planetary_computer_modis_ndvi.date": "合成期起始日。",
+  "raw.file_planetary_computer_modis_ndvi.location_id": "地點 id。",
+  "raw.file_planetary_computer_modis_ndvi.asset": "COG 的資產名（圖層）。",
+  "raw.file_planetary_computer_modis_ndvi.count": "有值的像元數。",
+  "raw.file_planetary_computer_modis_ndvi.mean": "平均（已套用 scale factor）。",
+  "raw.file_planetary_computer_modis_ndvi.standard_deviation": "標準差。",
+  "raw.file_planetary_computer_modis_ndvi.minimum": "最小值。",
+  "raw.file_planetary_computer_modis_ndvi.maximum": "最大值。",
+  "raw.file_planetary_computer_modis_ndvi.pixels_in_bbox": "bbox（或視窗）內的像元總數。",
+  "raw.file_planetary_computer_modis_ndvi.tiles": "用到的 MODIS tile。",
+  "raw.file_planetary_computer_modis_ndvi.item_ids": "用到的 STAC item id。",
+  "raw.file_planetary_computer_modis_ndvi_pc": {
+    "desc": "file_fdw 的 foreign table：直接讀容器裡 /data/raw/planetary_computer/modis_ndvi_pc/stats.csv（主機的 data/raw/planetary_computer，唯讀掛載）。查詢時才讀檔；沒有掛那個目錄的機器查它會報找不到檔案。只用來和 raw.planetary_computer 核對。",
+    "source": "不寫入（外部檔案；由 planetary_computer fetch 產生）",
+    "trust": "raw"
+  },
+  "raw.file_planetary_computer_modis_ndvi_pc.date": "合成期起始日。",
+  "raw.file_planetary_computer_modis_ndvi_pc.location_id": "地點 id。",
+  "raw.file_planetary_computer_modis_ndvi_pc.asset": "COG 的資產名（圖層）。",
+  "raw.file_planetary_computer_modis_ndvi_pc.count": "有值的像元數。",
+  "raw.file_planetary_computer_modis_ndvi_pc.mean": "平均（已套用 scale factor）。",
+  "raw.file_planetary_computer_modis_ndvi_pc.standard_deviation": "標準差。",
+  "raw.file_planetary_computer_modis_ndvi_pc.minimum": "最小值。",
+  "raw.file_planetary_computer_modis_ndvi_pc.maximum": "最大值。",
+  "raw.file_planetary_computer_modis_ndvi_pc.pixels_in_bbox": "bbox（或視窗）內的像元總數。",
+  "raw.file_planetary_computer_modis_ndvi_pc.tiles": "用到的 MODIS tile。",
+  "raw.file_planetary_computer_modis_ndvi_pc.item_ids": "用到的 STAC item id。",
+  "raw.file_planetary_computer": {
+    "desc": "上面四張 foreign table 合成一張，多一欄 variable_id。",
+    "source": "view（018_file_fdw.sql）",
+    "trust": "raw"
+  },
+  "raw.file_planetary_computer.variable_id": "來自哪個變數的 stats.csv。",
+  "raw.file_planetary_computer.date": "合成期起始日。",
+  "raw.file_planetary_computer.location_id": "地點 id。",
+  "raw.file_planetary_computer.asset": "COG 的資產名（圖層）。",
+  "raw.file_planetary_computer.count": "有值的像元數。",
+  "raw.file_planetary_computer.mean": "平均（已套用 scale factor）。",
+  "raw.file_planetary_computer.standard_deviation": "標準差。",
+  "raw.file_planetary_computer.minimum": "最小值。",
+  "raw.file_planetary_computer.maximum": "最大值。",
+  "raw.file_planetary_computer.pixels_in_bbox": "bbox（或視窗）內的像元總數。",
+  "raw.file_planetary_computer.tiles": "用到的 MODIS tile。",
+  "raw.file_planetary_computer.item_ids": "用到的 STAC item id。",
+  "obs.observations": {
+    "desc": "統一的月觀測表：一列是 序列 × 月份，值與序列檔逐值相同（沒有任何清洗）。只有來源有的月份才有列；缺月沒有列。TimescaleDB hypertable，依 month 每 5 年一個 chunk。要清洗後的值請用 clean.observations。",
+    "source": "pg load（COPY 自各序列檔的 points）",
+    "trust": "raw"
+  },
+  "obs.observations.series_id": "序列的整數鍵，對到 meta.series.series_id。每次 pg load 依 (tier, 變數__地點__聚合方式) 排序重新編號；新增序列後同一條序列的編號可能改變，跨次比對請用 (variable_id, location_id, aggregation)。",
+  "obs.observations.month": "月份，一律是該月 1 號的日期。",
+  "obs.observations.value_raw": "來源的月值，單位見 meta.series.unit。序列檔裡是 null 的月份這裡也是 NULL。",
+  "obs.observations.n_samples": "這個月值由幾個樣本彙整而來；各來源定義不同：月資料產品是 1；日資料是當月有值的天數；MODIS 是當月有值的合成期數；測站是當月有效的日數（未逐一確認每個來源的定義，細節見 AGENTS.md「如何重新產生資料」）。",
+  "obs.observations.coverage": "0 到 1 的覆蓋率，各來源定義不同，不能跨來源比：日資料是當月有值的天數比例；Harmony 區域平均是「當天區域內至少一格有值」的天數比例；MODIS 是可用像元數 ÷ 該區域出現過的最大像元數；格點區域平均（area_mean_grid）是空間上的——有值格子的權重和 ÷ bbox 內全部格子的權重和（陸面模式約等於陸地比例）。清洗用單一門檻 0.25。",
+  "obs.observations.source_api": "取得管道（與 meta.series.source_api 相同，為了查詢方便重複存）。",
+  "obs.observations.tier": "資料層（與 meta.series.tier 相同）。",
+  "obs.yearly_mean": {
+    "desc": "每條序列逐年的平均與當年有值的月數（TimescaleDB continuous aggregate，time_bucket 1 年）。由 value_raw 算，沒有清洗、沒有檢查當年月數是否齊全——用之前請看 n_months。",
+    "source": "pg load 最後 refresh（004_obs.sql）",
+    "trust": "derived"
+  },
+  "obs.yearly_mean.series_id": "序列。",
+  "obs.yearly_mean.year": "該年 1 月 1 日。",
+  "obs.yearly_mean.mean_value": "當年有值月份 value_raw 的算術平均（各月等權，不管月份天數）。",
+  "obs.yearly_mean.n_months": "當年 value_raw 不是 NULL 的月數（最多 12）。",
+  "clean.observations": {
+    "desc": "清洗結果，建模主要用這張。一列是 序列 × 骨架月份：每條序列從第一個到最後一個有列的月份之間，每個月都有一列（來源缺的月份也補出一列，in_source = false）。原始值不覆蓋，判斷都寫在旁邊的欄位。算法只有一處：src/trend_detective/cleaning.py（純函式）。",
+    "source": "pg clean（讀 obs.observations，呼叫 cleaning.clean_series，整批換新）",
+    "trust": "imputed"
+  },
+  "clean.observations.series_id": "序列的整數鍵，對到 meta.series.series_id。每次 pg load 依 (tier, 變數__地點__聚合方式) 排序重新編號；新增序列後同一條序列的編號可能改變，跨次比對請用 (variable_id, location_id, aggregation)。",
+  "clean.observations.month": "月份（該月 1 號）。",
+  "clean.observations.in_source": "true：obs.observations 有這一列。false：來源沒有這個月，是骨架補出來的列（value_raw 是 NULL、qc_flag 是 missing）。全庫 2,972 列是 false。",
+  "clean.observations.value_raw": "來源的值，與 obs.observations.value_raw 相同，永不修改。骨架補出來的月份是 NULL。",
+  "clean.observations.value_clean": "清洗後可用的值：missing、partial_month、low_coverage 的月份是 NULL，其餘等於 value_raw（沒有改任何數值，outlier_suspect 與 known_discontinuity 只標記）。趨勢檢定用這一欄，不補值。",
+  "clean.observations.qc_flag": {
+    "desc": "這個月「優先序最高」的一個品質旗標（單一值，方便篩選）。優先序由高到低如下；同一個月可能同時符合多個，全部列在 qc_flags。",
+    "values": {
+      "missing": "骨架裡有這個月，但來源沒有這一列（in_source = false），或有列但值是 NULL。value_clean 是 NULL",
+      "partial_month": "有值，但這個月在取得資料時（meta.series.retrieved_at 所在的月份及之後）還沒過完。value_clean 是 NULL",
+      "low_coverage": "有值、不是 partial_month，但 coverage < min_coverage（0.25）。value_clean 是 NULL",
+      "outlier_suspect": "可用月份裡，去季節距平的穩健 z 分數 0.6745 × (anomaly − 中位數) ÷ MAD 的絕對值 > outlier_z（5）。只標記，value_clean 保留；門檻沒有先去趨勢",
+      "known_discontinuity": "可用月份落在 meta.known_issues 裡 flag_months = true 的期間（目前只有 gldas_tair 的 2011-05、2017-07、2019-06 與 gldas_evap 的 2024-07 至 2025-06）。只標記，value_clean 保留",
+      "ok": "以上都不成立"
+    }
+  },
+  "clean.observations.qc_flags": "這個月「全部成立」的旗標（text[]）。前三個（missing、partial_month、low_coverage）互斥，所以實際會同時出現的只有 outlier_suspect 與 known_discontinuity；都不成立時是 {ok}。qc_flag 永遠等於這個陣列的第一個元素。要找「被標成離群」的月份請用 'outlier_suspect' = ANY (qc_flags)，不要只看 qc_flag。",
+  "clean.observations.anomaly": "月距平：value_clean 減去同一條序列、同一個日曆月（1 至 12 月）所有可用年份 value_clean 的平均。value_clean 是 NULL 時是 NULL。月氣候值用整條序列全期估計（含 2026 年），所以拿它當特徵或目標時有輕微的未來資訊；嚴格的實驗要自己用訓練期重算（由 value_clean 與 clean.monthly_climatology 的算法）。與 trends.py 的月距平同一個算法。",
+  "clean.observations.anomaly_filled": "補值後的距平，只給資料探勘這類需要完整月份表的用途：原本有 anomaly 的月份等於 anomaly；缺口（第一個到最後一個可用月份之間 anomaly 是 NULL 的連續月份）長度 ≤ 2 個月時，用前後兩個可用月份的距平照月份位置等距線性內插；更長的缺口補 0（也就是月氣候值）；第一個可用月份之前與最後一個之後不外推，保持 NULL。不用「前一個月的值直接帶入」。哪些是補的看 fill_method。",
+  "clean.observations.fill_method": {
+    "desc": "anomaly_filled 這個月是不是補的。",
+    "values": {
+      "NULL": "不是補的（或這個月沒有 anomaly_filled）",
+      "linear": "短缺口（≤ 2 個月）線性內插",
+      "climatology": "長缺口補距平 0（月氣候值）"
+    }
+  },
+  "clean.observations.n_samples": "與 obs.observations.n_samples 相同；骨架補出來的月份是 NULL。",
+  "clean.observations.coverage": "與 obs.observations.coverage 相同；骨架補出來的月份是 NULL。",
+  "clean.series_summary": {
+    "desc": "每條序列的清洗摘要，一列一條序列：各旗標月數、補值數與方法、缺口、是否可進探勘、適用的已知問題。挑序列時先看這張。",
+    "source": "pg clean（cleaning.summarize）",
+    "trust": "derived"
+  },
+  "clean.series_summary.series_id": "序列。",
+  "clean.series_summary.n_months": "骨架的月數（第一個到最後一個有列的月份，含兩端）＝ clean.observations 裡這條序列的列數。",
+  "clean.series_summary.n_in_source": "來源有列的月數（in_source = true）。",
+  "clean.series_summary.n_usable": "可用月數（value_clean 不是 NULL）。等於 analysis.trends.n_valid。",
+  "clean.series_summary.first_usable_month": "第一個可用月份；沒有可用月份時是 NULL。",
+  "clean.series_summary.last_usable_month": "最後一個可用月份。",
+  "clean.series_summary.n_ok": "qc_flag = 'ok' 的月數。以下 n_<旗標> 都依 qc_flag（優先序最高的旗標）計數，加總等於 n_months。",
+  "clean.series_summary.n_missing": "qc_flag = 'missing' 的月數。",
+  "clean.series_summary.n_partial_month": "qc_flag = 'partial_month' 的月數。",
+  "clean.series_summary.n_low_coverage": "qc_flag = 'low_coverage' 的月數。",
+  "clean.series_summary.n_outlier_suspect": "qc_flag = 'outlier_suspect' 的月數（同時是 known_discontinuity 的月份算在這裡）。",
+  "clean.series_summary.n_known_discontinuity": "qc_flag = 'known_discontinuity' 的月數（不含同時被標離群的；要全部的數字看 detail->'n_by_any_flag'）。",
+  "clean.series_summary.n_filled": "補值的月數（n_filled_linear + n_filled_climatology）。",
+  "clean.series_summary.n_filled_linear": "線性內插補的月數。",
+  "clean.series_summary.n_filled_climatology": "補距平 0 的月數。",
+  "clean.series_summary.n_gaps": "缺口數（第一個到最後一個可用月份之間，連續不可用月份算一個缺口；頭尾的不算）。",
+  "clean.series_summary.longest_gap_months": "最長缺口的月數。",
+  "clean.series_summary.fill_fraction": "補值比例：n_filled ÷（第一個到最後一個可用月份之間的月數）。沒有可用月份時是 NULL。",
+  "clean.series_summary.mining_eligible": "true：fill_fraction ≤ max_fill_fraction（0.2）。false 的序列不進 clean.mining_input、沒有序列向量（全庫 255 條）。",
+  "clean.series_summary.auxiliary": "這條序列的變數是不是輔助變數（同 meta.variables.is_auxiliary）。",
+  "clean.series_summary.known_issues": "適用這條序列的 meta.known_issues.id（text[]；含 auxiliary 那一類的規則 id）。空陣列表示沒有。",
+  "clean.series_summary.detail": "完整摘要（JSONB）：上面各欄之外，另有 n_by_flag（依 qc_flag 計數）與 n_by_any_flag（依 qc_flags 計數，同一個月可算進多個旗標）。",
+  "clean.monthly_climatology": {
+    "desc": "每條序列 1 至 12 月的月氣候值：可用月份 value_clean 的平均。anomaly 就是 value_clean 減它。用整條序列全期估計。",
+    "source": "materialized view（006_clean.sql）；pg clean 之後 refresh，另由 pg_cron 每天 03:15 UTC refresh",
+    "trust": "derived"
+  },
+  "clean.monthly_climatology.series_id": "序列。",
+  "clean.monthly_climatology.calendar_month": "日曆月，1 至 12。",
+  "clean.monthly_climatology.mean_value": "該日曆月所有可用年份 value_clean 的平均。",
+  "clean.monthly_climatology.n_years": "該日曆月有幾個可用的年份。",
+  "clean.trend_input": {
+    "desc": "趨勢檢定的輸入（缺值政策 a：不補值）：clean.observations 裡 value_clean 不是 NULL 的月份，附序列身分。",
+    "source": "view",
+    "trust": "derived"
+  },
+  "clean.trend_input.series_id": "序列。",
+  "clean.trend_input.variable_id": "變數。",
+  "clean.trend_input.location_id": "地點。",
+  "clean.trend_input.aggregation": "聚合方式。",
+  "clean.trend_input.tier": "資料層。",
+  "clean.trend_input.month": "月份。",
+  "clean.trend_input.value_clean": "可用的值。",
+  "clean.trend_input.anomaly": "月距平。",
+  "clean.trend_input.qc_flag": "ok、outlier_suspect 或 known_discontinuity。",
+  "clean.trend_input.qc_flags": "全部成立的旗標。",
+  "clean.mining_input": {
+    "desc": "資料探勘的輸入（缺值政策 b：距平上補值）：mining_eligible 的序列裡 anomaly_filled 不是 NULL 的月份。含補出來的值。",
+    "source": "view",
+    "trust": "imputed"
+  },
+  "clean.mining_input.series_id": "序列。",
+  "clean.mining_input.variable_id": "變數。",
+  "clean.mining_input.location_id": "地點。",
+  "clean.mining_input.aggregation": "聚合方式。",
+  "clean.mining_input.tier": "資料層。",
+  "clean.mining_input.month": "月份。",
+  "clean.mining_input.anomaly_filled": "補值後的距平。",
+  "clean.mining_input.fill_method": "NULL、linear 或 climatology。",
+  "clean.toolkit_climatology": {
+    "desc": "用 timescaledb_toolkit 的 stats_agg 在 SQL 重算的月氣候值，只用來核對 Python 的清洗結果；不是第二套來源。",
+    "source": "view（013_timescaledb_toolkit.sql）",
+    "trust": "derived"
+  },
+  "clean.toolkit_climatology.series_id": "序列。",
+  "clean.toolkit_climatology.calendar_month": "日曆月。",
+  "clean.toolkit_climatology.mean_value": "平均。",
+  "clean.toolkit_climatology.n_years": "可用年數。",
+  "clean.toolkit_climatology.sd_value": "該日曆月各年 value_clean 的樣本標準差。",
+  "clean.toolkit_anomalies": {
+    "desc": "SQL 重算的距平與 Python 寫入的 anomaly 並排，核對用。",
+    "source": "view",
+    "trust": "derived"
+  },
+  "clean.toolkit_anomalies.series_id": "序列。",
+  "clean.toolkit_anomalies.month": "月份。",
+  "clean.toolkit_anomalies.anomaly_sql": "value_clean − clean.toolkit_climatology 的月氣候值。",
+  "clean.toolkit_anomalies.anomaly": "clean.observations.anomaly（Python 算的）。",
+  "geo.locations": {
+    "desc": "點位地點的 PostGIS 幾何（EPSG:4326）。只有有座標、沒有 bbox 的地點。",
+    "source": "pg load",
+    "trust": "raw"
+  },
+  "geo.locations.location_id": "地點，對到 meta.locations.id。",
+  "geo.locations.geom": "點（經度、緯度）。",
+  "geo.locations.h3_res3": "該點所在的 H3 解析度 3 六角格（generated column）。",
+  "geo.regions": {
+    "desc": "區域地點的多邊形：seed 的經緯度方框（台灣 5 區、全球、各洲、北極圈以北、熱帶、GISTEMP 的南北半球）。沒有陸地遮罩。",
+    "source": "pg load",
+    "trust": "raw"
+  },
+  "geo.regions.location_id": "地點。",
+  "geo.regions.location_group": "地點群組（同 meta.locations.location_group）。",
+  "geo.regions.geom": "方框的多邊形。",
+  "geo.regions.area_km2": "面積：球面經緯方框的解析式（R = 6371.0088 km），不是 ST_Area(geography)。",
+  "geo.grid_layers": {
+    "desc": "有趨勢地圖的 7 個核心變數（merra2_t2m、gldas_tair、gldas_evap、gldas_soilmoist、imerg_precip、airs_tsurf、airs_h2ovap）各一列：網格定義與趨勢的方法、參數、摘要。",
+    "source": "pg load（讀 data/grid/<變數>/meta.json）",
+    "trust": "analysis"
+  },
+  "geo.grid_layers.variable_id": "變數（格點 seed 的 id）。",
+  "geo.grid_layers.name_en": "英文名稱。",
+  "geo.grid_layers.slope_unit": "斜率的單位（每十年）。",
+  "geo.grid_layers.first_month": "趨勢期間第一個月（文字）。",
+  "geo.grid_layers.last_month": "趨勢期間最後一個月（文字）。",
+  "geo.grid_layers.grid": "meta.json 的 grid：n_lat、n_lon、lat_step、lon_step、lat_south_edge、lon_west_edge、排列方式。降解析度後的網格（1° 緯度；經度 MERRA-2 1.25°、其餘 1°）。",
+  "geo.grid_layers.trend": "meta.json 的 trend：method（做法說明）、參數、cells（各類格子數）、顯著的格點比例與面積比例、斜率的面積加權平均、限制。",
+  "geo.grid_cells": {
+    "desc": "趨勢地圖上有分析的格子，一列一格（顯著性類別 1–3；缺值或不分析的格子沒有列）。在降解析度後的網格上算，不是產品原始解析度。",
+    "source": "pg load（讀 data/grid/<變數>/ 的 trend_slope_per_decade.i16 與 trend_significance.u8）",
+    "trust": "analysis"
+  },
+  "geo.grid_cells.variable_id": "變數。",
+  "geo.grid_cells.lat": "格子中心緯度。",
+  "geo.grid_cells.lon": "格子中心經度。",
+  "geo.grid_cells.centre": "格子中心的點幾何。",
+  "geo.grid_cells.lat_step": "格子的緯度間距（度）。",
+  "geo.grid_cells.lon_step": "格子的經度間距（度）。",
+  "geo.grid_cells.area_km2": "格子的面積（球面經緯方格）。",
+  "geo.grid_cells.slope_per_decade": "月距平的最小平方法斜率 × 10（每十年），單位見 geo.grid_layers.slope_unit。來自 int16 量化的衍生檔，有量化誤差。",
+  "geo.grid_cells.significance": {
+    "desc": "顯著性類別（自相關修正後的 t 檢定；對整張圖有分析的格子做 BH-FDR）。",
+    "values": {
+      "1": "不顯著",
+      "2": "只在校正前顯著（p < 0.05）",
+      "3": "FDR 校正後顯著"
+    }
+  },
+  "geo.grid_cells.h3_res3": "格子中心所在的 H3 解析度 3 六角格（generated column）。",
+  "geo.trend_rasters": {
+    "desc": "趨勢地圖存成 raster，一個變數一張兩個 band：band 1 斜率（每十年，32BF，nodata −9999）、band 2 顯著性類別（8BUI，nodata 0）。內容與 geo.grid_cells 相同，換一種存法做多邊形的區域統計。",
+    "source": "pg load（pg_extensions.load_rasters）",
+    "trust": "analysis"
+  },
+  "geo.trend_rasters.variable_id": "變數。",
+  "geo.trend_rasters.rast": "PostGIS raster（EPSG:4326，第一列是最北邊）。",
+  "geo.annual_mean_rasters": {
+    "desc": "逐年平均存成 raster：一個變數 × 一年一張單 band（32BF，nodata −9999）。",
+    "source": "pg load（讀 data/grid/<變數>/annual_mean.i16）",
+    "trust": "derived"
+  },
+  "geo.annual_mean_rasters.variable_id": "變數。",
+  "geo.annual_mean_rasters.year": "年份。",
+  "geo.annual_mean_rasters.unit": "值的單位（產品原本的單位）。",
+  "geo.annual_mean_rasters.rast": "raster。",
+  "geo.monthly_rasters": {
+    "desc": "月資料存成 raster：一個變數 × 一個月一張單 band，降解析度後的網格。選用，不在 pg load 裡載。",
+    "source": "pg rasters-monthly（讀 data/raw/grid/ 的立方體；pg load 之後要重跑）",
+    "trust": "derived"
+  },
+  "geo.monthly_rasters.variable_id": "變數。",
+  "geo.monthly_rasters.month": "月份（該月 1 號）。",
+  "geo.monthly_rasters.unit": "值的單位。",
+  "geo.monthly_rasters.rast": "raster。",
+  "geo.h3_trends": {
+    "desc": "趨勢格點彙整到 H3 六角格（解析度 2 與 3）：格子中心落在哪個六角格就算哪一格，平均斜率與顯著比例用格子面積加權。",
+    "source": "materialized view（012_h3.sql）；pg load 與 pg_cron 每日 refresh",
+    "trust": "analysis"
+  },
+  "geo.h3_trends.resolution": "H3 解析度（2 或 3）。",
+  "geo.h3_trends.h3": "H3 格的索引。",
+  "geo.h3_trends.variable_id": "變數。",
+  "geo.h3_trends.n_cells": "落在這一格的趨勢格子數。",
+  "geo.h3_trends.analysed_area_km2": "這些格子的面積和。",
+  "geo.h3_trends.mean_slope_per_decade": "面積加權平均斜率（每十年）。",
+  "geo.h3_trends.significant_fdr_area_fraction": "FDR 校正後顯著的面積比例（分母是有分析的面積）。",
+  "geo.h3_trends_wide": {
+    "desc": "同一個 H3 格上各變數並排，一列一格。",
+    "source": "view",
+    "trust": "analysis"
+  },
+  "geo.h3_trends_wide.resolution": "H3 解析度。",
+  "geo.h3_trends_wide.h3": "H3 格。",
+  "geo.h3_trends_wide.n_variables": "這一格有幾個變數。",
+  "geo.h3_trends_wide.slopes": "JSONB：{變數 id: 平均斜率}。",
+  "geo.h3_trends_wide.significant_fdr_area_fractions": "JSONB：{變數 id: 顯著面積比例}。",
+  "geo.region_grid_trends": {
+    "desc": "區域內格點趨勢的面積加權平均：格子中心落在區域方框內（含邊界）的格子，一列是 變數 × 區域。",
+    "source": "view（005_geo.sql）",
+    "trust": "analysis"
+  },
+  "geo.region_grid_trends.variable_id": "變數。",
+  "geo.region_grid_trends.region_id": "區域（geo.regions.location_id）。",
+  "geo.region_grid_trends.n_cells": "區域內有分析的格子數。",
+  "geo.region_grid_trends.n_cells_significant_fdr": "其中 FDR 校正後顯著的格子數。",
+  "geo.region_grid_trends.analysed_area_km2": "有分析的面積。",
+  "geo.region_grid_trends.mean_slope_per_decade": "面積加權平均斜率。",
+  "geo.region_grid_trends.significant_fdr_area_fraction": "顯著的面積比例。",
+  "geo.region_raster_vs_grid": {
+    "desc": "同一個區域統計用 raster（像元等權與 cos 緯度加權）與用格點（面積加權）各算一次並排，核對用。",
+    "source": "view（009_postgis_raster.sql）",
+    "trust": "analysis"
+  },
+  "geo.region_raster_vs_grid.variable_id": "變數。",
+  "geo.region_raster_vs_grid.region_id": "區域。",
+  "geo.region_raster_vs_grid.n_cells": "格點算法的格子數。",
+  "geo.region_raster_vs_grid.n_pixels": "raster 算法的像元數。",
+  "geo.region_raster_vs_grid.grid_area_weighted_mean": "格點、面積加權的平均斜率。",
+  "geo.region_raster_vs_grid.raster_lat_weighted_mean": "raster、cos(緯度) 加權的平均斜率。",
+  "geo.region_raster_vs_grid.raster_pixel_mean": "raster、像元等權的平均斜率。",
+  "geo.region_raster_vs_grid.grid_significant_area_fraction": "格點算法的顯著面積比例。",
+  "geo.region_raster_vs_grid.raster_significant_area_fraction": "raster 算法的顯著面積比例。",
+  "analysis.runs": {
+    "desc": "每次執行的紀錄：載入、清洗、把趨勢與探勘結果寫回、衍生物件、模式與觀測配對等，一列一次。pg load 會清空 analysis.*（連同這張表）後重新開始記。",
+    "source": "pg.record_run（各指令結束時寫）",
+    "trust": "analysis"
+  },
+  "analysis.runs.run_id": "流水號。其他 analysis 表的 run_id 指到這裡。",
+  "analysis.runs.step": "哪一步。出現過的值：load、clean、trends_core、trends_extended、trends_observed、fpgrowth、decision_tree、derive、rasters_monthly、model_obs_pairs，以及 #111 的 variable_graph、gap_tree。",
+  "analysis.runs.started_at": "開始時間。",
+  "analysis.runs.finished_at": "完成時間。",
+  "analysis.runs.git_commit": "執行時 repo 的 commit（完整雜湊）；取不到時 NULL。",
+  "analysis.runs.parameters": "這一步的參數（JSONB，各步不同）：輸入目錄、清洗規則、結果檔自己記的 parameters、套件版本等。",
+  "analysis.runs.rows_affected": "這一步寫了哪些表各幾列（JSONB，鍵是表名；clean 另有 missing_no_row、missing_null_value、gapfill_cross_check 等核對數字）。",
+  "analysis.runs.note": "備註。",
+  "analysis.trends": {
+    "desc": "每條序列的趨勢統計，一列一條序列。趨勢不是在資料庫算的：trends.py 對序列檔呼叫同一個清洗函式算出結果檔，這張表是結果檔的副本。輸入是 value_clean 的月距平，不補值。三層各自的結果檔：核心 data/analysis/trends.json、擴充 data/extended/analysis/trends.json、觀測 data/extended/analysis/observed/trends.json。",
+    "source": "pg analysis（整批換新）",
+    "trust": "analysis"
+  },
+  "analysis.trends.series_id": "序列。",
+  "analysis.trends.run_id": "哪一次 pg analysis 寫入的（analysis.runs）。",
+  "analysis.trends.status": {
+    "desc": "有沒有分析。",
+    "values": {
+      "analyzed": "有統計量",
+      "insufficient": "資料不足，統計量欄位是 NULL，原因見 reason_code"
+    }
+  },
+  "analysis.trends.reason_code": {
+    "desc": "status = 'insufficient' 的原因。",
+    "values": {
+      "too_few_months": "可用月數少於 min_valid_months（120）",
+      "too_many_missing": "第一個到最後一個可用月份之間缺的比例超過 max_missing_fraction（0.2）",
+      "constant": "數值完全不變"
+    }
+  },
+  "analysis.trends.first_month": "納入分析的第一個月。",
+  "analysis.trends.last_month": "納入分析的最後一個月。",
+  "analysis.trends.n_valid": "納入分析的月數（等於 clean.series_summary.n_usable）。",
+  "analysis.trends.missing_fraction": "第一個到最後一個可用月份之間缺月的比例。",
+  "analysis.trends.slope_per_decade": "月距平對時間的最小平方法斜率 × 10（每十年），單位是序列的單位。",
+  "analysis.trends.ci_low_per_decade": "斜率 95% 信賴區間下界（標準誤用殘差 lag-1 自相關修正的有效樣本數）。",
+  "analysis.trends.ci_high_per_decade": "信賴區間上界。",
+  "analysis.trends.ols_p": "斜率的 t 檢定 p 值（自相關修正後）。網站的顯著性用這個檢定。",
+  "analysis.trends.ols_q": "BH-FDR 校正後的 p（結果檔的 p_fdr）。校正的家族見 fdr_scope。",
+  "analysis.trends.ols_significant": "ols_p < alpha（0.05）。",
+  "analysis.trends.ols_significant_fdr": "ols_q < alpha。",
+  "analysis.trends.lag1_autocorrelation": "殘差的 lag-1 自相關。",
+  "analysis.trends.n_effective": "有效樣本數 n(1 − r1)/(1 + r1)。",
+  "analysis.trends.mk_original_p": "原始 Mann-Kendall 檢定的 p。",
+  "analysis.trends.mk_original_q": "同上，BH-FDR 校正後。",
+  "analysis.trends.mk_hamed_rao_p": "Hamed-Rao 修正的 Mann-Kendall p（偏寬鬆；修正變異數算成負值時是 NULL）。",
+  "analysis.trends.mk_hamed_rao_q": "同上，校正後。",
+  "analysis.trends.mk_seasonal_p": "Seasonal Mann-Kendall 的 p。",
+  "analysis.trends.mk_seasonal_q": "同上，校正後。",
+  "analysis.trends.sen_slope_per_decade": "Sen 斜率（每十年）；信賴區間在 result->'sen'，沒有自相關修正。",
+  "analysis.trends.fdr_scope": {
+    "desc": "這條序列的 q 值是和哪些序列一起做 BH 校正的（FDR 家族）。",
+    "values": {
+      "all series of the run": "同一個結果檔的全部序列：核心 133 條一個家族、觀測 67 條一個家族（兩者的字串相同，用 meta.series.tier 區分）",
+      "aggregation = point": "擴充資料裡 point 的序列自成一個家族",
+      "aggregation = area_mean_grid": "擴充資料裡 area_mean_grid 的序列",
+      "aggregation = area_mean": "擴充資料裡 area_mean 的序列"
+    }
+  },
+  "analysis.trends.auxiliary": "這條序列是不是輔助變數。輔助變數的 q 值仍和其他序列一起校正。",
+  "analysis.trends.known_issues": "適用的已知問題 id（text[]）。",
+  "analysis.trends.cleaning": "這條序列的清洗摘要（JSONB）：n_months、n_usable、n_ok、n_missing、n_partial_month、n_low_coverage、n_outlier_suspect、n_known_discontinuity、n_gaps、longest_gap_months。",
+  "analysis.trends.result": "結果檔裡這條序列的完整內容（JSONB）。鍵：variable_id、location_id、aggregation、unit、status、reason；data（n_points、n_valid、n_null、n_low_coverage、n_partial_month、first_month、last_month、missing_fraction）；ols（slope_per_decade、ci_per_decade、p、p_fdr、significant、significant_fdr、p_uncorrected 與 ci_per_decade_uncorrected〔沒有自相關修正〕、lag1_autocorrelation、n_effective）；mann_kendall.original／hamed_rao／seasonal（各有 z、tau、p、p_fdr、significant、significant_fdr；seasonal 另有 slope_per_decade）；sen（slope_per_decade、ci_per_decade）；cleaning；known_issues；auxiliary。",
+  "analysis.significant_trends": {
+    "desc": "FDR 校正後顯著（ols_significant_fdr）而且不是輔助變數的趨勢，附序列身分。帶已知問題的序列仍在裡面，請看 known_issues。",
+    "source": "view",
+    "trust": "analysis"
+  },
+  "analysis.significant_trends.variable_id": "變數。",
+  "analysis.significant_trends.location_id": "地點。",
+  "analysis.significant_trends.aggregation": "聚合方式。",
+  "analysis.significant_trends.tier": "資料層。",
+  "analysis.significant_trends.slope_per_decade": "斜率（每十年）。",
+  "analysis.significant_trends.ci_low_per_decade": "信賴區間下界。",
+  "analysis.significant_trends.ci_high_per_decade": "信賴區間上界。",
+  "analysis.significant_trends.ols_p": "p 值。",
+  "analysis.significant_trends.ols_q": "校正後的 p。",
+  "analysis.significant_trends.known_issues": "適用的已知問題 id。",
+  "analysis.significant_trends.cleaning": "清洗摘要（JSONB）。",
+  "analysis.mining_runs": {
+    "desc": "一次資料探勘的參數、摘要，以及補值與不補值的比較；FP-growth 與決策樹各一列。探勘只用核心快照（台灣），是探索性的結果。",
+    "source": "pg analysis（讀 data/analysis/fpgrowth.json、decision_tree.json）",
+    "trust": "analysis"
+  },
+  "analysis.mining_runs.run_id": "執行紀錄。",
+  "analysis.mining_runs.kind": {
+    "desc": "哪一種探勘。",
+    "values": {
+      "fpgrowth": "FP-growth 關聯規則",
+      "decision_tree": "決策樹（預測植被指數的高中低）"
+    }
+  },
+  "analysis.mining_runs.primary_variant": "主要結果用的是 filled（距平先補值，預設）還是 unfilled。",
+  "analysis.mining_runs.parameters": "結果檔的 parameters（JSONB）：分位數門檻、支持度／信賴度／lift 門檻、排除的地點與變數、same_quantity_groups、樹的深度與折數、fill_gaps、max_linear_gap_months、max_fill_fraction 等。",
+  "analysis.mining_runs.summary": "結果檔的摘要（JSONB）。fpgrowth：point、region 兩張表各自的摘要；decision_tree：n_folds、各種基準的平均準確率、n_folds_above_all、text_en 等。",
+  "analysis.mining_runs.gap_filling_sensitivity": "補值與不補值兩種做法的比較（JSONB）：primary、compared_with、note，以及各表的規則數與重疊（fpgrowth）或各折準確率（decision_tree）。",
+  "analysis.mining_rules": {
+    "desc": "FP-growth 的關聯規則（結果檔列出的那些，每組最多 max_rules 條）。項目的寫法是「變數=狀態」，狀態是該序列去趨勢距平依自己的分位數分成的 low／normal／high；延遲一個月的規則左邊是「prev:變數=狀態」。是共同出現的關聯，不是因果；交易彼此不獨立，p、q 偏樂觀。",
+    "source": "pg analysis",
+    "trust": "analysis"
+  },
+  "analysis.mining_rules.run_id": "執行紀錄。",
+  "analysis.mining_rules.table_kind": {
+    "desc": "用哪張寬表。",
+    "values": {
+      "point": "點位表（地點 × 月份）",
+      "region": "區域表"
+    }
+  },
+  "analysis.mining_rules.timing": {
+    "desc": "時間設定。",
+    "values": {
+      "same_month": "左右同一個月",
+      "lagged_one_month": "左邊是前一個月"
+    }
+  },
+  "analysis.mining_rules.rule_set": {
+    "desc": "哪一組。",
+    "values": {
+      "rules": "左右不同變數、通過 BH-FDR 的規則",
+      "persistence_rules": "同一個變數的持續性（自成一組做 FDR）"
+    }
+  },
+  "analysis.mining_rules.rank": "組內依 lift 由大到小的名次。",
+  "analysis.mining_rules.antecedents": "左邊的項目（text[]，GIN 索引）。",
+  "analysis.mining_rules.consequent": "右邊的單一項目。",
+  "analysis.mining_rules.support": "支持度。",
+  "analysis.mining_rules.confidence": "信賴度。",
+  "analysis.mining_rules.lift": "lift。",
+  "analysis.mining_rules.p": "Fisher 精確檢定（單尾）的 p。",
+  "analysis.mining_rules.q": "BH-FDR 校正後的 p（同一張表、同一種時間設定的候選一起做）。",
+  "analysis.tree_folds": {
+    "desc": "決策樹依時間往前走的各折：補值與不補值兩個版本的準確率與三種基準。2026-11-15 的結果是 0 折高於全部基準。",
+    "source": "pg analysis（讀 data/analysis/decision_tree.json）",
+    "trust": "analysis"
+  },
+  "analysis.tree_folds.run_id": "執行紀錄。",
+  "analysis.tree_folds.variant": "filled 或 unfilled。",
+  "analysis.tree_folds.fold": "第幾折。",
+  "analysis.tree_folds.test_first_month": "測試期第一個月。",
+  "analysis.tree_folds.test_last_month": "測試期最後一個月。",
+  "analysis.tree_folds.n_train": "訓練列數。",
+  "analysis.tree_folds.n_test": "測試列數。",
+  "analysis.tree_folds.test_accuracy": "樹在測試期的準確率。",
+  "analysis.tree_folds.train_majority_accuracy": "基準：永遠猜訓練期最多的類別。",
+  "analysis.tree_folds.test_majority_accuracy": "基準：永遠猜測試期最多的類別（事後才知道的對照）。",
+  "analysis.tree_folds.persistence_accuracy": "基準：猜和目標前一個月的狀態一樣。",
+  "analysis.tree_folds.tree": "樹的結構（JSONB）；只有主要結果有，其餘是 NULL。",
+  "analysis.model_obs_pairs": {
+    "desc": "模式推算與觀測的配對，一列一對：同一地點、同一個物理量（目前只有近地面氣溫）的一條模式序列與一條觀測序列，在共同月份上各自去月氣候值算距平後的統計量。只列數字，不判斷誰對；看不到絕對偏差（兩邊各自去了自己的月氣候值）。規則在 data/seed/model_obs_pairs.json，做法見 docs/data/model-vs-obs.md。",
+    "source": "uv run python -m trend_detective.model_obs（整批換新）",
+    "trust": "analysis"
+  },
+  "analysis.model_obs_pairs.pair_id": "配對的 id。",
+  "analysis.model_obs_pairs.run_id": "執行紀錄。",
+  "analysis.model_obs_pairs.pair_group": {
+    "desc": "配對的組別。",
+    "values": {
+      "taiwan_station": "台灣 GHCNh 測站 對 gldas_tair／merra2_t2m（測站座標所在格）與 power_t2m（同名城市點位）",
+      "taiwan_gistemp": "台灣 5 個點位所在的 GISTEMP 2° 格 對 三個模式變數",
+      "world_city": "12 個世界城市的 GHCNm／GISTEMP 對 gldas_tair／merra2_t2m",
+      "global": "GISTEMP 官方全球平均 對 merra2_t2m 的全球平均"
+    }
+  },
+  "analysis.model_obs_pairs.quantity": "物理量；目前只有 near_surface_air_temperature。",
+  "analysis.model_obs_pairs.location_id": "觀測序列的地點。",
+  "analysis.model_obs_pairs.model_variable_id": "模式那一邊的變數（data_kind = 'model'）。",
+  "analysis.model_obs_pairs.model_source": {
+    "desc": "模式的月值從哪裡取。",
+    "values": {
+      "series": "meta.series 裡的一條序列（model_series_id）",
+      "grid_cube_cell": "直接從全球格點立方體取測站座標所在的那一格；model_series_id 是 NULL，取法在 model_detail"
+    }
+  },
+  "analysis.model_obs_pairs.model_series_id": "模式序列；model_source = 'grid_cube_cell' 時是 NULL。",
+  "analysis.model_obs_pairs.model_detail": "模式值的取法（JSONB）：series、source_api、unit，或立方體的 cube、cube_variable、grid、cell_center、cell_size_deg、containing_cell、distance_km、point、note。",
+  "analysis.model_obs_pairs.obs_variable_id": "觀測那一邊的變數。",
+  "analysis.model_obs_pairs.obs_series_id": "觀測序列。",
+  "analysis.model_obs_pairs.window_start": "比較視窗的起始月（2001-01-01）。",
+  "analysis.model_obs_pairs.window_end": "比較視窗的結束月（2025-12-01）。",
+  "analysis.model_obs_pairs.status": "analyzed 或 insufficient（共同月份不到 120 個）；目前 97 對都是 analyzed。",
+  "analysis.model_obs_pairs.n_common_months": "視窗內兩邊都有可用值的月數。",
+  "analysis.model_obs_pairs.first_common_month": "第一個共同月份。",
+  "analysis.model_obs_pairs.last_common_month": "最後一個共同月份。",
+  "analysis.model_obs_pairs.correlation": "兩條距平的 Pearson 相關。",
+  "analysis.model_obs_pairs.diff_mean": "差值（模式 − 觀測）的平均；兩邊各自去月氣候值，所以接近 0。",
+  "analysis.model_obs_pairs.diff_sd": "差值的標準差。",
+  "analysis.model_obs_pairs.diff_rmse": "差值的 RMSE。",
+  "analysis.model_obs_pairs.model_slope_per_decade": "模式距平在共同月份上的趨勢（每十年；與 analysis.trends 用全部月份算的不同）。",
+  "analysis.model_obs_pairs.model_ci_low": "95% 信賴區間下界。",
+  "analysis.model_obs_pairs.model_ci_high": "上界。",
+  "analysis.model_obs_pairs.obs_slope_per_decade": "觀測距平在共同月份上的趨勢。",
+  "analysis.model_obs_pairs.obs_ci_low": "下界。",
+  "analysis.model_obs_pairs.obs_ci_high": "上界。",
+  "analysis.model_obs_pairs.slope_difference": "趨勢差（模式 − 觀測）。",
+  "analysis.model_obs_pairs.diff_slope_per_decade": "差值序列本身的趨勢（數值上等於趨勢差，但有自己的信賴區間）。",
+  "analysis.model_obs_pairs.diff_ci_low": "差值趨勢的下界。",
+  "analysis.model_obs_pairs.diff_ci_high": "上界。",
+  "analysis.model_obs_pairs.diff_slope_p": "差值趨勢的 p 值（沒有做多重檢定校正）。",
+  "analysis.model_obs_pairs.diff_slope_significant": "diff_slope_p < 0.05。",
+  "analysis.model_obs_pairs.largest_step": "差值序列的最大階梯：某個月起 6 個月的平均 − 之前 6 個月的平均，絕對值最大的那一個（含正負號）。只是找最大值，不是檢定。",
+  "analysis.model_obs_pairs.largest_step_month": "最大階梯的月份（新的一段從這個月開始）。",
+  "analysis.model_obs_pairs.known_issues": "兩邊序列適用的已知問題 id。",
+  "analysis.model_obs_pairs.detail": "JSONB，鍵 model 與 obs：兩邊各自的明細（未逐鍵確認，見 model_obs.py）。",
+  "analysis.series_embeddings": {
+    "desc": "每條序列一個 248 維向量（pgvector），用來找變化型態最像的序列：2005-01 至 2025-08 共 248 個月的 anomaly_filled（含補值），標準化成平均 0、標準差 1，所以 cosine 相似度等於這 248 個月距平的 Pearson 相關。沒有向量的序列：mining_eligible = false、這段期間沒有完整涵蓋、或距平沒有變化。",
+    "source": "pg derive（呼叫 analysis.refresh_series_embeddings()）",
+    "trust": "imputed"
+  },
+  "analysis.series_embeddings.series_id": "序列。",
+  "analysis.series_embeddings.first_month": "向量第一個月（2005-01-01）。",
+  "analysis.series_embeddings.last_month": "向量最後一個月（2025-08-01）。",
+  "analysis.series_embeddings.n_filled": "這 248 個月裡有幾個月是補的。",
+  "analysis.series_embeddings.anomaly_sd": "標準化前的標準差（距平的單位）。",
+  "analysis.series_embeddings.embedding": "vector(248)，依月份排序；HNSW 索引（cosine）。",
+  "analysis.same_quantity_groups": {
+    "desc": "探勘用的「同一個物理量」變數組（例如三個氣溫產品），讀最近一次探勘的參數。互為特徵與目標時等於拿目標預測目標，要另外標明。",
+    "source": "view（011_vector.sql）",
+    "trust": "analysis"
+  },
+  "analysis.same_quantity_groups.group_id": "組別（參數裡的順序，從 1 起）。",
+  "analysis.same_quantity_groups.variable_id": "組內的變數。",
+  "analysis.variable_graph_nodes": {
+    "desc": "由關聯規則建的變數關聯圖的節點：規則裡出現過的變數。",
+    "source": "pg derive（analysis.refresh_variable_graph()）",
+    "trust": "analysis"
+  },
+  "analysis.variable_graph_nodes.node_id": "節點編號。",
+  "analysis.variable_graph_nodes.variable_id": "變數。",
+  "analysis.variable_graph_nodes.component": "連通分量（分量裡最小的 node_id；pgr_connectedComponents）。",
+  "analysis.variable_graph_nodes.n_edges": "相連的邊數。",
+  "analysis.variable_graph_nodes.is_auxiliary": "是不是輔助變數。",
+  "analysis.variable_graph_nodes.same_quantity_group": "所屬的同量變數組；沒有是 NULL。",
+  "analysis.variable_graph_nodes.known_issues": "適用這個變數的已知問題（不含 auxiliary 那一類）。",
+  "analysis.variable_graph": {
+    "desc": "變數關聯圖的邊：analysis.mining_rules 裡通過 BH-FDR 的規則（rule_set = 'rules'）連起來的一對變數。共同出現，不是因果。",
+    "source": "pg derive",
+    "trust": "analysis"
+  },
+  "analysis.variable_graph.edge_id": "邊的編號。",
+  "analysis.variable_graph.source": "一端的節點。",
+  "analysis.variable_graph.target": "另一端的節點。",
+  "analysis.variable_graph.source_variable": "一端的變數。",
+  "analysis.variable_graph.target_variable": "另一端的變數。",
+  "analysis.variable_graph.n_rules": "連起這一對的規則數。",
+  "analysis.variable_graph.table_kinds": "規則來自哪些寬表。",
+  "analysis.variable_graph.timings": "規則的時間設定。",
+  "analysis.variable_graph.max_lift": "這些規則裡最大的 lift。",
+  "analysis.variable_graph.min_q": "最小的 q。",
+  "analysis.variable_graph.cost": "1 ÷ max_lift（給 pgr_dijkstra 的成本）。",
+  "analysis.variable_graph.same_quantity": "兩端是不是同一個物理量的變數組。",
+  "analysis.variable_graph_components": {
+    "desc": "變數關聯圖各連通分量的變數。",
+    "source": "view",
+    "trust": "analysis"
+  },
+  "analysis.variable_graph_components.component": "分量。",
+  "analysis.variable_graph_components.n_variables": "變數數。",
+  "analysis.variable_graph_components.variables": "分量裡的變數。",
+  "analysis.variable_graph_components.variables_with_known_issues": "其中帶已知問題的。",
+  "analysis.variable_graph_components.variables_in_same_quantity_groups": "其中屬於同量變數組的。",
+  "analysis.mining_wide_source": {
+    "desc": "探勘寬表的長表來源：核心快照、aggregation 是 point 或 area_mean、mining_eligible、趨勢有分析的序列，在各自可用期間內的 anomaly_filled。",
+    "source": "view（015_tablefunc.sql）",
+    "trust": "imputed"
+  },
+  "analysis.mining_wide_source.table_kind": "point 或 region。",
+  "analysis.mining_wide_source.series_id": "序列。",
+  "analysis.mining_wide_source.location_id": "地點。",
+  "analysis.mining_wide_source.variable_id": "變數。",
+  "analysis.mining_wide_source.month": "月份。",
+  "analysis.mining_wide_source.anomaly_filled": "補值後的距平。",
+  "analysis.mining_wide_point": {
+    "desc": "探勘的輸入寬表（點位）：一列是 地點 × 月份，每個變數一欄，值是 anomaly_filled（含補值；沒有去趨勢、沒有離散化）。期間是表內所有序列共同有資料的起訖月；預設排除地點 taiwan。用 crosstab 產生，和 mining.py 的 build_table 互相核對。只有核心（台灣）的變數。",
+    "source": "pg derive（analysis.build_mining_wide()；每次 DROP 後重建，欄位隨變數而定）",
+    "trust": "imputed"
+  },
+  "analysis.mining_wide_point.location_id": "地點。",
+  "analysis.mining_wide_point.month": "月份。",
+  "analysis.mining_wide_point.*": "欄名是變數 id；值是該變數在這個地點、這個月的 anomaly_filled（單位是該變數的單位）。沒有這條序列時是 NULL。",
+  "analysis.mining_wide_region": {
+    "desc": "探勘的輸入寬表（區域）：一列是 地點 × 月份，每個變數一欄，值是 anomaly_filled（含補值；沒有去趨勢、沒有離散化）。期間是表內所有序列共同有資料的起訖月；預設排除地點 taiwan。用 crosstab 產生，和 mining.py 的 build_table 互相核對。只有核心（台灣）的變數。",
+    "source": "pg derive（analysis.build_mining_wide()；每次 DROP 後重建，欄位隨變數而定）",
+    "trust": "imputed"
+  },
+  "analysis.mining_wide_region.location_id": "地點。",
+  "analysis.mining_wide_region.month": "月份。",
+  "analysis.mining_wide_region.*": "欄名是變數 id；值是該變數在這個地點、這個月的 anomaly_filled（單位是該變數的單位）。沒有這條序列時是 NULL。",
+  "analysis.gap_tree_folds": {
+    "desc": "模式與觀測差距的決策樹各折。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
+    "source": "#111 的 gap_tree（analysis.runs.step = 'gap_tree'）",
+    "trust": "analysis"
+  },
+  "analysis.gap_tree_folds.run_id": "執行紀錄。",
+  "analysis.gap_tree_folds.variant": "with_segment、without_segment 或 with_target_lag。",
+  "analysis.gap_tree_folds.validation": "walk_forward（依時間往前走）或 leave_one_location_out（留一測站）。",
+  "analysis.gap_tree_folds.fold": "第幾折。",
+  "analysis.gap_tree_folds.held_out_station": "留一測站驗證時留出的測站。",
+  "analysis.gap_tree_folds.test_first_month": "測試期第一個月。",
+  "analysis.gap_tree_folds.test_last_month": "測試期最後一個月。",
+  "analysis.gap_tree_folds.n_train": "訓練列數。",
+  "analysis.gap_tree_folds.n_test": "測試列數。",
+  "analysis.gap_tree_folds.test_accuracy": "測試準確率。",
+  "analysis.gap_tree_folds.macro_f1": "macro F1。",
+  "analysis.gap_tree_folds.train_majority_accuracy": "基準：訓練期最多的類別。",
+  "analysis.gap_tree_folds.persistence_accuracy": "基準：前一個月的狀態。",
+  "analysis.gap_tree_folds.calendar_month_accuracy": "基準：依日曆月（未確認細節）。",
+  "analysis.gap_tree_folds.above_all_baselines": "是否高於全部基準。",
+  "analysis.gap_tree_folds.tree": "樹的結構（JSONB）。",
+  "analysis.gap_stats": {
+    "desc": "模式與觀測差值絕對值的分組平均（描述統計）。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
+    "source": "#111 的 gap_tree",
+    "trust": "analysis"
+  },
+  "analysis.gap_stats.run_id": "執行紀錄。",
+  "analysis.gap_stats.grouping": "分組方式：by_product、by_product_season、by_product_segment、by_product_station。",
+  "analysis.gap_stats.model_variable": "模式變數。",
+  "analysis.gap_stats.group_value": "組的值（季節、分段或測站）。",
+  "analysis.gap_stats.n_months": "月數。",
+  "analysis.gap_stats.mean_abs_difference": "差值絕對值的平均。",
+  "analysis.gap_stats.median_abs_difference": "中位數。",
+  "analysis.gap_stats.ci_low": "信賴區間下界（未確認算法；執行參數有 bootstrap_resamples）。",
+  "analysis.gap_stats.ci_high": "信賴區間上界。",
+  "analysis.correlation_nodes": {
+    "desc": "用相關係數建的變數關聯圖的節點。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
+    "source": "#111 的 variable_graph",
+    "trust": "analysis"
+  },
+  "analysis.correlation_nodes.table_kind": "point 或 region。",
+  "analysis.correlation_nodes.node_id": "節點編號。",
+  "analysis.correlation_nodes.variable_id": "變數。",
+  "analysis.correlation_nodes.component": "連通分量（分量裡最小的 node_id）。",
+  "analysis.correlation_nodes.degree": "相鄰的不同變數個數。",
+  "analysis.correlation_edges": {
+    "desc": "相關係數圖裡全部檢定過的配對；significant 的才是圖上的邊。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
+    "source": "#111 的 variable_graph",
+    "trust": "analysis"
+  },
+  "analysis.correlation_edges.table_kind": "point 或 region。",
+  "analysis.correlation_edges.edge_id": "編號。",
+  "analysis.correlation_edges.source": "一端的節點。",
+  "analysis.correlation_edges.target": "另一端的節點。",
+  "analysis.correlation_edges.source_variable": "一端的變數。",
+  "analysis.correlation_edges.target_variable": "另一端的變數。",
+  "analysis.correlation_edges.lag": "延遲的月數；1 是 source 領先 target 一個月。",
+  "analysis.correlation_edges.r": "相關係數。",
+  "analysis.correlation_edges.p": "p 值。",
+  "analysis.correlation_edges.q": "多重檢定校正後的 p（未確認家族）。",
+  "analysis.correlation_edges.n_eff": "有效樣本數。",
+  "analysis.correlation_edges.significant": "是否顯著。",
+  "meta.search_variables()": "pg_trgm：用字形相似度搜變數（id 加英文名），拼錯也找得到。",
+  "meta.search_text()": "pg_textsearch：BM25 全文搜尋 meta.search_documents，回傳 kind、ref_id、title、score。",
+  "meta.refresh_search_documents()": "由 meta.variables 與 meta.known_issues 重建 meta.search_documents；會寫入。",
+  "meta.series_in_category()": "某個分類子樹底下的全部序列，例如 meta.series_in_category('land.water')。",
+  "meta.convert_unit()": "顯示用的單位換算（K↔degC、kg m-2 s-1→mm/day、mm/hr→mm/day、Pa→hPa）；其他組合回 NULL。差值（斜率）不要用它換。",
+  "raw.check_file_planetary_computer()": "foreign table 的原檔與 raw.planetary_computer 逐列核對的計數。",
+  "obs.missing_months()": "用 time_bucket_gapfill 產生每條序列逐月的骨架，回傳缺的月份：missing_kind 是 no_row（沒有列）或 null_value（有列、值是 NULL）。pg clean 用它獨立核對缺月數。",
+  "clean.refresh_derived()": "重新整理 clean.monthly_climatology 與 geo.h3_trends；pg_cron 每天 03:15 UTC 呼叫。會寫入。",
+  "clean.sql_filled_anomalies()": "在 SQL 重現缺值政策 b（補值後的距平），只用來核對 Python；不是第二套來源。",
+  "geo.region_grid_trend()": "geo.region_grid_trends 取一個變數 × 一個區域。",
+  "geo.nearest_series()": "離某個座標最近的 N 個點位與它們的序列（KNN），距離是公里。",
+  "geo.nearest_cells()": "離某個座標最近的 N 個趨勢格子。",
+  "geo.make_raster()": "由二維陣列建單 band raster（載入用的工具函式）。",
+  "geo.raster_zonal_trend()": "任意多邊形內的趨勢統計（像元等權與 cos 緯度加權）。",
+  "geo.region_raster_trend()": "geo.regions 的一個區域的 raster 趨勢統計。",
+  "geo.region_raster_annual_mean()": "區域內逐年平均（像元等權與緯度加權）；沒有陸地遮罩。",
+  "geo.region_raster_monthly_mean()": "區域內逐月平均；需要先跑 pg rasters-monthly。",
+  "geo.h3_trends_at()": "某個座標所在的 H3 格與周圍幾圈鄰格的各變數趨勢。",
+  "geo.h3_neighbourhood_trends()": "同上，起點是 geo.locations 的一個點位。",
+  "analysis.similar_series()": "與某條序列變化型態最像的 k 條序列（cosine 相似度）；p_filters 可排除同變數、同地點、同量變數、輔助變數等。相似是相關高，不是因果。",
+  "analysis.refresh_series_embeddings()": "重建 analysis.series_embeddings；會寫入（TRUNCATE 後重填）。",
+  "analysis.refresh_variable_graph()": "由 analysis.mining_rules 重建變數關聯圖；會寫入。",
+  "analysis.variable_path()": "兩個變數之間成本最小的關聯路徑（pgr_dijkstra）。路徑不代表頭尾有關聯。",
+  "analysis.build_mining_wide()": "重建 analysis.mining_wide_point 或 _region；會 DROP 後重建。",
+  "analysis.mann_kendall_values()": "plpython3u：任意序列的原始 Mann-Kendall 檢定與 Sen 斜率（純 Python）。",
+  "analysis.mann_kendall()": "一條序列（clean.observations 的 anomaly，不補值）的原始 Mann-Kendall 與 Sen 斜率，核對 trends.py 用。",
+  "analysis.correlation_components()": "相關係數圖一張表的連通分量與度數。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。"
+}
