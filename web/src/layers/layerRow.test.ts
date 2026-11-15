@@ -45,6 +45,10 @@ describe("a folded layer row", () => {
     expect(html).not.toContain("Close-up");
     expect(html).not.toContain('type="range"');
   });
+
+  it("does not point the button at details that are not on the page", () => {
+    expect(render()).not.toContain("aria-controls");
+  });
 });
 
 describe("the caution mark", () => {

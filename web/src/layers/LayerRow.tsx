@@ -2,7 +2,7 @@ import type { CompareLink } from "../analysis/modelVsObs";
 import { TrendBlock } from "../analysis/TrendBlock";
 import type { TrendSummary } from "../analysis/trends";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
-import { trendCaveat } from "../analysis/trendCaveats";
+import { shownTrendCaveat } from "../analysis/trendCaveats";
 import type { TrendSignal } from "../forms/encoding";
 import { carryChoices, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
@@ -54,8 +54,7 @@ export function LayerRow({
   const name = variableName(layer.id, layer.nameEn);
   const bodyId = `layer-details-${layer.id}`;
   const hintId = `layer-caution-${layer.id}`;
-  // Same condition as TrendBlock, which shows the caution in the details.
-  const caveat = trend ? trendCaveat(layer.id, voice) : null;
+  const caveat = shownTrendCaveat(layer.id, trend, voice);
   return (
     <li className={expanded ? "layer-row layer-row-open" : "layer-row"}>
       <div className="layer-row-head">
@@ -69,7 +68,7 @@ export function LayerRow({
           type="button"
           className="layer-row-toggle"
           aria-expanded={expanded}
-          aria-controls={bodyId}
+          aria-controls={expanded ? bodyId : undefined}
           aria-describedby={caveat ? hintId : undefined}
           onClick={() => onExpand(layer.id)}
         >
