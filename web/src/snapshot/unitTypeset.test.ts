@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { typesetUnits } from "./unitText";
+import { typesetUnits } from "./unitTypeset";
 
 describe("typesetUnits", () => {
   it("raises caret, hyphen and slash exponents", () => {
