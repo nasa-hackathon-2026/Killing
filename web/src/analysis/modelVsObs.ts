@@ -80,7 +80,10 @@ export type ModelVsObsFile = {
     string,
     { name_en: string | null; unit: string | null; data_kind: DataKind }
   >;
-  locations: Record<string, { name_en: string | null }>;
+  locations: Record<
+    string,
+    { name_en: string | null; lat?: number | null; lon?: number | null }
+  >;
   skipped: { pair_id: string; reason: string }[];
   pairs: Pair[];
 };

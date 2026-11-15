@@ -18,6 +18,10 @@ export function requestedTrendMap(): string | null {
   return param("trendmap");
 }
 
+export function requestedGlobe(): string | null {
+  return param("globe");
+}
+
 export function requestedMonth(): string | null {
   return param("month");
 }

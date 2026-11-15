@@ -62,6 +62,10 @@ import {
   trendMapVariable,
 } from "./trendmap/trendMapConfig";
 import { TrendMapLegend } from "./trendmap/TrendMapLegend";
+import { GlobeStatsControls } from "./globeStats/GlobeStatsControls";
+import { GlobeStatsPanel } from "./globeStats/GlobeStatsPanel";
+import { GlobeStatsScene } from "./globeStats/GlobeStatsScene";
+import { useGlobeStats } from "./globeStats/useGlobeStats";
 import {
   requestedCloseUp,
   requestedPlace,
@@ -288,6 +292,23 @@ function AppView({
   }
 
   const pairsFile = useAnalysisFile(loadModelVsObs);
+  const globePlaces = useMemo(
+    () => data?.places.filter(hasCoordinates) ?? [],
+    [data],
+  );
+  const selectedStatsVariableId =
+    timeline.selectedVariableId ??
+    controls.find((layer) => layer.visible)?.id ??
+    null;
+  const globeStats = useGlobeStats({
+    hidden: strata.phase !== "off" || closeUpId !== null,
+    places: globePlaces,
+    selectedLocationId: locationId,
+    selectedVariableId: selectedStatsVariableId,
+    trends: trendsFile,
+    modelVsObs: pairsFile,
+    onSelectLocation: (id) => selectPlace(id, true),
+  });
   const compareLinks =
     pairsFile.status === "ready"
       ? compareLinksFor(
@@ -331,6 +352,7 @@ function AppView({
         paused={strata.shown}
         controlsLocked={strata.phase !== "off"}
       >
+        <GlobeStatsScene state={globeStats} />
         {location ? (
           <StrataApproach
             phase={strata.phase}
@@ -409,6 +431,7 @@ function AppView({
             ))}
           </select>
         </label>
+        <GlobeStatsControls state={globeStats} />
         <button
           type="button"
           className="hud-fly"
@@ -509,6 +532,7 @@ function AppView({
         opacity={trendMapOpacity}
         onOpacity={setTrendMapOpacity}
       />
+      <GlobeStatsPanel state={globeStats} />
       {closeUpLayer ? (
         <CloseUpPanel
           variableId={closeUpLayer.id}
