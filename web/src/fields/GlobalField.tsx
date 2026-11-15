@@ -19,6 +19,7 @@ import { useTimeline } from "../timeline/TimelineContext";
 import {
   DOT_SIZE,
   DOT_SIZE_SPREAD,
+  DOT_TREND_DIM_FLOOR,
   FIELD_RADIUS,
   HOT_WHITE,
   MONTH_FOLLOW_RATE,
@@ -246,7 +247,9 @@ function FieldDotsMesh({
         red = trendColors[dot * 4] ?? red;
         green = trendColors[dot * 4 + 1] ?? green;
         blue = trendColors[dot * 4 + 2] ?? blue;
-        glow *= trendColors[dot * 4 + 3] ?? 1;
+        glow *=
+          DOT_TREND_DIM_FLOOR +
+          (1 - DOT_TREND_DIM_FLOOR) * (trendColors[dot * 4 + 3] ?? 1);
       }
       array[dot * 3] = glow * (red + (1 - red) * hot);
       array[dot * 3 + 1] = glow * (green + (1 - green) * hot);
