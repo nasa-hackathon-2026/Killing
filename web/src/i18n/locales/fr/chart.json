@@ -1,8 +1,8 @@
 {
   "aria": "Série temporelle : {{name}}",
   "at": "({{place}})",
-  "show": "Afficher le graphique",
-  "hide": "Masquer le graphique",
+  "show": "Afficher",
+  "hide": "Masquer",
   "close": "Fermer le graphique",
   "noSeries": "Cette variable n’a pas de données pour ce lieu : {{place}}.",
   "noValues": "Aucune valeur à tracer.",

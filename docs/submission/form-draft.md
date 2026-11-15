@@ -200,7 +200,8 @@ Space Apps 2026 calls AI tools "Super Intelligence (SI)". This section says the 
   - **Web front end, later parts** (trend summary in the layer panel, the data-mining page, the additional particle forms, the close-up views and their text, the timeline and time series chart, the layer view, the global trend map, the first-use guide, the data companions; for example pull requests #57, #58, #62, #65 and the work of issues #99, #100, #101 and #105).
   - **Data companions**: the code that draws the characters and fills in their sentences, following the team's design. The characters are drawn by that code as SVG shapes. The sentences are templates filled with numbers from the data and state no cause and no conclusion.
 - **Cursor** was used by a team member to develop the main structure of the web front end (three.js scene, globe, layers, form lab, reading the snapshot; pull requests #27, #29, #30, #33, #38, #42, #44). Those commits carry a `Co-authored-by: Cursor` trailer and the pull requests say "Made with Cursor".
-- **Codex** continued issue #131: the multilingual message files, reader-role controls, companion tour, interface copy and translation guidance. English and Traditional Chinese copy was AI drafted and has not been independently reviewed by a native-speaking science editor; Japanese, German and French currently use English fallback values.
+- **Codex** continued issue #131: the multilingual message files, reader-role controls, companion tour, interface copy and translation guidance. English and Traditional Chinese copy has not been independently reviewed by a native-speaking science editor.
+- **Interface copy and translations**: the English and Traditional Chinese interface copy, and the Japanese, German and French translations of it (including the investigation panel), were written by AI tools (Claude Code and Codex) following the team's direction. **The Japanese, German and French translations have not been proofread by native speakers.**
 
 **What the team decided.** The direction, the ideas and the trade-offs. The decisions recorded in the data-layer spec (issue #4) and in the decision records in `docs/adr/` were made by the team (confirmed by the team owner on 2026-11-15); the team's discussion of the project's direction is in issue #3.
 
@@ -329,7 +330,7 @@ Official prompt: list all data, code, text and images used; material under copyr
 - Fonts: none are loaded; the site uses the browser's `system-ui, sans-serif` font stack (`web/src/index.css`).
 - Audio: none; the optional spoken sentences use the browser's built-in speech synthesis.
 - Composition idea: the "Gather" arrangement of the data companions borrows the idea of the composition of Raphael, *The School of Athens* (fresco, 1509 to 1511, Stanza della Segnatura, Vatican; public domain). No part of the painting is reproduced. The companions are original characters.
-- Text: the explanations and wording on the site and in the documentation were written with AI tools (section 6). The textbook references and size figures in the close-up views have not been checked page by page.
+- Text: the explanations and wording on the site (English, Traditional Chinese, and the Japanese, German and French translations, which no native speaker has proofread) and in the documentation were written with AI tools (section 6). The textbook references and size figures in the close-up views have not been checked page by page.
 - Slides or video: [TEAM: list any template, stock image, music, font or tool used for the demo.]
 
 ---
