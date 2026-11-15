@@ -33,7 +33,7 @@ import { useParticleStyle } from "./forms/calm/particleStyle";
 import { particleNote } from "./guide/particleNote";
 import { Tour } from "./guide/Tour";
 import { TOUR_STEPS, tourLayers } from "./guide/tourScript";
-import { carryChoices, monthYear, t, useI18n } from "./i18n";
+import { carryChoices, monthYear, t, useI18n, type Locale } from "./i18n";
 import { LanguageMenu, RoleSwitch } from "./i18n/ChoiceControls";
 import { variableDefinition, variableName } from "./i18n/names";
 import { LayerPanel, type LayerControl } from "./layers/LayerPanel";
@@ -446,7 +446,7 @@ function AppView({
         : undefined,
       trendsFile.status === "ready" ? trendsFile.data.known_issues : undefined,
     );
-  const tourSentences = (variableId: string) => {
+  const tourSentences = (variableId: string, formatLocale?: Locale) => {
     const spec = companionFor(variableId);
     if (!spec) return null;
     const reading = readingOf(variableId);
@@ -456,6 +456,7 @@ function AppView({
       variableName: companionVariable(spec),
       place: placeName,
       month: activeMonth,
+      formatLocale,
       value: reading.raw,
       unit: reading.unit,
       anomaly: reading.anomaly,
@@ -640,6 +641,7 @@ function AppView({
             place: placeName,
             month: activeMonth ? monthYear(activeMonth) : "",
           }}
+          month={activeMonth}
           sentences={tourSentences}
           figure={(variableId) => {
             const reading = readingOf(variableId);

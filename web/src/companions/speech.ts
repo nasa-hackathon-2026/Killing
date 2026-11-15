@@ -1,7 +1,9 @@
-// The browser's own voice (Web Speech API). No sound file is shipped. If the
-// browser has no speech synthesis, nothing is spoken and the button is not
-// shown.
-import { getLocale, SPEECH_LANG } from "../i18n";
+import type { Locale } from "../i18n/core";
+import { voiceForLocale } from "./speechVoice";
+
+let request = 0;
+const primed = new WeakSet<SpeechSynthesis>();
+const remembered = new WeakMap<SpeechSynthesis, SpeechSynthesisVoice[]>();
 
 export function speechAvailable(): boolean {
   return (
@@ -11,44 +13,69 @@ export function speechAvailable(): boolean {
   );
 }
 
+// Chrome's voice list is empty until voiceschanged. Asking once at startup
+// means a later click can speak inside the user gesture.
+export function primeSpeech(): void {
+  if (!speechAvailable()) return;
+  const synth = window.speechSynthesis;
+  if (primed.has(synth)) return;
+  primed.add(synth);
+  const take = () => {
+    const voices = synth.getVoices();
+    if (voices.length > 0) remembered.set(synth, voices);
+  };
+  take();
+  synth.addEventListener("voiceschanged", take);
+}
+
+function voicesNow(): SpeechSynthesisVoice[] {
+  const synth = window.speechSynthesis;
+  const live = synth.getVoices();
+  if (live.length > 0) {
+    remembered.set(synth, live);
+    return live;
+  }
+  return remembered.get(synth) ?? [];
+}
+
 export function stopSpeaking(): void {
-  if (speechAvailable()) window.speechSynthesis.cancel();
+  request += 1;
+  try {
+    if (speechAvailable()) window.speechSynthesis.cancel();
+  } catch {
+    request += 1;
+  }
 }
 
-// The voice to use for a language tag ("zh-TW"): the same tag, else the same
-// primary language, else none.
-export function pickVoice<T extends { lang: string }>(
-  voices: readonly T[],
-  tag: string,
-): T | null {
-  const wanted = tag.toLowerCase().replace("_", "-");
-  const primary = wanted.split("-")[0] ?? wanted;
-  const lang = (voice: T) => voice.lang.toLowerCase().replace("_", "-");
-  return (
-    voices.find((voice) => lang(voice) === wanted) ??
-    voices.find((voice) => lang(voice).split("-")[0] === primary) ??
-    null
-  );
-}
-
-// Says `text` in the active language, replacing anything still being
-// spoken. When the browser lists voices and none is in that language,
-// nothing is said (an English voice reading Chinese text helps nobody).
-export function speak(text: string): void {
+export function speak(text: string, locale: Locale): void {
   if (!speechAvailable()) return;
   try {
+    const spoken = text.trim();
+    if (!spoken) return;
+    primeSpeech();
     const synth = window.speechSynthesis;
-    synth.cancel();
-    const tag = SPEECH_LANG[getLocale()];
-    const voices = synth.getVoices();
-    const voice = pickVoice(voices, tag);
-    if (!voice && voices.length > 0 && getLocale() !== "en") return;
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = tag;
-    if (voice) utterance.voice = voice;
+    const chosen = voiceForLocale(voicesNow(), locale);
+    if (!chosen) {
+      stopSpeaking();
+      return;
+    }
+
+    const token = ++request;
+    const utterance = new SpeechSynthesisUtterance(spoken);
+    utterance.lang = chosen.lang;
+    utterance.voice = chosen.voice;
+    utterance.pitch = 1;
     utterance.rate = 1;
-    synth.speak(utterance);
+    const say = () => {
+      if (token === request) synth.speak(utterance);
+    };
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+      window.setTimeout(say, 50);
+    } else {
+      say();
+    }
   } catch {
-    // Speech is optional: a browser that refuses stays silent.
+    request += 1;
   }
 }

@@ -10,6 +10,7 @@
   "voiceOn": "語音開",
   "voiceOff": "語音關",
   "voiceTitle": "用瀏覽器的語音念出選取夥伴說的話",
+  "voiceUnavailable": "瀏覽器沒有安裝相符語言的語音",
   "narrateOn": "解說開",
   "narrateOff": "解說關",
   "narrateTitle": "開啟時，你開新圖層、換地點或暫停時，夥伴會主動說一句",

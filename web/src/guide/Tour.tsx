@@ -12,7 +12,13 @@ import {
 import { companionFor, companionTitle } from "../companions/companionSpec";
 import { speak, speechAvailable, stopSpeaking } from "../companions/speech";
 import type { TrendSignal } from "../forms/encoding";
-import { useI18n, type Vars } from "../i18n";
+import {
+  getMessageLocale,
+  monthYear,
+  useI18n,
+  type Locale,
+  type Vars,
+} from "../i18n";
 import { stratumHeight, stratumName } from "../strata/strataSpec";
 import "./guide.css";
 import { TOUR_STEPS } from "./tourScript";
@@ -29,8 +35,12 @@ type TourProps = {
   step: number;
   // Values for the placeholders of the fixed lines ({{place}}, {{month}}).
   vars: Vars;
+  month?: string | null;
   // The template sentences of a companion at the current place and month.
-  sentences: (variableId: string) => CompanionSentences | null;
+  sentences: (
+    variableId: string,
+    formatLocale?: Locale,
+  ) => CompanionSentences | null;
   figure: (variableId: string) => TourFigure;
   onStep: (index: number) => void;
   // Skip, Esc, or Next on the last step.
@@ -40,12 +50,13 @@ type TourProps = {
 export function Tour({
   step,
   vars,
+  month,
   sentences,
   figure,
   onStep,
   onEnd,
 }: TourProps) {
-  const { t } = useI18n();
+  const { t, voice } = useI18n();
   const [voiceOn, setVoiceOn] = useState(false);
   const nextButton = useRef<HTMLButtonElement>(null);
   const current = TOUR_STEPS[step];
@@ -64,7 +75,28 @@ export function Tour({
           .filter((line): line is string => !!line),
       ]
     : [];
-  const text = lines.join(" ");
+  const speechLocale = getMessageLocale(
+    current?.messages[0] ??
+      (voice === "expert"
+        ? "companions.line.noMonth"
+        : "companions.say.noMonth"),
+  );
+  const spokenMonth = month
+    ? monthYear(month, "long", speechLocale)
+    : vars.month;
+  const spokenSentences = current
+    ? sentences(current.speaker, speechLocale)
+    : null;
+  const spokenText = current
+    ? [
+        ...current.messages.map((key) =>
+          t(key, { ...vars, month: spokenMonth }),
+        ),
+        ...current.lines
+          .map((line) => spokenSentences?.[line] ?? null)
+          .filter((line): line is string => !!line),
+      ].join(" ")
+    : "";
 
   // Keys work wherever the focus is; the capture phase keeps the arrows from
   // also stepping the timeline.
@@ -94,8 +126,8 @@ export function Tour({
     nextButton.current?.focus({ preventScroll: true });
   }, [step]);
   useEffect(() => {
-    if (voiceOn && text) speak(spokenLine(text));
-  }, [voiceOn, text]);
+    if (voiceOn && spokenText) speak(spokenLine(spokenText), speechLocale);
+  }, [voiceOn, spokenText, speechLocale]);
   useEffect(() => stopSpeaking, []);
 
   if (!current) return null;

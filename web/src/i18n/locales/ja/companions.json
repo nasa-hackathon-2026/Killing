@@ -10,6 +10,7 @@
   "voiceOn": "Voice on",
   "voiceOff": "Voice off",
   "voiceTitle": "Read the selected companion's words aloud (browser voice)",
+  "voiceUnavailable": "No matching browser voice is installed",
   "narrateOn": "Guide on",
   "narrateOff": "Guide off",
   "narrateTitle": "When on, a companion speaks up when you turn on a layer, change place or pause",
