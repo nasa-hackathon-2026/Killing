@@ -397,24 +397,12 @@
     left: auto;
     width: 380px;
   }
-
-  .app:has(.strata):has(.timeline-chart)
-    .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
-  }
-}
-
-/* The folded companion panel keeps only its heading and the + button here:
-   the same figures stand on the platforms, and a row of them would sit on
-   the top platform. */
-.app:has(.strata) .companion-dock-collapsed .companion-avatars {
-  display: none;
 }
 
 /* Medium: no room for both, so the chart takes the place of the Layers
    panel until it is closed. */
 @media (min-width: 701px) and (max-width: 1180px) {
-  .app:has(.strata):has(.timeline-chart) .layers {
+  .app:has(.strata):has(.timeline-chart) .right-sidebar {
     display: none;
   }
 
@@ -475,14 +463,6 @@
   }
 }
 
-/* Medium and compact: the companions stand on the platforms, so the folded
-   Companions chip would only sit over the top of the stack. */
-@media (max-width: 1180px) {
-  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
-  }
-}
-
 /* Compact (701-900 px): the labels list values only, in a narrower column
    (LABEL_COLUMN_COMPACT in strataCamera.ts). */
 @media (min-width: 701px) and (max-width: 900px) {
@@ -539,11 +519,7 @@
     left: 220px;
   }
 
-  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
-  }
-
-  .app:has(.strata-detail) aside.layers {
+  .app:has(.strata-detail) .right-sidebar {
     display: none;
   }
 
@@ -568,16 +544,7 @@
     display: none;
   }
 
-  .app:has(.strata) aside.layers {
-    top: auto;
-    right: 12px;
-    bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
-    left: 12px;
-    width: auto;
-    max-height: 15%;
-  }
-
-  .app:has(.strata-detail) aside.layers {
+  .app:has(.strata-detail) .right-sidebar {
     display: none;
   }
 
@@ -672,11 +639,6 @@
     margin-right: 8px;
     font-weight: 400;
     white-space: nowrap;
-  }
-
-  /* The same companions stand on the platforms. */
-  .app:has(.strata) .companion-dock:not(.companion-gather, .companion-gallery) {
-    display: none;
   }
 
   .strata-detail {

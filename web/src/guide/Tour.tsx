@@ -22,6 +22,7 @@ import {
   type Locale,
   type Vars,
 } from "../i18n";
+import { setSidebarOpen } from "../sidebar/sidebarStore";
 import "./guide.css";
 import { useParticleStyle } from "../forms/calm/particleStyle";
 import { exampleHref, GUIDE_EXAMPLES } from "./examples";
@@ -113,6 +114,11 @@ export function Tour({
   onEnd,
 }: TourProps) {
   const { t, voice } = useI18n();
+  // The steps point at the layer rows and the companions, which are in the
+  // sidebar: open it for the tour, without making that the reader's choice.
+  useEffect(() => {
+    setSidebarOpen(true, false);
+  }, []);
   const [voiceOn, setVoiceOn] = useState(false);
   const [layout, setLayout] = useState<Layout>({ rings: [], place: null });
   const nextButton = useRef<HTMLButtonElement>(null);

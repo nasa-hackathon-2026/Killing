@@ -108,7 +108,6 @@ html {
    known to be --ctl-scroll-size wide (a mouse, and ::-webkit-scrollbar), the
    right padding gives that width back, so the panel has no extra blank edge:
    12px padding = 2px + the 10px slot. */
-.layers:not(.layers-collapsed),
 .timeline-chart,
 .trendmap {
   scrollbar-gutter: stable;
@@ -116,7 +115,6 @@ html {
 
 @media (hover: hover) and (pointer: fine) {
   @supports selector(::-webkit-scrollbar) {
-    .app > .layers:not(.layers-collapsed),
     .app > .timeline-chart,
     .app > .trendmap {
       padding-right: calc(12px - var(--ctl-scroll-size));

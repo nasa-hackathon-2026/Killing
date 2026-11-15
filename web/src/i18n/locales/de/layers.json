@@ -18,5 +18,7 @@
   "cautionHint": "Bekanntes Datenproblem: Öffne diese Ebene und lies den Hinweis.",
   "showAria": "{{name}} anzeigen",
   "display": "Anzeige",
-  "opacity": "Deckkraft"
+  "opacity": "Deckkraft",
+  "sidebarOpen": "Ebenen und Begleiter öffnen",
+  "sidebarClose": "Ebenen und Begleiter schließen"
 }

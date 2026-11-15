@@ -7,6 +7,7 @@ import {
 } from "./analysis/trends";
 import { HudIcon } from "./hud/icons";
 import { CompanionDock } from "./companions/CompanionDock";
+import { RightSidebar } from "./sidebar/RightSidebar";
 import { companionReading, monthlyAnomaly } from "./companions/companionData";
 import { companionSentences } from "./companions/companionLine";
 import {
@@ -805,48 +806,65 @@ function AppView({
           />
         </Suspense>
       ) : null}
-      <LayerPanel
-        layers={layerRegistry}
-        controls={controls}
-        readings={readings}
-        trends={trends}
-        signals={signals}
-        locationName={placeName}
-        // The layer view needs a point, so the global mean is not offered
-        // while it is open.
-        places={strata.phase === "off" ? places : places.filter(hasCoordinates)}
-        locationId={locationId}
-        onLocation={(id) => selectPlace(id, true)}
-        placeNote={placeNote(place, voice)}
-        onHowTo={() => {
-          setHowToOpen(true);
-          setGuideOpen(true);
-        }}
-        compareLinks={compareLinks}
-        onToggle={(id) =>
-          setControls((current) =>
-            current.map((layer) =>
-              layer.id === id ? { ...layer, visible: !layer.visible } : layer,
-            ),
-          )
-        }
-        onOpacity={(id, opacity) =>
-          setControls((current) =>
-            current.map((layer) =>
-              layer.id === id ? { ...layer, opacity } : layer,
-            ),
-          )
-        }
-        onCloseUp={(id) => {
-          setGuideOpen(false);
-          setCloseUpId(id);
-        }}
-        chartId={timeline.selectedVariableId}
-        onChart={(id) => {
-          setGuideOpen(false);
-          timeline.setSelectedVariableId(id);
-        }}
-      />
+      <RightSidebar>
+        <LayerPanel
+          layers={layerRegistry}
+          controls={controls}
+          readings={readings}
+          trends={trends}
+          signals={signals}
+          locationName={placeName}
+          // The layer view needs a point, so the global mean is not offered
+          // while it is open.
+          places={
+            strata.phase === "off" ? places : places.filter(hasCoordinates)
+          }
+          locationId={locationId}
+          onLocation={(id) => selectPlace(id, true)}
+          placeNote={placeNote(place, voice)}
+          onHowTo={() => {
+            setHowToOpen(true);
+            setGuideOpen(true);
+          }}
+          compareLinks={compareLinks}
+          onToggle={(id) =>
+            setControls((current) =>
+              current.map((layer) =>
+                layer.id === id ? { ...layer, visible: !layer.visible } : layer,
+              ),
+            )
+          }
+          onOpacity={(id, opacity) =>
+            setControls((current) =>
+              current.map((layer) =>
+                layer.id === id ? { ...layer, opacity } : layer,
+              ),
+            )
+          }
+          onCloseUp={(id) => {
+            setGuideOpen(false);
+            setCloseUpId(id);
+          }}
+          chartId={timeline.selectedVariableId}
+          onChart={(id) => {
+            setGuideOpen(false);
+            timeline.setSelectedVariableId(id);
+          }}
+        />
+        <CompanionDock
+          compact={strata.shown}
+          visibleIds={controls
+            .filter((layer) => layer.visible)
+            .map((layer) => layer.id)}
+          series={here}
+          locationId={locationId}
+          locationName={placeName}
+          aggregation={aggregation}
+          trends={trendsFile.status === "ready" ? trendsFile.data : null}
+          onTurnOn={showLayer}
+          autoIntro={tourStep === null}
+        />
+      </RightSidebar>
       <TimelineDock
         series={here}
         variables={layerRegistry}
@@ -859,19 +877,6 @@ function AppView({
         places={places}
         onSelectLocation={(id) => selectPlace(id, true)}
         tourTab={guidedTour.tab}
-      />
-      <CompanionDock
-        compact={strata.shown}
-        visibleIds={controls
-          .filter((layer) => layer.visible)
-          .map((layer) => layer.id)}
-        series={here}
-        locationId={locationId}
-        locationName={placeName}
-        aggregation={aggregation}
-        trends={trendsFile.status === "ready" ? trendsFile.data : null}
-        onTurnOn={showLayer}
-        autoIntro={tourStep === null}
       />
       <div className="map-legends" hidden={legendsHidden}>
         {trendMapOn && !chartOpen && !guideShown ? (
