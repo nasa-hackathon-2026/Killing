@@ -65,3 +65,13 @@
   overflow: hidden;
   clip-path: inset(50%);
 }
+
+/* The icon of the language menu belongs to the top bar (the .hud rules in
+   index.css place it); the sub-pages show the word "Language" instead. */
+.choice-language > .hud-icon {
+  display: none;
+}
+
+.hud .choice-language > .hud-icon {
+  display: block;
+}

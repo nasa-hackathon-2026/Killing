@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useI18n } from "../i18n";
+import { HudIcon } from "./icons";
 import {
   searchMenu,
   type MenuSearchItem,
@@ -61,6 +62,7 @@ export function HudSearch({
   return (
     <label className="hud-search" ref={rootRef}>
       <span>{t("hud.search")}</span>
+      <HudIcon name="search" />
       <input
         type="search"
         role="combobox"

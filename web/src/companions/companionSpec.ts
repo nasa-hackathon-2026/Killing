@@ -245,3 +245,24 @@ export const DATA_KIND_SHORT: Record<DataKind, string> = {
   model: "Model",
   unknown: "Unclassified",
 };
+
+// The companions whose layer is off, highest first: the small row under the
+// open ones, each a way to turn its layer on.
+export function othersByAltitude(visibleIds: string[]): CompanionSpec[] {
+  const open = new Set(visibleIds);
+  return byAltitude(
+    COMPANIONS.filter((spec) => !open.has(spec.id)).map((spec) => spec.id),
+  );
+}
+
+// How many companions stand in the panel out of all of them.
+export function companionCount(visibleIds: string[]): {
+  shown: number;
+  total: number;
+} {
+  const open = new Set(visibleIds);
+  return {
+    shown: COMPANIONS.filter((spec) => open.has(spec.id)).length,
+    total: COMPANIONS.length,
+  };
+}

@@ -30,3 +30,20 @@ export function nextNarration(
   if (selectedId && shownIds.includes(selectedId)) return selectedId;
   return shownIds[0] ?? null;
 }
+
+// What a click on a companion does to the open bubble. Pure, and with no
+// "narration on/off" input on purpose: that switch only decides whether a
+// companion speaks up by itself (nextNarration above), never whether a click
+// opens the bubble. Clicking the one that is open (same view of it) closes it.
+export type Selection = { id: string | null; caveat: boolean };
+
+export function clickSelection(
+  current: Selection,
+  clickedId: string,
+  withCaveat: boolean,
+): Selection {
+  const closing = current.id === clickedId && current.caveat === withCaveat;
+  return closing
+    ? { id: null, caveat: withCaveat }
+    : { id: clickedId, caveat: withCaveat };
+}

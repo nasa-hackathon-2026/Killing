@@ -21,12 +21,18 @@ import {
   COMPANIONS,
   companionName,
   companionTitle,
+  companionCount,
   companionVariable,
   dataKindShort,
+  othersByAltitude,
   type CompanionSpec,
 } from "./companionSpec";
 import { gatherLayout } from "./gather";
-import { nextNarration, type NarrationState } from "./narration";
+import {
+  clickSelection,
+  nextNarration,
+  type NarrationState,
+} from "./narration";
 import { interactionsFor } from "./interactions";
 import { shouldSpeakLine } from "./speechPolicy";
 import { voiceForLocale } from "./speechVoice";
@@ -48,6 +54,11 @@ export type CompanionDockProps = {
   // True while the layer view is open: the same companions already stand on
   // its platforms, so the panel folds to a row of small figures.
   compact?: boolean;
+  // Turns a layer on: the small figures of the layers that are off call it.
+  onTurnOn?: (variableId: string) => void;
+  // False while the guided tour is open: the panel then does not speak up by
+  // itself (a click on a companion still opens its bubble).
+  autoIntro?: boolean;
 };
 
 // Whether companions speak up by themselves (the "Guide on/off" button); a
@@ -143,6 +154,8 @@ export function CompanionDock({
   aggregation = "point",
   trends,
   compact = false,
+  onTurnOn,
+  autoIntro = true,
 }: CompanionDockProps) {
   const { month, playing } = useCurrentMonth();
   const { t, voice, settings, locale } = useI18n();
@@ -212,6 +225,8 @@ export function CompanionDock({
   }
 
   const shown = byAltitude(visibleIds);
+  const others = othersByAltitude(visibleIds);
+  const count = companionCount(visibleIds);
   const selected =
     COMPANIONS.find(
       (spec) =>
@@ -238,7 +253,7 @@ export function CompanionDock({
   ) {
     const next = { visibleIds, locationId, playing };
     const speaker =
-      narrate && !collapsed && !gathered && !gallery
+      narrate && autoIntro && !collapsed && !gathered && !gallery
         ? nextNarration(
             narration,
             next,
@@ -314,10 +329,14 @@ export function CompanionDock({
   }, [gathered]);
 
   function select(id: string, withCaveat = false) {
-    const closing = selectedId === id && caveatOpen === withCaveat;
-    setSelectedId(closing ? null : id);
-    setCaveatOpen(withCaveat);
-    if (closing) {
+    const next = clickSelection(
+      { id: selectedId, caveat: caveatOpen },
+      id,
+      withCaveat,
+    );
+    setSelectedId(next.id);
+    setCaveatOpen(next.caveat);
+    if (next.id === null) {
       spokenFor.current = null;
       stopSpeaking();
     }
@@ -424,13 +443,9 @@ export function CompanionDock({
               />
             )}
           </svg>
-          {t(
-            !voiceAvailable
-              ? "companions.voiceUnavailable"
-              : voiceOn
-                ? "companions.voiceOn"
-                : "companions.voiceOff",
-          )}
+          {voiceAvailable
+            ? t(voiceOn ? "companions.voiceOn" : "companions.voiceOff")
+            : null}
         </button>
       ) : null}
       <button
@@ -532,7 +547,12 @@ export function CompanionDock({
         aria-label={t("companions.aria")}
       >
         <header className="companion-head">
-          <p className="companion-heading">{t("companions.heading")}</p>
+          <p className="companion-heading">
+            {t("companions.headingCount", {
+              shown: count.shown,
+              total: count.total,
+            })}
+          </p>
           <button
             type="button"
             aria-expanded={!collapsed}
@@ -570,8 +590,12 @@ export function CompanionDock({
           <>
             <div className="companion-tools">
               {controls}
-              <button type="button" onClick={() => setGathered(true)}>
-                {t("companions.gather.open")}
+              <button
+                type="button"
+                title={t("companions.gather.aria")}
+                onClick={() => setGathered(true)}
+              >
+                {t("companions.gather.button", { count: count.total })}
               </button>
             </div>
             {shown.length === 0 ? (
@@ -657,6 +681,56 @@ export function CompanionDock({
                 })}
               </ol>
             )}
+            {others.length > 0 && onTurnOn ? (
+              <ul
+                className="companion-rest"
+                aria-label={t("companions.restLabel")}
+                title={t("companions.restLabel")}
+              >
+                {others.map((spec) => {
+                  const reading = readings[spec.id];
+                  if (!reading) return null;
+                  const noData = !series.some(
+                    (item) => item.variableId === spec.id,
+                  );
+                  const args = {
+                    name: companionTitle(spec),
+                    layer: companionVariable(spec),
+                    place: locationName,
+                  };
+                  return (
+                    <li key={spec.id}>
+                      <button
+                        type="button"
+                        className={`companion-rest-button${noData ? " companion-rest-nodata" : ""}`}
+                        aria-label={t(
+                          noData
+                            ? "companions.turnOnNoDataAria"
+                            : "companions.turnOnAria",
+                          args,
+                        )}
+                        title={t(
+                          noData
+                            ? "companions.turnOnNoDataTitle"
+                            : "companions.turnOnTitle",
+                          args,
+                        )}
+                        onClick={() => onTurnOn(spec.id)}
+                      >
+                        <Figure
+                          spec={spec}
+                          reading={reading}
+                          size={26}
+                          animate={false}
+                          showLabel={false}
+                          warning={false}
+                        />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
             <p className="companion-foot">
               {t("companions.foot")} {t("companions.interactionNote")}
             </p>

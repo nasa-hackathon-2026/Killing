@@ -214,6 +214,63 @@
   align-items: center;
 }
 
+/* The layers that are off: a small, faded figure each, one tap to turn the
+   layer on. Two rows at most; more would scroll sideways. */
+.companion-rest {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-height: 72px;
+  margin: 0;
+  padding: 4px 0 2px;
+  overflow: auto;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.companion-dock .companion-rest-button {
+  display: block;
+  padding: 1px;
+  line-height: 0;
+  background: none;
+  border-color: transparent;
+  border-radius: 8px;
+}
+
+.companion-rest-button .companion {
+  opacity: 0.62;
+  filter: saturate(0.5);
+  transition: opacity 0.15s;
+}
+
+.companion-dock .companion-rest-button:hover .companion,
+.companion-dock .companion-rest-button:focus-visible .companion {
+  opacity: 1;
+  filter: none;
+}
+
+.companion-dock .companion-rest-button:hover {
+  border-color: rgba(142, 200, 255, 0.6);
+}
+
+/* No data at this place: still there, still a button, drawn with a dashed
+   outline. */
+.companion-dock .companion-rest-nodata {
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
+.companion-rest-nodata .companion {
+  opacity: 0.3;
+}
+
+.companion-voice:disabled {
+  padding-right: 6px;
+  padding-left: 6px;
+  cursor: default;
+  opacity: 0.6;
+}
+
 .companion-dock-collapsed {
   width: auto;
   max-width: 260px;
