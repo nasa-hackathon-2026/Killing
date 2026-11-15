@@ -56,7 +56,6 @@ export function shownTrendCaveat(
 ): TrendCaveat | null {
   return trend ? trendCaveat(id, voice) : null;
 }
-
 // Every caveat, keyed by variable id.
 export function allTrendCaveats(
   voice: Voice = getVoice(),

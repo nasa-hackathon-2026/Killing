@@ -41,12 +41,14 @@ import { initialLayerVisibility, layerRegistry } from "./layers/registry";
 import { mockLocations, taiwanOverview } from "./mock/snapshot";
 import { compareLinksFor, loadModelVsObs } from "./analysis/modelVsObs";
 import { EarthCanvas } from "./scene/EarthCanvas";
+import { DEFAULT_ORBIT_DISTANCE } from "./scene/orbitSpeed";
 import type { FlyTarget } from "./scene/FlyCamera";
 import { FpsReadout } from "./scene/FpsReadout";
 import { FieldToggle } from "./fields/FieldToggle";
 import { useFieldNote } from "./fields/useFieldNote";
 import { rendererLabel, type RendererKind } from "./scene/rendererLabel";
 import { startLongitudeShift } from "./scene/startView";
+import { worldCityFrame } from "./scene/worldCityFrame";
 import {
   bestDefaultMonth,
   formatMeasurement,
@@ -110,7 +112,7 @@ const TAIWAN_FLY_DISTANCE = 1.85;
 const PLACE_FLY_DISTANCE = 2.3;
 // The whole globe in view: the distance the camera is created at
 // (EarthCanvas). A page that opens at a Taiwan place starts here.
-const START_DISTANCE = 3.2;
+const START_DISTANCE = DEFAULT_ORBIT_DISTANCE;
 // Before the catalogs are read, the five Taiwan places stand in.
 const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   ...item,
@@ -118,33 +120,45 @@ const fallbackPlaces: Place[] = mockLocations.map((item) => ({
   aggregation: "point",
 }));
 
-// One target object per place, so the camera jumps there once.
-function useStartFlight(
-  lat: number | undefined,
-  lon: number | undefined,
-  distance: number,
+// One target object per place. A world city slides to the center of the
+// globe, a little closer than the whole-Earth view. A Taiwan place is
+// already framed when the page opens (no slide), shifted east on medium
+// windows so it is not behind the Companions panel.
+function useOpeningFlight(
+  group: string | undefined,
+  lat: number | null,
+  lon: number | null,
+  strata: boolean,
 ): FlyTarget | null {
-  return useMemo(
-    () =>
-      lat !== undefined && lon !== undefined
-        ? {
-            lat,
-            // East of the place on medium windows, so the place shows left
-            // of the Companions panel (scene/startView.ts).
-            lon:
-              lon +
-              startLongitudeShift(
-                window.innerWidth,
-                window.innerHeight,
-                distance,
-                lat,
-              ),
-            distance,
-            instant: true,
-          }
-        : null,
-    [lat, lon, distance],
-  );
+  return useMemo(() => {
+    if (strata || group === undefined || lat === null || lon === null) {
+      return null;
+    }
+    const city = worldCityFrame({ group, lat, lon }, PLACE_FLY_DISTANCE);
+    if (city) return city;
+    if (group !== "taiwan") return null;
+    return {
+      lat,
+      lon:
+        lon +
+        startLongitudeShift(
+          window.innerWidth,
+          window.innerHeight,
+          START_DISTANCE,
+          lat,
+        ),
+      distance: START_DISTANCE,
+      instant: true,
+    };
+  }, [group, lat, lon, strata]);
+}
+
+// "Precipitation (GPM IMERG Final)": the variable's name in the active
+// language with the product name, which is not translated.
+function trendMapLabel(variable: { id: string; label: string }): string {
+  const product = /\(([^()]+)\)$/.exec(variable.label)?.[1];
+  const name = variableName(variable.id, variable.label);
+  return product && !name.includes(product) ? `${name} (${product})` : name;
 }
 
 // "Precipitation (GPM IMERG Final)": the variable's name in the active
@@ -299,7 +313,15 @@ function AppView({
   const selectPlace = (id: string, fly: boolean) => {
     setLocationId(id);
     const next = places.find((item) => item.id === id);
-    if (fly && hasCoordinates(next) && strata.phase === "off") {
+    if (!hasCoordinates(next) || strata.phase !== "off") return;
+    // A world city slides to the center and a little closer, whether it was
+    // chosen from the menu or by its marker. Taiwan markers do not fly.
+    const city = worldCityFrame(next, PLACE_FLY_DISTANCE);
+    if (city) {
+      setFlyTarget(city);
+      return;
+    }
+    if (fly) {
       setFlyTarget({
         lat: next.lat,
         lon: next.lon,
@@ -309,18 +331,16 @@ function AppView({
   };
   // The page opens with the camera over the selected place (the default,
   // or the one ?at= names), so the globe shows what the panels talk about.
-  // The global mean has no point and keeps the default view; the layer view
-  // flies there by itself.
-  const startLat = location?.lat;
-  const startLon = location?.lon;
-  const startDistance =
-    place?.group === "taiwan" ? START_DISTANCE : PLACE_FLY_DISTANCE;
-  const startFlight = useStartFlight(
-    requestedStrata() ? undefined : startLat,
-    startLon,
-    startDistance,
+  // A world city slides there (city on the viewing axis, slightly closer).
+  // Taiwan is already there, with no slide. The global mean has no point
+  // and keeps the default view; the layer view flies there by itself.
+  const openingFlight = useOpeningFlight(
+    place?.group,
+    place?.lat ?? null,
+    place?.lon ?? null,
+    requestedStrata(),
   );
-  const flyTarget = askedFlight ?? (startDone ? null : startFlight);
+  const flyTarget = askedFlight ?? (startDone ? null : openingFlight);
   const flying = flyTarget !== null;
   const here =
     data?.series.filter((item) => item.locationId === locationId) ?? [];
