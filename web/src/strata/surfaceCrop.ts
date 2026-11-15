@@ -41,6 +41,9 @@ export type SurfaceImage = TextureCrop & {
   file: string;
   lonSpan: number;
   latSpan: number;
+  // World cities: draw these tiles into a canvas of the centered window.
+  tiles?: DetailImage["tiles"];
+  frame?: DetailImage;
 };
 
 // A 2:1 window, the same shape as the ground platform.
@@ -51,6 +54,8 @@ function windowOn(image: DetailImage, lat: number, lon: number): SurfaceImage {
     file: image.file,
     lonSpan,
     latSpan,
+    tiles: image.tiles,
+    frame: image.tiles ? image : undefined,
     ...cropAround(lat, lon, lonSpan, latSpan, image),
   };
 }

@@ -11,6 +11,8 @@ export type FlyTarget = {
   lon: number;
   distance: number;
   instant?: boolean;
+  // Overrides the default flight length. City clicks use a shorter one.
+  seconds?: number;
 };
 
 type FlyCameraProps = {
@@ -44,7 +46,8 @@ export function FlyCamera({ target, onDone }: FlyCameraProps) {
     const current = flight.current;
     if (current.t >= 1) return;
     const jump = target.instant || prefersReducedMotion();
-    current.t = jump ? 1 : Math.min(1, current.t + delta / FLY_SECONDS);
+    const seconds = target.seconds ?? FLY_SECONDS;
+    current.t = jump ? 1 : Math.min(1, current.t + delta / seconds);
     const end = latLonToVector3(target.lat, target.lon, target.distance);
     const [x, y, z] = approachPosition(
       current.from,

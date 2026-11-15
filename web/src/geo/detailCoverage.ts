@@ -13,6 +13,12 @@ export const TAIWAN_DETAIL = {
 // tile that contains them; they are not stitched into a global image.
 export const GIBS_TILE_DEGREES = 2.25;
 export const GIBS_LEVEL = 7;
+// A click on a world city stops here: closer than the old 2.3 frame, still
+// wider than the sharp close-up.
+export const CITY_FRAME_DISTANCE = 2.05;
+// A double-click stops here: the close-up image is already fully faded in.
+export const CLEAR_DISTANCE = 1.3;
+export const CITY_FLY_SECONDS = 1.15;
 
 const FAR_DISTANCE = 1.6;
 const NEAR_DISTANCE = 1.28;
@@ -63,6 +69,65 @@ export function gibsTileUrl(col: number, row: number): string {
   return `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/BlueMarble_ShadedRelief_Bathymetry/default/500m/${GIBS_LEVEL}/${row}/${col}.jpg`;
 }
 
+// A square around the city, not around the GIBS grid, so the marker sits in
+// the middle of the sharp image.
+export function centeredWindow(
+  lat: number,
+  lon: number,
+  span = GIBS_TILE_DEGREES,
+): LonLatBounds {
+  const half = span / 2;
+  return {
+    west: lon - half,
+    east: lon + half,
+    south: lat - half,
+    north: lat + half,
+  };
+}
+
+// Every GIBS tile that the window overlaps. A city near a tile corner needs
+// the neighbours, or the sharp image stops beside the marker.
+export function tilesCovering(frame: LonLatBounds): GibsTile[] {
+  const deg = GIBS_TILE_DEGREES;
+  const col0 = Math.floor((frame.west + 180) / deg);
+  const col1 = Math.floor((frame.east - 1e-6 + 180) / deg);
+  const row0 = Math.floor((90 - frame.north) / deg);
+  const row1 = Math.floor((90 - frame.south - 1e-6) / deg);
+  const tiles: GibsTile[] = [];
+  for (let row = row0; row <= row1; row += 1) {
+    for (let col = col0; col <= col1; col += 1) {
+      const west = col * deg - 180;
+      const north = 90 - row * deg;
+      tiles.push({
+        col,
+        row,
+        west,
+        east: west + deg,
+        north,
+        south: north - deg,
+      });
+    }
+  }
+  return tiles;
+}
+
+// Where one tile is drawn on a square canvas of the centered window.
+// Image y grows downward, so north is y = 0.
+export function blitRect(
+  tile: LonLatBounds,
+  frame: LonLatBounds,
+  size: number,
+): { x: number; y: number; w: number; h: number } {
+  const lonSpan = frame.east - frame.west;
+  const latSpan = frame.north - frame.south;
+  return {
+    x: ((tile.west - frame.west) / lonSpan) * size,
+    y: ((frame.north - tile.north) / latSpan) * size,
+    w: ((tile.east - tile.west) / lonSpan) * size,
+    h: ((tile.north - tile.south) / latSpan) * size,
+  };
+}
+
 export function contains(
   bounds: LonLatBounds,
   lat: number,
@@ -76,7 +141,13 @@ export function contains(
   );
 }
 
-export type DetailImage = LonLatBounds & { id: string; file: string };
+export type DetailImage = LonLatBounds & {
+  id: string;
+  file: string;
+  // Set for a world city: the sharp image is these tiles drawn into `file`'s
+  // window, with the city at the centre.
+  tiles?: GibsTile[];
+};
 
 export const TAIWAN_IMAGE: DetailImage = {
   id: "taiwan",
@@ -92,14 +163,14 @@ export function cityImage(city: {
   lat: number;
   lon: number;
 }): DetailImage {
-  const tile = gibsTile(city.lat, city.lon);
+  const frame = centeredWindow(city.lat, city.lon);
+  const tiles = tilesCovering(frame);
+  const own = gibsTile(city.lat, city.lon);
   return {
     id: city.id,
-    file: gibsTileUrl(tile.col, tile.row),
-    south: tile.south,
-    north: tile.north,
-    west: tile.west,
-    east: tile.east,
+    file: gibsTileUrl(own.col, own.row),
+    ...frame,
+    tiles,
   };
 }
 

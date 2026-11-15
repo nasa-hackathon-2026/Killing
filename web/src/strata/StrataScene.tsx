@@ -45,6 +45,7 @@ import {
 } from "./strataLayout";
 import { StrataParticles } from "./StrataParticles";
 import { strata, strataAssignments, type StratumId } from "./strataSpec";
+import { stitchedTexture } from "../geo/stitchTiles";
 import type { SurfaceImage } from "./surfaceCrop";
 
 // What the user's drag and wheel have set; written by StrataView.
@@ -140,12 +141,7 @@ function useSurfaceTexture(surface: SurfaceImage): Texture | null {
   useEffect(() => {
     let alive = true;
     let loaded: Texture | null = null;
-    const loader = new TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    const url = surface.file.startsWith("http")
-      ? surface.file
-      : `${import.meta.env.BASE_URL}${surface.file}`;
-    loader.load(url, (map) => {
+    const apply = (map: Texture) => {
       loaded = map;
       if (!alive) {
         map.dispose();
@@ -155,7 +151,17 @@ function useSurfaceTexture(surface: SurfaceImage): Texture | null {
       map.offset.set(surface.offset[0], surface.offset[1]);
       map.repeat.set(surface.repeat[0], surface.repeat[1]);
       setTexture(map);
-    });
+    };
+    if (surface.tiles && surface.frame) {
+      void stitchedTexture(surface.frame, surface.tiles).then(apply);
+    } else {
+      const loader = new TextureLoader();
+      loader.setCrossOrigin("anonymous");
+      const url = surface.file.startsWith("http")
+        ? surface.file
+        : `${import.meta.env.BASE_URL}${surface.file}`;
+      loader.load(url, apply);
+    }
     return () => {
       alive = false;
       loaded?.dispose();

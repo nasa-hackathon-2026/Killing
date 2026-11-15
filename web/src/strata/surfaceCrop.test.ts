@@ -39,8 +39,10 @@ describe("surfaceImage", () => {
 
   it("uses one city tile for London and Blue Marble away from every city", () => {
     const london = surfaceImage(51.51, -0.13);
-    expect(london.file).toContain("gibs.earthdata.nasa.gov");
-    expect(london.file).toContain(".jpg");
+    expect(london.tiles?.length).toBeGreaterThan(1);
+    expect((london.frame?.west ?? 0) + (london.frame?.east ?? 0)).toBeCloseTo(
+      -0.13 * 2,
+    );
     expect(surfaceImage(48.85, 2.35).file).toBe("textures/blue-marble.jpg");
   });
 
