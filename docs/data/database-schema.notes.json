@@ -950,13 +950,13 @@
   "analysis.mining_wide_region.month": "月份。",
   "analysis.mining_wide_region.*": "欄名是變數 id；值是該變數在這個地點、這個月的 anomaly_filled（單位是該變數的單位）。沒有這條序列時是 NULL。",
   "analysis.gap_tree_folds": {
-    "desc": "模式與觀測差距的決策樹各折。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
-    "source": "#111 的 gap_tree（analysis.runs.step = 'gap_tree'）",
+    "desc": "模式與觀測差距（台灣測站配對的差值分級）的決策樹各折：三個版本 × 兩種驗證。探索性結果。#111（探勘強化）新增，定義在 023_mining_plus.sql，做法、防洩漏規則與結果見 docs/data/mining.md。",
+    "source": "uv run python -m trend_detective.gap_tree --write-db（analysis.runs.step = 'gap_tree'）",
     "trust": "analysis"
   },
   "analysis.gap_tree_folds.run_id": "執行紀錄。",
-  "analysis.gap_tree_folds.variant": "with_segment、without_segment 或 with_target_lag。",
-  "analysis.gap_tree_folds.validation": "walk_forward（依時間往前走）或 leave_one_location_out（留一測站）。",
+  "analysis.gap_tree_folds.variant": "版本：with_segment（主要結果）、without_segment（不含 GLDAS 分段編號）、with_target_lag（另含目標自己上個月的類別，等於拿目標預測目標，只當參考）。",
+  "analysis.gap_tree_folds.validation": "walk_forward（依時間往前走）或 leave_one_location_out（留一測站；訓練與測試在同一段時間，檢查的是換一個地點，不是預測未來）。",
   "analysis.gap_tree_folds.fold": "第幾折。",
   "analysis.gap_tree_folds.held_out_station": "留一測站驗證時留出的測站。",
   "analysis.gap_tree_folds.test_first_month": "測試期第一個月。",
@@ -965,14 +965,14 @@
   "analysis.gap_tree_folds.n_test": "測試列數。",
   "analysis.gap_tree_folds.test_accuracy": "測試準確率。",
   "analysis.gap_tree_folds.macro_f1": "macro F1。",
-  "analysis.gap_tree_folds.train_majority_accuracy": "基準：訓練期最多的類別。",
-  "analysis.gap_tree_folds.persistence_accuracy": "基準：前一個月的狀態。",
-  "analysis.gap_tree_folds.calendar_month_accuracy": "基準：依日曆月（未確認細節）。",
-  "analysis.gap_tree_folds.above_all_baselines": "是否高於全部基準。",
+  "analysis.gap_tree_folds.train_majority_accuracy": "基準：永遠猜訓練列最多的類別。",
+  "analysis.gap_tree_folds.persistence_accuracy": "基準：猜這一對上個月的類別。",
+  "analysis.gap_tree_folds.calendar_month_accuracy": "基準：猜訓練列裡該日曆月最多的類別。",
+  "analysis.gap_tree_folds.above_all_baselines": "測試準確率是否嚴格大於上面三個基準。",
   "analysis.gap_tree_folds.tree": "樹的結構（JSONB）。",
   "analysis.gap_stats": {
-    "desc": "模式與觀測差值絕對值的分組平均（描述統計）。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
-    "source": "#111 的 gap_tree",
+    "desc": "模式與觀測差值絕對值的分組平均（描述統計）。#111（探勘強化）新增，定義在 023_mining_plus.sql，做法與結果見 docs/data/mining.md。",
+    "source": "uv run python -m trend_detective.gap_tree --write-db",
     "trust": "analysis"
   },
   "analysis.gap_stats.run_id": "執行紀錄。",
@@ -980,13 +980,13 @@
   "analysis.gap_stats.model_variable": "模式變數。",
   "analysis.gap_stats.group_value": "組的值（季節、分段或測站）。",
   "analysis.gap_stats.n_months": "月數。",
-  "analysis.gap_stats.mean_abs_difference": "差值絕對值的平均。",
+  "analysis.gap_stats.mean_abs_difference": "差值（模式 − 觀測的距平）絕對值的平均（°C）。",
   "analysis.gap_stats.median_abs_difference": "中位數。",
-  "analysis.gap_stats.ci_low": "信賴區間下界（未確認算法；執行參數有 bootstrap_resamples）。",
-  "analysis.gap_stats.ci_high": "信賴區間上界。",
+  "analysis.gap_stats.ci_low": "95% 區間下界：以年為單位重抽的自助法（2,000 次、種子 0）。",
+  "analysis.gap_stats.ci_high": "95% 區間上界。",
   "analysis.correlation_nodes": {
-    "desc": "用相關係數建的變數關聯圖的節點。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
-    "source": "#111 的 variable_graph",
+    "desc": "用相關係數建的變數關聯圖的節點。#111（探勘強化）新增，定義在 023_mining_plus.sql，做法與結果見 docs/data/mining.md。",
+    "source": "uv run python -m trend_detective.variable_graph（analysis.runs.step = 'variable_graph'）",
     "trust": "analysis"
   },
   "analysis.correlation_nodes.table_kind": "point 或 region。",
@@ -995,8 +995,8 @@
   "analysis.correlation_nodes.component": "連通分量（分量裡最小的 node_id）。",
   "analysis.correlation_nodes.degree": "相鄰的不同變數個數。",
   "analysis.correlation_edges": {
-    "desc": "相關係數圖裡全部檢定過的配對；significant 的才是圖上的邊。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。",
-    "source": "#111 的 variable_graph",
+    "desc": "用相關係數建的變數關聯圖裡全部檢定過的配對；significant 的才是圖上的邊。台灣核心序列的月距平各自去線性趨勢、不補值，每一對只用兩邊都有值的月份；同月與落後一個月。相關不是因果。#111 新增，做法與結果見 docs/data/mining.md。",
+    "source": "uv run python -m trend_detective.variable_graph（analysis.runs.step = 'variable_graph'）",
     "trust": "analysis"
   },
   "analysis.correlation_edges.table_kind": "point 或 region。",
@@ -1007,8 +1007,8 @@
   "analysis.correlation_edges.target_variable": "另一端的變數。",
   "analysis.correlation_edges.lag": "延遲的月數；1 是 source 領先 target 一個月。",
   "analysis.correlation_edges.r": "相關係數。",
-  "analysis.correlation_edges.p": "p 值。",
-  "analysis.correlation_edges.q": "多重檢定校正後的 p（未確認家族）。",
+  "analysis.correlation_edges.p": "相關係數的 p 值（lag-1 自相關修正後的有效樣本數）。",
+  "analysis.correlation_edges.q": "BH-FDR 校正後的 p（校正的家族見 docs/data/mining.md；未在此逐項確認）。",
   "analysis.correlation_edges.n_eff": "有效樣本數。",
   "analysis.correlation_edges.significant": "是否顯著。",
   "meta.search_variables()": "pg_trgm：用字形相似度搜變數（id 加英文名），拼錯也找得到。",
@@ -1037,5 +1037,5 @@
   "analysis.build_mining_wide()": "重建 analysis.mining_wide_point 或 _region；會 DROP 後重建。",
   "analysis.mann_kendall_values()": "plpython3u：任意序列的原始 Mann-Kendall 檢定與 Sen 斜率（純 Python）。",
   "analysis.mann_kendall()": "一條序列（clean.observations 的 anomaly，不補值）的原始 Mann-Kendall 與 Sen 斜率，核對 trends.py 用。",
-  "analysis.correlation_components()": "相關係數圖一張表的連通分量與度數。#111（探勘強化）新增；本文件產生時 migration 023_mining_plus.sql 還沒合併進 main，說明依該 migration 的註解，細節未確認。"
+  "analysis.correlation_components()": "相關係數圖一張表的連通分量與度數。#111（探勘強化）新增，定義在 023_mining_plus.sql，做法與結果見 docs/data/mining.md。"
 }

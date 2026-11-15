@@ -313,6 +313,7 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **測試**：`tests/test_cleaning.py` 不連資料庫。`tests/test_pg.py`、`tests/test_pg_observed.py`（marker `pg`）連不上資料庫時整個檔跳過；連得上時用自己的資料庫 `trend_detective_test`（每次重建後刪掉），不碰正式的資料。
 - 2026-11-15 實跑：6,822 條序列（核心 133、擴充 6,689），統一表 2,277,278 列，骨架 2,277,368 列（補出 90 個沒有列的月份，另有 5,599 個值為 NULL）。旗標：`ok` 2,182,802、`low_coverage` 55,111、`outlier_suspect` 32,665、`missing` 5,689、`partial_month` 575、`known_discontinuity` 526。補值 27,984 個月（線性 4,428、月氣候值 23,556），253 條序列不符合探勘條件（補值比例超過 20% 或沒有可用月份）。`geo.region_grid_trends` 的全球面積加權平均斜率與各變數 `meta.json` 的 `area_weighted_mean_slope_per_decade` 相對差 1e-7 至 2.4e-4（`gldas_tair` 0.5949；差異來自衍生檔的 int16 量化）。
 - 已知限制：離群門檻沒有先去趨勢；`partial_month` 只看取得時間所在的月份；區域是經緯度方框；Cloud SQL for PostgreSQL 的擴充清單沒有 TimescaleDB（2026-11-15 查），搬過去要改 `004_obs.sql`。
+- **表與欄位參考、決策紀錄、備份（#121）**：每張表與欄位的意義在 `docs/data/database-schema.md`（由 `uv run python -m trend_detective.pg_schema_doc` 產生，不要手改；說明改 `docs/data/database-schema.notes.json`、導讀改 `database-schema.intro.md` 後重跑，加表或欄位後也要重跑並補說明）；資料庫為什麼這樣設計見 `docs/adr/`；備份與還原見 `docs/data/database-backup.md`。
 
 ## Agent skills
 
