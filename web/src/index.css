@@ -57,6 +57,7 @@ body,
    not wrap; narrow screens drop labels instead. */
 .hud-main {
   flex-wrap: nowrap;
+  gap: 6px;
 }
 
 .hud-main a,
@@ -230,12 +231,19 @@ body,
 }
 
 .hud-main .hud-select:not(.field-toggle) select {
-  width: 10.75rem;
+  width: 11.75rem;
   max-width: none;
 }
 
 .hud .choice-language select {
   width: 7.75rem;
+}
+
+/* Japanese words for the same menu are wider (icon-only below 1366px). */
+@media (min-width: 1366px) {
+  :lang(ja) .hud-main .hud-select:not(.field-toggle) select {
+    width: 13.5rem;
+  }
 }
 
 .hud-guide {
@@ -1542,7 +1550,7 @@ body,
 }
 
 .hud .choice-mode button {
-  padding: 8px 10px;
+  padding: 8px 9px;
 }
 
 .hud .choice-language select {
