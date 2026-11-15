@@ -37,12 +37,19 @@ describe("surfaceImage", () => {
     expect(v).toBeLessThan(image.offset[1] + image.repeat[1]);
   });
 
-  it("falls back to Blue Marble elsewhere", () => {
+  it("uses one city tile for London and Blue Marble away from every city", () => {
+    const london = surfaceImage(51.51, -0.13);
+    expect(london.file).toContain("gibs.earthdata.nasa.gov");
+    expect(london.file).toContain(".jpg");
     expect(surfaceImage(48.85, 2.35).file).toBe("textures/blue-marble.jpg");
   });
 
   it("keeps the window's shape equal to the platform's", () => {
-    for (const image of [surfaceImage(24.15, 120.68), surfaceImage(0, 0)]) {
+    for (const image of [
+      surfaceImage(24.15, 120.68),
+      surfaceImage(51.51, -0.13),
+      surfaceImage(0, 0),
+    ]) {
       expect(image.lonSpan / image.latSpan).toBeCloseTo(
         PLATFORM_WIDTH / PLATFORM_DEPTH,
       );

@@ -1,5 +1,5 @@
 // Which part of a surface image the ground platform shows. Pure.
-import { detailCovers, TAIWAN_DETAIL } from "../geo/detailCoverage";
+import { detailImageAt, type DetailImage } from "../geo/detailCoverage";
 
 export type Bounds = {
   south: number;
@@ -37,25 +37,29 @@ export function cropAround(
 }
 
 export type SurfaceImage = TextureCrop & {
-  // Path under the site's base URL.
+  // Path under the site's base URL, or an absolute GIBS tile URL.
   file: string;
   lonSpan: number;
   latSpan: number;
 };
 
-// The closer Taiwan image where it covers the place, Blue Marble elsewhere
-// (a wider window, because that image is much coarser).
+// A 2:1 window, the same shape as the ground platform.
+function windowOn(image: DetailImage, lat: number, lon: number): SurfaceImage {
+  const lonSpan = image.id === "taiwan" ? 3 : 2.25;
+  const latSpan = lonSpan / 2;
+  return {
+    file: image.file,
+    lonSpan,
+    latSpan,
+    ...cropAround(lat, lon, lonSpan, latSpan, image),
+  };
+}
+
+// The closer image where one exists (Taiwan's stitch, or one city tile),
+// Blue Marble elsewhere (a wider window, because that image is much coarser).
 export function surfaceImage(lat: number, lon: number): SurfaceImage {
-  if (detailCovers(lat, lon)) {
-    const lonSpan = 3;
-    const latSpan = 1.5;
-    return {
-      file: "textures/taiwan-detail.png",
-      lonSpan,
-      latSpan,
-      ...cropAround(lat, lon, lonSpan, latSpan, TAIWAN_DETAIL),
-    };
-  }
+  const detail = detailImageAt(lat, lon);
+  if (detail) return windowOn(detail, lat, lon);
   const lonSpan = 24;
   const latSpan = 12;
   return {

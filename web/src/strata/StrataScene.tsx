@@ -140,20 +140,22 @@ function useSurfaceTexture(surface: SurfaceImage): Texture | null {
   useEffect(() => {
     let alive = true;
     let loaded: Texture | null = null;
-    new TextureLoader().load(
-      `${import.meta.env.BASE_URL}${surface.file}`,
-      (map) => {
-        loaded = map;
-        if (!alive) {
-          map.dispose();
-          return;
-        }
-        map.colorSpace = SRGBColorSpace;
-        map.offset.set(surface.offset[0], surface.offset[1]);
-        map.repeat.set(surface.repeat[0], surface.repeat[1]);
-        setTexture(map);
-      },
-    );
+    const loader = new TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    const url = surface.file.startsWith("http")
+      ? surface.file
+      : `${import.meta.env.BASE_URL}${surface.file}`;
+    loader.load(url, (map) => {
+      loaded = map;
+      if (!alive) {
+        map.dispose();
+        return;
+      }
+      map.colorSpace = SRGBColorSpace;
+      map.offset.set(surface.offset[0], surface.offset[1]);
+      map.repeat.set(surface.repeat[0], surface.repeat[1]);
+      setTexture(map);
+    });
     return () => {
       alive = false;
       loaded?.dispose();
