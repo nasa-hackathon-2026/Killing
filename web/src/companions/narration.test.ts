@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clickSelection, nextNarration } from "./narration";
+import { clickSelection, nextDockNarration, nextNarration } from "./narration";
 
 const open = { visibleIds: ["a", "b"], locationId: "p", playing: false };
 
@@ -41,5 +41,25 @@ describe("clicking a companion", () => {
     expect(clickSelection({ id: null, caveat: false }, "b", false).id).toBe(
       "b",
     );
+  });
+});
+
+describe("dock narration", () => {
+  it("reopens a collapsed dock for a new place after its bubble was closed", () => {
+    expect(
+      nextDockNarration(open, { ...open, locationId: "q" }, null, ["b", "a"], {
+        enabled: true,
+        collapsed: true,
+      }),
+    ).toEqual({ speaker: "b", expand: true });
+  });
+
+  it("keeps the dock collapsed when only the month changes", () => {
+    expect(
+      nextDockNarration(open, { ...open, playing: true }, null, ["b", "a"], {
+        enabled: true,
+        collapsed: true,
+      }),
+    ).toEqual({ speaker: null, expand: false });
   });
 });

@@ -31,6 +31,21 @@ export function nextNarration(
   return shownIds[0] ?? null;
 }
 
+export function nextDockNarration(
+  before: NarrationState,
+  after: NarrationState,
+  selectedId: string | null,
+  shownIds: string[],
+  options: { enabled: boolean; collapsed: boolean },
+): { speaker: string | null; expand: boolean } {
+  const placeChanged = before.locationId !== after.locationId;
+  if (!options.enabled || (options.collapsed && !placeChanged)) {
+    return { speaker: null, expand: false };
+  }
+  const speaker = nextNarration(before, after, selectedId, shownIds);
+  return { speaker, expand: !!speaker && options.collapsed && placeChanged };
+}
+
 // What a click on a companion does to the open bubble. Pure, and with no
 // "narration on/off" input on purpose: that switch only decides whether a
 // companion speaks up by itself (nextNarration above), never whether a click

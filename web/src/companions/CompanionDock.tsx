@@ -29,7 +29,7 @@ import {
 import { gatherLayout } from "./gather";
 import {
   clickSelection,
-  nextNarration,
+  nextDockNarration,
   type NarrationState,
 } from "./narration";
 import { interactionsFor } from "./interactions";
@@ -224,16 +224,21 @@ export function CompanionDock({
     narration.playing !== playing
   ) {
     const next = { visibleIds, locationId, playing };
-    const speaker =
-      narrate && autoIntro && !collapsed && !gathered && !gallery
-        ? nextNarration(
-            narration,
-            next,
-            selectedId,
-            shown.map((s) => s.id),
-          )
-        : null;
+    const { speaker, expand } = nextDockNarration(
+      narration,
+      next,
+      selectedId,
+      shown.map((spec) => spec.id),
+      {
+        enabled: narrate && autoIntro && !gathered && !gallery,
+        collapsed,
+      },
+    );
     setNarration(next);
+    if (expand) {
+      setCollapsed(false);
+      setCompactOpen(true);
+    }
     if (speaker && speaker !== selectedId) {
       setSelectedId(speaker);
       setCaveatOpen(false);
