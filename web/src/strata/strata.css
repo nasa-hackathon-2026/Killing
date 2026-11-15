@@ -167,6 +167,67 @@
   z-index: 2;
 }
 
+/* Wide screens: one row of companions per stratum right of the stack
+   (StrataScene places each row at its stratum's height and draws a thin
+   line from the platform's right edge to it). Each companion carries its
+   name and the month's value under the figure. */
+.strata-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.strata-links line {
+  stroke-width: 1.5;
+  stroke-opacity: 0.85;
+  stroke-dasharray: 3 3;
+  transition: opacity 0.2s;
+}
+
+.strata-beside .strata-companion {
+  width: 72px;
+  max-width: 72px;
+}
+
+.strata-companion-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1px;
+}
+
+.strata-companion-caption span,
+.strata-companion-caption b {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.strata-companion-caption b {
+  color: #d5e4f5;
+  font-weight: 600;
+}
+
+.strata-companion[aria-pressed="true"] .strata-companion-caption span {
+  text-decoration: underline;
+}
+
+/* The sentence of data facts of the companion last clicked, at the top of
+   its stratum's panel. */
+.strata-companion-line {
+  margin: 6px 0 8px;
+  padding: 6px 8px;
+  color: #e8eef7;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 3px solid #cfe3ff;
+  border-radius: 4px;
+}
+
 .strata-companion:hover .strata-companion-name,
 .strata-companion:focus-visible .strata-companion-name {
   display: block;

@@ -9,6 +9,8 @@ import {
   entryPose,
   entrySpread,
   CHART_COLUMN,
+  COMPANION_COLUMN,
+  companionPlacement,
   CREDIT_RESERVE,
   fitDistance,
   HUD_RESERVE,
@@ -211,5 +213,33 @@ describe("approachPosition", () => {
         expect(Math.hypot(...point)).toBeGreaterThanOrEqual(nearest - 1e-9);
       }
     }
+  });
+});
+
+describe("where the layer view's companions stand", () => {
+  it("lines them up beside the stack on a wide screen", () => {
+    expect(companionPlacement(1440, 900)).toBe("beside");
+    expect(companionPlacement(MEDIUM_WIDTH + 1, 768)).toBe("beside");
+  });
+
+  it("keeps them on the platforms at 1180 px and narrower", () => {
+    expect(companionPlacement(MEDIUM_WIDTH, 900)).toBe("on");
+    expect(companionPlacement(1000, 800)).toBe("on");
+    expect(companionPlacement(NARROW_WIDTH, 844)).toBe("on");
+  });
+
+  it("keeps them on the platforms when the docked chart leaves no room beside the stack", () => {
+    expect(companionPlacement(1400, 900, true)).toBe("on");
+    expect(companionPlacement(1920, 1080, true)).toBe("beside");
+  });
+
+  it("reserves a column right of the stack only while they stand beside it", () => {
+    expect(viewInsets(1440, 900, false, "beside").right).toBe(
+      PANEL_COLUMN + COMPANION_COLUMN,
+    );
+    expect(viewInsets(1440, 900, false, "on")).toEqual(viewInsets(1440, 900));
+    expect(viewInsets(1920, 1080, true, "beside").right).toBe(
+      PANEL_COLUMN + CHART_COLUMN + COMPANION_COLUMN,
+    );
   });
 });

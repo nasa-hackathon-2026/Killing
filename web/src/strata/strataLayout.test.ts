@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  COMPANION_EDGE_GAP,
+  COMPANION_SPACING,
+  companionRowXs,
   companionSpot,
   LAYER_GAP,
   layoutStrata,
@@ -84,6 +87,44 @@ describe("companionSpot", () => {
     }
     expect(spots[1][0] - spots[0][0]).toBeGreaterThan(0.5);
     expect(companionSpot(0, 1)[0]).toBeCloseTo(0);
+    expect(companionSpot(1, 3, "on")).toEqual(companionSpot(1, 3));
+  });
+
+  it("lines companions up in one row outside the platform's right edge when beside", () => {
+    const spots = [0, 1, 2].map((index) => companionSpot(index, 3, "beside"));
+    expect(spots[0][0]).toBeCloseTo(PLATFORM_WIDTH / 2 + COMPANION_EDGE_GAP);
+    expect(spots[1][0] - spots[0][0]).toBeCloseTo(COMPANION_SPACING);
+    expect(spots[2][0] - spots[1][0]).toBeCloseTo(COMPANION_SPACING);
+    for (const [x, z] of spots) {
+      expect(x).toBeGreaterThan(PLATFORM_WIDTH / 2);
+      expect(z).toBe(0);
+    }
+  });
+});
+
+describe("companionRowXs", () => {
+  // Companions 60 px wide, 8 px apart, between the platform's edge at 700
+  // and the Layers panel at 1100.
+  const row = (wanted: number[]) => companionRowXs(wanted, 60, 8, 700, 1100);
+
+  it("keeps a row that already fits where it is", () => {
+    expect(row([760, 840, 920])).toEqual([760, 840, 920]);
+  });
+
+  it("pushes companions that would overlap apart", () => {
+    expect(row([760, 780, 790])).toEqual([760, 828, 896]);
+  });
+
+  it("moves a row that runs into the Layers panel back to the left", () => {
+    expect(row([1030, 1080])).toEqual([1002, 1070]);
+  });
+
+  it("never puts a companion over the platform", () => {
+    expect(row([650, 718])).toEqual([730, 798]);
+  });
+
+  it("spreads companions evenly from edge to panel when there is not enough room", () => {
+    expect(companionRowXs([0, 0, 0], 60, 8, 700, 830)).toEqual([730, 765, 800]);
   });
 });
 

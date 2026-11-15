@@ -632,6 +632,10 @@ function AppView({
           )}
           trends={trends}
           signals={signals}
+          series={here}
+          locationId={locationId}
+          aggregation={aggregation}
+          trendsFile={trendsFile.status === "ready" ? trendsFile.data : null}
         />
       ) : null}
       {strata.phase === "off" && nearGround && location ? (

@@ -3,27 +3,30 @@
 // stratum. Numbers and wording come from the layer panel's data unchanged;
 // nothing is computed or interpreted here.
 import { Canvas } from "@react-three/fiber";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TrendBlock } from "../analysis/TrendBlock";
 import { TrendMarkIcon } from "../analysis/TrendMarkIcon";
-import type { TrendSummary } from "../analysis/trends";
+import type { TrendSummary, TrendsFile } from "../analysis/trends";
+import { companionTexts } from "../companions/companionTexts";
 import type { TrendSignal } from "../forms/encoding";
 import { monthYear, useI18n } from "../i18n";
 import { variableName } from "../i18n/names";
 import type { LayerControl } from "../layers/LayerPanel";
 import { layerRegistry } from "../layers/registry";
+import type { LoadedSeries } from "../snapshot/loadSnapshot";
 import { UnitText } from "../snapshot/UnitText";
 import { CompanionSlot } from "./companionSlot";
 import "./strata.css";
 import {
   clampDepression,
   clampZoom,
+  companionPlacement,
   DEFAULT_AZIMUTH,
   DEFAULT_DEPRESSION,
   FOV_DEG,
   MEDIUM_WIDTH,
 } from "./strataCamera";
-import { companionSpot } from "./strataLayout";
+import { companionSpot, type CompanionPlacement } from "./strataLayout";
 import {
   StrataScene,
   type SceneLayer,
@@ -64,7 +67,38 @@ type StrataViewProps = {
   anomalyZ?: Record<string, number | null>;
   trends?: Record<string, TrendSummary | null>;
   signals?: Record<string, TrendSignal>;
+  // For a companion's sentence of data facts (companions/companionTexts.ts):
+  // the place's series, its id and aggregation, and the trends file.
+  series?: LoadedSeries[];
+  locationId?: string;
+  aggregation?: string;
+  trendsFile?: TrendsFile | null;
 };
+
+// Beside the stack or on the platforms, following the window size and the
+// docked chart (strataCamera.ts companionPlacement).
+function useCompanionPlacement(chartOpen: boolean): CompanionPlacement {
+  const measure = useCallback(
+    () =>
+      typeof window === "undefined"
+        ? "on"
+        : companionPlacement(window.innerWidth, window.innerHeight, chartOpen),
+    [chartOpen],
+  );
+  const [placement, setPlacement] = useState<CompanionPlacement>(measure);
+  useEffect(() => {
+    const update = () => setPlacement(measure());
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [measure]);
+  return placement;
+}
+
+// Size of a companion figure: larger beside the stack, where its name and
+// value are written under it.
+const BESIDE_SIZE = 60;
+const ON_PLATFORM_SIZE = 40;
 
 function nameOf(variableId: string): string {
   return variableName(
@@ -87,10 +121,17 @@ export function StrataView({
   trends,
   signals,
   focus,
+  series,
+  locationId,
+  aggregation = "point",
+  trendsFile = null,
 }: StrataViewProps) {
-  const { t } = useI18n();
+  const { t, voice } = useI18n();
   const month = useCurrentMonth(appMonth);
   const chartOpen = useChartOpen();
+  const placement = useCompanionPlacement(chartOpen);
+  // The companion last clicked: its sentence shows in the stratum's panel.
+  const [speaking, setSpeaking] = useState<string | null>(null);
   // The three notes of the legend start open where there is room for them
   // beside the six labels (a tall, wide window).
   const [notesOpen] = useState(
@@ -113,9 +154,9 @@ export function StrataView({
     zoom: 1,
     pointerFraction: 0.5,
   });
-  const elements = useRef(new Map<string, HTMLElement>());
+  const elements = useRef(new Map<string, Element>());
   const register = useCallback(
-    (key: string) => (node: HTMLElement | null) => {
+    (key: string) => (node: Element | null) => {
       if (node) elements.current.set(key, node);
       else elements.current.delete(key);
     },
@@ -146,7 +187,7 @@ export function StrataView({
       anchors.push({
         key,
         stratum: item.id,
-        spot: companionSpot(index, shown.length),
+        spot: companionSpot(index, shown.length, placement),
       });
       companions.push({ variableId, key });
     });
@@ -183,6 +224,27 @@ export function StrataView({
   };
 
   const chosen = selected ? stratum(selected) : undefined;
+  const spoken =
+    speaking &&
+    chosen &&
+    strataAssignments.some(
+      (row) => row.variableId === speaking && row.stratum === chosen.id,
+    )
+      ? speaking
+      : null;
+  const sentence =
+    spoken && series && locationId
+      ? (companionTexts({
+          series,
+          month,
+          locationId,
+          locationName: place.nameEn,
+          aggregation,
+          trends: trendsFile,
+          voice,
+        }).lines[spoken] ?? null)
+      : null;
+  const beside = placement === "beside";
   const arriving = selected
     ? strataAssignments.filter((row) => row.flowsTo === selected)
     : [];
@@ -208,12 +270,32 @@ export function StrataView({
             elements={elements}
             surface={surface}
             chartOpen={chartOpen}
+            placement={placement}
             onSelect={setSelected}
             onClosed={onClosed}
           />
         </Canvas>
       </div>
-      <div className="strata-overlay">
+      <div
+        className={beside ? "strata-overlay strata-beside" : "strata-overlay"}
+      >
+        {beside ? (
+          // One thin line per stratum from the platform's right edge to its
+          // row of companions; StrataScene sets the ends every frame.
+          <svg className="strata-links" aria-hidden="true">
+            {strata.map((item) => (
+              <line
+                key={item.id}
+                ref={register(`link:${item.id}`)}
+                stroke={item.color}
+                visibility="hidden"
+                className={
+                  selected && selected !== item.id ? "strata-dim" : undefined
+                }
+              />
+            ))}
+          </svg>
+        ) : null}
         {strata.map((item) => (
           <button
             key={item.id}
@@ -262,8 +344,13 @@ export function StrataView({
                   : "strata-companion"
               }
               aria-label={`${info.name}: ${readings[variableId] ?? ""}`}
+              aria-pressed={spoken === variableId}
               title={`${info.name}: ${readings[variableId] ?? ""}`}
-              onClick={() => assignment && setSelected(assignment.stratum)}
+              onClick={() => {
+                if (!assignment) return;
+                setSelected(assignment.stratum);
+                setSpeaking(variableId);
+              }}
             >
               <CompanionSlot
                 variableId={variableId}
@@ -272,11 +359,18 @@ export function StrataView({
                 }
                 anomalyZ={anomalyZ?.[variableId] ?? null}
                 signal={signal}
-                size={40}
+                size={beside ? BESIDE_SIZE : ON_PLATFORM_SIZE}
               />
-              {/* The name shows on hover or keyboard focus only: the left
-                  column already lists every variable and its value. */}
-              <span className="strata-companion-name">{info.name}</span>
+              {beside ? (
+                <span className="strata-companion-caption" aria-hidden="true">
+                  <span>{info.name}</span>
+                  <b>{readings[variableId] ?? ""}</b>
+                </span>
+              ) : (
+                // On a platform the name shows on hover or keyboard focus
+                // only: the left column already lists every variable.
+                <span className="strata-companion-name">{info.name}</span>
+              )}
             </button>
           );
         })}
@@ -323,6 +417,11 @@ export function StrataView({
             })}{" "}
             {notes[0]}
           </p>
+          {sentence ? (
+            <p className="strata-companion-line" aria-live="polite">
+              {sentence}
+            </p>
+          ) : null}
           <ul>
             {variablesOf(chosen.id).map((variableId) => {
               const assignment = strataAssignments.find(

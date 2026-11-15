@@ -110,9 +110,64 @@ export function particleRange(
   return { from: home.y, to: target.top, crosses: true };
 }
 
-// Where the companion of the `index`-th of `count` variables of a stratum
-// stands on its platform: spread along the front edge. [x, z] on the plate.
-export function companionSpot(index: number, count: number): [number, number] {
+// Where the companions of a stratum stand: "beside" in one row outside the
+// platform's right edge (wide screens), or "on" the platform, spread along
+// its front edge (where there is no room beside the stack).
+export type CompanionPlacement = "beside" | "on";
+
+// Beside the stack: from the platform's right edge to the first companion,
+// and from one companion to the next (scene units). The row is then kept
+// apart and on screen in pixels by companionRowXs.
+export const COMPANION_EDGE_GAP = 0.25;
+export const COMPANION_SPACING = 0.55;
+
+// Screen centers (pixels) of one row of companions beside the stack.
+// `wanted` are the projected centers of their spots, left to right; each
+// companion is `width` wide. The row keeps `gap` pixels between
+// companions, starts right of `left` (the platform's right edge) and ends
+// left of `right` (the Layers panel). Without room for all of them, they
+// are spread evenly between the two bounds.
+export function companionRowXs(
+  wanted: number[],
+  width: number,
+  gap: number,
+  left: number,
+  right: number,
+): number[] {
+  if (wanted.length === 0) return [];
+  const first = left + width / 2;
+  const last = right - width / 2;
+  const step = width + gap;
+  const xs: number[] = [];
+  wanted.forEach((x, index) => {
+    const previous = xs[index - 1];
+    xs.push(Math.max(x, previous === undefined ? first : previous + step));
+  });
+  const overflow = (xs[xs.length - 1] ?? last) - last;
+  if (overflow > 0) {
+    for (let index = 0; index < xs.length; index += 1) {
+      xs[index] = (xs[index] ?? 0) - overflow;
+    }
+  }
+  if ((xs[0] ?? first) >= first) return xs;
+  if (xs.length === 1) return [first];
+  const even = (last - first) / (xs.length - 1);
+  return xs.map((_, index) => first + index * Math.max(0, even));
+}
+
+// [x, z] of the companion of the `index`-th of `count` shown variables of a
+// stratum, at the height of its platform.
+export function companionSpot(
+  index: number,
+  count: number,
+  placement: CompanionPlacement = "on",
+): [number, number] {
+  if (placement === "beside") {
+    return [
+      PLATFORM_WIDTH / 2 + COMPANION_EDGE_GAP + index * COMPANION_SPACING,
+      0,
+    ];
+  }
   const slots = Math.max(1, count);
   const x = ((index + 0.5) / slots - 0.5) * PLATFORM_WIDTH * 0.8;
   return [x, PLATFORM_DEPTH * 0.36];
