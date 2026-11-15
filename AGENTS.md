@@ -240,6 +240,14 @@ Skills 來源：上游 `mattpocock/skills` 的 plugin（安裝方式見 `docs/ag
 - **無障礙**：`index.css` 最上面的 `:focus-visible` 給所有控制項同一個焦點框，不要在個別元件把 outline 拿掉；新的互動元素用 `<button>`、`<a>`、`<details>`，不要用可點的 `<div>`。
 - **控制項與捲軸的樣式（#132）**：全在 `web/src/theme/controls.css`（捲軸、核取方塊、單選鈕、滑桿、下拉選單、`details` 箭頭、選取色、焦點框），四個入口（`main.tsx`、`mining-main.tsx`、`compare-main.tsx`、`lab-main.tsx`）各 import 一次。規則用元素與屬性選擇器，新增的 `<input>`、`<select>`、`<details>`、可捲動的面板會自動套用，不用加類別，也不要在元件的 CSS 另寫一套。顏色是該檔 `:root` 上的 `--ctl-*` 變數（淺色底的區塊像 `.companion-bubble` 在自己身上覆寫）；核取方塊的選中色可用 `--layer-color` 指定。捲軸的標準屬性只給沒有 `::-webkit-scrollbar` 的瀏覽器（原因寫在檔內註解），不要對元素直接加 `scrollbar-width`／`scrollbar-color`。
 
+## 前端的導覽（#187）
+首次造訪（Everyone 身分）或開始卡片的「Take the tour」開的夥伴導覽，依題目四個問題分章，章號與調查面板的分頁相同：開場（2 步）→ ① What（3）→ ② Where（2）→ ③ How much（2）→ ④ Significant（3）→ 結尾（1）。`?tour=1`…`4`（或 `what|where|howmuch|significant`）直接開到某一章，`?tour=0` 從頭開；不在 `VIEW_PARAMS` 裡，所以不影響開場圖層，只是不顯示開始卡片。
+
+- **腳本是資料**：`web/src/guide/tourScript.ts` 的 `TOUR_STEPS`，一步一筆：`chapter`、說話的夥伴（`speaker`，變數 id）、固定台詞（`messages`，鍵是 `guide.tour.<step id>`）或夥伴的模板句（`lines`：`who`／`now`／`trend`，由 `companionLine.ts` 用資料填數字）、完整的畫面狀態（`scene`：圖層、調查面板的變數與分頁、地點、是否播放）、要標示的區域（`targets`：CSS 選擇器、`{ layer }` 圖層面板的一列、`{ hudLabel }` 上方列的一個控制項）。**加一步**：在 `TOUR_STEPS` 加一筆 `step(...)`，五種語言的 `guide.json` 加 `guide.tour.<id>`（要分語體就寫成 `{ general, expert }`，Tour 依身分讀），跑 `tourScript.test.ts`（檢查鍵存在、章節順序、每章 2–3 步、面板分頁與章節一致）。
+- **冪等**：`pageForStep(step, visitor)` 是純函式，畫面只由「目前這一步」與「導覽開始時使用者的狀態」決定，所以跳章、Back、鍵盤任意跳都到同一個畫面；使用者在導覽中自己的操作會被下一步覆蓋，不會卡住。套用在 `useGuidedTour.ts`（重用 `selectPlace`、`setControls`、`useTimeline()`；分頁經 `TimelineDock` 的 `tourTab` prop）。只有播放那一步會動月份，其他步回到開始時的月份。**離開**（Skip、Esc、最後一步）時圖層、地點、圖表與月份回到導覽開始前，然後打開開始卡片。
+- **介面**（`Tour.tsx`、`guide.css` 的 `guide-tour-*`）：泡泡上方是四個章節鈕（點了跳到該章第一步）；每步的區域畫一圈 `.guide-tour-ring`（不吃滑鼠，`prefers-reduced-motion` 時不脈動，目標不在畫面上就不畫）；泡泡位置由 `tourPlacement.ts` 的 `bubblePlacement`（純函式，有測試）在幾個候選位置裡挑不壓到目標、最少壓到其他面板的一個，每 250 ms 重算（面板會自己滑動、變高）。結尾的三個按鈕是 `TOUR_NEXT`：兩個開始卡片的範例與「切換到 Researcher」。
+- **台詞限制**同資料夥伴：每步最多兩句、只講資料事實與怎麼讀圖，不寫原因與結論，不寫死數字；「不顯著」不寫成「沒有變化」。第 ④ 章的警語例子固定在臺北的 `gldas_tair`（那裡的檢定顯著、有已記錄的跳變，所以畫面上是斜線標記）；資料重產後若那裡不再顯著，換一個地點。
+
 ## 前端的時間軸與時間序列圖（#99）
 主畫面下方的時間軸列（播放、滑桿、速度、Latest）與圖層面板「Chart」按鈕開的時間序列圖。程式都在 `web/src/timeline/`，只呈現數字與方法，不寫解讀；**前端不重做任何檢定**，統計數字全部來自 `data/analysis/trends.json`。網址參數 `?month=YYYY-MM`、`?play=1`、`?chart=<變數 id>`（面板內容見「前端的調查面板」）。
 

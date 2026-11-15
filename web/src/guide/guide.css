@@ -285,6 +285,114 @@
   text-align: right;
 }
 
+/* The tour's chapters, numbered like the investigation panel's tabs. */
+.guide-tour-chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 0 0 6px;
+  cursor: default;
+}
+
+.guide-tour .guide-tour-chapters button {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 8px 2px 3px;
+  color: #b7c6da;
+  font-size: 12px;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.guide-tour .guide-tour-chapters button[aria-current="step"] {
+  color: #0b1220;
+  font-weight: 700;
+  background: #ffe9a8;
+  border-color: #ffe9a8;
+}
+
+.guide-tour .guide-tour-chapters button.guide-tour-done {
+  color: #e8eef7;
+  border-color: rgba(255, 233, 168, 0.6);
+}
+
+.guide-tour-chapter-number {
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+}
+
+.guide-tour-chapters .guide-tour-progress {
+  margin-left: auto;
+  color: #8fa3bd;
+  font-size: 12px;
+}
+
+.guide-tour-next {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  cursor: default;
+}
+
+.guide-tour-next a {
+  display: block;
+  padding: 5px 10px;
+  color: #cfe3ff;
+  text-decoration: none;
+  border: 1px solid rgba(207, 227, 255, 0.45);
+  border-radius: 6px;
+}
+
+.guide-tour-next a:hover {
+  background: rgba(207, 227, 255, 0.12);
+}
+
+/* The region a step talks about. It never takes a click. */
+.guide-tour-ring {
+  position: fixed;
+  z-index: 7;
+  box-sizing: border-box;
+  border: 2px solid #ffe9a8;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 4px rgba(255, 233, 168, 0.25),
+    0 0 18px rgba(255, 233, 168, 0.45);
+  pointer-events: none;
+  animation: guide-tour-ring 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes guide-tour-ring {
+  from {
+    box-shadow:
+      0 0 0 3px rgba(255, 233, 168, 0.2),
+      0 0 10px rgba(255, 233, 168, 0.3);
+  }
+
+  to {
+    box-shadow:
+      0 0 0 6px rgba(255, 233, 168, 0.3),
+      0 0 22px rgba(255, 233, 168, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-tour-ring {
+    animation: none;
+  }
+}
+
 @media (max-width: 700px) {
   .guide-tour {
     position: fixed;
@@ -292,7 +400,8 @@
   }
 
   .guide-tour-figure,
-  .guide-tour .guide-tour-keys {
+  .guide-tour .guide-tour-keys,
+  .guide-tour-chapter-name {
     display: none;
   }
 

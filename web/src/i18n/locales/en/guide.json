@@ -7,7 +7,7 @@
       "expert": "Pick an Earth-system variable, follow up to 25 years of it at one place, and see whether its trend is statistically significant."
     },
     "tour": "Take the tour",
-    "tourHint": "A data companion walks you through the layers, top to bottom.",
+    "tourHint": "A data companion walks you through four questions: what is changing, where, how much, and whether it is significant.",
     "examples": "Try an example",
     "opens": "Opens: {{what}}",
     "start": "Start exploring",
@@ -75,12 +75,37 @@
     "finish": "Start exploring",
     "keys": "Enter or → next · ← back · Esc skip",
     "noPlace": "The tour needs a single place. Pick one in the Layers panel.",
-    "welcome": "Hi, I'm Rain, one of the data companions. This site shows up to 25 years of NASA Earth data at one place, and whether each measurement has changed.",
-    "place": "Right now you are looking at {{place}} in {{month}}. You can pick another place in the Layers panel and another month on the timeline.",
-    "particles": "The particles around the globe show one number per layer for this place and month. More or faster particles mean a higher value. They are not a map.",
-    "particlesCalm": "The cluster above this place shows one number per layer for this month. More units mean a higher value, and the thin ring is what is usual for this month. It is not a map.",
-    "enter": "Each measurement belongs to a height, from the ozone layer down to the soil. Let's visit them from top to bottom.",
-    "trendMap": "That was one place. To see where on Earth a measurement is changing, open Global trend map at the top.",
-    "research": "For the full statistics, such as confidence intervals and test names, switch to Researcher at the top. Now it's your turn."
+    "chapters": "Chapters",
+    "chapterJump": "Chapter {{number}}: {{question}}",
+    "welcome": "Hi, I'm Rain. Let me show you how to answer four questions with NASA Earth data: what is changing, where, how much, and whether the change is significant.",
+    "particles": "This is {{place}} in {{month}}. The particles show one number per layer for this place and month; they are not a map.",
+    "particlesCalm": "This is {{place}} in {{month}}. The cluster above the place shows one number per layer for this month; it is not a map.",
+    "what": {
+      "tab": "Tab ① shows my whole record month by month; Details holds my usual cycle through the year. Other measurements of the same group are listed below."
+    },
+    "where": {
+      "tab": "Tab ② shows the same measurement at many places side by side. Click a box to go to that place.",
+      "city": "Now we are at {{place}}, and the globe turned to it. To see the change at every point on Earth, open Global trend map at the top."
+    },
+    "howmuch": {
+      "anomaly": {
+        "general": "Tab ③ first takes away the usual yearly cycle, so each month shows how far it was from normal. The trend line turns that into a change per decade.",
+        "expert": "Tab ③ works on monthly anomalies (seasonal cycle removed) and gives the least-squares slope per decade. The table adds its 95% confidence interval and p value."
+      },
+      "play": {
+        "general": "The bar on the line centred on 0 is the range the change per decade most likely lies in (95%); if it crosses 0, the direction is not settled. Press play and the cursor moves along the chart with the timeline.",
+        "expert": "The interval plot shows the OLS and Sen slopes with their 95% confidence intervals on a line centred on 0. While the timeline plays, the cursor follows it on the chart."
+      }
+    },
+    "significant": {
+      "tests": {
+        "general": "Tab ④ runs two different tests on the record, and each light shows whether that test finds a change. When both agree, the answer is clearer.",
+        "expert": "Tab ④ shows the OLS t-test (lag-1 autocorrelation corrected) and Mann-Kendall, with p and FDR-adjusted q values. It says whether the two agree."
+      },
+      "notSignificant": "“Not significant” does not mean “no change”. Often the record is just too short or too noisy to tell.",
+      "caveat": "Some records have a documented data problem, such as a jump when the product changed. Their trend gets a striped mark and a note: not reliable as a climate signal."
+    },
+    "outro": "Now it's your turn: try one of these, or jump to any chapter with the numbers above. Reopen me any time with the ? Guide button.",
+    "nextResearcher": "Switch to Researcher for the full statistics"
   }
 }
