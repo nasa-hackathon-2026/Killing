@@ -81,7 +81,7 @@ Everything can be reached with the keyboard (Tab, Enter or Space; Space and the 
 - **Per-place trend marks and the trend map are not drawn together.** While a global trend map is on, the per-place marks are hidden (the legend says so), because the two pictures use different units of space: a grid cell and a point.
 - **Units are as provided by each product** (for example K for MERRA-2, °C for NASA POWER); the layer panel converts Kelvin to °C for display only.
 - **A close-up covers the chart.** The close-up panel opens over the left side of the page, on top of an open time series chart; close it to see the chart again.
-- **Phone widths are simplified.** The Layers and Companions panels start folded, "Fly to Taiwan" is left out of the top row, the layer view shows values without variable names in its labels (tap a label for the names) and hides the companion panel, and an open chart covers the layer view until it is closed. Between 701 and 1180 px, an open chart takes the place of the Layers panel in the layer view, and below 900 px the companion panel gives way to an open chart.
+- **Phone widths are simplified.** The Layers and Companions panels start folded, "Fly near me" is left out of the top row, the layer view shows values without variable names in its labels (tap a label for the names) and hides the companion panel, and an open chart covers the layer view until it is closed. Between 701 and 1180 px, an open chart takes the place of the Layers panel in the layer view, and below 900 px the companion panel gives way to an open chart.
 - Performance has not been measured on real phones.
 
 ## NASA data and resources
