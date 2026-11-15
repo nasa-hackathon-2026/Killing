@@ -3,15 +3,15 @@
    here is inside it. Classes start with investigation-. */
 
 /* Wider on request, still left of the companions and the Layers panel
-   (574px together, as in index.css), beside the legend column when it
+   (the 330px sidebar, as in index.css), beside the legend column when it
    holds a map legend (left: 384px). */
 .timeline-chart.investigation-wide {
-  width: min(720px, calc(100% - 12px - 574px - 12px));
+  width: min(720px, calc(100% - 12px - 330px - 12px));
 }
 
 .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
   .timeline-chart.investigation-wide {
-  width: min(720px, calc(100% - 384px - 574px));
+  width: min(720px, calc(100% - 384px - 330px));
 }
 
 /* The header and the tabs stay in place; the page under them scrolls (the

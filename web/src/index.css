@@ -584,6 +584,14 @@ body,
   max-height: calc(100% - 64px - 72px);
 }
 
+/* Medium widths: stops left of the right sidebar (306px + margins). On a
+   phone the sidebar slides away when a close-up opens, so it is full width. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .app:has(.right-sidebar[data-open="true"]) .closeup {
+    width: min(640px, calc(100% - 342px));
+  }
+}
+
 .closeup:has(~ .lab-note) {
   max-height: calc(100% - 64px - 124px);
 }
@@ -1079,12 +1087,12 @@ body,
 /* Beside the left legend column (.map-legends, 360px wide at 12px) when it
    holds a map legend; narrower when the window has no room for the legends,
    the chart, the companions and the Layers panel side by side (384px +
-   574px companions and Layers). Without a map legend the column shows
+   330px sidebar). Without a map legend the column shows
    nothing while the chart is open (App.tsx), so the chart keeps the left. */
 .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
   .timeline-chart {
   left: 384px;
-  width: min(440px, calc(100% - 384px - 574px));
+  width: min(440px, calc(100% - 384px - 330px));
 }
 
 .timeline-modes {
@@ -1222,14 +1230,14 @@ body,
     width: calc(100% - 306px - 36px);
   }
 
-  /* The drawer stops left of the companion panel (236px at its widest). */
+  /* The drawer stops left of the right sidebar. */
   .timeline-chart,
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
     top: auto;
     left: 12px;
     bottom: calc(var(--timeline-bottom) + var(--timeline-height) + 8px);
-    width: calc(100% - 306px - 36px - 248px);
+    width: calc(100% - 306px - 36px);
   }
 
   /* Legend and chart share the left side: the legend keeps a short,
@@ -1247,9 +1255,14 @@ body,
   }
 }
 
-/* Too narrow for the drawer and the companion panel side by side: the
-   drawer takes the width and the companions give way until it is closed. */
+/* Too narrow for the drawer and the sidebar side by side: the drawer takes
+   the room left of the sidebar. The bar drops its speed slider (the − and +
+   buttons and the number stay) so its row fits in that room. */
 @media (max-width: 900px) {
+  .timeline-speed input[type="range"] {
+    display: none;
+  }
+
   .timeline-chart,
   .app:has(.map-legends > .trendmap, .map-legends > .field-legend)
     .timeline-chart {
