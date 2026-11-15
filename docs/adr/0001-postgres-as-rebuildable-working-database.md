@@ -35,4 +35,4 @@ date: 2026-11-15
 - `pg load` 會重新編 `series_id`；跨次比對要用 (`variable_id`, `location_id`, `aggregation`)。
 - 資料庫目前只在 gx10 本機，尚未同步到雲端。
 
-決定的分工：決定由 Grason（隊伍）做，實作由 AI 工具（Claude Code）完成。 用 PostgreSQL 加擴充套件當統一的整理介面，是 Grason 在 2026-11-14 至 11-15 提出並決定的（#83）；SQLite 放 GitHub Release 是 Grason 2026-11-14 的決定（`AGENTS.md`「SQLite 匯出」）；公開網站只讀靜態檔是隊伍在 #4 的決定。「趨勢與探勘從序列檔讀、不直接讀資料庫」是 AI 工具在實作時提出的做法（理由見 `docs/data/postgres.md`：沒有資料庫的隊友也能重現網站的結果檔），Grason 於 2026-11-15 檢視後決定採用。
+決定的分工：決定由 Grason（隊伍）做，實作由 AI 工具（Claude Code）完成。 用 PostgreSQL 加擴充套件當統一的整理介面，是 Grason 在 2026-11-14 至 11-15 提出並決定的（#83）；SQLite 放 GitHub Release 是 Grason 2026-11-14 的決定（`AGENTS.md`「SQLite 匯出」）；公開網站只讀靜態檔是隊伍在 #4 的決定。統計與探勘要建立在整理過的資料上，是 Grason 的決定。實作上，趨勢與探勘的程式對序列檔套用與資料庫**同一份**清洗規則與同一個清洗函式（`cleaning.py`、`data/seed/cleaning.json`），而不是直接查資料庫的表；這個做法是 AI 工具提出的（理由見 `docs/data/postgres.md`：沒有資料庫的隊友也能重現網站的結果檔）。兩條路徑的結果有核對：6,822 條序列的可用月數在資料庫與結果檔之間全部相同（#85）。相似序列、變數關聯圖的連通分量、模式與觀測配對則是直接在資料庫裡算的。
