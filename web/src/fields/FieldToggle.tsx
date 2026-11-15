@@ -53,7 +53,11 @@ export function FieldToggle({
     <label
       className="field-toggle"
       ref={(element) =>
-        setAnchor(element?.closest<HTMLElement>(".app") ?? null)
+        setAnchor(
+          element
+            ?.closest(".app")
+            ?.querySelector<HTMLElement>(".map-legends") ?? null,
+        )
       }
     >
       <span>{fieldText.controlLabel}</span>

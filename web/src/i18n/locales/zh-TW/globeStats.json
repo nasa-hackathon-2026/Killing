@@ -29,7 +29,7 @@
   "gapObsWarn": "橘點：觀測序列有已記錄的取樣問題。",
   "gapModelStripes": "左半條紋：模式序列有已記錄的跳變。",
   "gapOnlyTemperature": "只有氣溫變數有測站可比較，請選擇氣溫圖層。",
-  "gapModelSelect": "模式氣溫",
+  "gapModelSelect": "比較用模式氣溫（獨立於所選圖層）",
   "gapNoPairs": "此變數沒有配對。",
   "gapClick": "點選開啟比較。",
   "alikeIntro": "弧線連接所選地點與其他變數變化最相似的序列所在地。",

@@ -29,7 +29,7 @@
   "gapObsWarn": "Orange dot: the observed series has a documented sampling problem.",
   "gapModelStripes": "Striped left half: the model series has a documented step.",
   "gapOnlyTemperature": "Only temperature variables have a station to compare with. Choose a temperature layer.",
-  "gapModelSelect": "Model temperature",
+  "gapModelSelect": "Model temperature for comparison (independent of the selected layer)",
   "gapNoPairs": "No pairs for this variable.",
   "gapClick": "Click to open the comparison.",
   "alikeIntro": "Arcs join the chosen place to the places whose other variables move most like its chosen variable.",
