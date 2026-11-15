@@ -1,29 +1,29 @@
 {
-  "sources": "Sources: {{sources}}",
-  "unreliable": "This trend is not reliable as a climate signal: {{reason}}",
-  "genericReason": "it has a documented data issue.",
+  "sources": "Quellen: {{sources}}",
+  "unreliable": "Dieser Trend ist als Klimasignal nicht verlässlich: {{reason}}",
+  "genericReason": "Er hat ein dokumentiertes Datenproblem.",
   "gldas_tair": {
     "summary": {
-      "general": "Caution: this record jumps when its input data changed, so its trend is not a climate signal.",
-      "expert": "Caution: this trend contains step changes and should not be read as a climate signal."
+      "general": "Vorsicht: Diese Datenreihe springt, als sich ihre Eingangsdaten änderten, daher ist ihr Trend kein Klimasignal.",
+      "expert": "Vorsicht: Dieser Trend enthält Sprünge und sollte nicht als Klimasignal gelesen werden."
     },
-    "reason": "it contains step changes.",
-    "details": "GLDAS-2.1 air temperature comes from the NOAA GDAS operational analysis used to force the model. Against MERRA-2 over the same land cells, its global land mean shifts by about +0.4 K in May 2011, +0.6 K in July 2017 and −0.6 K in June 2019, the months of GDAS/GFS upgrades in the NCEP change log. At Taichung it also steps by 1 K or more against the station record."
+    "reason": "Er enthält Sprünge.",
+    "details": "Die GLDAS-2.1-Lufttemperatur stammt aus der operationellen GDAS-Analyse der NOAA, die das Modell antreibt. Gegenüber MERRA-2 über denselben Landzellen verschiebt sich ihr globales Landmittel um etwa +0,4 K im Mai 2011, +0,6 K im Juli 2017 und −0,6 K im Juni 2019, also in den Monaten der GDAS/GFS-Upgrades im Änderungsprotokoll der NCEP. In Taichung springt sie außerdem um 1 K oder mehr gegenüber der Stationsreihe."
   },
   "gldas_evap": {
     "summary": {
-      "general": "Caution: this record has a jump that a second, independent product does not show.",
-      "expert": "Caution: this series contains a step that an independent product does not show."
+      "general": "Vorsicht: Diese Datenreihe hat einen Sprung, den ein zweites, unabhängiges Produkt nicht zeigt.",
+      "expert": "Vorsicht: Diese Datenreihe enthält einen Sprung, den ein unabhängiges Produkt nicht zeigt."
     },
-    "reason": "the series contains a step that an independent product does not show.",
-    "details": "From July 2024 to May 2025 the GLDAS-2.1 downward shortwave forcing runs 15–32 W m⁻² above that of FLDAS (same Noah model family, MERRA-2 forcing) over the same land cells, and GLDAS global land evapotranspiration runs about 0.1–0.2 mm/day (1–2 × 10⁻⁶ kg m⁻² s⁻¹) above FLDAS; both differences are gone by July 2025. The GLDAS-2 README records that the cloud analysis behind its radiation input was decommissioned in summer 2024 and that radiation switched to GALWEM on 9 June 2025. Over 2001–2026 the GLDAS global land trend is +0.058 mm/day per decade against +0.012 for FLDAS."
+    "reason": "Die Datenreihe enthält einen Sprung, den ein unabhängiges Produkt nicht zeigt.",
+    "details": "Von Juli 2024 bis Mai 2025 liegt der abwärts gerichtete Kurzwellenantrieb von GLDAS-2.1 über denselben Landzellen 15–32 W m⁻² über dem von FLDAS (gleiche Noah-Modellfamilie, MERRA-2-Antrieb), und die globale Land-Evapotranspiration von GLDAS liegt etwa 0,1–0,2 mm/day (1–2 × 10⁻⁶ kg m⁻² s⁻¹) über FLDAS; beide Unterschiede sind bis Juli 2025 verschwunden. Die README von GLDAS-2 hält fest, dass die Wolkenanalyse hinter dem Strahlungseingang im Sommer 2024 eingestellt wurde und die Strahlung am 9. Juni 2025 auf GALWEM umgestellt wurde. Über 2001–2026 beträgt der globale Landtrend von GLDAS +0,058 mm/day pro Jahrzehnt gegenüber +0,012 bei FLDAS."
   },
   "gldas_soilmoist": {
     "summary": {
-      "general": "Caution: two model products disagree on whether this goes up or down.",
-      "expert": "Caution: two model products disagree on the sign of this trend."
+      "general": "Vorsicht: Zwei Modellprodukte sind uneins, ob dieser Wert steigt oder fällt.",
+      "expert": "Vorsicht: Zwei Modellprodukte sind sich über das Vorzeichen dieses Trends uneinig."
     },
-    "reason": "two model products disagree on its sign.",
-    "details": "Over the same land cells and months (January 2001 to July 2026), the global land trend of 0–10 cm soil moisture is −0.43 kg m⁻² per decade in GLDAS-2.1 and +0.16 in FLDAS (same Noah model family, MERRA-2 and CHIRPS forcing), and the two global land series correlate at only 0.08. FLDAS is also a model simulation and the only product compared, so this check cannot tell which of the two is closer to the truth. No clear step was found at the GDAS/GFS upgrade months (May 2011, July 2017, June 2019)."
+    "reason": "Zwei Modellprodukte sind sich über sein Vorzeichen uneinig.",
+    "details": "Über denselben Landzellen und Monaten (Januar 2001 bis Juli 2026) beträgt der globale Landtrend der Bodenfeuchte in 0–10 cm −0,43 kg m⁻² pro Jahrzehnt in GLDAS-2.1 und +0,16 in FLDAS (gleiche Noah-Modellfamilie, Antrieb aus MERRA-2 und CHIRPS); die beiden globalen Landreihen korrelieren nur mit 0,08. FLDAS ist ebenfalls eine Modellsimulation und das einzige verglichene Produkt, daher kann diese Prüfung nicht sagen, welches von beiden der Wirklichkeit näher kommt. In den Monaten der GDAS/GFS-Upgrades (Mai 2011, Juli 2017, Juni 2019) wurde kein klarer Sprung gefunden."
   }
 }
